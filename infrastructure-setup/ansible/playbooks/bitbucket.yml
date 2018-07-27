@@ -1,0 +1,14 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_bitbucket_test') }}"
+  roles:
+  - role: geerlingguy.git
+    become: true
+    git_install_from_source: true
+    git_install_from_source_force_update: true
+    git_version: 2.9.3
+  - role: srsp.oracle-java
+    become: True
+    java_version: 8
+    java_subversion: 172
+  - role: local.atlassian_bitbucket
+    atlassian_bitbucket_jdbc_password: "{{bitbucket_database_user_password}}"

@@ -1,0 +1,23 @@
+# .bashrc
+# {{ ansible_managed }}
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+export AWS_ACCESS_KEY_ID='{{ aws_root_access_key_id }}'
+export AWS_SECRET_ACCESS_KEY='{{ aws_root_secret_access_key }}'
+
+{% if not 'dev' in groups %}
+# prompt in red for production
+export PS1='\033[1;41m[\u@\h \W]\$ \033[0m '
+{% endif %}
+
+GIT_PROMPT_ONLY_IN_REPO=1
+GIT_PROMPT_FETCH_REMOTE_STATUS=0
+source ~/.bash-git-prompt/gitprompt.sh

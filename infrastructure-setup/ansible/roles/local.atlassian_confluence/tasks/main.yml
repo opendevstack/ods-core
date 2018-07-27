@@ -1,0 +1,50 @@
+---
+- name: download confluence installer
+  get_url:
+    url: "https://downloads.atlassian.com/software/confluence/downloads/{{ atlassian_confluence_installer_package }}" 
+    dest: "/tmp"
+    owner: root
+    group: root
+    mode: 0754
+    validate_certs: no
+    force: no
+  become: true
+  tags: online
+
+- name: create config file for silent install
+  template:
+   src: confluence_installer.cfg.j2
+   dest: "/tmp/confluence_installer.cfg"
+   owner: root
+   group: root
+   mode: 0644
+  become: true
+
+
+- name: run installer
+  shell: ./{{atlassian_confluence_installer_package}} -q -varfile ./confluence_installer.cfg
+  register: installer_result
+  changed_when: "not 'It appears that Confluence is already installed in the directory you selected.' in installer_result.stderr"
+  failed_when: "not installer_result.rc == 0 and not 'It appears that Confluence is already installed in the directory you selected.' in installer_result.stderr"
+  args:
+    chdir: "/tmp"
+  become: true
+  
+- name: modify JVM properties
+  template:
+    src: server.xml.j2
+    dest: "{{ atlassian_confluence_installation_dir }}/conf/server.xml"
+  become: true
+  notify:
+    - stop confluence
+    - start confluence  
+    
+- name: modify JVM properties
+  lineinfile:
+    path: "{{atlassian_confluence_installation_dir}}/bin/setenv.sh"
+    regexp: 'CATALINA_OPTS="-Xms1024m -Xmx1024m -XX:\+UseG1GC \$\{CATALINA_OPTS\}"'
+    line: '-Dsynchrony.proxy.enabled=true CATALINA_OPTS="-Xms{{atlassian_confluence_jvm_mem}} -Xmx{{atlassian_confluence_jvm_mem}} -XX:+UseG1GC ${CATALINA_OPTS}"'
+  become: True
+  notify:
+  - stop confluence
+  - start confluence    

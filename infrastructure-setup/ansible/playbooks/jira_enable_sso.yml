@@ -1,0 +1,41 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_jira_test') }}"
+  tasks:
+    - name: remove CROWD comments
+      command: sed -i.orig -e '/<!-- CROWD:START/,/<!-- CROWD:END/d' {{atlassian_jira_installation_dir}}/atlassian-jira/WEB-INF/classes/seraph-config.xml
+      become: True
+
+    - name: ensure we have the SSO authenticator enabled
+      lineinfile:
+        path: "{{atlassian_jira_installation_dir}}/atlassian-jira/WEB-INF/classes/seraph-config.xml"
+        line: '<authenticator class="com.atlassian.jira.security.login.SSOSeraphAuthenticator"/>'
+        insertbefore: "^.*<services>"
+        backup: yes
+      become: True
+      notify:
+      - stop jira
+      - start jira
+
+    - name: "create crowd.properties files"
+      template:
+        src: crowd.properties.j2
+        dest: "{{atlassian_jira_installation_dir}}/atlassian-jira/WEB-INF/classes/crowd.properties"
+      become: True
+      notify:
+      - stop jira
+      - start jira
+
+  handlers:
+  - name: stop jira
+    command: service jira stop
+    become: True
+
+  - name: start jira
+    command: service jira start
+    become: True
+
+  vars:
+    application_name: jira
+    application_password: "{{crowd_application_password_jira}}"
+    application_login_url: "{{atlassian_jira_application_url}}"
+    application_crowd_base_url: "{{atlassian_crowd_url}}"

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: nexus3
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: nexus3
+    name: nexus3
+  spec:
+    host: ${NEXUS_HOST}
+    port:
+      targetPort: 8081-tcp
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: nexus3
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- name: NEXUS_HOST
+  required: true

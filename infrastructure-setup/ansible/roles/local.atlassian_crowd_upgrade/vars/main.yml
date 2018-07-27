@@ -1,0 +1,4 @@
+---
+atlassian_download_url: "{{ atlassian_crowd_baseurl }}/atlassian-crowd-{{ atlassian_crowd_version }}.tar.gz"
+atlassian_download_tmp: "{{ atlassian_crowd_basedir }}/atlassian-crowd-{{ atlassian_crowd_version }}.tar.gz"
+atlassian_crowd_dir: "{{ atlassian_crowd_basedir }}/atlassian-crowd-{{ atlassian_crowd_version }}"

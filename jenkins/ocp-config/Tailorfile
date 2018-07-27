@@ -1,0 +1,5 @@
+namespace cd
+selector  app=jenkins
+param-dir ../../../ods-configuration/ods-core/jenkins/ocp-config
+
+bc,is

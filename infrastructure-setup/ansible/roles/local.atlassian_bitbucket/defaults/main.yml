@@ -1,0 +1,32 @@
+---
+# version of bitbucket to install
+atlassian_bitbucket_version: 4.14.3
+
+# installation directory
+atlassian_bitbucket_basedir: /opt/atlassian/bitbucket
+# data directory of bitbucket (repositories, logs, configuration)
+# see https://confluence.atlassian.com/bitbucketserver/bitbucket-server-home-directory-776640890.html
+atlassian_bitbucket_home: /srv/atlassian/bitbucket
+
+#The display name for the Bitbucket Server application.
+atlassian_bitbucket_display_name: Bitbucket
+# the base url (used for links in notifications)
+atlassian_bitbucket_base_url: http://127.0.0.1:7990
+
+# the bitbucket license (should be overwritten and encrypted)
+atlassian_bitbucket_license:
+
+atlassian_bitbucket_upgrade: false
+
+# connection to bitbucket database
+atlassian_bitbucket_jdbc_url: jdbc:postgresql://localhost:5432/bitbucket
+atlassian_bitbucket_jdbc_user: bitbucket
+# the password for the database (should be overwritten and encrypted)
+atlassian_bitbucket_jdbc_password: bitbucket
+# is bitbucket secured via https with a proxy
+atlassian_bitbucket_secure: false
+# if bitbucket is behind a proxy, provide the endpoint name and port
+atlassian_bitbucket_proxy_port: 443
+atlassian_bitbucket_proxy_name:
+
+atlassian_bitbucket_elasticsearch_password: bitbucket

@@ -1,0 +1,95 @@
+---
+# Installs for local testing a Postgresql 9.4 DB
+# this is only required, when not running on AWS
+
+- hosts: atlassian-db
+  become: True
+  tasks:
+    - name: exclude standard postgresql package
+      lineinfile:
+        line: exclude=postgresql*
+        insertafter: "{{ item }}"
+        dest: /etc/yum.repos.d/CentOS-Base.repo
+      with_items:
+      - "[base]"
+      - "[update]"
+
+    - name: install centos pgdg
+      yum:
+        name: https://download.postgresql.org/pub/repos/yum/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-3.noarch.rpm
+        state: present
+
+    - name: install postgresql
+      yum:
+        name: postgresql94-server
+
+    - name: Enable Service
+      systemd:
+        name: postgresql-9.4
+        enabled: True
+      notify: restart postgresql
+
+    - name: initialize postgresql if necessary
+      command: /usr/pgsql-9.4/bin/postgresql94-setup initdb
+      args:
+        creates: /var/lib/pgsql/9.4/data/PG_VERSION
+      notify: restart postgresql
+
+    - name: Copy pg_hba.configure
+      copy:
+        src: pg_hba.conf
+        dest: /var/lib/pgsql/9.4/data/pg_hba.conf
+        owner: postgres
+        group: postgres
+      notify: restart postgresql
+
+    - name: Configure listen address
+      lineinfile:
+        path: /var/lib/pgsql/9.4/data/postgresql.conf
+        line: listen_addresses = '*'
+
+    - name: start postgresql
+      service:
+        name: postgresql-9.4
+        state: started
+
+    - name: install epel
+      yum:
+        name: epel-release
+
+    - name: install pip
+      yum:
+        name: python-pip
+
+    - name: install required pip packages to manage postgresql_db
+      pip:
+        name: psycopg2
+
+    - name: create atlassian database
+      postgresql_db:
+        name: atlassian
+        encoding: UTF-8
+        lc_collate: C
+        lc_ctype: C
+        template: template0        
+      become: True
+      become_user: postgres
+
+    - name: create root login user
+      command: psql -U postgres -c "CREATE USER {{ postgresql_root_login_user }} WITH CREATEROLE CREATEUSER ENCRYPTED PASSWORD'{{ postgresql_root_login_password }}'"
+      become: True
+      become_user: postgres
+      register: root_login_user_result
+      ignore_errors: True
+      failed_when: "'already exists' not in root_login_user_result.stderr and root_login_user_result|failed"
+
+  handlers:
+    - name: start postgresql
+      service:
+        name: postgresql-9.4
+        state: started
+
+    - name: restart postgresql
+      service:
+        name: postgresql-9.4
+        state: restarted

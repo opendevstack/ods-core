@@ -1,0 +1,66 @@
+---
+- name: download jira installer
+  get_url:
+    url: "https://downloads.atlassian.com/software/jira/downloads/{{ atlassian_jira_installer_package }}"
+    dest: "/tmp"
+    owner: root
+    group: root
+    mode: 0754
+    validate_certs: no
+    force: no
+  become: true
+  tags: online
+
+- name: create config file for silent install
+  template:
+   src: jira_installer.cfg.j2
+   dest: "/tmp/jira_installer.cfg"
+   owner: root
+   group: root
+   mode: 0644
+  become: true
+
+- name: run installer
+  shell: ./{{atlassian_jira_installer_package}} -q -varfile ./jira_installer.cfg
+  register: installer_result
+  changed_when: "not 'It appears that JIRA is already installed' in installer_result.stderr"
+  failed_when: "not installer_result.rc == 0 and not 'It appears that JIRA is already installed' in installer_result.stderr"
+  args:
+    chdir: "/tmp"
+  become: true
+
+- name: Add proxy endpoint address to server.xml
+  template:
+    src: server.xml.j2
+    dest: "{{ atlassian_jira_installation_dir }}/conf/server.xml"
+  become: true
+  notify:
+    - stop jira
+    - start jira
+
+- name: configure database
+  template:
+    src: dbconfig.xml.j2
+    dest: "{{ atlassian_jira_home }}/dbconfig.xml"
+    mode: 0600
+    owner: jira
+    group: jira
+  become: true
+  notify:
+    - stop jira
+    - start jira
+
+
+- include: configure-eazybi.yml
+  static: no
+# TODO: so far no silent configuration found. can probably be removed
+# add properties for jira automated setup: see
+#- name: add jira configuration properties for automated setup
+#  template:
+#    src: jira.properties.j2
+#    dest: "{{ atlassian_jira_home }}/shared/jira.properties"
+#    owner: jira
+#    group: jira
+#    mode: 0640
+#  become: true
+#  notify: restart jira

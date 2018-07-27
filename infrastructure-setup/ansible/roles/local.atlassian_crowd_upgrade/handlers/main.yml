@@ -1,0 +1,14 @@
+---
+- name: start crowd
+  systemd:
+    name: crowd
+    state: started
+    daemon-reload: yes
+  become: True
+
+- name: restart crowd
+  systemd:
+    name: crowd
+    daemon-reload: yes
+    state: restarted
+  become: True

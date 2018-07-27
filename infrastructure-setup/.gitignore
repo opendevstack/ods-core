@@ -1,0 +1,4 @@
+.project
+.vagrant
+*.retry
+.DS_STORE

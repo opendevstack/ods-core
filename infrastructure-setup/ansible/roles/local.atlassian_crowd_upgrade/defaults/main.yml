@@ -1,0 +1,23 @@
+---
+atlassian_crowd_version: 2.11.2
+
+atlassian_crowd_baseurl: https://www.atlassian.com/software/crowd/downloads/binary/
+atlassian_crowd_basedir: /opt/atlassian
+atlassian_crowd_home: /srv/atlassian/crowd
+
+atlassian_crowd_user: crowd
+atlassian_crowd_uid: 10002
+atlassian_crowd_group: crowd
+atlassian_crowd_gid: 10002
+
+atlassian_crowd_hibernate_dialect: org.hibernate.dialect.PostgreSQLDialect
+atlassian_crowd_url: http://192.168.31.56:8095/crowd
+atlassian_crowd_demo_url: http://192.168.31.56:8095/demo
+atlassian_crowd_openidserver_url: http://192.168.31.56:8095/openidserver
+
+atlassian_crowd_jdbc_url: "jdbc:postgresql://{{postgresql_host}}:{{postgresql_port}}/atlassian"
+atlassian_crowd_jvm_xms: 128m
+atlassian_crowd_jvm_xmx: 512m
+
+atlassian_crowd_postgresql_driver: postgresql-42.0.0.jar
+

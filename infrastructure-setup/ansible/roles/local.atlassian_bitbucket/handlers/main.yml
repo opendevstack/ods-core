@@ -1,0 +1,15 @@
+---
+# using the service module does not work with sys V services on systemd systems
+# see https://github.com/ansible/ansible-modules-core/issues/915
+
+- name: stop bitbucket
+  command: service atlbitbucket stop
+  become: true
+
+- name: start bitbucket
+  command: service atlbitbucket start
+  become: True
+
+- name: restart bitbucket
+  command: service atlbitbucket restart
+  become: True

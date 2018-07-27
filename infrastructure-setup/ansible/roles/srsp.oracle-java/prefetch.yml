@@ -1,0 +1,21 @@
+- hosts: all
+  become: yes
+  become_method: sudo
+
+  vars_files:
+    - 'defaults/main.yml'
+
+  vars:
+    - java_download_path: /tmp
+    - java_install_jce: true
+
+  tasks:
+    - name: Set role vars
+      include: tasks/set-role-variables.yml
+
+    - name: Fetch .rpm or .tar.gz files from Oracle site
+      include: tasks/fetch.yml
+
+    - name: Fetch JCE files from Oracle site
+      include: tasks/fetch_jce.yml
+

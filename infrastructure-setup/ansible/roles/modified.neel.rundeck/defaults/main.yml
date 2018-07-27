@@ -1,0 +1,69 @@
+---
+# Rundeck
+rundeck_download_path: "{{ temp_dir }}"
+rundeck_version: 2.8.2-1.31.GA
+rundeck_protocol: "http"  # the protocol that the web application is accessed by.
+rundeck_domain: "localhost:4440"  # the domain that the web application is associated with.
+# context path of rundeck installation
+rundeck_contextpath: /
+rundeck_database_type: 'hsqldb'
+rundeck_database_host: 'localhost'
+rundeck_database_name: 'rundeck'
+rundeck_database_user: 'rundeck'
+rundeck_database_pass: 'rundeck'
+rundeck_users: []  # list of users as dictionary of name, password and list of roles
+rundeck_plugins: []  # list of plugin urls that are downloaded and installed into the rundeck libext.
+rundeck_generate_ssh: True  # automatically generate ssh key, set to False to stop this action.
+rundeck_ldap: False
+rundeck_ldap_url: ldap://localhost:389
+rundeck_ldap_bind_user: cn=Manager,dc=example,dc=com
+rundeck_ldap_bind_pass: secrent
+rundeck_ldap_user_dn: ou=People,dc=test1,dc=example,dc=com
+rundeck_ldap_user_rdn_attr: uid
+rundeck_ldap_user_id_attr: uid
+rundeck_ldap_bindinglogin: False
+rundeck_ldap_user_pass_attr: userPassword
+rundeck_ldap_user_filter: account
+rundeck_ldap_role_dn: ou=Groups,dc=test1,dc=example,dc=com
+rundeck_ldap_role_name_attr: cn
+rundeck_ldap_role_username_attr:
+rundeck_ldap_role_member_attr: member
+rundeck_ldap_role_filter: groupOfNames
+rundeck_ldap_netsted_groups: False
+rundeck_ldap_debug: False
+rundeck_crowd: False
+rundeck_crowd_name: 'RunDeck'
+rundeck_crowd_pass: 'secret'
+rundeck_crowd_url: 'http://localhost/crowd/'
+rundeck_crowd_maxconn: 20
+rundeck_crowd_timeout: 5000
+rundeck_crowd_debug: False
+rundeck_crowd_jaas_jars:
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/commons-codec-1.2.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/commons-httpclient-3.1.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/commons-logging-1.0.4.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/jaas-jetty-crowd-1.0-SNAPSHOT.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/jersey-apache-client-1.18.1.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/jersey-client-1.18.1.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/jersey-core-1.18.1.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/slf4j-api-1.7.7.jar
+  - https://github.com/realloc/crowd-jaas/releases/download/v0.0.1/slf4j-simple-1.7.7.jar
+# user group in crowd directory, that can access rundeck
+rundeck_crowd_users: rundeck-users
+# user group in crowd directory, that can administer rundeck
+rundeck_crowd_admins: rundeck-admins
+# smtp server configuration
+rundeck_smtp_server: "localhost"
+rundeck_smtp_port: 25
+# address of email sender in rundeck
+rundeck_mail_from: rundeck@localhost
+# OS, kept for backward compatibility, use rundeck_download_path instead.
+# private key to access bitbucket repository
+rundeck_cduser_private_key: --empty--
+rundeck_cduser_name: cd_user
+# this is the name for the host as visible from rundeck
+rundeck_bitbucket_host_internal: localhost
+# this is the external host name of the bitbucket server used to access the
+# bitbucket web ui
+rundeck_bitbucket_host_external: test.org
+temp_dir: /tmp

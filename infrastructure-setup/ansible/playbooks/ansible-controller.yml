@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+  tasks:
+  - name: "install additional packages"
+    package:
+      name: "{{ item }}"
+    with_items:
+    - vim
+    - tig
+    - python2-pip
+    - tmux
+    become: True
+
+  - name: "install python libraries"
+    pip:
+      name: "{{ item }}"
+    with_items:
+    - boto
+    - psycopg2
+    - awscli
+    become: True
+
+  - name: install centos pgdg
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-3.noarch.rpm
+      state: present
+    become: true
+    when: "'CentOS' in ansible_distribution"
+
+  - name: install redhat pgdg
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/9.4/redhat/rhel-7-x86_64/pgdg-redhat94-9.4-3.noarch.rpm
+      state: present
+    become: true
+    when: "'RedHat' in ansible_distribution"
+
+  - name: remove postgresql 9.2 client
+    package:
+      name: postgresql
+      state: absent
+    become: True
+
+  - name: add postgresql94 client
+    package:
+      name: postgresql94
+    become: true
+
+  - name: install git prompt
+    git:
+      repo: https://github.com/magicmonty/bash-git-prompt.git
+      dest: "{{ ansible_user_dir }}/.bash-git-prompt"
+
+  - name: install bashrc
+    template:
+      src: templates/bashrc_controller.j2
+      dest: "{{ ansible_user_dir }}/.bashrc"
+

@@ -1,0 +1,2 @@
+---
+atlassian_bitbucket_installer_package: atlassian-bitbucket-{{atlassian_bitbucket_version}}-x64.bin

@@ -1,0 +1,29 @@
+FROM registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
+
+MAINTAINER Michael Sauter <michael.sauter@boehringer-ingelheim.com>
+
+ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
+    OWASP_DEPENDENCY_CHECK_VERSION=3.2.1
+
+# Hack to fix issues with broken repositories
+# See https://access.redhat.com/support/cases/#/case/02108199
+RUN yum-config-manager --enable rhel-7-server-rpms && \
+    yum-config-manager --disable rhel-7-server-htb-rpms && \
+    yum makecache
+
+# Install Sonar Scanner
+RUN cd /tmp && \
+    curl -O http://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
+    unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
+    mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/local/sonar-scanner-cli && \
+    rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip
+ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
+
+# Install OWASP Dependency Check CLI
+RUN cd /tmp && \
+    curl -L -O https://dl.bintray.com/jeremy-long/owasp/dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip && \
+    unzip dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip && \
+    mv dependency-check /usr/local/dependency-check-cli && \
+    mv /usr/local/dependency-check-cli/bin/dependency-check.sh /usr/local/dependency-check-cli/bin/dependency-check && \
+    rm -rf dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip
+ENV PATH=/usr/local/dependency-check-cli/bin:$PATH

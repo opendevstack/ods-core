@@ -1,0 +1,4 @@
+atlassian_jira_proxy_name:
+atlassian_jira_installation_dir: /opt/atlassian/jira
+
+atlassian_jira_application_url: "http://192.168.56.31:8080"

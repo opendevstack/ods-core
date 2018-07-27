@@ -1,0 +1,51 @@
+<Server port="8000" shutdown="SHUTDOWN" debug="0">
+    <Service name="Tomcat-Standalone">
+        <Connector port="8090" connectionTimeout="20000" redirectPort="8443"
+                maxThreads="48" minSpareThreads="10"
+                enableLookups="false" acceptCount="10" debug="0" URIEncoding="UTF-8"
+                protocol="org.apache.coyote.http11.Http11NioProtocol"
+                {% if atlassian_confluence_proxy_name %}proxyName="{{atlassian_confluence_proxy_name}}"
+                proxyPort="443"
+                scheme="https"
+                secure="true"
+                {% endif %}
+ />
+
+        <Engine name="Standalone" defaultHost="localhost" debug="0">
+
+            <Host name="localhost" debug="0" appBase="webapps" unpackWARs="true" autoDeploy="false" startStopThreads="4">
+                <Context path="" docBase="../confluence" debug="0" reloadable="false" useHttpOnly="true">
+                    <!-- Logger is deprecated in Tomcat 5.5. Logging configuration for Confluence is specified in confluence/WEB-INF/classes/log4j.properties -->
+                    <Manager pathname="" />
+                    <Valve className="org.apache.catalina.valves.StuckThreadDetectionValve" threshold="60" />
+                </Context>
+
+                <Context path="${confluence.context.path}/synchrony-proxy" docBase="../synchrony-proxy" debug="0" reloadable="false" useHttpOnly="true">
+                    <Valve className="org.apache.catalina.valves.StuckThreadDetectionValve" threshold="60" />
+                </Context>
+            </Host>
+
+        </Engine>
+
+        <!--
+            To run Confluence via HTTPS:
+             * Uncomment the Connector below
+             * Execute:
+                 %JAVA_HOME%\bin\keytool -genkey -alias tomcat -keyalg RSA (Windows)
+                 $JAVA_HOME/bin/keytool -genkey -alias tomcat -keyalg RSA  (Unix)
+               with a password value of "changeit" for both the certificate and the keystore itself.
+             * Restart and visit https://localhost:8443/
+
+             For more info, see https://confluence.atlassian.com/display/DOC/Running+Confluence+Over+SSL+or+HTTPS
+        -->
+<!--
+        <Connector port="8443" maxHttpHeaderSize="8192"
+                   maxThreads="150" minSpareThreads="25"
+                   protocol="org.apache.coyote.http11.Http11NioProtocol"
+                   enableLookups="false" disableUploadTimeout="true"
+                   acceptCount="100" scheme="https" secure="true"
+                   clientAuth="false" sslProtocols="TLSv1,TLSv1.1,TLSv1.2" sslEnabledProtocols="TLSv1,TLSv1.1,TLSv1.2" SSLEnabled="true"
+                   URIEncoding="UTF-8" keystorePass="<MY_CERTIFICATE_PASSWORD>"/>
+-->
+    </Service>
+</Server>

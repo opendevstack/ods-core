@@ -1,0 +1,30 @@
+# see documentation here: https://confluence.atlassian.com/bitbucketserver/automated-setup-for-bitbucket-server-776640098.html
+#The display name for the Bitbucket Server application.
+setup.displayName={{atlassian_bitbucket_display_name}}
+
+#The base URL
+setup.baseUrl= {{atlassian_bitbucket_base_url}}
+
+#The Bitbucket Server license.
+#Use the \ character at the end of each line if you wish to break the license
+#string over multiple lines.
+setup.license={{atlassian_bitbucket_license}}
+jdbc.driver=org.postgresql.Driver
+jdbc.url={{atlassian_bitbucket_jdbc_url}}
+jdbc.user={{atlassian_bitbucket_jdbc_user}}
+jdbc.password={{atlassian_bitbucket_jdbc_password}}
+server.port=7990
+{% if atlassian_bitbucket_secure%}
+server.secure=true
+server.schema=https
+{% endif %}
+{% if atlassian_bitbucket_proxy_name %}
+server.proxy-port={{ atlassian_bitbucket_proxy_port }}
+server.proxy-name={{ atlassian_bitbucket_proxy_name }}
+{% endif %}
+#plugin.search.elasticsearch.baseurl=http://localhost:7992/
+#plugin.search.elasticsearch.username=bitbucket
+#plugin.search.elasticsearch.password={{ atlassian_bitbucket_elasticsearch_password }}
+plugin.auth-crowd.sso.enabled=true
+
+

@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: shared-services-nginx-authproxy
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: shared-services-nginx-authproxy
+      component: nginx-authproxy
+      template: bc-docker
+    name: nginx-authproxy
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: nginx-authproxy:2.0
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: shared-images/nginx-authproxy-crowd
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy: 
+        dockerfilePath: Dockerfile
+      type: Docker
+    triggers: []
+parameters:
+- name: REPO_BASE
+  required: true

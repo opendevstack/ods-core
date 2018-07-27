@@ -1,0 +1,21 @@
+---
+#these tasks are along the lines of the eazyBI setup guide
+#https://docs.eazybi.com/display/EAZYBIJIRA/Installation+and+setup#Installationandsetup-PostgreSQL
+#what needs to be done:
+# - set UTF8 encoding for file encoding instead of ASCII
+# - increase JVM memory to 2gb
+
+#Specify JVM_MAXIMUM_MEMORY=1024m (if using Java 8 then specify 2048m or more
+- name: manipulate JVM max memory and file encoding for jira
+  lineinfile:
+    path: "{{ atlassian_jira_installation_dir }}/bin/setenv.sh"
+    regexp: "^{{item.key}}"
+    line: "{{item.key}}=\"{{item.value}}\""
+    owner: "root"
+  with_items:
+    - { key: "JVM_MAXIMUM_MEMORY", value: "4096m"}
+    - { key: "JVM_SUPPORT_RECOMMENDED_ARGS", value: "-Dfile.encoding=UTF-8"}
+  become: True
+  notify:
+    - stop jira
+    - start jira

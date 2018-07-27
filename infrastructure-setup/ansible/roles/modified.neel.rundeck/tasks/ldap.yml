@@ -1,0 +1,32 @@
+---
+- name: ensure LDAP longin module configuration exists
+  template:
+    dest: "{{ rundeck_conf_dir }}/jaas-ldap.conf"
+    src: jaas-ldap.conf.j2
+    owner: "{{ rundeck_user }}"
+    group: "{{ rundeck_group }}"
+    mode: 0600
+
+- name: ensure profile is updated to use LDAP configuration
+  lineinfile:
+    dest: "{{ rundeck_conf_dir }}/profile"
+    regexp: '^export RDECK_JVM(.*)$'
+    line: "export RDECK_JVM=\"-Djava.security.auth.login.config={{ rundeck_conf_dir }}/jaas-ldap.conf \\"
+  notify:
+    - restart rundeck
+  tags:
+    - rundeck
+    - configuration
+    - ldap
+
+- name: ensure profile is updated to use LDAP module
+  lineinfile:
+    dest: "{{ rundeck_conf_dir }}/profile"
+    regexp: '^(\s*)-Dloginmodule.name=(.*)$'
+    line: '        -Dloginmodule.name=ldap \'
+  notify:
+    - restart rundeck
+  tags:
+    - rundeck
+    - configuration
+    - ldap

@@ -1,0 +1,8 @@
+---
+- name: stop jira
+  command: service jira stop
+  become: True
+
+- name: start jira
+  command: service jira start
+  become: True

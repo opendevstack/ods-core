@@ -1,0 +1,27 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_bitbucket_test') }}"
+  roles:
+    - role: modified.neel.rundeck
+      tags:
+        - rundeck
+      rundeck_crowd: true
+      rundeck_database_type: postgresql
+      rundeck_database_host: "{{ postgresql_host }}"
+      rundeck_crowd_users: opendevstack-users
+      rundeck_crowd_admins: opendevstack-administrators
+      rundeck_contextpath: /rundeck
+      rundeck_crowd_jaas_jars:
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/commons-codec-1.2.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/commons-httpclient-3.1.jar
+        - http://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jaas-jetty-crowd-1.0.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jersey-apache-client-1.19.3.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jersey-client-1.19.3.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jersey-core-1.19.3.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jsr311-api-1.1.1.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/slf4j-api-1.7.5.jar
+        - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/slf4j-simple-1.7.5.jar
+    - role: geerlingguy.docker
+      tags:
+        - docker
+      become: true

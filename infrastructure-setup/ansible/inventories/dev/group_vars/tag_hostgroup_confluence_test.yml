@@ -1,0 +1,4 @@
+atlassian_confluence_proxy_name:
+atlassian_confluence_installation_dir: /opt/atlassian/confluence
+
+atlassian_confluence_application_url: "http://192.168.56.31:8090"

@@ -1,0 +1,11 @@
+[Unit]
+Description=The most awesome distributed command dispatching job console
+After=network.target auditd.service
+
+[Service]
+WorkingDirectory=/var/log/rundeck
+User=rundeck
+Group=rundeck
+ExecStart=/usr/bin/rundeck-start
+Restart=on-failure
+Type=simple

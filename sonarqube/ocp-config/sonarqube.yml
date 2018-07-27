@@ -1,0 +1,438 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: sonarqube
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: sonarqube:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: sonarqube
+      git:
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy: {}
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers: []
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    replicas: 1
+    selector:
+      name: sonarqube-postgresql
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations: {}
+        creationTimestamp: null
+        labels:
+          name: sonarqube-postgresql
+      spec:
+        containers:
+        - env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              configMapKeyRef:
+                key: database-user
+                name: sonarqube
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: sonarqube-postgresql
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                key: database-name
+                name: sonarqube
+          image: registry.access.redhat.com/rhscl/postgresql-95-rhel7@sha256:de66da4812f0de42cee0bef65899d75f8b1a7440858271f133c8f73c80be663d
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 1
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
+                'SELECT 1'
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: sonarqube-postgresql-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: sonarqube-postgresql-data
+          persistentVolumeClaim:
+            claimName: sonarqube-postgresql
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.5
+          namespace: openshift
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    replicas: 1
+    selector:
+      app: sonarqube
+      deploymentconfig: sonarqube
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations: {}
+        creationTimestamp: null
+        labels:
+          app: sonarqube
+          deploymentconfig: sonarqube
+      spec:
+        containers:
+        - name: sonarqube
+          image: cd/sonarqube:latest
+          env:
+          - name: SONARQUBE_JDBC_URL
+            valueFrom:
+              configMapKeyRef:
+                key: database-jdbc-url
+                name: sonarqube
+          - name: SONARQUBE_JDBC_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: database-user
+                name: sonarqube
+          - name: SONARQUBE_JDBC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: sonarqube-postgresql
+          - name: SONARQUBE_CROWD_URL
+            valueFrom:
+              configMapKeyRef:
+                key: crowd-url
+                name: sonarqube
+          - name: SONARQUBE_CROWD_APP
+            valueFrom:
+              configMapKeyRef:
+                key: crowd-application
+                name: sonarqube
+          - name: SONARQUBE_CROWD_PWD
+            valueFrom:
+              secretKeyRef:
+                key: crowd-password
+                name: sonarqube-app
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 9000
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/sonarqube/data
+            name: sonarqube-data
+          - mountPath: /opt/sonarqube/extensions
+            name: sonarqube-extensions
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: sonarqube-data
+          persistentVolumeClaim:
+            claimName: sonarqube-data
+        - name: sonarqube-extensions
+          persistentVolumeClaim:
+            claimName: sonarqube-extensions
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - sonarqube
+        from:
+          kind: ImageStreamTag
+          name: sonarqube:latest
+          namespace: ${OC_PROJECT}
+      type: ImageChange
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the application image
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    dockerImageRepository: sonarqube
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+    storageClassName: gp2
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: gp2
+      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube-data
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: gp2
+      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube-extensions
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    host: ${SONARQUBE_HOST}
+    port:
+      targetPort: 9000-tcp
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: sonarqube
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  data:
+    admin-password: ${ADMIN_PASSWORD}
+    auth-token: ${AUTH_TOKEN}
+    crowd-password: ${CROWD_PASSWORD}
+  kind: Secret
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube-app
+  type: Opaque
+- kind: ConfigMap
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  apiVersion: v1
+  data:
+    crowd-application: ${CROWD_APPLICATION}
+    crowd-url: ${CROWD_URL}
+    database-jdbc-url: ${DATABASE_JDBC_URL}
+    database-name: ${DATABASE_NAME}
+    database-user: ${DATABASE_USER}
+    sonarqube-admin-user: ${ADMIN_USERNAME}
+- apiVersion: v1
+  data:
+    database-password: ${DATABASE_PASSWORD}
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+      template.openshift.io/expose-password: '{.data[''database-password'']}'
+      template.openshift.io/expose-username: '{.data[''database-user'']}'
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  type: Opaque
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: sonarqube-postgresql
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    ports:
+    - name: 9000-tcp
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      deploymentconfig: sonarqube
+    sessionAffinity: None
+    type: ClusterIP
+parameters:
+- displayName: OC project
+  name: OC_PROJECT
+  required: true
+- displayName: Admin Password
+  name: ADMIN_PASSWORD
+  required: true
+- displayName: Admin Username
+  name: ADMIN_USERNAME
+  required: true
+- displayName: Auth Token
+  name: AUTH_TOKEN
+  required: true
+- displayName: Crowd Application
+  name: CROWD_APPLICATION
+  required: true
+- displayName: Crowd Password
+  name: CROWD_PASSWORD
+  required: true
+- displayName: Crowd URL
+  name: CROWD_URL
+  required: true
+- displayName: Database JDBC URL
+  name: DATABASE_JDBC_URL
+  required: true
+- displayName: Database Name
+  name: DATABASE_NAME
+  required: true
+- displayName: Database Password
+  name: DATABASE_PASSWORD
+  required: true
+- displayName: Database User
+  name: DATABASE_USER
+  required: true
+- name: SONARQUBE_HOST
+  required: true
+- name: REPO_BASE
+  required: true

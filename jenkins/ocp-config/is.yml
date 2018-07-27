@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: jenkins
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    name: jenkins-master
+    labels:
+      app: jenkins
+  spec:
+    dockerImageRepository: jenkins-master
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    name: jenkins-slave-base
+    labels:
+      app: jenkins
+  spec:
+    dockerImageRepository: jenkins-slave-base
+    lookupPolicy:
+      local: false

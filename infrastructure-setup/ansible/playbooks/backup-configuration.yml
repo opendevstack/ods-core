@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  roles:
+  - role: local.simple_mailsender
+  - role: local.backup_scheduler
+    backup_scheduler_configuration:
+      - {name: bitbucket, playbook: playbooks/bitbucket-backup.yml, hour: 01, minute: 00 }
+      - {name: jira, playbook: playbooks/jira-backup.yml, hour: 01, minute: 05 }
+      - {name: crowd, playbook: playbooks/crowd-backup.yml, hour: 01, minute: 10 }
+      - {name: confluence, playbook: playbooks/confluence-backup.yml, hour: 01, minute: 15 }

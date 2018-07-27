@@ -1,0 +1,17 @@
+---
+- hosts: tag_ansible_test
+
+  vars_prompt:
+    - name: "release_version"
+      prompt: "What is the release version (Major.Minor.Bugfix)?"
+
+  roles:
+    - role: local.aws_release
+      aws_release_access_key_id: "{{ aws_backup_access_key_id }}"
+      aws_release_secret_access_key: "{{ aws_backup_secret_access_key }}"
+      aws_release_version: "{{ release_version }}"
+
+#- hosts: localhost
+#  tasks:
+#    - name: tag release
+#    - name: push tags

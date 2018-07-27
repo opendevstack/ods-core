@@ -1,0 +1,67 @@
+---
+- name: download JAAS LoginModule for Crowd into bootstrap dir
+  get_url:
+    dest: "{{ rundeck_home_dir }}/bootstrap/{{ item.split('/')|last }}"
+    url: "{{ item }}"
+    owner: "{{ rundeck_user }}"
+    group: "{{ rundeck_group }}"
+  with_items: "{{ rundeck_crowd_jaas_jars }}"
+  notify:
+    - restart rundeck
+  tags:
+    - rundeck
+    - configuration
+    - crowd
+
+- name: ensure Crowd login module configuration exists
+  template:
+    dest: "{{ rundeck_conf_dir }}/jaas-crowd.conf"
+    src: jaas-crowd.conf.j2
+    owner: "{{ rundeck_user }}"
+    group: "{{ rundeck_group }}"
+    mode: 0600
+
+- name: ensure profile is updated to use CROWD configuration
+  lineinfile:
+    dest: "{{ rundeck_conf_dir }}/profile"
+    regexp: '^JAAS_CONF=(.*)$'
+    line: 'JAAS_CONF="${JAAS_CONF:-$RDECK_CONFIG/jaas-crowd.conf}"'
+  notify:
+    - restart rundeck
+  tags:
+    - rundeck
+    - configuration
+    - crowd
+
+- name: ensure profile is updated to use CROWD module
+  lineinfile:
+    dest: "{{ rundeck_conf_dir }}/profile"
+    regexp: '^(\s*)-Dloginmodule.name=(.*)$'
+    line: '        -Dloginmodule.name=crowd \'
+  notify:
+    - restart rundeck
+  tags:
+    - rundeck
+    - configuration
+    - crowd
+
+- name: replace default user group with crowd user group
+  replace:
+    dest: "{{ rundeck_home_dir }}/exp/webapp/WEB-INF/web.xml"
+    regexp: '(<security-role[^(/)]*)<role-name>(.*)</role-name>'
+    replace: '\1<role-name>{{ rundeck_crowd_users }}</role-name>'
+    backup: true
+  notify:
+    - restart rundeck
+
+- name: replace default admin group with crowd admin group
+  replace:
+    dest: "{{ item }}"
+    regexp: '(\s+group:\s+).*$'
+    replace: '\1{{ rundeck_crowd_admins }}'
+    backup: true
+  with_items:
+    - "{{ rundeck_conf_dir }}/admin.aclpolicy"
+    - "{{ rundeck_conf_dir }}/apitoken.aclpolicy"
+  notify:
+    - restart rundeck

@@ -1,0 +1,2 @@
+atlassian_bitbucket_jdbc_url: jdbc:postgresql://localhost:5432/bitbucket
+atlassian_bitbucket_base_url: http\://192.168.56.31\:7990

@@ -1,0 +1,25 @@
+
+# this script fixes problems with bitbucket elastic search
+# according to the information from https://confluence.atlassian.com/bitbucketserverkb/troubleshooting-steps-for-bitbucket-server-code-search-827125334.html
+
+- hosts: "{{ target_hosts | default('tag_hostgroup_bitbucket_test') }}"
+  tasks:
+    - name: stop bitbucket service
+      command: service atlbitbucket stop
+      become: true
+
+    - name: reconfigure bitbucket search service
+      command: chkconfig --level 35 atlbitbucket_search on
+      become: true
+
+    - name: copy search configuration
+      shell: cp -r /opt/atlassian/bitbucket/4.14.3/elasticsearch/config-template/* /srv/atlassian/bitbucket/shared/search/
+      become: true
+      become_user: atlbitbucket
+
+    - name: start bitbucket services
+      command: service {{ item }} start
+      with_items:
+        - atlbitbucket
+        - atlbitbucket_search
+      become: true

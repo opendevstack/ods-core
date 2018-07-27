@@ -1,0 +1,43 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_test') }}"
+  vars:
+    atlassian_crowd_version: 3.2.1
+    atlassian_crowd_old_version: 2.11.2
+
+  pre_tasks:
+  - name: stop crowd
+    systemd:
+      name: crowd
+      state: stopped
+      daemon-reload: yes
+    become: True
+
+  roles:
+  - role: local.atlassian_crowd_upgrade
+
+  post_tasks:
+  - name: "Copy openidserver webapp config"
+    template:
+      src: "openidserver.xml.3_2.j2"
+      dest: "{{ atlassian_crowd_dir}}/apache-tomcat/conf/Catalina/localhost/openidserver.xml"
+      owner: "{{atlassian_crowd_user}}"
+      backup: yes
+    become: True
+  
+  - name: Add proxy endpoint address to server.xml
+    template:
+      src: crowd.server.xml.3_2.j2
+      dest: "{{ atlassian_crowd_dir }}/apache-tomcat/conf/server.xml"
+      backup: yes
+    become: true
+#   notify: restart crowd
+
+  - name: copy crowd.properties for openidserver from old installation
+    copy:
+      remote_src: yes
+      src: "{{ atlassian_crowd_basedir }}/atlassian-crowd-{{atlassian_crowd_old_version }}/crowd-openidserver-webapp/WEB-INF/classes/crowd.properties"
+      dest: "{{ atlassian_crowd_dir }}/crowd-openidserver-webapp/WEB-INF/classes/crowd.properties"
+      owner: "{{ atlassian_crowd_user }}"
+      group: "{{ atlassian_crowd_group }}"
+      mode: 0644
+    become: true

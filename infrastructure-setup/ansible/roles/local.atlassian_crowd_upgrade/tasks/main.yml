@@ -1,0 +1,159 @@
+---
+- name: print some debug information
+  debug:
+    msg: "{{item}}"
+    verbosity: 2
+  with_items:
+    - "atlassian_download_tmp = {{ atlassian_download_tmp }}"
+    - "atlassian_crowd_home = {{ atlassian_crowd_home }}"
+
+
+- name: download atlassian-crowd tar.gz
+  get_url:
+    url: "{{ atlassian_download_url }}"
+    dest: "{{ atlassian_download_tmp }}"
+    validate_certs: no
+    force: no
+  become: True
+
+- name: ensure unarchive programs are installed
+  package:
+    name: unzip
+  become: True
+
+- name: extract downloaded atlassian-crowd tar.gz
+  unarchive:
+    copy: no
+    creates: "{{ atlassian_crowd_dir }}"
+    owner: "{{ atlassian_crowd_user }}"
+    group: "{{ atlassian_crowd_group }}"
+    src: "{{ atlassian_download_tmp }}"
+    dest: "{{ atlassian_crowd_basedir }}"
+  become: True
+
+- name: fix directory permissions
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    recurse: True
+  become: True
+  with_items:
+    - { path: "{{ atlassian_crowd_dir }}/apache-tomcat/temp",
+        owner: "{{ atlassian_crowd_user }}",
+        group: "{{ atlassian_crowd_group }}" }
+    - { path: "{{ atlassian_crowd_dir }}/apache-tomcat/work",
+        owner: "{{ atlassian_crowd_user }}",
+        group: "{{ atlassian_crowd_group }}" }
+    - { path: "{{ atlassian_crowd_dir }}/apache-tomcat/logs",
+        owner: "{{ atlassian_crowd_user }}",
+        group: "{{ atlassian_crowd_group }}" }
+
+- name: fix shell script permissions (find)
+  shell:
+    find {{ atlassian_crowd_dir }}/apache-tomcat/bin -type f -name '*.sh'
+  check_mode: no
+  become: True
+  register: files_to_change
+
+- name: fix shell script permissions (change)
+  file:
+    path: "{{ item }}"
+    state: file
+    group: "{{ atlassian_crowd_group }}"
+    mode: "g+x"
+  with_items: "{{ files_to_change.stdout_lines }}"
+  become: True
+
+
+# Recommendation is to download driver https://confluence.atlassian.com/crowd/postgresql-4030906.html
+# but installation contains aleady a driver. So we will delete the already installed driver.
+- name: find existing postgresql drivers
+  find:
+    paths: "{{ atlassian_crowd_dir }}/apache-tomcat/lib"
+    patterns: postgresql*.jar
+  register: drivers_to_delete
+  check_mode: no
+  become: True
+
+- name: remove existing postgresql drivers
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ drivers_to_delete.files }}"
+  become: True
+
+
+- name: Download Postgresql JDBC driver
+  get_url:
+    url: "https://jdbc.postgresql.org/download/{{ atlassian_crowd_postgresql_driver }}"
+    dest: "{{ atlassian_crowd_dir }}/apache-tomcat/lib"
+    owner: "{{atlassian_crowd_user}}"
+    group: "{{atlassian_crowd_group}}"
+  become: True
+
+# to configure different urls and DB access correctly in the applications,
+# we use the build.properties mechanism as described
+# at https://confluence.atlassian.com/crowd/important-directories-and-files-78676537.html#ImportantDirectoriesandFiles-Thebuild.propertiesFile
+- name: update build.properties
+  lineinfile:
+    path: "{{ atlassian_crowd_dir }}/build.properties"
+    regexp: "^{{item.key}}"
+    line: "{{item.key}}={{item.value}}"
+    owner: "{{ atlassian_crowd_user }}"
+  with_items:
+    - { key: "hibernate.dialect", value: "org.hibernate.dialect.PostgreSQLDialect"}
+    - { key: "crowd.url", value: "{{atlassian_crowd_url}}"}
+    - { key: "demo.url", value: "{{ atlassian_crowd_demo_url }}"}
+    - { key: "openidserver.url", value: "{{ atlassian_crowd_openidserver_url }}"}
+  become: True
+
+- name: "run build.sh"
+  command: "./build.sh"
+  args:
+    chdir: "{{ atlassian_crowd_dir }}"
+  become: True
+  become_user: "{{ atlassian_crowd_user }}"
+
+- name: set crowd.home variable
+  become: True
+  lineinfile:
+    dest: "{{ atlassian_crowd_dir }}/crowd-webapp/WEB-INF/classes/crowd-init.properties"
+    regexp: "^\\s*crowd.home\\s*="
+    insertafter: "^#crowd.home="
+    line: "crowd.home = {{ atlassian_crowd_home }}"
+    state: present
+
+
+
+- name: modify JVM properties
+  lineinfile:
+    path: "{{atlassian_crowd_dir}}/apache-tomcat/bin/setenv.sh"
+    regexp: 'JAVA_OPTS="-Xms128m -Xmx512m -Dfile.encoding=UTF-8 \$JAVA_OPTS"'
+    line: 'JAVA_OPTS="-Xms{{atlassian_crowd_jvm_xms}} -Xmx{{atlassian_crowd_jvm_xmx}} -Dfile.encoding=UTF-8 $JAVA_OPTS"'
+  become: True
+  notify: restart crowd
+
+
+- name: create systemd service definition
+  template:
+    src: crowd.service.j2
+    dest: /usr/lib/systemd/system/crowd.service
+  register: crowd_service_def
+  become: True
+
+- name: restart service if service definition changed
+  debug:
+    msg: restarting service
+  notify: restart crowd
+  when: crowd_service_def.changed
+
+- name: Enable Service on startup
+  become: True
+  systemd:
+    name: crowd
+    enabled: yes
+    daemon-reload: yes
+    state: started
+  notify: start crowd

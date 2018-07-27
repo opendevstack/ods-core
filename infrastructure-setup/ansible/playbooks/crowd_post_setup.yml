@@ -1,0 +1,30 @@
+# After initial configuration of Crowd, it is not directly possible to
+# login because auf restrictions.
+# Logins are only allowed from specific remote addresses.
+# We will insert the required remote addresses of our AWS load balancers
+# to the database relations
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_test') }}"
+  tasks:
+  - name: "allow connections from load balancers"
+    delegate_to: 127.0.0.1
+    command: >
+      psql -U {{ postgresql_root_login_user }} -h {{ postgresql_host}} -d {{ database_name }} \
+      -c " INSERT INTO crowd.cwd_application_address (application_id, remote_address) select id, '{{item[1]}}' from crowd.cwd_application where lower_application_name='{{item[0]}}';"
+    register: insert_res
+    failed_when: "insert_res|failed and 'duplicate key' not in insert_res.stderr"
+    environment:
+      PGPASSWORD: "{{ postgresql_root_login_password }}"
+    with_nested:
+    - "{{ atlassian_crowd_applications }}"
+    - "{{ atlassian_crowd_lb_adresses }}"
+    notify: restart crowd
+  handlers:
+  - name: restart crowd
+    systemd:
+      name: crowd
+      daemon-reload: yes
+      state: restarted
+    become: True
+  vars:
+    database_name: atlassian

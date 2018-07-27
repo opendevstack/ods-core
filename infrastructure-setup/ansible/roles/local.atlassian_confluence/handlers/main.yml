@@ -1,0 +1,8 @@
+---
+- name: stop confluence
+  command: service confluence stop
+  become: True
+
+- name: start confluence
+  command: service confluence start
+  become: True

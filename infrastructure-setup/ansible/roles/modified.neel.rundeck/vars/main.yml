@@ -1,0 +1,8 @@
+---
+# The following may be stable or change overtime - TBD
+rundeck_home_dir: /var/lib/rundeck
+rundeck_conf_dir: /etc/rundeck
+rundeck_user: rundeck
+rundeck_group: rundeck
+rundeck_postgresql_driver_file: postgresql-9.3-1103.jdbc3.jar # to support change in version numbers.
+rundeck_postgresql_driver_download: "https://jdbc.postgresql.org/download/{{ rundeck_postgresql_driver_file }}"

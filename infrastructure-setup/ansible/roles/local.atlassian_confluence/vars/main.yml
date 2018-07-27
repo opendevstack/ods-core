@@ -1,0 +1,2 @@
+---
+atlassian_confluence_installer_package: atlassian-confluence-{{atlassian_confluence_version}}-x64.bin

@@ -1,0 +1,10 @@
+---
+- src: srsp.oracle-java
+  version: 2.18.3
+- src: geerlingguy.git
+  version: 1.3.0
+- src: geerlingguy.docker
+  version: 2.0.4
+# modified -> modified neel.rundeck
+#- src: neel.rundeck
+#  version: 17.03.16

@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: jenkins
+objects:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: jenkins-master
+    labels:
+      app: jenkins
+    creationTimestamp: null
+  spec:
+    nodeSelector: null
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    triggers:
+      - imageChange: {}
+        type: ImageChange
+    source:
+      type: Git
+      contextDir: jenkins/master
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: jenkins:2
+          namespace: openshift
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'jenkins-master:latest'
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: jenkins-slave-base
+    labels:
+      app: jenkins
+    creationTimestamp: null
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'jenkins-slave-base:latest'
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: jenkins/slave-base
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Dockerfile.rhel7
+      type: Docker
+    triggers: []
+parameters:
+- name: REPO_BASE
+  required: true

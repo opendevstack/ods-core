@@ -1,0 +1,2 @@
+---
+atlassian_jira_installer_package: atlassian-jira-software-{{atlassian_jira_version}}-x64.bin

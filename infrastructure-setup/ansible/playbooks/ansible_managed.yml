@@ -1,0 +1,23 @@
+---
+- hosts: tag_ansible_managed
+  tasks:
+  - name: install additional packages
+    package:
+      name: "{{ item }}"
+    with_items:
+      - vim
+      - python2-pip
+      - tmux
+      - htop
+    become: true
+  - name: "install python libraries"
+    pip:
+      name: "{{ item }}"
+    with_items:
+      - awscli
+    become: true
+  - name: install bashrc
+    template:
+      src: templates/bashrc_managed.j2
+      dest: "{{ ansible_user_dir }}/.bashrc"
+

@@ -1,0 +1,99 @@
+---
+- name: download bitbucket installer
+  get_url:
+    url: "https://downloads.atlassian.com/software/stash/downloads/{{atlassian_bitbucket_installer_package}}"
+    dest: "/tmp"
+    owner: root
+    group: root
+    mode: 0754
+    validate_certs: no
+    force: no
+  become: true
+
+- name: create config file for silent install
+  template:
+   src: bitbucket_installer.cfg.j2
+   dest: "/tmp/bitbucket_installer.cfg"
+   owner: root
+   group: root
+   mode: 0644
+  become: true
+
+- name: ensure bitbucket service is stopped
+  command: service atlbitbucket stop
+  become: true
+  ignore_errors: true
+
+- name: run installer
+  shell: ./{{atlassian_bitbucket_installer_package}} -q -varfile ./bitbucket_installer.cfg
+  register: installer_result
+  changed_when: "not 'The target installation directory is not empty' in installer_result.stdout"
+  failed_when: "not installer_result.rc == 0 and not 'The target installation directory is not empty' in installer_result.stdout"
+  args:
+    chdir: "/tmp"
+  become: true
+
+- name: correct permissions
+  file:
+    path: "{{ atlassian_bitbucket_home }}/shared"
+    owner: atlbitbucket
+    group: atlbitbucket
+    state: directory
+    recurse: True
+  become: True
+
+#- name: cleanup system V init scripts
+#  file:
+#    path: "{{item}}"
+#    state: absent
+#  with_fileglob:
+#    - "/etc/rc2.d/.*atlbitbucket"
+#    - "/etc/rc3.d/.*atlbitbucket"
+#    - "/etc/rc4.d/.*atlbitbucket"
+#    - "/etc/rc5.d/.*atlbitbucket"
+#    - "/etc/init.d/atlbitbucket.*"
+#  become: true
+
+
+# see https://confluence.atlassian.com/bitbucketserver/running-bitbucket-server-as-a-linux-service-776640157.html#RunningBitbucketServerasaLinuxservice-Usingasystemdunitfile
+#- name: create systemd service definition
+#  template:
+#    src: bitbucket.service.j2
+#    dest: /usr/lib/systemd/system/bitbucket.service
+#  register: bitbucket_service_def
+#  become: true
+#
+#- name: restart service if service definition changed
+#  debug:
+#    msg: restarting service
+#  notify: restart bitbucket
+#  when: bitbucket_service_def.changed
+#
+#- name: Enable Service
+#  become: True
+#  systemd:
+#    name: bitbucket
+#    enabled: yes
+#    daemon-reload: yes
+#    state: started
+#  notify: start bitbucket
+
+
+# add properties for bitbucket automated setup: see https://confluence.atlassian.com/bitbucketserver/automated-setup-for-bitbucket-server-776640098.html
+- name: Add proxy endpoint address to server.xml
+  template:
+    src: server.xml.j2
+    dest: "{{ atlassian_bitbucket_home}}/shared/server.xml"
+  become: true
+  become_user: atlbitbucket
+  notify: restart bitbucket
+
+- name: add bitbucket configuration properties for automated setup
+  template:
+    src: bitbucket.properties.j2
+    dest: "{{ atlassian_bitbucket_home }}/shared/bitbucket.properties"
+    owner: atlbitbucket
+    group: atlbitbucket
+    mode: 0640
+  become: true
+  notify: restart bitbucket

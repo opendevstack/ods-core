@@ -1,0 +1,25 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_jira_test') }}"
+  vars:
+    atlassian_jira_version: 7.10.1
+
+  pre_tasks:
+  - name: stop jira before upgrade
+    command: service jira stop
+    become: True
+
+  roles:
+  - role: local.atlassian_jira
+    atlassian_jira_upgrade: true
+    tags: jira
+
+  post_tasks:
+  - name: Update server.xml for jira 7.10
+    template:
+      src: jira.server.xml.7_10.j2
+      dest: "{{ atlassian_jira_installation_dir }}/conf/server.xml"
+      backup: yes
+    become: true
+    notify:
+      - stop jira
+      - start jira

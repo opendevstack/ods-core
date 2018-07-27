@@ -1,0 +1,16 @@
+---
+atlassian_jira_version: 7.3.6
+
+# installation directory
+atlassian_jira_installation_dir: /opt/atlassian/jira
+
+# data directory of jira
+# see https://confluence.atlassian.com/adminjiraserver073/jira-application-home-directory-861253888.html
+atlassian_jira_home: /srv/atlassian/jira
+
+# is this an upgrade of an existing installation?
+atlassian_jira_upgrade: false
+
+atlassian_jira_jdbc_url: jdbc:postgresql://localhost:5432/atlassian
+atlassian_jira_jdbc_password: jira
+atlassian_jira_proxy_name: 

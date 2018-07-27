@@ -1,0 +1,5 @@
+namespace shared-services
+selector  app=shared-services-nginx-authproxy
+param-dir ../../../../ods-configuration/ods-core/shared-images/nginx-authproxy-crowd/ocp-config
+
+bc,is

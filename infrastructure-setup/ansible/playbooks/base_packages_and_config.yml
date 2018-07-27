@@ -1,0 +1,19 @@
+---
+- hosts: tag_ansible_managed
+  tasks:
+  - name: install epel
+    yum:
+      name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    become: True
+  - name: "install basic packages"
+    yum:
+      name: "{{ item }}"
+      update_cache: True
+    with_items:
+    - chrony
+    - htop
+    become: True
+
+  - name: "set timezone to UTC"
+    command: timedatectl set-timezone UTC
+    become: True

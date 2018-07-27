@@ -1,0 +1,9 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_jira_test') }}" 
+  roles:
+  - role: srsp.oracle-java
+    become: True
+    java_version: 8
+    java_subversion: 172
+  - role: local.atlassian_jira
+    tags: jira
