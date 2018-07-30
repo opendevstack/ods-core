@@ -63,9 +63,10 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: Dockerfile.rhel7
+        dockerfilePath: ${JENKINS_SLAVE_BASE_IMAGE}
       type: Docker
     triggers: []
 parameters:
 - name: REPO_BASE
   required: true
+- name: JENKINS_SLAVE_BASE_IMAGE
