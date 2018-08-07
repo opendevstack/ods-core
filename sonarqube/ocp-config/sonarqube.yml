@@ -252,7 +252,8 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -264,13 +265,13 @@ objects:
     resources:
       requests:
         storage: 2Gi
-    storageClassName: gp2
+    storageClassName: ${STORAGE_CLASS_NAME}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -285,8 +286,8 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -435,4 +436,8 @@ parameters:
 - name: SONARQUBE_HOST
   required: true
 - name: REPO_BASE
+  required: true
+- name: STORAGE_PROVISIONER
+  required: true
+- name: STORAGE_CLASS_NAME
   required: true
