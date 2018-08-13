@@ -9,14 +9,42 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ebs
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: nexus3
-    name: nexus3-pv
+    name: nexus-data-extended
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 50G
+        storage: ${NEXUS_DATA_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_BACKUP}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    creationTimestamp: null
+    labels:
+      app: nexus3
+    name: nexus-db-backup
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${NEXUS_BACKUP_CAPACITY}
+parameters:
+- name: STORAGE_PROVISIONER
+  required: true
+- name: STORAGE_CLASS_DATA
+  required: true
+- name: STORAGE_CLASS_BACKUP
+  required: true
+- name: NEXUS_DATA_CAPACITY
+  value: 60Gi
+- name: NEXUS_BACKUP_CAPACITY
+  value: 10Gi
