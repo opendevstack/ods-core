@@ -12,7 +12,9 @@
 
 - name: Redhat | get rundeck rpm
   yum:
-    name: "rundeck-{{ rundeck_version }}"
+    name: 
+      - "rundeck-config-{{ rundeck_version }}"
+      - "rundeck-{{ rundeck_version }}"
     state: present
   become: yes
   notify:

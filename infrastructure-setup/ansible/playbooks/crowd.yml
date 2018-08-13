@@ -4,5 +4,5 @@
   - role: srsp.oracle-java
     become: True
     java_version: 8
-    java_subversion: 172
+    java_subversion: 181
   - role: local.atlassian_crowd
