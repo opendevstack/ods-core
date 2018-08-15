@@ -64,9 +64,13 @@ objects:
     strategy:
       dockerStrategy:
         dockerfilePath: ${JENKINS_SLAVE_BASE_IMAGE}
+        env:
+          - name: APP_DNS
+            value: ${APP_DNS}        
       type: Docker
     triggers: []
 parameters:
 - name: REPO_BASE
   required: true
 - name: JENKINS_SLAVE_BASE_IMAGE
+- name: APP_DNS

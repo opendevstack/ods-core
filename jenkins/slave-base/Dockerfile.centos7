@@ -5,6 +5,15 @@ MAINTAINER Richard Attermeyer <richard.attermeyer@opitz-consulting.com>
 ENV SONAR_SCANNER_VERSION=3.1.0.1141\
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1
 
+ARG APP_DNS=192.168.99.100.nip.io
+
+RUN yum -y install openssl 
+RUN yum -y install gnutls-utils
+
+# fetch certificates and store them in tmp directory
+RUN echo ${APP_DNS}
+RUN gnutls-cli --insecure --print-cert ${APP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
+
 # Install Sonar Scanner
 RUN cd /tmp && \
     curl -O http://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
