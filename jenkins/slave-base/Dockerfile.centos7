@@ -14,13 +14,9 @@ RUN yum -y install gnutls-utils
 RUN echo ${APP_DNS}
 RUN gnutls-cli --insecure --print-cert ${APP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
 
-# Install Sonar Scanner
-RUN cd /tmp && \
-    curl -O http://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
-    unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
-    mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/local/sonar-scanner-cli && \
-    rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip
-ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
+# add root ca into cert store so OC can pick it up.
+RUN cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt && \
+	cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt
 
 # Install Sonar Scanner
 RUN cd /tmp && \
