@@ -10,6 +10,19 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
 RUN yum-config-manager --enable rhel-7-server-rpms && \
     yum-config-manager --disable rhel-7-server-htb-rpms && \
     yum makecache
+    
+ARG APP_DNS=192.168.99.100.nip.io
+
+RUN yum -y install openssl 
+RUN yum -y install gnutls-utils
+
+# fetch certificates and store them in tmp directory
+RUN echo ${APP_DNS}
+RUN gnutls-cli --insecure --print-cert ${APP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
+
+# add root ca into cert store so OC can pick it up.
+RUN cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt && \
+	cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt
 
 # Install Sonar Scanner
 RUN cd /tmp && \
