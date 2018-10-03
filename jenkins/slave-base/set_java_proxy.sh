@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 # this script checks for env variable HTTP_PROXY and adds it to the java sys vars
 # 
 if [[ $HTTP_PROXY != "" ]]; then
