@@ -41,7 +41,9 @@ RUN cd /tmp && \
     rm -rf dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip
 ENV PATH=/usr/local/dependency-check-cli/bin:$PATH
 
-COPY set_proxy.sh /tmp/set_java_proxy.sh
+# set java proxy var
+COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN chmod 777 /tmp/set_java_proxy.sh
-RUN . /tmp/set_java_proxy.sh
+RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
+
 
