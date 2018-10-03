@@ -21,5 +21,5 @@ if [[ $HTTP_PROXY != "" ]]; then
 		JAVA_OPTS="$JAVA_OPTS -dhttp.proxyPassword=$proxyPassword -dhttps.proxyPassword=$proxyPassword"
  	fi
  	export JAVA_OPTS=$JAVA_OPTS;
- 	
 fi
+
