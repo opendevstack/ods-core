@@ -20,6 +20,12 @@ if [[ $HTTP_PROXY != "" ]]; then
 		proxy_pw=$(echo $proxy_userp | sed -e "s|$proxy_user:||g")
 		JAVA_OPTS="$JAVA_OPTS -Dhttp.proxyPassword=$proxy_pw -Dhttps.proxyPassword=$proxy_pw"
  	fi
- 	export JAVA_OPTS=$JAVA_OPTS;
 fi
+
+if [[ $NO_PROXY != "" ]]; then
+	noproxy_host=$(echo $NO_PROXY | sed -e "s/,/|/g")
+	JAVA_OPTS="$JAVA_OPTS -Dhttp.nonProxyHosts=$noproxy_host -Dhttps.nonProxyHosts=$noproxy_host"
+fi
+
+export JAVA_OPTS=$JAVA_OPTS;
 
