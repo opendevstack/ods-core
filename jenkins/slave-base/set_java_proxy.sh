@@ -23,7 +23,7 @@ if [[ $HTTP_PROXY != "" ]]; then
 fi
 
 if [[ $NO_PROXY != "" ]]; then
-	noproxy_host=$(echo $NO_PROXY | sed -e "s/,./,*./g")
+	noproxy_host=$(echo $NO_PROXY | sed -e 's|\,\.|\,\*\.|g')
 	noproxy_host=$(echo $noproxy_host | sed -e "s/,/|/g")
 	JAVA_OPTS="$JAVA_OPTS -Dhttp.nonProxyHosts=$noproxy_host -Dhttps.nonProxyHosts=$noproxy_host"
 fi
