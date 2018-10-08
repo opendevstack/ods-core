@@ -20,7 +20,9 @@ for FILENAME in /opt/configuration/sonarqube/plugins/*; do
   cp $FILENAME $SONARQUBE_HOME/extensions/plugins/$plugin
 done
 
-rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*2.0*
+# upgrade to 7.3
+rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*2.0*.jar
+rm $SONARQUBE_HOME/extensions/plugins/sonar-scala_2.12*.jar
 
 exec java -jar lib/sonar-application-$SONAR_VERSION.jar \
   -Dsonar.log.console=true \
