@@ -21,8 +21,8 @@ for FILENAME in /opt/configuration/sonarqube/plugins/*; do
 done
 
 # upgrade to 7.3
-rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*2.0*.jar
-rm $SONARQUBE_HOME/extensions/plugins/sonar-scala_2.12*.jar
+rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*2.0*.jar || true
+rm $SONARQUBE_HOME/extensions/plugins/sonar-scala_2.12*.jar || true
 
 exec java -jar lib/sonar-application-$SONAR_VERSION.jar \
   -Dsonar.log.console=true \
