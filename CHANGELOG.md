@@ -9,6 +9,7 @@
    
 1. Other (bugfixes)   
    1. secrets for authproxy container (in shared images) was missing (#6)
+   2. upgrade of Sonarqube to latest 7.3 (#32)
    
 ## [0.1.0] - 2018-07-27
 
