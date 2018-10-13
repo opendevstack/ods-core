@@ -20,7 +20,8 @@ RUN yum -y install java-1.8.0-openjdk-devel.x86_64
 
 RUN alternatives --set java $(alternatives --display java | awk '/family.*x86_64/ { print $1; }')
 
-RUN which java
+RUN export JAVA_HOME="$(update-alternatives --query java | grep 'Value: ' | grep -o '/.*/jre')" && \
+	echo $JAVA_HOME
 
 # fetch certificates and store them in tmp directory
 RUN echo ${APP_DNS}
