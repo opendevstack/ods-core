@@ -16,12 +16,10 @@ ARG APP_DNS=192.168.99.100.nip.io
 RUN yum -y install openssl 
 RUN yum -y install gnutls-utils
 
-RUN yum -y install java-1.8.0-openjdk-devel.x86_64
-
-RUN alternatives --set java $(alternatives --display java | awk '/family.*x86_64/ { print $1; }')
-
 #set JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/jre
+
+RUN yum -y install java-1.8.0-openjdk-devel.x86_64
 
 # fetch certificates and store them in tmp directory
 RUN echo ${APP_DNS}
@@ -35,8 +33,7 @@ RUN cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt && \
 RUN echo $JAVA_HOME
 RUN cat /tmp/oc_app.crt
 RUN $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit && \
-    echo "yes"
-RUN $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword && \
+    echo "yes" | $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword && \
     echo "yes"
 
 # Install Sonar Scanner
