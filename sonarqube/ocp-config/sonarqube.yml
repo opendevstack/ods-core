@@ -239,8 +239,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    annotations:
-      description: Keeps track of changes in the application image
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -253,7 +251,7 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -265,13 +263,12 @@ objects:
     resources:
       requests:
         storage: 2Gi
-    storageClassName: gp2
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -282,12 +279,12 @@ objects:
     resources:
       requests:
         storage: 2Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -298,6 +295,7 @@ objects:
     resources:
       requests:
         storage: 1Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: Route
   metadata:
@@ -436,4 +434,8 @@ parameters:
 - name: SONARQUBE_HOST
   required: true
 - name: REPO_BASE
+  required: true
+- name: STORAGE_CLASS_DATA
+  required: true
+- name: STORAGE_PROVISIONER
   required: true
