@@ -39,11 +39,8 @@ objects:
         storage: ${NEXUS_BACKUP_CAPACITY}
 parameters:
 - name: STORAGE_PROVISIONER
-  required: true
 - name: STORAGE_CLASS_DATA
-  required: true
 - name: STORAGE_CLASS_BACKUP
-  required: true
 - name: NEXUS_DATA_CAPACITY
   value: 60Gi
 - name: NEXUS_BACKUP_CAPACITY
