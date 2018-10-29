@@ -38,5 +38,6 @@ objects:
       type: Docker
     triggers: []
 parameters:
+# repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
 - name: REPO_BASE
   required: true
