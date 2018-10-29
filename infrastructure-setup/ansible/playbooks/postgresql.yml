@@ -2,7 +2,7 @@
 # Installs for local testing a Postgresql 9.4 DB
 # this is only required, when not running on AWS
 
-- hosts: atlassian-db
+- hosts: "{{ target_hosts | default('tag_hostgroup_atlassian_db') }}"
   become: True
   tasks:
     - name: exclude standard postgresql package

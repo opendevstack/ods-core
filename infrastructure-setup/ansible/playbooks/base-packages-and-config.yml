@@ -13,7 +13,6 @@
     - chrony
     - htop
     become: True
-
   - name: "set timezone to UTC"
     command: timedatectl set-timezone UTC
     become: True

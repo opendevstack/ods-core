@@ -1,5 +1,5 @@
 ---
-- hosts: atlassian-db
+- hosts: "{{ target_hosts | default('tag_hostgroup_atlassian_db') }}"
   gather_facts: False
   tasks:
     - name: "create database users"
@@ -55,10 +55,12 @@
       register: dbcreation_results
       ignore_errors: true
       with_items:
-        - confluence
-        - bitbucket
-        - eazybi_jira
-        - rundeck
+      - eazybi_jira
+      - crowd
+      - crowdid
+      - bitbucket
+      - confluence
+      - rundeck
 
     - name: debug
       debug:
@@ -77,8 +79,6 @@
       environment:
         PGPASSWORD: "{{ postgresql_root_login_password }}"
       with_items:
-        - { name: "crowd", owner: "crowd"}
-        - { name: "crowdid", owner: "crowdid"}
         - { name: "jira", owner: "jira"}
       register: schema_results
       ignore_errors: true

@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_jira_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_jira_dev') }}"
   tasks:
     - name: remove CROWD comments
       command: sed -i.orig -e '/<!-- CROWD:START/,/<!-- CROWD:END/d' {{atlassian_jira_installation_dir}}/atlassian-jira/WEB-INF/classes/seraph-config.xml

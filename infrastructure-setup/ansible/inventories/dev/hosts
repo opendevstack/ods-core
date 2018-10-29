@@ -1,25 +1,29 @@
 controller ansible_host=192.168.56.110 ansible_connection=local
 
 [tag_ansible_managed]
-atlassian1 ansible_host=192.168.56.31 ansible_private_key_file=/vagrant/.vagrant/machines/atlassian1/virtualbox/private_key
+atlassian ansible_host=192.168.56.31 ansible_private_key_file=/vagrant/.vagrant/machines/atlassian/virtualbox/private_key
 
 [dev]
-atlassian1
+atlassian
 
-[atlassian-db]
-atlassian1
+[tag_hostgroup_atlassian_db]
+atlassian
 
-[tag_hostgroup_crowd_test]
-atlassian1
+[tag_hostgroup_crowd_dev]
+atlassian
 
-[tag_hostgroup_bitbucket_test]
-atlassian1
+[tag_hostgroup_bitbucket_dev]
+atlassian
 
-[tag_hostgroup_jira_test]
-atlassian1
+[tag_hostgroup_jira_dev]
+atlassian
 
 [tag_ansible_managed]
-atlassian1
+atlassian
 
-[tag_hostgroup_confluence_test]
-atlassian1
+[tag_hostgroup_confluence_dev]
+atlassian
+
+[tag_hostgroup_rundeck_dev]
+atlassian
+

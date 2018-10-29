@@ -1,5 +1,5 @@
 ---
-- hosts: tag_hostgroup_crowd
+- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_dev') }}"
   tasks:
   - name: "download cleito connector"
     delegate_to: 127.0.0.1

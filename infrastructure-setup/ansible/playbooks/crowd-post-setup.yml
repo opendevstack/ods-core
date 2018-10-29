@@ -4,7 +4,7 @@
 # We will insert the required remote addresses of our AWS load balancers
 # to the database relations
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_dev') }}"
   tasks:
   - name: "allow connections from load balancers"
     delegate_to: 127.0.0.1

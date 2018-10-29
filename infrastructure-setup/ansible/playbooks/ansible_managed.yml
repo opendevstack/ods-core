@@ -10,12 +10,13 @@
       - tmux
       - htop
     become: true
-  - name: "install python libraries"
+  - name: "install python libraries for aws"
     pip:
       name: "{{ item }}"
     with_items:
       - awscli
     become: true
+    when: environment_enable_aws == true
   - name: install bashrc
     template:
       src: templates/bashrc_managed.j2

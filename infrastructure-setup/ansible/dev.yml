@@ -1,6 +1,0 @@
-- include: playbooks/ansible-controller.yml
-- include: playbooks/base_packages_and_config.yml
-- include: playbooks/ansible_managed.yml
-- include: playbooks/postgresql.yml
-- include: playbooks/schemas.yml
-#- include: playbooks/crowd.yml

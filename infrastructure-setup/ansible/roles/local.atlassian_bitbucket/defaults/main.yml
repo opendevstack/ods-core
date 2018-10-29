@@ -1,6 +1,6 @@
 ---
 # version of bitbucket to install
-atlassian_bitbucket_version: 4.14.3
+atlassian_bitbucket_version: 5.13.0
 
 # installation directory
 atlassian_bitbucket_basedir: /opt/atlassian/bitbucket

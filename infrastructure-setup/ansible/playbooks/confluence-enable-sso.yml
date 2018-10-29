@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_confluence_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_confluence_dev') }}"
   tasks:
     - name: remove old authenticator
       lineinfile:

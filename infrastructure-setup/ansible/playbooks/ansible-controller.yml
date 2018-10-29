@@ -11,14 +11,21 @@
     - tmux
     become: True
 
-  - name: "install python libraries"
+  - name: "install python libraries for postgres"
     pip:
       name: "{{ item }}"
     with_items:
-    - boto
     - psycopg2
-    - awscli
     become: True
+
+  - name: "install python libraries for aws"
+      pip:
+        name: "{{ item }}"
+      with_items:
+      - boto
+      - awscli
+      become: True
+      when: environment_enable_aws == true
 
   - name: install centos pgdg
     yum:

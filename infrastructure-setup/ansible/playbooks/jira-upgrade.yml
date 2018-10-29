@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_jira_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_jira_dev') }}"
   vars:
     atlassian_jira_version: 7.10.1
 

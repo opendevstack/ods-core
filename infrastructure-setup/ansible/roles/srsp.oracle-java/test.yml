@@ -1,9 +1,0 @@
----
-- hosts: "{{ test_hosts|default('all') }}"
-  become: yes
-  become_method: sudo
-  tasks:
-    - include: 'tasks/main.yml'
-  vars_files:
-    - 'defaults/main.yml'
-
