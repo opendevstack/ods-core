@@ -398,69 +398,62 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
-# The ocp project to deploy sonarqube to.
-# This is normally the "cd" project
 - displayName: OC project
   name: OC_PROJECT
+  description: Name of the ocp project to deploy to. This is normally the "cd" project
   required: true
-# admin password for sonarqube
 # this must be base64 encoded.
 - displayName: Admin Password
   name: ADMIN_PASSWORD
+  description: The base64 encoded admin password
   required: true
-# admin username for sonarqube
 - displayName: Admin Username
   name: ADMIN_USERNAME
+  description: the sonarqube admin username
   required: true
 - displayName: Auth Token
   name: AUTH_TOKEN
   required: true
-# application name as setup in crowd for authn/z
 - displayName: Crowd Application
   name: CROWD_APPLICATION
+  description: application name as setup in crowd for authn/z
   required: true
-# application password as setup in crowd for authn/z
-# this must be base64 encoded
 - displayName: Crowd Password
   name: CROWD_PASSWORD
+  description: base64 encoded application password as setup in crowd for authn/z
   required: true
-# url under which crowd is reachable from sonaruqbe
 - displayName: Crowd URL
   name: CROWD_URL
+  description: url under which crowd is reachable from sonaruqbe
   required: true
-# database jdbc url for connection
 # e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
   name: DATABASE_JDBC_URL
+  description: database jdbc url
   required: true
-# database name, e.g. sonarqube
 - displayName: Database Name
   name: DATABASE_NAME
+  description: database name, e.g. sonarqube
   required: true
-# database user password
-# must be base 64 encoded
 - displayName: Database Password
   name: DATABASE_PASSWORD
+  description: base64 encoded database user password
   required: true
-# the database user to connect ot the database
 - displayName: Database User
   name: DATABASE_USER
+  description: the database user to connect ot the database
   required: true
-# Host without protocol exposed by the sonarqube route
 - name: SONARQUBE_HOST
+  description: Host without protocol exposed by the sonarqube route
   required: true
-# repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
 - name: REPO_BASE
   required: true
-# storage class for data
-# for AWS gp2
-# leave empty for local (e.g. vagrant based) deployment
+  description: Repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
 - name: STORAGE_CLASS_DATA
-# the storage class provisioner
-# for AWS kubernetes.io/aws-ebs
-# leave empty for local (e.g. vagrant based) deployment
+  # for AWS the default is gp2
+  description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
 - name: STORAGE_PROVISIONER
-# storage class for data backup
-# for AWS gp2-encrypted
-# leave empty for local (e.g. vagrant based) deployment
+  description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
 - name: STORAGE_CLASS_BACKUP
+  # for AWS the default would be gp2-encrypted
+  description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment

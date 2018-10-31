@@ -70,10 +70,10 @@ objects:
       type: Docker
     triggers: []
 parameters:
-# repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
 - name: REPO_BASE
+  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
   required: true
-# configuration which slave dockerfile to use, either .centos7 or .rhel7
 - name: JENKINS_SLAVE_BASE_IMAGE
-# Openshift application base dns - used for grabbing the root ca and adding into the slave
+  description: configuration which slave dockerfile to use, either .centos7 or .rhel7
 - name: APP_DNS
+  description: OpenShift application base dns - used for grabbing the root ca and adding into the slave
