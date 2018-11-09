@@ -9,7 +9,7 @@ RUN apk add --no-cache ca-certificates && \
     chmod g+w /home/webhook-proxy
 
 COPY main.go /home/webhook-proxy/main.go
-COPY bc.json /home/webhook-proxy/bc.json
+COPY pipeline.json /home/webhook-proxy/pipeline.json
 
 WORKDIR /home/webhook-proxy
 

@@ -20,7 +20,7 @@ import (
 const (
 	tokenFile                 = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	caCert                    = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-	buildConfig               = "bc.json"
+	pipelineConfigFilename    = "pipeline.json"
 	repoBaseVariable          = "REPO_BASE"
 	triggerSecretVariable     = "TRIGGER_SECRET"
 	triggerSecretDefault      = "secret101"
@@ -372,7 +372,7 @@ func (e *Event) String() string {
 }
 
 func getBuildConfig(e *Event) ([]byte, error) {
-	configBytes, err := ioutil.ReadFile(buildConfig)
+	configBytes, err := ioutil.ReadFile(pipelineConfigFilename)
 	if err != nil {
 		return []byte{}, err
 	}
