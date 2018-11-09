@@ -29,6 +29,8 @@ const (
 	letterBytes               = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
+// Event is the internal representation of a BitBucket event described in
+// https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
 type Event struct {
 	Kind      string
 	Project   string
@@ -37,15 +39,18 @@ type Event struct {
 	Component string
 	Branch    string
 	Pipeline  string
-	RequestId string
+	RequestID string
 }
 
+// Client makes requests, e.g. to create and delete pipelines, or to forward
+// event payloads.
 type Client struct {
 	SecureClient *http.Client
 	SimpleClient *http.Client
 	Token        string
 }
 
+// Server represents this service, and is a global.
 type Server struct {
 	Client            *Client
 	TriggerSecret     string
@@ -112,58 +117,66 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
+// HandleRoot handles all requests to this service.
 func (s *Server) HandleRoot() http.HandlerFunc {
+	type repository struct {
+		Project struct {
+			Key string `json:"key"`
+		} `json:"project"`
+		Slug string `json:"slug"`
+	}
 	type request struct {
-		Repository struct {
-			OwnerName string `json:"ownerName"`
-			Slug      string `json:"slug"`
-		} `json:"repository"`
-		Push *struct {
-			Changes []struct {
-				Closed bool `json:"closed"`
-				New    struct {
-					Name string `json:"name"`
-				} `json:"new"`
-				Old struct {
-					Name string `json:"name"`
-				} `json:"old"`
-			} `json:"changes"`
-		} `json:"push"`
-		Pullrequest *struct {
+		EventKey   string     `json:"eventKey"`
+		Repository repository `json:"repository"`
+		Changes    []struct {
+			Type string `json:"type"`
+			Ref  struct {
+				DisplayID string `json:"displayId"`
+			} `json:"ref"`
+		} `json:"changes"`
+		PullRequest *struct {
 			FromRef struct {
-				Branch struct {
-					Name string `json:"name"`
-				} `json:"branch"`
+				Repository repository `json:"repository"`
+				DisplayID  string     `json:"displayId"`
 			} `json:"fromRef"`
-		} `json:"pullrequest"`
+		} `json:"pullRequest"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		requestId := randStringBytes(6)
-		log.Println(requestId, "-----")
+		requestID := randStringBytes(6)
+		log.Println(requestID, "-----")
 
 		req := &request{}
 		json.NewDecoder(r.Body).Decode(req)
 
-		project := strings.ToLower(req.Repository.OwnerName)
-		namespace := project + "-cd"
-		repo := req.Repository.Slug
-		component := strings.Replace(repo, project+"-", "", -1)
-		pipeline := component + "-"
-
+		var project string
+		var repo string
+		var component string
 		var kind string
 		var branch string
-		if req.Push != nil {
-			if req.Push.Changes[0].Closed {
-				branch = req.Push.Changes[0].Old.Name
+
+		if req.EventKey == "repo:refs_changed" {
+			project = strings.ToLower(req.Repository.Project.Key)
+			repo = req.Repository.Slug
+			component = strings.Replace(repo, project+"-", "", -1)
+			branch = req.Changes[0].Ref.DisplayID
+			if req.Changes[0].Type == "DELETE" {
 				kind = "delete"
 			} else {
-				branch = req.Push.Changes[0].New.Name
 				kind = "forward"
 			}
-		} else {
-			branch = req.Pullrequest.FromRef.Branch.Name
+		} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
+			project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
+			repo = req.PullRequest.FromRef.Repository.Slug
+			component = strings.Replace(repo, project+"-", "", -1)
+			branch = req.PullRequest.FromRef.DisplayID
 			kind = "delete"
+		} else {
+			log.Println(requestID, "Skipping unknown event", req.EventKey)
+			return
 		}
+		namespace := project + "-cd"
+		pipeline := component + "-"
+
 		// Extract JIRA user story from branch name if present
 		re := regexp.MustCompile(".*-([0-9]+)-.*")
 		matches := re.FindStringSubmatch(branch)
@@ -181,26 +194,26 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			Component: component,
 			Branch:    branch,
 			Pipeline:  pipeline,
-			RequestId: requestId,
+			RequestID: requestID,
 		}
-		log.Println(requestId, event)
+		log.Println(requestID, event)
 
 		if event.Kind == "forward" {
 			err := server.Client.CreatePipelineIfRequired(event)
 			if err != nil {
-				log.Println(requestId, err)
+				log.Println(requestID, err)
 				return
 			}
 			err = server.Client.Forward(event)
 			if err != nil {
-				log.Println(requestId, err)
+				log.Println(requestID, err)
 				return
 			}
 		} else if event.Kind == "delete" {
 			for _, b := range s.ProtectedBranches {
 				if b == event.Branch {
 					log.Println(
-						requestId,
+						requestID,
 						b,
 						"is protected - its pipeline cannot be deleted",
 					)
@@ -209,15 +222,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			}
 			err := server.Client.DeletePipeline(event)
 			if err != nil {
-				log.Println(requestId, err)
+				log.Println(requestID, err)
 				return
 			}
 		} else {
-			log.Println(requestId, "Unrecognized event")
+			log.Println(requestID, "Unrecognized event")
 		}
 	}
 }
 
+// Forward forwards a webhook event payload to the correct pipeline.
 func (c *Client) Forward(e *Event) error {
 	url := fmt.Sprintf(
 		"https://api.bi-x.openshift.com:443/oapi/v1/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
@@ -225,7 +239,7 @@ func (c *Client) Forward(e *Event) error {
 		e.Pipeline,
 		server.TriggerSecret,
 	)
-	log.Println(e.RequestId, "Forwarding to", url)
+	log.Println(e.RequestID, "Forwarding to", url)
 
 	_, err := c.SimpleClient.Post(
 		url,
@@ -238,8 +252,10 @@ func (c *Client) Forward(e *Event) error {
 	return nil
 }
 
+// CreatePipelineIfRequired ensures that the pipeline which corresponds to the
+// received event exists in OpenShift.
 func (c *Client) CreatePipelineIfRequired(e *Event) error {
-	exists, err := c.CheckPipeline(e)
+	exists, err := c.checkPipeline(e)
 	if err != nil {
 		return err
 	}
@@ -275,11 +291,13 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 		return errors.New(string(body))
 	}
 
-	log.Println(e.RequestId, "Created pipeline", e.Pipeline)
+	log.Println(e.RequestID, "Created pipeline", e.Pipeline)
 
 	return nil
 }
 
+// DeletePipeline removes the pipeline corresponding to the event from
+// OpenShift.
 func (c *Client) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
 		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s",
@@ -304,12 +322,12 @@ func (c *Client) DeletePipeline(e *Event) error {
 		return errors.New(string(body))
 	}
 
-	log.Println(e.RequestId, "Deleted pipeline", e.Pipeline)
+	log.Println(e.RequestID, "Deleted pipeline", e.Pipeline)
 
 	return nil
 }
 
-func (c *Client) CheckPipeline(e *Event) (bool, error) {
+func (c *Client) checkPipeline(e *Event) (bool, error) {
 	url := fmt.Sprintf(
 		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s",
 		e.Namespace,
