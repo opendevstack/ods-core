@@ -234,18 +234,19 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 // Forward forwards a webhook event payload to the correct pipeline.
 func (c *Client) Forward(e *Event) error {
 	url := fmt.Sprintf(
-		"https://api.bi-x.openshift.com:443/oapi/v1/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
+		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		e.Namespace,
 		e.Pipeline,
 		server.TriggerSecret,
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
-	_, err := c.SimpleClient.Post(
+	req, _ := http.NewRequest(
+		"POST",
 		url,
-		"application/json; charset=utf-8",
 		new(bytes.Buffer),
 	)
+	_, err := c.do(req)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Got error %s", err))
 	}
