@@ -8,12 +8,12 @@ pipeline is deleted as well.
 
 ## Usage
 
-Go to "Repository Settings > Post Webhooks" and click on "Add webhook". Enter
+Go to "Repository Settings > Webhooks" and click on "Create webhook". Enter
 `Jenkins` as Title and the route URL (see following [Setup](#setup) section) as
-URL. Under "Repository events", select `On push` and `Branch deleted`. Under
-"Pull request events", select `Pull request merged` and `Pull request declined`.
-Save your changes and you're done! Any other webhooks already setup to trigger
-Jenkins are not needed anymore and should be deactivated or deleted.
+URL. Under "Repository events", select `Push`. Under "Pull request events",
+select `Merged` and `Declined`. Save your changes and you're done! Any other
+webhooks already setup to trigger Jenkins are not needed anymore and should be
+deactivated or deleted.
 
 ## Setup
 
