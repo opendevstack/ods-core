@@ -91,7 +91,12 @@ func main() {
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
 	if len(triggerSecret) == 0 {
 		triggerSecret = triggerSecretDefault
-		log.Println("WARN:", triggerSecretEnvVar, "not set, using default value")
+		log.Println(
+			"WARN:",
+			triggerSecretEnvVar,
+			"not set, using default value:",
+			triggerSecretDefault,
+		)
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
@@ -151,6 +156,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := randStringBytes(6)
 		log.Println(requestID, "-----")
+
+		triggerSecretParam := r.URL.Query().Get("trigger_secret")
+		if triggerSecretParam != server.TriggerSecret {
+			log.Println(
+				requestID,
+				"trigger_secret param not given / not matching",
+			)
+			http.Error(w, "Not authorized", 401)
+			return
+		}
 
 		req := &request{}
 		json.NewDecoder(r.Body).Decode(req)
