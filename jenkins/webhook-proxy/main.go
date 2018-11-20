@@ -18,15 +18,17 @@ import (
 )
 
 const (
-	tokenFile                 = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-	caCert                    = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-	pipelineConfigFilename    = "pipeline.json"
-	repoBaseVariable          = "REPO_BASE"
-	triggerSecretVariable     = "TRIGGER_SECRET"
-	triggerSecretDefault      = "secret101"
-	protectedBranchesVariable = "PROTECTED_BRANCHES"
-	protectedBranchesDefault  = "master,develop,production,staging,release"
-	letterBytes               = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	tokenFile                = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	caCert                   = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	pipelineConfigFilename   = "pipeline.json"
+	repoBaseEnvVar           = "REPO_BASE"
+	triggerSecretEnvVar      = "TRIGGER_SECRET"
+	triggerSecretDefault     = "secret101"
+	protectedBranchesEnvVar  = "PROTECTED_BRANCHES"
+	protectedBranchesDefault = "master,develop,production,staging,release"
+	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
+	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
+	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 // Event is the internal representation of a BitBucket event described in
@@ -45,9 +47,9 @@ type Event struct {
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client struct {
-	SecureClient *http.Client
-	SimpleClient *http.Client
-	Token        string
+	HTTPClient          *http.Client
+	OpenShiftAPIBaseURL string
+	Token               string
 }
 
 // Server represents this service, and is a global.
@@ -67,40 +69,34 @@ func init() {
 func main() {
 	log.Println("Booted")
 
-	repoBase := os.Getenv(repoBaseVariable)
+	repoBase := os.Getenv(repoBaseEnvVar)
 	if len(repoBase) == 0 {
-		log.Fatalln(repoBaseVariable, "must be set")
+		log.Fatalln(repoBaseEnvVar, "must be set")
 	}
 
 	var protectedBranches []string
-	envProtectedBranches := os.Getenv(protectedBranchesVariable)
+	envProtectedBranches := os.Getenv(protectedBranchesEnvVar)
 	if len(envProtectedBranches) == 0 {
 		protectedBranches = strings.Split(protectedBranchesDefault, ",")
-		log.Println("WARN:", protectedBranchesVariable, "not set, using default value")
+		log.Println("WARN:", protectedBranchesEnvVar, "not set, using default value")
 	} else {
 		protectedBranches = strings.Split(envProtectedBranches, ",")
 	}
 
-	triggerSecret := os.Getenv(triggerSecretVariable)
+	triggerSecret := os.Getenv(triggerSecretEnvVar)
 	if len(triggerSecret) == 0 {
 		triggerSecret = triggerSecretDefault
-		log.Println("WARN:", triggerSecretVariable, "not set, using default value")
+		log.Println("WARN:", triggerSecretEnvVar, "not set, using default value")
 	}
 
-	token, err := getToken()
+	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
+	if len(openShiftAPIHost) == 0 {
+		openShiftAPIHost = openShiftAPIHostDefault
+	}
+
+	client, err := newClient(openShiftAPIHost)
 	if err != nil {
-		log.Fatalln("Could not get token:", err)
-	}
-
-	secureClient, err := getSecureClient()
-	if err != nil {
-		log.Fatalln("Could not get client:", err)
-	}
-
-	client := &Client{
-		SecureClient: secureClient,
-		SimpleClient: &http.Client{Timeout: 30 * time.Second},
-		Token:        token,
+		log.Fatalln(err)
 	}
 
 	server = &Server{
@@ -234,7 +230,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 // Forward forwards a webhook event payload to the correct pipeline.
 func (c *Client) Forward(e *Event) error {
 	url := fmt.Sprintf(
-		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
+		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
+		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
 		server.TriggerSecret,
@@ -248,7 +245,7 @@ func (c *Client) Forward(e *Event) error {
 	)
 	_, err := c.do(req)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Got error %s", err))
+		return fmt.Errorf("Got error %s", err)
 	}
 	return nil
 }
@@ -271,7 +268,8 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 	}
 
 	url := fmt.Sprintf(
-		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs",
+		"%s/namespaces/%s/buildconfigs",
+		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 	)
 	req, _ := http.NewRequest(
@@ -301,7 +299,8 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 // OpenShift.
 func (c *Client) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
-		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s",
+		"%s/namespaces/%s/buildconfigs/%s",
+		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
 	)
@@ -328,9 +327,12 @@ func (c *Client) DeletePipeline(e *Event) error {
 	return nil
 }
 
+// checkPipeline determines whether the pipeline corresponding to the given
+// event already exists.
 func (c *Client) checkPipeline(e *Event) (bool, error) {
 	url := fmt.Sprintf(
-		"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/%s/buildconfigs/%s",
+		"%s/namespaces/%s/buildconfigs/%s",
+		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
 	)
@@ -353,10 +355,11 @@ func (c *Client) checkPipeline(e *Event) (bool, error) {
 	return true, nil
 }
 
+// do executes the request.
 func (c *Client) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.Token)
-	return c.SecureClient.Do(req)
+	return c.HTTPClient.Do(req)
 }
 
 func (e *Event) String() string {
@@ -372,15 +375,38 @@ func (e *Event) String() string {
 	)
 }
 
+func newClient(openShiftAPIHost string) (*Client, error) {
+	token, err := getToken()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get token: %s", err)
+	}
+
+	secureClient, err := getSecureClient()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get client: %s", err)
+	}
+
+	baseURL := fmt.Sprintf(
+		"https://%s/oapi/v1",
+		openShiftAPIHost,
+	)
+
+	return &Client{
+		HTTPClient:          secureClient,
+		OpenShiftAPIBaseURL: baseURL,
+		Token:               token,
+	}, nil
+}
+
 func getBuildConfig(e *Event) ([]byte, error) {
 	configBytes, err := ioutil.ReadFile(pipelineConfigFilename)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	gitURITemplate := server.RepoBase + "/%s/%s.git"
 	gitURI := fmt.Sprintf(
-		gitURITemplate,
+		"%s/%s/%s.git",
+		server.RepoBase,
 		e.Project,
 		e.Repo,
 	)
