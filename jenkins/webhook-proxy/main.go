@@ -78,7 +78,12 @@ func main() {
 	envProtectedBranches := os.Getenv(protectedBranchesEnvVar)
 	if len(envProtectedBranches) == 0 {
 		protectedBranches = strings.Split(protectedBranchesDefault, ",")
-		log.Println("WARN:", protectedBranchesEnvVar, "not set, using default value")
+		log.Println(
+			"INFO:",
+			protectedBranchesEnvVar,
+			"not set, using default value:",
+			protectedBranchesDefault,
+		)
 	} else {
 		protectedBranches = strings.Split(envProtectedBranches, ",")
 	}
@@ -92,6 +97,12 @@ func main() {
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
 	if len(openShiftAPIHost) == 0 {
 		openShiftAPIHost = openShiftAPIHostDefault
+		log.Println(
+			"INFO:",
+			openShiftAPIHostEnvVar,
+			"not set, using default value:",
+			openShiftAPIHostDefault,
+		)
 	}
 
 	client, err := newClient(openShiftAPIHost)
