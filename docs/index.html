@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2018-11-20 Tue 17:45 -->
+<!-- 2018-11-21 Wed 07:06 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OpenDevStack</title>
@@ -270,312 +270,406 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orga34f1c0">1. OpenDevStack</a>
+<li><a href="#org95f186c">1. Intro</a></li>
+<li><a href="#orgc0bf652">2. OpenDevStack</a>
 <ul>
-<li><a href="#orga13c7b1">1.1. Introduction</a></li>
-<li><a href="#org6af862c">1.2. Requirements</a>
+<li><a href="#org94274ec">2.1. Introduction</a></li>
+<li><a href="#orgd328df5">2.2. Requirements</a>
 <ul>
-<li><a href="#org10d6c65">Git</a></li>
-<li><a href="#orgfc182bd">Vagrant</a></li>
-<li><a href="#org46b5df6">Atlassian tools licenses</a></li>
-<li><a href="#orgd14ea0e">Minishift</a></li>
-<li><a href="#orgcde2d01">Cygwin / Linux</a></li>
-<li><a href="#orgd19b8ad">Ansible</a></li>
+<li><a href="#org7556143">Git</a></li>
+<li><a href="#orgb183ef5">Vagrant</a></li>
+<li><a href="#org261bbcd">Atlassian tools licenses</a></li>
+<li><a href="#org9c27c4c">Minishift</a></li>
+<li><a href="#orga641234">Cygwin / Linux</a></li>
+<li><a href="#orgac5c090">Ansible</a></li>
 </ul>
 </li>
-<li><a href="#org1257dcb">1.3. Setup your local environment</a>
+<li><a href="#org72c4822">2.3. Setup your local environment</a>
 <ul>
-<li><a href="#orgf410981">Install tailor Utility</a></li>
-<li><a href="#org0a4c5b1">Prepare infrastructure</a>
+<li><a href="#orgb8d374c">Install tailor Utility</a></li>
+<li><a href="#org8be5b97">Prepare infrastructure</a>
 <ul>
-<li><a href="#org7e22ccc">Clone opendevstack Project</a></li>
-<li><a href="#org72d9c2e">Create environment with Vagrant</a></li>
-<li><a href="#orgc8e28dd">Connect to the Ansible controller <b>atlcon</b></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#org07ff3b4">1.4. Install Atlassian Tools and Rundeck</a>
-<ul>
-<li><a href="#orgec83e9f">Crowd Setup</a>
-<ul>
-<li><a href="#orgfc398e3">Setup Application</a></li>
-<li><a href="#org6a2718f">Run Configuration Wizard</a></li>
-<li><a href="#org5355623">Configure Crowd</a></li>
-<li><a href="#orgfe8424c">Add OpenDevStack groups</a></li>
-<li><a href="#org409dc21">Add Atlassian groups</a></li>
-<li><a href="#orgec62f73">Add groups to user</a></li>
-<li><a href="#orgaeb04d4"><span class="todo TODO">TODO</span> Add applications to crowd</a></li>
-</ul>
-</li>
-<li><a href="#org3d7ddcd">Bitbucket Setup</a>
-<ul>
-<li><a href="#orgb4d0fb0">Setup Application</a></li>
-<li><a href="#org9ad1c4c">Run Configuration Wizard</a></li>
-<li><a href="#org7168f90">Configure Crowd access</a></li>
-<li><a href="#org9d63a01">Configure user groups</a></li>
-</ul>
-</li>
-<li><a href="#orgb227fcc">Jira Setup</a>
-<ul>
-<li><a href="#orgda48618">Setup Application</a></li>
-<li><a href="#orgccd9a7b">Run Configuration Wizard</a></li>
-<li><a href="#orge85f562">Setup application properties</a></li>
-<li><a href="#org0726a39">Specify your license key</a></li>
-<li><a href="#org062989d">Set up administrator account</a></li>
-<li><a href="#org3464ba1">Set up email notifications</a></li>
-<li><a href="#orgbaa00c2">Basic configuration</a></li>
-<li><a href="#org98cafa4">Configure Crowd access</a></li>
-</ul>
-</li>
-<li><a href="#org4d55b83">Confluence Setup</a>
-<ul>
-<li><a href="#org784b7c3">Setup Application</a></li>
-<li><a href="#orga78e223">Run Configuration Wizard</a></li>
-<li><a href="#org8cf6f53">Set up Confluence</a></li>
-<li><a href="#org7c5b433">Get add-ons</a></li>
-<li><a href="#org5ae5857">License key</a></li>
-<li><a href="#orgf690143">Choose a Database Configuration</a></li>
-<li><a href="#org407b004">Configure Database</a></li>
-<li><a href="#orgfbe38ab">Load Content</a></li>
-<li><a href="#org0fc214c">Configure User Management</a></li>
-<li><a href="#orgd526944">Configure System Administrator account</a></li>
-<li><a href="#org6066e1c">Configure Crowd access</a></li>
-</ul>
-</li>
-<li><a href="#org909f629">Create opendevstack project in Bitbucket</a></li>
-<li><a href="#org8f37812">Rundeck Setup</a>
-<ul>
-<li><a href="#orgeeb3a52">Setup Application</a></li>
+<li><a href="#org53e6abf">Clone opendevstack Project</a></li>
+<li><a href="#org6bda14b">Create environment with Vagrant</a></li>
+<li><a href="#org587dc26">Connect to the Ansible controller <b>atlcon</b></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orga01532b">1.5. Configure and Start Minishift</a>
+<li><a href="#org44a5c0c">2.4. Install Atlassian Tools and Rundeck</a>
 <ul>
-<li><a href="#orgb0d234c">Configure Minishift</a></li>
-<li><a href="#orgc3f3cbc">Create new Minishift Profile - opendevstack</a></li>
-<li><a href="#org0a9dc08">Start Minishift</a></li>
-<li><a href="#org50a530b">Configure the path for the OC CLI</a></li>
-<li><a href="#orgde3f1fd">Login with the CLI</a></li>
-<li><a href="#orgd292e02">Setup the base template project</a></li>
-<li><a href="#orgffc773e">Adjust user rights for the developer user</a></li>
-<li><a href="#orgaa44b15">Create service account for deployment</a></li>
-<li><a href="#org5185aac">Install Minishift certificate on Atlassian server</a></li>
-<li><a href="#org3d8361b">Clone the ods-project-quickstarters from your Bitbucket server</a></li>
+<li><a href="#orgdceb452">Crowd Setup</a>
+<ul>
+<li><a href="#org4c076a9">Setup Application</a></li>
+<li><a href="#org62677f8">Run Configuration Wizard</a></li>
+<li><a href="#orgf5a09e8">Configure Crowd</a></li>
+<li><a href="#orgd342fed">Add OpenDevStack groups</a></li>
+<li><a href="#org01bb5a0">Add Atlassian groups</a></li>
+<li><a href="#orgd09b1e0">Add groups to user</a></li>
+<li><a href="#org8430f41"><span class="todo TODO">TODO</span> Add applications to crowd</a></li>
 </ul>
 </li>
-<li><a href="#org8f732f8">1.6. <span class="todo TODO">TODO</span> Prepare environment settings</a></li>
-<li><a href="#orgcebc78b">1.7. Setup and Configure Nexus3</a>
+<li><a href="#orgee3c83f">Bitbucket Setup</a>
 <ul>
-<li><a href="#org03d3bff">Configure Repository Manager</a></li>
-<li><a href="#org03a079b"><span class="todo TODO">TODO</span> Configure repositories</a></li>
-<li><a href="#org3379a70">Configure user and roles</a></li>
+<li><a href="#org217b646">Setup Application</a></li>
+<li><a href="#orgdff1a8f">Run Configuration Wizard</a></li>
+<li><a href="#org9855304">Configure Crowd access</a></li>
+<li><a href="#orga13facf">Configure user groups</a></li>
 </ul>
 </li>
-<li><a href="#org96c6cd9">1.8. Configure CD user</a></li>
-<li><a href="#org154e5f8">1.9. <span class="todo TODO">TODO</span> Import base templates</a>
+<li><a href="#org9bb5d76">Jira Setup</a>
 <ul>
-<li><a href="#orgf27f4b8">Preparation</a></li>
-<li><a href="#org8baa365">Upload</a></li>
+<li><a href="#org1bd54af">Setup Application</a></li>
+<li><a href="#org0343329">Run Configuration Wizard</a></li>
+<li><a href="#org65ab57f">Setup application properties</a></li>
+<li><a href="#org098cdb6">Specify your license key</a></li>
+<li><a href="#orgc265827">Set up administrator account</a></li>
+<li><a href="#org788a542">Set up email notifications</a></li>
+<li><a href="#org920a37b">Basic configuration</a></li>
+<li><a href="#org159214b">Configure Crowd access</a></li>
 </ul>
 </li>
-<li><a href="#orgddf65fb">1.10. <span class="todo TODO">TODO</span> Create secrets inside the CD project</a></li>
-<li><a href="#orgecedc60">1.11. <span class="todo TODO">TODO</span> Setup and configure Sonarqube</a></li>
-<li><a href="#orgc7d51bb">1.12. <span class="todo TODO">TODO</span> Explain all variables</a></li>
-<li><a href="#org8ad0757">1.13. Prepare CD project for Jenkins</a></li>
-<li><a href="#org227f7b2">1.14. <span class="todo TODO">TODO</span> Prepare Jenkins slave docker images</a>
+<li><a href="#org8f8e4d5">Confluence Setup</a>
 <ul>
-<li><a href="#orgc68fc23">Maven</a></li>
-<li><a href="#orgaecebf1">Python</a></li>
-<li><a href="#orge6a5bce">scala</a></li>
-<li><a href="#org995c899">nodejs8-angular</a></li>
+<li><a href="#orgffbb558">Setup Application</a></li>
+<li><a href="#org869222b">Run Configuration Wizard</a></li>
+<li><a href="#org588303f">Set up Confluence</a></li>
+<li><a href="#org0ea8949">Get add-ons</a></li>
+<li><a href="#org154e392">License key</a></li>
+<li><a href="#org53b4146">Choose a Database Configuration</a></li>
+<li><a href="#org7513f7f">Configure Database</a></li>
+<li><a href="#orge262175">Load Content</a></li>
+<li><a href="#org61c27c8">Configure User Management</a></li>
+<li><a href="#org54e8b33">Configure System Administrator account</a></li>
+<li><a href="#org5b68556">Configure Crowd access</a></li>
 </ul>
 </li>
-<li><a href="#org2d3c63e">1.15. Prepare Docker Registry</a></li>
-<li><a href="#org0d86604">1.16. Prepare Rundeck and required Dockerfiles</a>
+<li><a href="#org745aa99">Create opendevstack project in Bitbucket</a></li>
+<li><a href="#org39229d0">Rundeck Setup</a>
 <ul>
-<li><a href="#org2ae2b30">Create Quickstarters project</a></li>
-<li><a href="#org1251b8b">Openshift API token</a></li>
-<li><a href="#orge623f81">CD user private key</a></li>
-<li><a href="#org114ade4">Configure SCM plugins</a>
-<ul>
-<li><a href="#org0147f38">Setup Import plugin</a></li>
-<li><a href="#org05059cf">Setup Export plugin</a></li>
-</ul>
-</li>
-<li><a href="#org1c48ed5">Update the job properties</a></li>
-</ul>
-</li>
-<li><a href="#org28bfece">1.17. Add shared images</a></li>
-<li><a href="#orga73d36a">1.18. Configure provisioning application</a></li>
-<li><a href="#org1cd90f1">1.19. Setup within Openshift</a></li>
-<li><a href="#orge0e9a9c">1.20. Try out the OpenDevStack</a></li>
-</ul>
-</li>
-<li><a href="#orgb2088bd">2. Console URLs</a></li>
-<li><a href="#org7031b35">3. OpenDevStack - Products and Description</a>
-<ul>
-<li><a href="#org3320db1">3.1. Crowd</a>
-<ul>
-<li><a href="#org7d07a18">Centralized identity management</a>
-<ul>
-<li><a href="#org919b367">Single sign-on (SSO)</a></li>
-<li><a href="#org4d9ed4e">Centralize multiple directories</a></li>
+<li><a href="#orgf42a816">Setup Application</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org4779982">3.2. Confluence</a>
+<li><a href="#orgc86fd17">2.5. Configure and Start Minishift</a>
 <ul>
-<li><a href="#org7cfc03e">Content collaboration software that changes how modern teams work</a>
+<li><a href="#org82a4d23">Configure Minishift</a></li>
+<li><a href="#org4f4b35e">Create new Minishift Profile - opendevstack</a></li>
+<li><a href="#org1c39236">Start Minishift</a></li>
+<li><a href="#orgba0faaa">Configure the path for the OC CLI</a></li>
+<li><a href="#orgdab02ee">Login with the CLI</a></li>
+<li><a href="#org874aad4">Setup the base template project</a></li>
+<li><a href="#org99d651e">Adjust user rights for the developer user</a></li>
+<li><a href="#orgf9ef361">Create service account for deployment</a></li>
+<li><a href="#orgd540f9e">Install Minishift certificate on Atlassian server</a></li>
+<li><a href="#org173a924">Clone the ods-project-quickstarters from your Bitbucket server</a></li>
+</ul>
+</li>
+<li><a href="#org7ca5e45">2.6. <span class="todo TODO">TODO</span> Prepare environment settings</a></li>
+<li><a href="#orgf9eccb4">2.7. Setup and Configure Nexus3</a>
 <ul>
-<li><a href="#orgcc0fcb2">Project collaboration</a></li>
-<li><a href="#orgfb7e939">Knowledge base</a></li>
-<li><a href="#orga958acd">Team documentation</a></li>
-<li><a href="#org5cb3a7a">Document management</a></li>
-<li><a href="#orgc7505ba">Page and file versioning</a></li>
-<li><a href="#org663235f">Templates</a></li>
-<li><a href="#org30844e7">Permissions</a></li>
-<li><a href="#orgc4371e6">Jira</a></li>
+<li><a href="#orgcfb3e88">Configure Repository Manager</a></li>
+<li><a href="#org7260ab5"><span class="todo TODO">TODO</span> Configure repositories</a></li>
+<li><a href="#orgb0db8bf">Configure user and roles</a></li>
+</ul>
+</li>
+<li><a href="#org26d3294">2.8. Configure CD user</a></li>
+<li><a href="#orge777831">2.9. <span class="todo TODO">TODO</span> Import base templates</a>
+<ul>
+<li><a href="#org44fd649">Preparation</a></li>
+<li><a href="#org5a66b88">Upload</a></li>
+</ul>
+</li>
+<li><a href="#orgd4a317c">2.10. <span class="todo TODO">TODO</span> Create secrets inside the CD project</a></li>
+<li><a href="#org07dfd31">2.11. <span class="todo TODO">TODO</span> Setup and configure Sonarqube</a></li>
+<li><a href="#orgabb82ff">2.12. <span class="todo TODO">TODO</span> Explain all variables</a></li>
+<li><a href="#orge8ac1d7">2.13. Prepare CD project for Jenkins</a></li>
+<li><a href="#orgb72a5f8">2.14. <span class="todo TODO">TODO</span> Prepare Jenkins slave docker images</a>
+<ul>
+<li><a href="#orgc26a3ee">Maven</a></li>
+<li><a href="#org5244db4">Python</a></li>
+<li><a href="#org551b614">scala</a></li>
+<li><a href="#orgf07139e">nodejs8-angular</a></li>
+</ul>
+</li>
+<li><a href="#org3f69cb0">2.15. Prepare Docker Registry</a></li>
+<li><a href="#org19d8ded">2.16. Prepare Rundeck and required Dockerfiles</a>
+<ul>
+<li><a href="#org5cca3fd">Create Quickstarters project</a></li>
+<li><a href="#org47d9812">Openshift API token</a></li>
+<li><a href="#orgfccd324">CD user private key</a></li>
+<li><a href="#org3edf8c8">Configure SCM plugins</a>
+<ul>
+<li><a href="#orgb2113c1">Setup Import plugin</a></li>
+<li><a href="#org13c4636">Setup Export plugin</a></li>
+</ul>
+</li>
+<li><a href="#orgcea0d7d">Update the job properties</a></li>
+</ul>
+</li>
+<li><a href="#org9f35a78">2.17. Add shared images</a></li>
+<li><a href="#org7754eb4">2.18. Configure provisioning application</a></li>
+<li><a href="#orgeb624fa">2.19. Setup within Openshift</a></li>
+<li><a href="#org4945169">2.20. Try out the OpenDevStack</a></li>
+</ul>
+</li>
+<li><a href="#orge9b9a20">3. Console URLs</a></li>
+<li><a href="#orga6aaa40">4. OpenDevStack - Products and Description</a>
+<ul>
+<li><a href="#org08445b3">4.1. Crowd</a>
+<ul>
+<li><a href="#org54c2e5f">Centralized identity management</a>
+<ul>
+<li><a href="#org1fb29f4">Single sign-on (SSO)</a></li>
+<li><a href="#orgafeca6a">Centralize multiple directories</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orge8db1a0">3.3. Jira</a>
+<li><a href="#org049dd0e">4.2. Confluence</a>
 <ul>
-<li><a href="#org3971b82">Project management tool for agile teams</a>
+<li><a href="#orgc901bf5">Content collaboration software that changes how modern teams work</a>
 <ul>
-<li><a href="#org3d89939">Scrum boards</a></li>
-<li><a href="#orgdb38a82">Kanban boards</a></li>
-<li><a href="#orge6f9e82">Agile reporting</a></li>
-<li><a href="#org45fd3bc">Roadmaps</a></li>
-<li><a href="#org8fe8a55">Customizable workflows</a></li>
-<li><a href="#org64bc00c">Developer tool integrations</a></li>
-<li><a href="#org1751bf1">Custom filters</a></li>
-<li><a href="#org144371a">Rich APIs</a></li>
+<li><a href="#org4b2c330">Project collaboration</a></li>
+<li><a href="#org1191c41">Knowledge base</a></li>
+<li><a href="#org6d246c3">Team documentation</a></li>
+<li><a href="#orgc1f9f0d">Document management</a></li>
+<li><a href="#org4333d08">Page and file versioning</a></li>
+<li><a href="#org3fb8ce3">Templates</a></li>
+<li><a href="#org8d041aa">Permissions</a></li>
+<li><a href="#orged2e399">Jira</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgc8cfbf8">3.4. Jira and Confluence</a></li>
-<li><a href="#org3e91beb">3.5. BitBucket</a>
+<li><a href="#orgcdab58e">4.3. Jira</a>
 <ul>
-<li><a href="#orgda53189">More than just Git code management</a>
+<li><a href="#orgeeec5ab">Project management tool for agile teams</a>
 <ul>
-<li><a href="#org26a3db4">Free unlimited private repositories</a></li>
-<li><a href="#org1b060ed">Best-in-class Jira &amp; Trello integration</a></li>
-<li><a href="#org46fbadb">Built-in Continuous Delivery</a></li>
-<li><a href="#org4abbb48">Code Collaboration</a></li>
-<li><a href="#org7ab740f">Continuous Delivery</a></li>
-<li><a href="#org14efdd0">Security</a></li>
+<li><a href="#orgbf1b9b2">Scrum boards</a></li>
+<li><a href="#org5c62459">Kanban boards</a></li>
+<li><a href="#org456dce2">Agile reporting</a></li>
+<li><a href="#org5d08fe5">Roadmaps</a></li>
+<li><a href="#org78fe97a">Customizable workflows</a></li>
+<li><a href="#org2b98df2">Developer tool integrations</a></li>
+<li><a href="#org840d57c">Custom filters</a></li>
+<li><a href="#org4833670">Rich APIs</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orga2978ae">3.6. Rundeck</a>
+<li><a href="#orga676095">4.4. Jira and Confluence</a></li>
+<li><a href="#org042d795">4.5. BitBucket</a>
 <ul>
-<li><a href="#org25b4450">Manage automation from legacy to cloud services</a>
+<li><a href="#orgce1daf3">More than just Git code management</a>
 <ul>
-<li><a href="#org60940df">Scale Ops.</a></li>
-<li><a href="#orge0db784">Eliminate the wait.</a></li>
-<li><a href="#orgabab4c1">Stay in control.</a></li>
-<li><a href="#org1dc912f">Be audit-ready.</a></li>
-<li><a href="#org44ee367">Create a job</a></li>
-<li><a href="#org643a7fc">Safely hand off the job to others</a></li>
-<li><a href="#orgadb510c">Enjoy being the Hero.</a></li>
+<li><a href="#orgc9628cc">Free unlimited private repositories</a></li>
+<li><a href="#orgdbc85bd">Best-in-class Jira &amp; Trello integration</a></li>
+<li><a href="#org5134db7">Built-in Continuous Delivery</a></li>
+<li><a href="#org8d4dead">Code Collaboration</a></li>
+<li><a href="#orgebfcf80">Continuous Delivery</a></li>
+<li><a href="#orgd56920e">Security</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgc4cd5cd">3.7. Nexus Repository</a>
+<li><a href="#org73f3183">4.6. Rundeck</a>
 <ul>
-<li><a href="#org8e61552">Flow control for binaries, build artifacts, and release candidates.</a>
+<li><a href="#org70e80f6">Manage automation from legacy to cloud services</a>
 <ul>
-<li><a href="#orgd4bb1a9">The perfect system of record for all your software parts</a></li>
-<li><a href="#org777cd9d">Universal support for all your favorite formats and tools.</a></li>
+<li><a href="#org4bb238c">Scale Ops.</a></li>
+<li><a href="#org9162710">Eliminate the wait.</a></li>
+<li><a href="#org532ff49">Stay in control.</a></li>
+<li><a href="#orgf38dfdf">Be audit-ready.</a></li>
+<li><a href="#orge19b04e">Create a job</a></li>
+<li><a href="#org72bc926">Safely hand off the job to others</a></li>
+<li><a href="#org303dfae">Enjoy being the Hero.</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org498a79f">3.8. SonarQube</a>
+<li><a href="#orgaa279a2">4.7. Nexus Repository</a>
 <ul>
-<li><a href="#org67cf600">Continuous Code Quality</a>
+<li><a href="#orgdeeb460">Flow control for binaries, build artifacts, and release candidates.</a>
 <ul>
-<li><a href="#org7e4a0ad">Continuous Inspection</a></li>
-<li><a href="#org43ca6b6">Detect Tricky Issues</a></li>
-<li><a href="#org9acf98f">Centralize Quality</a></li>
-<li><a href="#org8dc4b12">DevOps Integration</a></li>
+<li><a href="#orgb135bd9">The perfect system of record for all your software parts</a></li>
+<li><a href="#org2d9a993">Universal support for all your favorite formats and tools.</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgfc2ba64">4.8. SonarQube</a>
+<ul>
+<li><a href="#orga02e77e">Continuous Code Quality</a>
+<ul>
+<li><a href="#org456315f">Continuous Inspection</a></li>
+<li><a href="#org69a774e">Detect Tricky Issues</a></li>
+<li><a href="#org5dcac68">Centralize Quality</a></li>
+<li><a href="#orgd5caf90">DevOps Integration</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org7c3a03d">4. Install convenience environment</a>
+<li><a href="#orge3a5d87">5. Install convenience environment</a>
 <ul>
-<li><a href="#org779f17f">4.1. atlassian1</a></li>
-<li><a href="#orgb298459">4.2. atlcon</a></li>
+<li><a href="#org00bd13f">5.1. atlassian1</a></li>
+<li><a href="#org3c593c8">5.2. atlcon</a></li>
 </ul>
 </li>
-<li><a href="#orgbe98dd3">5. Installation and Runtime Topology</a>
+<li><a href="#org8fdfb92">6. Installation and Runtime Topology</a>
 <ul>
-<li><a href="#orgca3f733">5.1. Atlassian products</a>
+<li><a href="#org25945fa">6.1. Atlassian products</a>
 <ul>
-<li><a href="#org99295d1">Installation directory (/opt/atlassian)</a></li>
-<li><a href="#orgd682be7">Crowd</a></li>
-<li><a href="#org289d7ce">Confluence</a></li>
-<li><a href="#org12cb94a">Jira</a></li>
-<li><a href="#org5acd23b">BitBucket</a></li>
-<li><a href="#orgb29987e">Home directory structure (/srv/atlassian)</a>
+<li><a href="#org8180081">Installation directory (/opt/atlassian)</a></li>
+<li><a href="#org1086a14">Crowd</a></li>
+<li><a href="#orgdc3d0bd">Confluence</a></li>
+<li><a href="#orgbb5b769">Jira</a></li>
+<li><a href="#org4e18994">BitBucket</a></li>
+<li><a href="#org7aedba2">Home directory structure (/srv/atlassian)</a>
 <ul>
-<li><a href="#orge0b35b0">Atlassian products</a></li>
-<li><a href="#orga6ea743">Crowd</a></li>
-<li><a href="#org8497aef">Confluence</a></li>
-<li><a href="#org35ab0d4">Jira</a></li>
-<li><a href="#orgce7cf7f">BitBucket</a></li>
+<li><a href="#orge4574e6">Atlassian products</a></li>
+<li><a href="#orgd844470">Crowd</a></li>
+<li><a href="#orgec523fb">Confluence</a></li>
+<li><a href="#org7ab6fea">Jira</a></li>
+<li><a href="#org6672bdc">BitBucket</a></li>
 </ul>
 </li>
-<li><a href="#org9030dc5">User home directories</a></li>
+<li><a href="#org47df110">User home directories</a></li>
 </ul>
 </li>
-<li><a href="#orgd66d937">5.2. Rundeck</a></li>
-<li><a href="#org935c921">5.3. Docker</a>
+<li><a href="#orgd6402be">6.2. Rundeck</a></li>
+<li><a href="#org4010d51">6.3. Docker</a>
 <ul>
-<li><a href="#orgc4e8152">Nexus3</a></li>
-<li><a href="#org4685ac9">SonarQube</a>
+<li><a href="#org7a62388">Nexus3</a></li>
+<li><a href="#org21e3484">SonarQube</a>
 <ul>
-<li><a href="#org202bc12">SonarQube-PostGreSQL</a></li>
+<li><a href="#orge53328b">SonarQube-PostGreSQL</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org00940e4">5.4. PostGreSQL</a></li>
-<li><a href="#org61ee3a6">5.5. Processes</a></li>
+<li><a href="#orgcde95e2">6.4. PostGreSQL</a></li>
+<li><a href="#org3373b52">6.5. Processes</a></li>
 </ul>
 </li>
-<li><a href="#org0fef71b">6. ToDo</a>
+<li><a href="#org042012d">7. ToDo</a>
 <ul>
-<li><a href="#orga4e63d6">6.1. Configuring Minishift</a></li>
-<li><a href="#orga67bd0b">6.2. Using Minishift - An OpenShift Origin All-in-One VM</a></li>
-<li><a href="#orge536e9e">6.3. Problems when starting</a></li>
+<li><a href="#orgd0cbfeb">7.1. Configuring Minishift</a></li>
+<li><a href="#orge68a3dd">7.2. Using Minishift - An OpenShift Origin All-in-One VM</a></li>
+<li><a href="#orgf43afd9">7.3. Problems when starting</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orga34f1c0" class="outline-2">
-<h2 id="orga34f1c0"><span class="section-number-2">1</span> OpenDevStack</h2>
+<div id="outline-container-org95f186c" class="outline-2">
+<h2 id="org95f186c"><span class="section-number-2">1</span> Intro</h2>
 <div class="outline-text-2" id="text-1">
+<p>
+This website has been created with <a href="https://www.gnu.org/software/emacs/">Emacs</a> <a href="https://orgmode.org/">org-mode</a> and the help of
+<a href="https://github.com/vzell/org-html-themes">org-html-themes</a> during export.
+</p>
+
+<p>
+Keyboard shortcuts to save time and boost your productivity during reading of
+this <b>website</b>
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Shortcut</th>
+<th scope="col" class="org-left">What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>?</code> or <code>h</code></td>
+<td class="org-left">Access the <b>dashboard</b></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>n</code></td>
+<td class="org-left">Move to the <b>next</b> main heading</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>p</code></td>
+<td class="org-left">Move to the <b>previous</b> main heading</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>b</code></td>
+<td class="org-left">Scroll up</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>&lt;</code></td>
+<td class="org-left">Scroll to top</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>&gt;</code></td>
+<td class="org-left">Scroll to bottom</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>-</code></td>
+<td class="org-left">Collapse all</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>+</code></td>
+<td class="org-left">Expand all</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>r</code></td>
+<td class="org-left">Go to next task in list</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>R</code></td>
+<td class="org-left">Go to previous task in list</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>q</code></td>
+<td class="org-left">Stop reviewing the list of tasks</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>g</code></td>
+<td class="org-left">Reload the page</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+<div id="outline-container-orgc0bf652" class="outline-2">
+<h2 id="orgc0bf652"><span class="section-number-2">2</span> OpenDevStack</h2>
+<div class="outline-text-2" id="text-2">
 <p>
 <a href="http://www.opendevstack.org/doc/getting-started">http://www.opendevstack.org/doc/getting-started</a>
 </p>
 </div>
 
-<div id="outline-container-orga13c7b1" class="outline-3">
-<h3 id="orga13c7b1"><span class="section-number-3">1.1</span> Introduction</h3>
-<div class="outline-text-3" id="text-1-1">
+<div id="outline-container-org94274ec" class="outline-3">
+<h3 id="org94274ec"><span class="section-number-3">2.1</span> Introduction</h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
 Welcome to the OpenDevStack. The OpenDevStack is a framework to help in setting
 up a project infrastructure and continuous delivery processes on OpenShift and
@@ -594,26 +688,26 @@ customize paths, URLs and credentials!
 </div>
 </div>
 
-<div id="outline-container-org6af862c" class="outline-3">
-<h3 id="org6af862c"><span class="section-number-3">1.2</span> Requirements</h3>
-<div class="outline-text-3" id="text-1-2">
+<div id="outline-container-orgd328df5" class="outline-3">
+<h3 id="orgd328df5"><span class="section-number-3">2.2</span> Requirements</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 The following requirements have to be met to setup a local environment
 </p>
 </div>
 
-<div id="outline-container-org10d6c65" class="outline-4">
-<h4 id="org10d6c65">Git</h4>
-<div class="outline-text-4" id="text-org10d6c65">
+<div id="outline-container-org7556143" class="outline-4">
+<h4 id="org7556143">Git</h4>
+<div class="outline-text-4" id="text-org7556143">
 <p>
 We use Git as code repository, so you have to be familiar to work with Git.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgfc182bd" class="outline-4">
-<h4 id="orgfc182bd">Vagrant</h4>
-<div class="outline-text-4" id="text-orgfc182bd">
+<div id="outline-container-orgb183ef5" class="outline-4">
+<h4 id="orgb183ef5">Vagrant</h4>
+<div class="outline-text-4" id="text-orgb183ef5">
 <p>
 The OpenDevStack uses <b>Vagrant</b> to provide a sample infrastructure for the
 <b>Atlassian tools</b>, <b>Rundeck</b> (an operations management platform) and a so called
@@ -624,9 +718,9 @@ the HashiCorp Vagrant page.
 </div>
 </div>
 
-<div id="outline-container-org46b5df6" class="outline-4">
-<h4 id="org46b5df6">Atlassian tools licenses</h4>
-<div class="outline-text-4" id="text-org46b5df6">
+<div id="outline-container-org261bbcd" class="outline-4">
+<h4 id="org261bbcd">Atlassian tools licenses</h4>
+<div class="outline-text-4" id="text-org261bbcd">
 <p>
 To use the Atlassian tools you need a license to run them. For testing and
 evaluation Atlassian provides evalutation licenses, which you can get on the My
@@ -651,9 +745,9 @@ tools, after the base setup provided by the Ansible scripts.
 </div>
 </div>
 
-<div id="outline-container-orgd14ea0e" class="outline-4">
-<h4 id="orgd14ea0e">Minishift</h4>
-<div class="outline-text-4" id="text-orgd14ea0e">
+<div id="outline-container-org9c27c4c" class="outline-4">
+<h4 id="org9c27c4c">Minishift</h4>
+<div class="outline-text-4" id="text-org9c27c4c">
 <p>
 The provided provision application and Rundeck jobs work with links, which are
 designed to connect to a installed and configured Minishift instance. Minishift
@@ -665,9 +759,9 @@ Openshift 3.9.0.
 </div>
 </div>
 
-<div id="outline-container-orgcde2d01" class="outline-4">
-<h4 id="orgcde2d01">Cygwin / Linux</h4>
-<div class="outline-text-4" id="text-orgcde2d01">
+<div id="outline-container-orga641234" class="outline-4">
+<h4 id="orga641234">Cygwin / Linux</h4>
+<div class="outline-text-4" id="text-orga641234">
 <p>
 You must have the possibility to run bash scripts to import the provided
 OpenShift templates. On Linux systems you can use these scripts out-of-the box,
@@ -703,9 +797,9 @@ This is described in the cygwin user guide.
 </div>
 </div>
 
-<div id="outline-container-orgd19b8ad" class="outline-4">
-<h4 id="orgd19b8ad">Ansible</h4>
-<div class="outline-text-4" id="text-orgd19b8ad">
+<div id="outline-container-orgac5c090" class="outline-4">
+<h4 id="orgac5c090">Ansible</h4>
+<div class="outline-text-4" id="text-orgac5c090">
 <p>
 The OpenDevStack uses Ansible to install and configure the necessary software
 for the enabling stack, so it’s recommended to get familiar with its core
@@ -717,17 +811,17 @@ the vault password.
 </div>
 </div>
 
-<div id="outline-container-org1257dcb" class="outline-3">
-<h3 id="org1257dcb"><span class="section-number-3">1.3</span> Setup your local environment</h3>
-<div class="outline-text-3" id="text-1-3">
+<div id="outline-container-org72c4822" class="outline-3">
+<h3 id="org72c4822"><span class="section-number-3">2.3</span> Setup your local environment</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 From now on we assume, you work from a Bash (Cygwin / Linux).
 </p>
 </div>
 
-<div id="outline-container-orgf410981" class="outline-4">
-<h4 id="orgf410981">Install tailor Utility</h4>
-<div class="outline-text-4" id="text-orgf410981">
+<div id="outline-container-orgb8d374c" class="outline-4">
+<h4 id="orgb8d374c">Install tailor Utility</h4>
+<div class="outline-text-4" id="text-orgb8d374c">
 <div class="org-src-container">
 <pre class="src src-bash">choco info tailor
 </pre>
@@ -836,13 +930,13 @@ version of <b>tailer</b>.
 </div>
 </div>
 
-<div id="outline-container-org0a4c5b1" class="outline-4">
-<h4 id="org0a4c5b1">Prepare infrastructure</h4>
-<div class="outline-text-4" id="text-org0a4c5b1">
+<div id="outline-container-org8be5b97" class="outline-4">
+<h4 id="org8be5b97">Prepare infrastructure</h4>
+<div class="outline-text-4" id="text-org8be5b97">
 </div>
-<div id="outline-container-org7e22ccc" class="outline-5">
-<h5 id="org7e22ccc">Clone opendevstack Project</h5>
-<div class="outline-text-5" id="text-org7e22ccc">
+<div id="outline-container-org53e6abf" class="outline-5">
+<h5 id="org53e6abf">Clone opendevstack Project</h5>
+<div class="outline-text-5" id="text-org53e6abf">
 <p>
 First you have to clone the ods-core repository.
 </p>
@@ -867,9 +961,9 @@ First you have to clone the ods-core repository.
 </div>
 </div>
 
-<div id="outline-container-org72d9c2e" class="outline-5">
-<h5 id="org72d9c2e">Create environment with Vagrant</h5>
-<div class="outline-text-5" id="text-org72d9c2e">
+<div id="outline-container-org6bda14b" class="outline-5">
+<h5 id="org6bda14b">Create environment with Vagrant</h5>
+<div class="outline-text-5" id="text-org6bda14b">
 <p>
 Navigate to the folder <b>ods-core &gt; infrastructure-setup</b>. There you will find a
 Vagrant file. You can start the infrastructure provisioning and setup by using
@@ -1722,9 +1816,9 @@ Vagrant file. You can start the infrastructure provisioning and setup by using
 </div>
 </div>
 
-<div id="outline-container-orgc8e28dd" class="outline-5">
-<h5 id="orgc8e28dd">Connect to the Ansible controller <b>atlcon</b></h5>
-<div class="outline-text-5" id="text-orgc8e28dd">
+<div id="outline-container-org587dc26" class="outline-5">
+<h5 id="org587dc26">Connect to the Ansible controller <b>atlcon</b></h5>
+<div class="outline-text-5" id="text-org587dc26">
 <p>
 After Vagrant has provisioned the VMs you are able to connect to them. There are
 two VMs, <b>atlcon</b> and <b>atlassian1</b>. First connect to the Ansible controller <b>atlcon</b>
@@ -2143,21 +2237,21 @@ controller like described before!
 </div>
 </div>
 
-<div id="outline-container-org07ff3b4" class="outline-3">
-<h3 id="org07ff3b4"><span class="section-number-3">1.4</span> Install Atlassian Tools and Rundeck</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-org44a5c0c" class="outline-3">
+<h3 id="org44a5c0c"><span class="section-number-3">2.4</span> Install Atlassian Tools and Rundeck</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 The following steps explain the Atlassian tools and the Rundeck installation.
 </p>
 </div>
 
-<div id="outline-container-orgec83e9f" class="outline-4">
-<h4 id="orgec83e9f">Crowd Setup</h4>
-<div class="outline-text-4" id="text-orgec83e9f">
+<div id="outline-container-orgdceb452" class="outline-4">
+<h4 id="orgdceb452">Crowd Setup</h4>
+<div class="outline-text-4" id="text-orgdceb452">
 </div>
-<div id="outline-container-orgfc398e3" class="outline-5">
-<h5 id="orgfc398e3">Setup Application</h5>
-<div class="outline-text-5" id="text-orgfc398e3">
+<div id="outline-container-org4c076a9" class="outline-5">
+<h5 id="org4c076a9">Setup Application</h5>
+<div class="outline-text-5" id="text-org4c076a9">
 <p>
 Downloading and Configuring as service
 </p>
@@ -2700,9 +2794,9 @@ opendevstack
 </div>
 </div>
 
-<div id="outline-container-org6a2718f" class="outline-5">
-<h5 id="org6a2718f">Run Configuration Wizard</h5>
-<div class="outline-text-5" id="text-org6a2718f">
+<div id="outline-container-org62677f8" class="outline-5">
+<h5 id="org62677f8">Run Configuration Wizard</h5>
+<div class="outline-text-5" id="text-org62677f8">
 <p>
 Be patient. First time accessing this page will take some time.
 </p>
@@ -2713,8 +2807,8 @@ Be patient. First time accessing this page will take some time.
 </div>
 
 <ul class="org-ul">
-<li><a id="orge207b1c"></a>License key<br />
-<div class="outline-text-6" id="text-orge207b1c">
+<li><a id="orgafea353"></a>License key<br />
+<div class="outline-text-6" id="text-orgafea353">
 <p>
 When prompted later for the <b>License type</b>, always choose <b>&lt;Product&gt; Software (Server)</b>
 </p>
@@ -2780,16 +2874,16 @@ hQ3WTO7ucUj+gm+KRZkkjhR+5uw9Q==X02fn
 </div>
 </li>
 
-<li><a id="orgd7bb440"></a>Crowd installation<br />
-<div class="outline-text-6" id="text-orgd7bb440">
+<li><a id="org38734c5"></a>Crowd installation<br />
+<div class="outline-text-6" id="text-org38734c5">
 <p>
 Here choose the <b>New installation</b> option.
 </p>
 </div>
 </li>
 
-<li><a id="org97f842d"></a>Database Configuration<br />
-<div class="outline-text-6" id="text-org97f842d">
+<li><a id="org4b6c555"></a>Database Configuration<br />
+<div class="outline-text-6" id="text-org4b6c555">
 <p>
 The next step is the database configuration. Choose the <b>JDBC Connection</b> option and configure the database with the following settings
 </p>
@@ -2843,8 +2937,8 @@ The next step is the database configuration. Choose the <b>JDBC Connection</b> o
 </div>
 </li>
 
-<li><a id="org9b0ec8e"></a>Options<br />
-<div class="outline-text-6" id="text-org9b0ec8e">
+<li><a id="orgb12e774"></a>Options<br />
+<div class="outline-text-6" id="text-orgb12e774">
 <p>
 Choose a deployment title, e.g. <b>OpenDevStack</b> and set the <b>Base URL</b> to
 </p>
@@ -2855,8 +2949,8 @@ Choose a deployment title, e.g. <b>OpenDevStack</b> and set the <b>Base URL</b> 
 </div>
 </li>
 
-<li><a id="orgf9a2848"></a>Mail configuration<br />
-<div class="outline-text-6" id="text-orgf9a2848">
+<li><a id="org3ea50b1"></a>Mail configuration<br />
+<div class="outline-text-6" id="text-org3ea50b1">
 <p>
 For the local test environment a mail server is not necessary, so you can skip
 this step by choosing Later
@@ -2864,16 +2958,16 @@ this step by choosing Later
 </div>
 </li>
 
-<li><a id="org0c95b9e"></a>Internal directory<br />
-<div class="outline-text-6" id="text-org0c95b9e">
+<li><a id="org6d38269"></a>Internal directory<br />
+<div class="outline-text-6" id="text-org6d38269">
 <p>
 Enter the name for the internal crowd directory, e.g. <b>OpenDevStack</b>
 </p>
 </div>
 </li>
 
-<li><a id="org6935a54"></a>Default administrator<br />
-<div class="outline-text-6" id="text-org6935a54">
+<li><a id="orgb9f81c5"></a>Default administrator<br />
+<div class="outline-text-6" id="text-orgb9f81c5">
 <p>
 Enter the data for the <b>default administrator</b>, so you are able to login to crowd.
 </p>
@@ -2889,20 +2983,20 @@ Last name: Zell
 </div>
 </li>
 
-<li><a id="orgdf6fc53"></a>Integrated applications<br />
-<div class="outline-text-6" id="text-orgdf6fc53">
+<li><a id="orge9460c3"></a>Integrated applications<br />
+<div class="outline-text-6" id="text-orge9460c3">
 <p>
 Enable both integrated applications.
 </p>
 </div>
 </li>
 
-<li><a id="orge325ec0"></a>Log in to Crowd console<br /></li>
+<li><a id="org9b40954"></a>Log in to Crowd console<br /></li>
 </ul>
 </div>
-<div id="outline-container-org5355623" class="outline-5">
-<h5 id="org5355623">Configure Crowd</h5>
-<div class="outline-text-5" id="text-org5355623">
+<div id="outline-container-orgf5a09e8" class="outline-5">
+<h5 id="orgf5a09e8">Configure Crowd</h5>
+<div class="outline-text-5" id="text-orgf5a09e8">
 <p>
 You will have to configure <b>crowd</b> to enable the <b>Atlassian tools</b> and <b>Rundeck</b> to
 login with crowd credentials.
@@ -2910,9 +3004,9 @@ login with crowd credentials.
 </div>
 </div>
 
-<div id="outline-container-orgfe8424c" class="outline-5">
-<h5 id="orgfe8424c">Add OpenDevStack groups</h5>
-<div class="outline-text-5" id="text-orgfe8424c">
+<div id="outline-container-orgd342fed" class="outline-5">
+<h5 id="orgd342fed">Add OpenDevStack groups</h5>
+<div class="outline-text-5" id="text-orgd342fed">
 <p>
 You will have to add the following groups to crowd’s internal directory
 </p>
@@ -2952,9 +3046,9 @@ below and link it to the created internal directory.
 </div>
 </div>
 
-<div id="outline-container-org409dc21" class="outline-5">
-<h5 id="org409dc21">Add Atlassian groups</h5>
-<div class="outline-text-5" id="text-org409dc21">
+<div id="outline-container-org01bb5a0" class="outline-5">
+<h5 id="org01bb5a0">Add Atlassian groups</h5>
+<div class="outline-text-5" id="text-org01bb5a0">
 <p>
 You also have to add the groups from the atlassian tools, even if you don’t use them.
 </p>
@@ -3013,9 +3107,9 @@ You also have to add the groups from the atlassian tools, even if you don’t us
 </div>
 </div>
 
-<div id="outline-container-orgec62f73" class="outline-5">
-<h5 id="orgec62f73">Add groups to user</h5>
-<div class="outline-text-5" id="text-orgec62f73">
+<div id="outline-container-orgd09b1e0" class="outline-5">
+<h5 id="orgd09b1e0">Add groups to user</h5>
+<div class="outline-text-5" id="text-orgd09b1e0">
 <p>
 Now you have to add all groups to the administrator. Go to the <b>Users</b> section
 in Crowd, click on the hyperlink of your <b>administration user</b> and open the
@@ -3025,9 +3119,9 @@ empty and add all groups by clicking on <b>Add selected groups</b>.
 </div>
 </div>
 
-<div id="outline-container-orgaeb04d4" class="outline-5">
-<h5 id="orgaeb04d4"><span class="todo TODO">TODO</span> Add applications to crowd</h5>
-<div class="outline-text-5" id="text-orgaeb04d4">
+<div id="outline-container-org8430f41" class="outline-5">
+<h5 id="org8430f41"><span class="todo TODO">TODO</span> Add applications to crowd</h5>
+<div class="outline-text-5" id="text-org8430f41">
 <p>
 You will have to add the applications you want to access with your Crowd
 credentials in the Crowd console. Access the Crowd console at
@@ -3164,13 +3258,13 @@ After adding all the applications edit each one, go to the <b>Remote adresses</b
 </div>
 </div>
 
-<div id="outline-container-org3d7ddcd" class="outline-4">
-<h4 id="org3d7ddcd">Bitbucket Setup</h4>
-<div class="outline-text-4" id="text-org3d7ddcd">
+<div id="outline-container-orgee3c83f" class="outline-4">
+<h4 id="orgee3c83f">Bitbucket Setup</h4>
+<div class="outline-text-4" id="text-orgee3c83f">
 </div>
-<div id="outline-container-orgb4d0fb0" class="outline-5">
-<h5 id="orgb4d0fb0">Setup Application</h5>
-<div class="outline-text-5" id="text-orgb4d0fb0">
+<div id="outline-container-org217b646" class="outline-5">
+<h5 id="org217b646">Setup Application</h5>
+<div class="outline-text-5" id="text-org217b646">
 <div class="org-src-container">
 <pre class="src src-bash">ansible-playbook -v -i inventories/dev playbooks/bitbucket.yml --ask-vault
 opendevstack
@@ -3556,9 +3650,9 @@ opendevstack
 </div>
 </div>
 
-<div id="outline-container-org9ad1c4c" class="outline-5">
-<h5 id="org9ad1c4c">Run Configuration Wizard</h5>
-<div class="outline-text-5" id="text-org9ad1c4c">
+<div id="outline-container-orgdff1a8f" class="outline-5">
+<h5 id="orgdff1a8f">Run Configuration Wizard</h5>
+<div class="outline-text-5" id="text-orgdff1a8f">
 <p>
 <a href="http://192.168.56.31:7990">http://192.168.56.31:7990</a>
 </p>
@@ -3611,9 +3705,9 @@ Confirm password: opendevstack
 </div>
 </div>
 
-<div id="outline-container-org7168f90" class="outline-5">
-<h5 id="org7168f90">Configure Crowd access</h5>
-<div class="outline-text-5" id="text-org7168f90">
+<div id="outline-container-org9855304" class="outline-5">
+<h5 id="org9855304">Configure Crowd access</h5>
+<div class="outline-text-5" id="text-org9855304">
 <p>
 If not already redirected, go to the Bitbucket start page at
 <a href="http://192.168.56.31:7990/">http://192.168.56.31:7990/</a>. Open the <b>Administration</b> settings and navigate to
@@ -3652,13 +3746,13 @@ Now change the <b>order</b> of the user directories. The <b>Crowd directory</b> 
 </div>
 </div>
 
-<div id="outline-container-org9d63a01" class="outline-5">
-<h5 id="org9d63a01">Configure user groups</h5>
-<div class="outline-text-5" id="text-org9d63a01">
+<div id="outline-container-orga13facf" class="outline-5">
+<h5 id="orga13facf">Configure user groups</h5>
+<div class="outline-text-5" id="text-orga13facf">
 </div>
 <ul class="org-ul">
-<li><a id="org39ea0c8"></a>Add groups<br />
-<div class="outline-text-6" id="text-org39ea0c8">
+<li><a id="org12a067c"></a>Add groups<br />
+<div class="outline-text-6" id="text-org12a067c">
 <p>
 After configuring the crowd directory change to <b>Groups</b>. Here you have to add
 the groups defined in crowd in the previous steps, if they are not available
@@ -3694,8 +3788,8 @@ yet.
 </div>
 </li>
 
-<li><a id="org5f059de"></a>Add permissions<br />
-<div class="outline-text-6" id="text-org5f059de">
+<li><a id="org87a8aea"></a>Add permissions<br />
+<div class="outline-text-6" id="text-org87a8aea">
 <p>
 The last step is to configure the permissions for the created groups. Go to the
 <b>Global permissions</b> menu. In the <b>Group access</b> section add the
@@ -3709,13 +3803,13 @@ in the <b>Add Groups</b> input form and after completion by clicking on the <b>A
 </div>
 </div>
 
-<div id="outline-container-orgb227fcc" class="outline-4">
-<h4 id="orgb227fcc">Jira Setup</h4>
-<div class="outline-text-4" id="text-orgb227fcc">
+<div id="outline-container-org9bb5d76" class="outline-4">
+<h4 id="org9bb5d76">Jira Setup</h4>
+<div class="outline-text-4" id="text-org9bb5d76">
 </div>
-<div id="outline-container-orgda48618" class="outline-5">
-<h5 id="orgda48618">Setup Application</h5>
-<div class="outline-text-5" id="text-orgda48618">
+<div id="outline-container-org1bd54af" class="outline-5">
+<h5 id="org1bd54af">Setup Application</h5>
+<div class="outline-text-5" id="text-org1bd54af">
 <div class="org-src-container">
 <pre class="src src-bash">ansible-playbook -v -i inventories/dev playbooks/jira.yml --ask-vault
 opendevstack
@@ -4036,9 +4130,9 @@ opendevstack
 </div>
 </div>
 
-<div id="outline-container-orgccd9a7b" class="outline-5">
-<h5 id="orgccd9a7b">Run Configuration Wizard</h5>
-<div class="outline-text-5" id="text-orgccd9a7b">
+<div id="outline-container-org0343329" class="outline-5">
+<h5 id="org0343329">Run Configuration Wizard</h5>
+<div class="outline-text-5" id="text-org0343329">
 <p>
 <a href="http://192.168.56.31:8080">http://192.168.56.31:8080</a>
 </p>
@@ -4049,9 +4143,9 @@ Be patient. First time accessing this page takes time.
 </div>
 </div>
 
-<div id="outline-container-orge85f562" class="outline-5">
-<h5 id="orge85f562">Setup application properties</h5>
-<div class="outline-text-5" id="text-orge85f562">
+<div id="outline-container-org65ab57f" class="outline-5">
+<h5 id="org65ab57f">Setup application properties</h5>
+<div class="outline-text-5" id="text-org65ab57f">
 <p>
 Here you have to choose the application title and the base URL. You can leave
 the data as is for the test environment.
@@ -4059,9 +4153,9 @@ the data as is for the test environment.
 </div>
 </div>
 
-<div id="outline-container-org0726a39" class="outline-5">
-<h5 id="org0726a39">Specify your license key</h5>
-<div class="outline-text-5" id="text-org0726a39">
+<div id="outline-container-org098cdb6" class="outline-5">
+<h5 id="org098cdb6">Specify your license key</h5>
+<div class="outline-text-5" id="text-org098cdb6">
 <p>
 Here you have to enter the license key for the Jira instance (Jira Software
 (Server)). With the provided link <b>generate a JIRA trial license</b> in the
@@ -4087,9 +4181,9 @@ Click on <b>Next</b>
 </div>
 </div>
 
-<div id="outline-container-org062989d" class="outline-5">
-<h5 id="org062989d">Set up administrator account</h5>
-<div class="outline-text-5" id="text-org062989d">
+<div id="outline-container-orgc265827" class="outline-5">
+<h5 id="orgc265827">Set up administrator account</h5>
+<div class="outline-text-5" id="text-orgc265827">
 <p>
 Now you have to set up a Jira administrator account.
 </p>
@@ -4108,18 +4202,18 @@ Click <b>Next</b>
 </div>
 </div>
 
-<div id="outline-container-org3464ba1" class="outline-5">
-<h5 id="org3464ba1">Set up email notifications</h5>
-<div class="outline-text-5" id="text-org3464ba1">
+<div id="outline-container-org788a542" class="outline-5">
+<h5 id="org788a542">Set up email notifications</h5>
+<div class="outline-text-5" id="text-org788a542">
 <p>
 Unless you have configured a mail server, choose <b>Later</b> and click on <b>Finish</b>.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgbaa00c2" class="outline-5">
-<h5 id="orgbaa00c2">Basic configuration</h5>
-<div class="outline-text-5" id="text-orgbaa00c2">
+<div id="outline-container-org920a37b" class="outline-5">
+<h5 id="org920a37b">Basic configuration</h5>
+<div class="outline-text-5" id="text-org920a37b">
 <p>
 To finish this part of the Jira installation, you will have to provide some
 informations to your prefered language, your avatar and you will have to create
@@ -4138,13 +4232,13 @@ to the Jira board.
 </div>
 </div>
 
-<div id="outline-container-org98cafa4" class="outline-5">
-<h5 id="org98cafa4">Configure Crowd access</h5>
-<div class="outline-text-5" id="text-org98cafa4">
+<div id="outline-container-org159214b" class="outline-5">
+<h5 id="org159214b">Configure Crowd access</h5>
+<div class="outline-text-5" id="text-org159214b">
 </div>
 <ul class="org-ul">
-<li><a id="orgcb29c83"></a>Configure user directory<br />
-<div class="outline-text-6" id="text-orgcb29c83">
+<li><a id="orgdb4de9e"></a>Configure user directory<br />
+<div class="outline-text-6" id="text-orgdb4de9e">
 <p>
 Open the <b>Jira administration</b> page
 </p>
@@ -4173,8 +4267,8 @@ be on first position.
 </div>
 </li>
 
-<li><a id="org4b09a0f"></a>Configure SSO with crowd<br />
-<div class="outline-text-6" id="text-org4b09a0f">
+<li><a id="orga640be5"></a>Configure SSO with crowd<br />
+<div class="outline-text-6" id="text-orga640be5">
 <p>
 To finish the SSO configuration, you will have to run the following playbook command:
 </p>
@@ -4241,13 +4335,13 @@ administrator anymore, but with your crowd credentials.
 </div>
 </div>
 
-<div id="outline-container-org4d55b83" class="outline-4">
-<h4 id="org4d55b83">Confluence Setup</h4>
-<div class="outline-text-4" id="text-org4d55b83">
+<div id="outline-container-org8f8e4d5" class="outline-4">
+<h4 id="org8f8e4d5">Confluence Setup</h4>
+<div class="outline-text-4" id="text-org8f8e4d5">
 </div>
-<div id="outline-container-org784b7c3" class="outline-5">
-<h5 id="org784b7c3">Setup Application</h5>
-<div class="outline-text-5" id="text-org784b7c3">
+<div id="outline-container-orgffbb558" class="outline-5">
+<h5 id="orgffbb558">Setup Application</h5>
+<div class="outline-text-5" id="text-orgffbb558">
 <div class="org-src-container">
 <pre class="src src-bash">ansible-playbook -v -i inventories/dev playbooks/confluence.yml --ask-vault
 opendevstack
@@ -4558,54 +4652,54 @@ opendevstack
 </div>
 </div>
 
-<div id="outline-container-orga78e223" class="outline-5">
-<h5 id="orga78e223">Run Configuration Wizard</h5>
-<div class="outline-text-5" id="text-orga78e223">
+<div id="outline-container-org869222b" class="outline-5">
+<h5 id="org869222b">Run Configuration Wizard</h5>
+<div class="outline-text-5" id="text-org869222b">
 <p>
 <a href="http://192.168.56.31:8090">http://192.168.56.31:8090</a>
 </p>
 </div>
 </div>
 
-<div id="outline-container-org8cf6f53" class="outline-5">
-<h5 id="org8cf6f53">Set up Confluence</h5>
-<div class="outline-text-5" id="text-org8cf6f53">
+<div id="outline-container-org588303f" class="outline-5">
+<h5 id="org588303f">Set up Confluence</h5>
+<div class="outline-text-5" id="text-org588303f">
 <p>
 Here you have to choose <b>Production Installation</b>, because we want to configure an external database.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org7c5b433" class="outline-5">
-<h5 id="org7c5b433">Get add-ons</h5>
-<div class="outline-text-5" id="text-org7c5b433">
+<div id="outline-container-org0ea8949" class="outline-5">
+<h5 id="org0ea8949">Get add-ons</h5>
+<div class="outline-text-5" id="text-org0ea8949">
 <p>
 Ensure the <b>add-ons</b> are <b>unchecked</b> and proceed.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org5ae5857" class="outline-5">
-<h5 id="org5ae5857">License key</h5>
-<div class="outline-text-5" id="text-org5ae5857">
+<div id="outline-container-org154e392" class="outline-5">
+<h5 id="org154e392">License key</h5>
+<div class="outline-text-5" id="text-org154e392">
 <p>
 Here you are able to <b>Get an evaluation license</b> from atlassian or to enter a valid license key.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgf690143" class="outline-5">
-<h5 id="orgf690143">Choose a Database Configuration</h5>
-<div class="outline-text-5" id="text-orgf690143">
+<div id="outline-container-org53b4146" class="outline-5">
+<h5 id="org53b4146">Choose a Database Configuration</h5>
+<div class="outline-text-5" id="text-org53b4146">
 <p>
 Here you have to choose <b>External Database</b> with the option <b>PostgreSQL</b>
 </p>
 </div>
 </div>
 
-<div id="outline-container-org407b004" class="outline-5">
-<h5 id="org407b004">Configure Database</h5>
-<div class="outline-text-5" id="text-org407b004">
+<div id="outline-container-org7513f7f" class="outline-5">
+<h5 id="org7513f7f">Configure Database</h5>
+<div class="outline-text-5" id="text-org7513f7f">
 <p>
 Click the <b>Direct JDBC</b> button and configure the database with the following values:
 </p>
@@ -4653,9 +4747,9 @@ Be patient. This step takes some time until next page appears.
 </div>
 </div>
 
-<div id="outline-container-orgfbe38ab" class="outline-5">
-<h5 id="orgfbe38ab">Load Content</h5>
-<div class="outline-text-5" id="text-orgfbe38ab">
+<div id="outline-container-orge262175" class="outline-5">
+<h5 id="orge262175">Load Content</h5>
+<div class="outline-text-5" id="text-orge262175">
 <p>
 Here you have to choose <b>Empty Site</b> or <b>Example Site</b>
 </p>
@@ -4666,18 +4760,18 @@ Click on <b>Example Site</b>
 </div>
 </div>
 
-<div id="outline-container-org0fc214c" class="outline-5">
-<h5 id="org0fc214c">Configure User Management</h5>
-<div class="outline-text-5" id="text-org0fc214c">
+<div id="outline-container-org61c27c8" class="outline-5">
+<h5 id="org61c27c8">Configure User Management</h5>
+<div class="outline-text-5" id="text-org61c27c8">
 <p>
 Choose <b>Manage users and groups within Confluence</b>. Crowd will be configured later.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgd526944" class="outline-5">
-<h5 id="orgd526944">Configure System Administrator account</h5>
-<div class="outline-text-5" id="text-orgd526944">
+<div id="outline-container-org54e8b33" class="outline-5">
+<h5 id="org54e8b33">Configure System Administrator account</h5>
+<div class="outline-text-5" id="text-org54e8b33">
 <p>
 Here you have to configure a local administrator account.
 </p>
@@ -4697,13 +4791,13 @@ create a <b>space</b>.
 </div>
 </div>
 
-<div id="outline-container-org6066e1c" class="outline-5">
-<h5 id="org6066e1c">Configure Crowd access</h5>
-<div class="outline-text-5" id="text-org6066e1c">
+<div id="outline-container-org5b68556" class="outline-5">
+<h5 id="org5b68556">Configure Crowd access</h5>
+<div class="outline-text-5" id="text-org5b68556">
 </div>
 <ul class="org-ul">
-<li><a id="org8e7eec8"></a>Configure user directory<br />
-<div class="outline-text-6" id="text-org8e7eec8">
+<li><a id="org650b1dd"></a>Configure user directory<br />
+<div class="outline-text-6" id="text-org650b1dd">
 <p>
 Open the <b>User management</b> in the Confluence administration. To enter the
 administration, you have to verify you have admin rights with the password for
@@ -4721,8 +4815,8 @@ position.
 </div>
 </li>
 
-<li><a id="orgb46502a"></a>Configure SSO with crowd<br />
-<div class="outline-text-6" id="text-orgb46502a">
+<li><a id="org66358c7"></a>Configure SSO with crowd<br />
+<div class="outline-text-6" id="text-org66358c7">
 <p>
 To finish the SSO configuration, you will have to run the following playbook command:
 </p>
@@ -4779,9 +4873,9 @@ credentials.
 </div>
 </div>
 
-<div id="outline-container-org909f629" class="outline-4">
-<h4 id="org909f629">Create opendevstack project in Bitbucket</h4>
-<div class="outline-text-4" id="text-org909f629">
+<div id="outline-container-org745aa99" class="outline-4">
+<h4 id="org745aa99">Create opendevstack project in Bitbucket</h4>
+<div class="outline-text-4" id="text-org745aa99">
 <p>
 We will mirror the opendevstack project into this Bitbucket instance. Therefore, we need to create a new project.
 </p>
@@ -4935,13 +5029,13 @@ merges except through admins.
 </div>
 </div>
 
-<div id="outline-container-org8f37812" class="outline-4">
-<h4 id="org8f37812">Rundeck Setup</h4>
-<div class="outline-text-4" id="text-org8f37812">
+<div id="outline-container-org39229d0" class="outline-4">
+<h4 id="org39229d0">Rundeck Setup</h4>
+<div class="outline-text-4" id="text-org39229d0">
 </div>
-<div id="outline-container-orgeeb3a52" class="outline-5">
-<h5 id="orgeeb3a52">Setup Application</h5>
-<div class="outline-text-5" id="text-orgeeb3a52">
+<div id="outline-container-orgf42a816" class="outline-5">
+<h5 id="orgf42a816">Setup Application</h5>
+<div class="outline-text-5" id="text-orgf42a816">
 <p>
 Rundeck needs an account to access Bitbucket later. We will create an ssh
 keypair for this and add this later to the Bitbucket <b>cd_user</b> account.
@@ -5389,13 +5483,13 @@ playbook has been finished Rundeck is accessible via
 </div>
 </div>
 
-<div id="outline-container-orga01532b" class="outline-3">
-<h3 id="orga01532b"><span class="section-number-3">1.5</span> Configure and Start Minishift</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-orgc86fd17" class="outline-3">
+<h3 id="orgc86fd17"><span class="section-number-3">2.5</span> Configure and Start Minishift</h3>
+<div class="outline-text-3" id="text-2-5">
 </div>
-<div id="outline-container-orgb0d234c" class="outline-4">
-<h4 id="orgb0d234c">Configure Minishift</h4>
-<div class="outline-text-4" id="text-orgb0d234c">
+<div id="outline-container-org82a4d23" class="outline-4">
+<h4 id="org82a4d23">Configure Minishift</h4>
+<div class="outline-text-4" id="text-org82a4d23">
 <p>
 First you have to install <b>Minishift</b>. You have to use a <b>Minishift</b> version &gt;=1.14.0, 
 so <b>openshift</b> v3.9.0 (see below) is supported.
@@ -5456,9 +5550,9 @@ run the “minishift start” command as administrator.
 </div>
 </div>
 
-<div id="outline-container-orgc3f3cbc" class="outline-4">
-<h4 id="orgc3f3cbc">Create new Minishift Profile - opendevstack</h4>
-<div class="outline-text-4" id="text-orgc3f3cbc">
+<div id="outline-container-org4f4b35e" class="outline-4">
+<h4 id="org4f4b35e">Create new Minishift Profile - opendevstack</h4>
+<div class="outline-text-4" id="text-org4f4b35e">
 <div class="org-src-container">
 <pre class="src src-bash">minishift profile set opendevstack
 </pre>
@@ -5563,9 +5657,9 @@ There is actually already v3.11.0 available&#x2026;
 </div>
 </div>
 
-<div id="outline-container-org0a9dc08" class="outline-4">
-<h4 id="org0a9dc08">Start Minishift</h4>
-<div class="outline-text-4" id="text-org0a9dc08">
+<div id="outline-container-org1c39236" class="outline-4">
+<h4 id="org1c39236">Start Minishift</h4>
+<div class="outline-text-4" id="text-org1c39236">
 <div class="org-src-container">
 <pre class="src src-bash">minishift start
 </pre>
@@ -6050,9 +6144,9 @@ not to use the system user, because Jenkins does not allow a user named system.
 </div>
 </div>
 
-<div id="outline-container-org50a530b" class="outline-4">
-<h4 id="org50a530b">Configure the path for the OC CLI</h4>
-<div class="outline-text-4" id="text-org50a530b">
+<div id="outline-container-orgba0faaa" class="outline-4">
+<h4 id="orgba0faaa">Configure the path for the OC CLI</h4>
+<div class="outline-text-4" id="text-orgba0faaa">
 <div class="org-src-container">
 <pre class="src src-bash">minishift oc-env
 </pre>
@@ -6066,9 +6160,9 @@ not to use the system user, because Jenkins does not allow a user named system.
 </div>
 </div>
 
-<div id="outline-container-orgde3f1fd" class="outline-4">
-<h4 id="orgde3f1fd">Login with the CLI</h4>
-<div class="outline-text-4" id="text-orgde3f1fd">
+<div id="outline-container-orgdab02ee" class="outline-4">
+<h4 id="orgdab02ee">Login with the CLI</h4>
+<div class="outline-text-4" id="text-orgdab02ee">
 <div class="org-src-container">
 <pre class="src src-bash">oc login -u system:admin
 </pre>
@@ -6098,9 +6192,9 @@ not to use the system user, because Jenkins does not allow a user named system.
 </div>
 </div>
 
-<div id="outline-container-orgd292e02" class="outline-4">
-<h4 id="orgd292e02">Setup the base template project</h4>
-<div class="outline-text-4" id="text-orgd292e02">
+<div id="outline-container-org874aad4" class="outline-4">
+<h4 id="org874aad4">Setup the base template project</h4>
+<div class="outline-text-4" id="text-org874aad4">
 <p>
 After you have logged in, you are able to create a project, that will contain
 the base templates and the Nexus Repository Manager. Please enter the following
@@ -6128,9 +6222,9 @@ This command will create the base project.
 </div>
 </div>
 
-<div id="outline-container-orgffc773e" class="outline-4">
-<h4 id="orgffc773e">Adjust user rights for the developer user</h4>
-<div class="outline-text-4" id="text-orgffc773e">
+<div id="outline-container-org99d651e" class="outline-4">
+<h4 id="org99d651e">Adjust user rights for the developer user</h4>
+<div class="outline-text-4" id="text-org99d651e">
 <p>
 To be able to see all created projects, you will have to adjust the user rights
 for the developer use. Do so by using the provided command
@@ -6147,9 +6241,9 @@ for the developer use. Do so by using the provided command
 </div>
 </div>
 
-<div id="outline-container-orgaa44b15" class="outline-4">
-<h4 id="orgaa44b15">Create service account for deployment</h4>
-<div class="outline-text-4" id="text-orgaa44b15">
+<div id="outline-container-orgf9ef361" class="outline-4">
+<h4 id="orgf9ef361">Create service account for deployment</h4>
+<div class="outline-text-4" id="text-orgf9ef361">
 <p>
 Rundeck needs a technical account in Minishift to be able to create projects and
 provision resources. Therefore, we create a service account, which credentials
@@ -6193,9 +6287,9 @@ Save the token text. It will be used in the Rundeck configuration later.
 </div>
 </div>
 
-<div id="outline-container-org5185aac" class="outline-4">
-<h4 id="org5185aac">Install Minishift certificate on Atlassian server</h4>
-<div class="outline-text-4" id="text-org5185aac">
+<div id="outline-container-orgd540f9e" class="outline-4">
+<h4 id="orgd540f9e">Install Minishift certificate on Atlassian server</h4>
+<div class="outline-text-4" id="text-orgd540f9e">
 <p>
 You have to add the Minishift certificate to the <b>atlassian1</b> JVM, so Bitbucket is
 able to execute REST Calls against Minishift, triggered by Webhooks. Go to the
@@ -6520,9 +6614,9 @@ We need this certificate for the Rundeck part later as well
 </div>
 </div>
 
-<div id="outline-container-org3d8361b" class="outline-4">
-<h4 id="org3d8361b">Clone the ods-project-quickstarters from your Bitbucket server</h4>
-<div class="outline-text-4" id="text-org3d8361b">
+<div id="outline-container-org173a924" class="outline-4">
+<h4 id="org173a924">Clone the ods-project-quickstarters from your Bitbucket server</h4>
+<div class="outline-text-4" id="text-org173a924">
 <p>
 On the <b>atlassian1</b> server clone the ods-project-quickstarters from your
 Bitbucket server.
@@ -6616,9 +6710,9 @@ opendevstack
 </div>
 </div>
 
-<div id="outline-container-org8f732f8" class="outline-3">
-<h3 id="org8f732f8"><span class="section-number-3">1.6</span> <span class="todo TODO">TODO</span> Prepare environment settings</h3>
-<div class="outline-text-3" id="text-1-6">
+<div id="outline-container-org7ca5e45" class="outline-3">
+<h3 id="org7ca5e45"><span class="section-number-3">2.6</span> <span class="todo TODO">TODO</span> Prepare environment settings</h3>
+<div class="outline-text-3" id="text-2-6">
 <p>
 Switch to your local machine and clone the repositories:
 <b>ods-configuration-sample</b> and <b>ods-configuration</b> from your bitbucket server
@@ -6771,9 +6865,9 @@ REPO_BASE=http://192.168.56.31:7990/scm
 </div>
 </div>
 
-<div id="outline-container-orgcebc78b" class="outline-3">
-<h3 id="orgcebc78b"><span class="section-number-3">1.7</span> Setup and Configure Nexus3</h3>
-<div class="outline-text-3" id="text-1-7">
+<div id="outline-container-orgf9eccb4" class="outline-3">
+<h3 id="orgf9eccb4"><span class="section-number-3">2.7</span> Setup and Configure Nexus3</h3>
+<div class="outline-text-3" id="text-2-7">
 <p>
 Amend <code>ods-configuration/ods-core/nexus/ocp-config/route.env</code> and change the
 domain to match your openshift/minishift domain (for example
@@ -6985,9 +7079,9 @@ y
 </div>
 </div>
 
-<div id="outline-container-org03d3bff" class="outline-4">
-<h4 id="org03d3bff">Configure Repository Manager</h4>
-<div class="outline-text-4" id="text-org03d3bff">
+<div id="outline-container-orgcfb3e88" class="outline-4">
+<h4 id="orgcfb3e88">Configure Repository Manager</h4>
+<div class="outline-text-4" id="text-orgcfb3e88">
 <p>
 Access Nexus3
 </p>
@@ -7007,9 +7101,9 @@ password: admin123
 </div>
 </div>
 
-<div id="outline-container-org03a079b" class="outline-4">
-<h4 id="org03a079b"><span class="todo TODO">TODO</span> Configure repositories</h4>
-<div class="outline-text-4" id="text-org03a079b">
+<div id="outline-container-org7260ab5" class="outline-4">
+<h4 id="org7260ab5"><span class="todo TODO">TODO</span> Configure repositories</h4>
+<div class="outline-text-4" id="text-org7260ab5">
 <p>
 Open the <b>Server administration and configuration</b> menu by clicking the <b>gear
 icon</b> in the top bar. Now create three <b>Blob Stores</b>.
@@ -7238,9 +7332,9 @@ Administation-&gt;Repository-&gt;Repositories
 </div>
 </div>
 
-<div id="outline-container-org3379a70" class="outline-4">
-<h4 id="org3379a70">Configure user and roles</h4>
-<div class="outline-text-4" id="text-org3379a70">
+<div id="outline-container-orgb0db8bf" class="outline-4">
+<h4 id="orgb0db8bf">Configure user and roles</h4>
+<div class="outline-text-4" id="text-orgb0db8bf">
 <p>
 First disable the anonymous access in the <b>Security &gt; Anonymous</b> section.
 </p>
@@ -7358,9 +7452,9 @@ This account is later used for authentication against nexus to pull artifacts du
 </div>
 </div>
 </div>
-<div id="outline-container-org96c6cd9" class="outline-3">
-<h3 id="org96c6cd9"><span class="section-number-3">1.8</span> Configure CD user</h3>
-<div class="outline-text-3" id="text-1-8">
+<div id="outline-container-org26d3294" class="outline-3">
+<h3 id="org26d3294"><span class="section-number-3">2.8</span> Configure CD user</h3>
+<div class="outline-text-3" id="text-2-8">
 <p>
 The continuous delivery process requires a dedicated system user in <b>crowd</b> for
 accessing <b>bitbucket</b>. 
@@ -7452,13 +7546,13 @@ the public key from the generated key pair, after clicking the <b>Add key</b> bu
 </div>
 </div>
 
-<div id="outline-container-org154e5f8" class="outline-3">
-<h3 id="org154e5f8"><span class="section-number-3">1.9</span> <span class="todo TODO">TODO</span> Import base templates</h3>
-<div class="outline-text-3" id="text-1-9">
+<div id="outline-container-orge777831" class="outline-3">
+<h3 id="orge777831"><span class="section-number-3">2.9</span> <span class="todo TODO">TODO</span> Import base templates</h3>
+<div class="outline-text-3" id="text-2-9">
 </div>
-<div id="outline-container-orgf27f4b8" class="outline-4">
-<h4 id="orgf27f4b8">Preparation</h4>
-<div class="outline-text-4" id="text-orgf27f4b8">
+<div id="outline-container-org44fd649" class="outline-4">
+<h4 id="org44fd649">Preparation</h4>
+<div class="outline-text-4" id="text-org44fd649">
 <p>
 After you have configured Nexus3, import the base templates for OpenShift. Clone
 the ods-project-quickstarters. 
@@ -7601,9 +7695,9 @@ and run
 </div>
 </div>
 
-<div id="outline-container-org8baa365" class="outline-4">
-<h4 id="org8baa365">Upload</h4>
-<div class="outline-text-4" id="text-org8baa365">
+<div id="outline-container-org5a66b88" class="outline-4">
+<h4 id="org5a66b88">Upload</h4>
+<div class="outline-text-4" id="text-org5a66b88">
 <div class="org-src-container">
 <pre class="src src-bash">./upload-templates.sh
 </pre>
@@ -7621,9 +7715,9 @@ and run
 </div>
 </div>
 </div>
-<div id="outline-container-orgddf65fb" class="outline-3">
-<h3 id="orgddf65fb"><span class="section-number-3">1.10</span> <span class="todo TODO">TODO</span> Create secrets inside the CD project</h3>
-<div class="outline-text-3" id="text-1-10">
+<div id="outline-container-orgd4a317c" class="outline-3">
+<h3 id="orgd4a317c"><span class="section-number-3">2.10</span> <span class="todo TODO">TODO</span> Create secrets inside the CD project</h3>
+<div class="outline-text-3" id="text-2-10">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-project-quickstarters/ocp-templates
 </pre>
@@ -7640,9 +7734,9 @@ and run
 </div>
 </div>
 
-<div id="outline-container-orgecedc60" class="outline-3">
-<h3 id="orgecedc60"><span class="section-number-3">1.11</span> <span class="todo TODO">TODO</span> Setup and configure Sonarqube</h3>
-<div class="outline-text-3" id="text-1-11">
+<div id="outline-container-org07dfd31" class="outline-3">
+<h3 id="org07dfd31"><span class="section-number-3">2.11</span> <span class="todo TODO">TODO</span> Setup and configure Sonarqube</h3>
+<div class="outline-text-3" id="text-2-11">
 <p>
 Amend <code>ods-configuration/ods-core/sonarqube/ocp-config/sonarqube.env</code>
 </p>
@@ -8316,18 +8410,18 @@ sonarqube-auth-token with the just generated token in base64 coding.
 </div>
 </div>
 
-<div id="outline-container-orgc7d51bb" class="outline-3">
-<h3 id="orgc7d51bb"><span class="section-number-3">1.12</span> <span class="todo TODO">TODO</span> Explain all variables</h3>
-<div class="outline-text-3" id="text-1-12">
+<div id="outline-container-orgabb82ff" class="outline-3">
+<h3 id="orgabb82ff"><span class="section-number-3">2.12</span> <span class="todo TODO">TODO</span> Explain all variables</h3>
+<div class="outline-text-3" id="text-2-12">
 <p>
 Check out the <b><b>cd</b></b> project
 </p>
 </div>
 </div>
 
-<div id="outline-container-org8ad0757" class="outline-3">
-<h3 id="org8ad0757"><span class="section-number-3">1.13</span> Prepare CD project for Jenkins</h3>
-<div class="outline-text-3" id="text-1-13">
+<div id="outline-container-orge8ac1d7" class="outline-3">
+<h3 id="orge8ac1d7"><span class="section-number-3">2.13</span> Prepare CD project for Jenkins</h3>
+<div class="outline-text-3" id="text-2-13">
 <p>
 We will now build base images for jenkins and jenkins slave:
 </p>
@@ -8511,9 +8605,9 @@ You can <b>optionally</b> start the jenkins-master build using
 </div>
 </div>
 
-<div id="outline-container-org227f7b2" class="outline-3">
-<h3 id="org227f7b2"><span class="section-number-3">1.14</span> <span class="todo TODO">TODO</span> Prepare Jenkins slave docker images</h3>
-<div class="outline-text-3" id="text-1-14">
+<div id="outline-container-orgb72a5f8" class="outline-3">
+<h3 id="orgb72a5f8"><span class="section-number-3">2.14</span> <span class="todo TODO">TODO</span> Prepare Jenkins slave docker images</h3>
+<div class="outline-text-3" id="text-2-14">
 <p>
 To support different kinds of projects, we need different kinds of Jenkins slave
 images. These slave images are located in the project
@@ -8525,9 +8619,9 @@ images. These slave images are located in the project
 </p>
 </div>
 
-<div id="outline-container-orgc68fc23" class="outline-4">
-<h4 id="orgc68fc23">Maven</h4>
-<div class="outline-text-4" id="text-orgc68fc23">
+<div id="outline-container-orgc26a3ee" class="outline-4">
+<h4 id="orgc26a3ee">Maven</h4>
+<div class="outline-text-4" id="text-orgc26a3ee">
 <p>
 So as a first step clone this repository (actually done). Make the required
 customizations in the <b>ods-configuration</b> under <b>jenkins-slaves-dockerimages &gt; maven &gt; ocp-config &gt; bc.env</b>
@@ -8635,9 +8729,9 @@ Repeat for every project type you require.
 </div>
 </div>
 
-<div id="outline-container-orgaecebf1" class="outline-4">
-<h4 id="orgaecebf1">Python</h4>
-<div class="outline-text-4" id="text-orgaecebf1">
+<div id="outline-container-org5244db4" class="outline-4">
+<h4 id="org5244db4">Python</h4>
+<div class="outline-text-4" id="text-org5244db4">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-project-quickstarters/jenkins-slaves/python/ocp-config
 </pre>
@@ -8734,9 +8828,9 @@ error: build error: The command '/bin/sh -c rm -rf Python-${Python_VERSION}     
 </div>
 </div>
 
-<div id="outline-container-orge6a5bce" class="outline-4">
-<h4 id="orge6a5bce">scala</h4>
-<div class="outline-text-4" id="text-orge6a5bce">
+<div id="outline-container-org551b614" class="outline-4">
+<h4 id="org551b614">scala</h4>
+<div class="outline-text-4" id="text-org551b614">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-project-quickstarters/jenkins-slaves/scala/ocp-config
 </pre>
@@ -8868,9 +8962,9 @@ error: build error: The command '/bin/sh -c cat $HOME/.sbt/repositories | sed -e
 </div>
 </div>
 
-<div id="outline-container-org995c899" class="outline-4">
-<h4 id="org995c899">nodejs8-angular</h4>
-<div class="outline-text-4" id="text-org995c899">
+<div id="outline-container-orgf07139e" class="outline-4">
+<h4 id="orgf07139e">nodejs8-angular</h4>
+<div class="outline-text-4" id="text-orgf07139e">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-project-quickstarters/jenkins-slaves/nodejs8-angular/ocp-config
 </pre>
@@ -8983,9 +9077,9 @@ error: build error: The command '/bin/sh -c sed -i "s|NEXUS_HOST|$NEXUS_HOST|g" 
 </div>
 </div>
 
-<div id="outline-container-org2d3c63e" class="outline-3">
-<h3 id="org2d3c63e"><span class="section-number-3">1.15</span> Prepare Docker Registry</h3>
-<div class="outline-text-3" id="text-1-15">
+<div id="outline-container-org3f69cb0" class="outline-3">
+<h3 id="org3f69cb0"><span class="section-number-3">2.15</span> Prepare Docker Registry</h3>
+<div class="outline-text-3" id="text-2-15">
 <p>
 The Docker registry preparation is needed for several quickstarters,
 e.g. be_spring_boot. To do so, make sure you have the <b>Dcker client</b> binary
@@ -9226,9 +9320,9 @@ developer
 </div>
 </div>
 
-<div id="outline-container-org0d86604" class="outline-3">
-<h3 id="org0d86604"><span class="section-number-3">1.16</span> Prepare Rundeck and required Dockerfiles</h3>
-<div class="outline-text-3" id="text-1-16">
+<div id="outline-container-org19d8ded" class="outline-3">
+<h3 id="org19d8ded"><span class="section-number-3">2.16</span> Prepare Rundeck and required Dockerfiles</h3>
+<div class="outline-text-3" id="text-2-16">
 <p>
 After configuring the <b>Atlassian tools</b> and <b>Minishift</b>, <b>Rundeck</b> has to be
 configured as well. Access Rundeck, login (vzell/opendevstack) and open the
@@ -9240,9 +9334,9 @@ configuration.
 </p>
 </div>
 
-<div id="outline-container-org2ae2b30" class="outline-4">
-<h4 id="org2ae2b30">Create Quickstarters project</h4>
-<div class="outline-text-4" id="text-org2ae2b30">
+<div id="outline-container-org5cca3fd" class="outline-4">
+<h4 id="org5cca3fd">Create Quickstarters project</h4>
+<div class="outline-text-4" id="text-org5cca3fd">
 <p>
 Create a project named <b>Quickstarters</b>. The project doesn’t need any additional
 information, so leave all other options blank.
@@ -9250,9 +9344,9 @@ information, so leave all other options blank.
 </div>
 </div>
 
-<div id="outline-container-org1251b8b" class="outline-4">
-<h4 id="org1251b8b">Openshift API token</h4>
-<div class="outline-text-4" id="text-org1251b8b">
+<div id="outline-container-org47d9812" class="outline-4">
+<h4 id="org47d9812">Openshift API token</h4>
+<div class="outline-text-4" id="text-org47d9812">
 <p>
 You have to store the API token for the service account in Rundeck, so Rundeck is able to communicate with Openshift.
 </p>
@@ -9267,9 +9361,9 @@ Save the key.
 </div>
 </div>
 
-<div id="outline-container-orge623f81" class="outline-4">
-<h4 id="orge623f81">CD user private key</h4>
-<div class="outline-text-4" id="text-orge623f81">
+<div id="outline-container-orgfccd324" class="outline-4">
+<h4 id="orgfccd324">CD user private key</h4>
+<div class="outline-text-4" id="text-orgfccd324">
 <p>
 For initial code commit the CD user’s private key has to be stored in Rundeck, to enable an SSH communication between Rundeck and Bitbucket.
 </p>
@@ -9285,9 +9379,9 @@ Configure
 </div>
 </div>
 
-<div id="outline-container-org114ade4" class="outline-4">
-<h4 id="org114ade4">Configure SCM plugins</h4>
-<div class="outline-text-4" id="text-org114ade4">
+<div id="outline-container-org3edf8c8" class="outline-4">
+<h4 id="org3edf8c8">Configure SCM plugins</h4>
+<div class="outline-text-4" id="text-org3edf8c8">
 <p>
 Within the ods-project-quickstarters create a new branch called
 <b>rundeck-changes</b> - and let it inherit from production
@@ -9299,9 +9393,9 @@ soon as you are in the project configuration for the <b>Quickstarters</b> projec
 </p>
 </div>
 
-<div id="outline-container-org0147f38" class="outline-5">
-<h5 id="org0147f38">Setup Import plugin</h5>
-<div class="outline-text-5" id="text-org0147f38">
+<div id="outline-container-orgb2113c1" class="outline-5">
+<h5 id="orgb2113c1">Setup Import plugin</h5>
+<div class="outline-text-5" id="text-orgb2113c1">
 <p>
 Change the File Path Template to \({job.group}\){job.name}.\({config.format}
 Change the format for the Job Source Files to yaml
@@ -9314,9 +9408,9 @@ Import the job definitions under job actions.
 </div>
 </div>
 
-<div id="outline-container-org05059cf" class="outline-5">
-<h5 id="org05059cf">Setup Export plugin</h5>
-<div class="outline-text-5" id="text-org05059cf">
+<div id="outline-container-org13c4636" class="outline-5">
+<h5 id="org13c4636">Setup Export plugin</h5>
+<div class="outline-text-5" id="text-org13c4636">
 <p>
 If you use the Github repository, and use as is this step isn’t necessary! If
 you use your own repository, configure the export plugin in same way as the
@@ -9327,9 +9421,9 @@ rundeck-jobs/\({job.group}\){job.name}.${config.format}
 </div>
 </div>
 
-<div id="outline-container-org1c48ed5" class="outline-4">
-<h4 id="org1c48ed5">Update the job properties</h4>
-<div class="outline-text-4" id="text-org1c48ed5">
+<div id="outline-container-orgcea0d7d" class="outline-4">
+<h4 id="orgcea0d7d">Update the job properties</h4>
+<div class="outline-text-4" id="text-orgcea0d7d">
 <p>
 Go to the project page and then configure. Edit the configuration file (using the button) and add the following lines - based on your environment
 </p>
@@ -9354,9 +9448,9 @@ project.globals.rundeck_os_user=root:root
 </div>
 </div>
 
-<div id="outline-container-org28bfece" class="outline-3">
-<h3 id="org28bfece"><span class="section-number-3">1.17</span> Add shared images</h3>
-<div class="outline-text-3" id="text-1-17">
+<div id="outline-container-org9f35a78" class="outline-3">
+<h3 id="org9f35a78"><span class="section-number-3">2.17</span> Add shared images</h3>
+<div class="outline-text-3" id="text-2-17">
 <p>
 OpenDevStack provides shared images used accross the stack - like the authproxy based on NGINX and lua for crowd
 </p>
@@ -9394,9 +9488,9 @@ and start the build
 </div>
 </div>
 
-<div id="outline-container-orga73d36a" class="outline-3">
-<h3 id="orga73d36a"><span class="section-number-3">1.18</span> Configure provisioning application</h3>
-<div class="outline-text-3" id="text-1-18">
+<div id="outline-container-org7754eb4" class="outline-3">
+<h3 id="org7754eb4"><span class="section-number-3">2.18</span> Configure provisioning application</h3>
+<div class="outline-text-3" id="text-2-18">
 <p>
 Clone the provisioning application repository.
 </p>
@@ -9433,9 +9527,9 @@ You can login in with the Crowd admin user you set up earlier.
 </div>
 </div>
 
-<div id="outline-container-org1cd90f1" class="outline-3">
-<h3 id="org1cd90f1"><span class="section-number-3">1.19</span> Setup within Openshift</h3>
-<div class="outline-text-3" id="text-1-19">
+<div id="outline-container-orgeb624fa" class="outline-3">
+<h3 id="orgeb624fa"><span class="section-number-3">2.19</span> Setup within Openshift</h3>
+<div class="outline-text-3" id="text-2-19">
 <p>
 Create 3 openshift projects projects
 </p>
@@ -9489,9 +9583,9 @@ in <b>prov-dev</b> and <b>prov-test</b> projects
 </div>
 </div>
 
-<div id="outline-container-orge0e9a9c" class="outline-3">
-<h3 id="orge0e9a9c"><span class="section-number-3">1.20</span> Try out the OpenDevStack</h3>
-<div class="outline-text-3" id="text-1-20">
+<div id="outline-container-org4945169" class="outline-3">
+<h3 id="org4945169"><span class="section-number-3">2.20</span> Try out the OpenDevStack</h3>
+<div class="outline-text-3" id="text-2-20">
 <p>
 After you have set up your local environment it’s time to test the OpenDevStack
 and see it working. Open the Provisioning application in your web browser and
@@ -9507,9 +9601,9 @@ Provision your first project and have a look at OpenShift.
 
 
 
-<div id="outline-container-orgb2088bd" class="outline-2">
-<h2 id="orgb2088bd"><span class="section-number-2">2</span> Console URLs</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-orge9b9a20" class="outline-2">
+<h2 id="orge9b9a20"><span class="section-number-2">3</span> Console URLs</h2>
+<div class="outline-text-2" id="text-3">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -9665,17 +9759,17 @@ Provision your first project and have a look at OpenShift.
 </div>
 
 
-<div id="outline-container-org7031b35" class="outline-2">
-<h2 id="org7031b35"><span class="section-number-2">3</span> OpenDevStack - Products and Description</h2>
-<div class="outline-text-2" id="text-3">
+<div id="outline-container-orga6aaa40" class="outline-2">
+<h2 id="orga6aaa40"><span class="section-number-2">4</span> OpenDevStack - Products and Description</h2>
+<div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-org3320db1" class="outline-3">
-<h3 id="org3320db1"><span class="section-number-3">3.1</span> Crowd</h3>
-<div class="outline-text-3" id="text-3-1">
+<div id="outline-container-org08445b3" class="outline-3">
+<h3 id="org08445b3"><span class="section-number-3">4.1</span> Crowd</h3>
+<div class="outline-text-3" id="text-4-1">
 </div>
-<div id="outline-container-org7d07a18" class="outline-4">
-<h4 id="org7d07a18">Centralized identity management</h4>
-<div class="outline-text-4" id="text-org7d07a18">
+<div id="outline-container-org54c2e5f" class="outline-4">
+<h4 id="org54c2e5f">Centralized identity management</h4>
+<div class="outline-text-4" id="text-org54c2e5f">
 <p>
 Manage users from multiple directories - Active Directory, LDAP, OpenLDAP or
 Microsoft Azure AD - and control application authentication permissions in one
@@ -9683,9 +9777,9 @@ single location.
 </p>
 </div>
 
-<div id="outline-container-org919b367" class="outline-5">
-<h5 id="org919b367">Single sign-on (SSO)</h5>
-<div class="outline-text-5" id="text-org919b367">
+<div id="outline-container-org1fb29f4" class="outline-5">
+<h5 id="org1fb29f4">Single sign-on (SSO)</h5>
+<div class="outline-text-5" id="text-org1fb29f4">
 <p>
 Make life easy for your users by giving them one username and password to log in
 to all the applications they need access to. Seamlessly integrate all your
@@ -9695,9 +9789,9 @@ one simple single sign-on (SSO) experience.
 </div>
 </div>
 
-<div id="outline-container-org4d9ed4e" class="outline-5">
-<h5 id="org4d9ed4e">Centralize multiple directories</h5>
-<div class="outline-text-5" id="text-org4d9ed4e">
+<div id="outline-container-orgafeca6a" class="outline-5">
+<h5 id="orgafeca6a">Centralize multiple directories</h5>
+<div class="outline-text-5" id="text-orgafeca6a">
 <p>
 Map any combination of directories to a single application – perfect for
 managing users not in your main directory - and manage authentication
@@ -9710,17 +9804,17 @@ custom connector.
 </div>
 </div>
 
-<div id="outline-container-org4779982" class="outline-3">
-<h3 id="org4779982"><span class="section-number-3">3.2</span> Confluence</h3>
-<div class="outline-text-3" id="text-3-2">
+<div id="outline-container-org049dd0e" class="outline-3">
+<h3 id="org049dd0e"><span class="section-number-3">4.2</span> Confluence</h3>
+<div class="outline-text-3" id="text-4-2">
 </div>
-<div id="outline-container-org7cfc03e" class="outline-4">
-<h4 id="org7cfc03e">Content collaboration software that changes how modern teams work</h4>
-<div class="outline-text-4" id="text-org7cfc03e">
+<div id="outline-container-orgc901bf5" class="outline-4">
+<h4 id="orgc901bf5">Content collaboration software that changes how modern teams work</h4>
+<div class="outline-text-4" id="text-orgc901bf5">
 </div>
-<div id="outline-container-orgcc0fcb2" class="outline-5">
-<h5 id="orgcc0fcb2">Project collaboration</h5>
-<div class="outline-text-5" id="text-orgcc0fcb2">
+<div id="outline-container-org4b2c330" class="outline-5">
+<h5 id="org4b2c330">Project collaboration</h5>
+<div class="outline-text-5" id="text-org4b2c330">
 <p>
 Work together on a whole new level.
 </p>
@@ -9732,9 +9826,9 @@ projects moving forward, faster.
 </div>
 </div>
 
-<div id="outline-container-orgfb7e939" class="outline-5">
-<h5 id="orgfb7e939">Knowledge base</h5>
-<div class="outline-text-5" id="text-orgfb7e939">
+<div id="outline-container-org1191c41" class="outline-5">
+<h5 id="org1191c41">Knowledge base</h5>
+<div class="outline-text-5" id="text-org1191c41">
 <p>
 It's all here when you need it.
 </p>
@@ -9746,9 +9840,9 @@ so you can help your customers help themselves.
 </div>
 </div>
 
-<div id="outline-container-orga958acd" class="outline-5">
-<h5 id="orga958acd">Team documentation</h5>
-<div class="outline-text-5" id="text-orga958acd">
+<div id="outline-container-org6d246c3" class="outline-5">
+<h5 id="org6d246c3">Team documentation</h5>
+<div class="outline-text-5" id="text-org6d246c3">
 <p>
 Do teams the right way.
 </p>
@@ -9760,9 +9854,9 @@ the same page - literally.
 </div>
 </div>
 
-<div id="outline-container-org5cb3a7a" class="outline-5">
-<h5 id="org5cb3a7a">Document management</h5>
-<div class="outline-text-5" id="text-org5cb3a7a">
+<div id="outline-container-orgc1f9f0d" class="outline-5">
+<h5 id="orgc1f9f0d">Document management</h5>
+<div class="outline-text-5" id="text-orgc1f9f0d">
 <p>
 Share PDFs, Office docs, images, and more in Confluence. Automatic versioning,
 instant previews, full-text search, and pinned comments make it easy to manage
@@ -9771,9 +9865,9 @@ your files.
 </div>
 </div>
 
-<div id="outline-container-orgc7505ba" class="outline-5">
-<h5 id="orgc7505ba">Page and file versioning</h5>
-<div class="outline-text-5" id="text-orgc7505ba">
+<div id="outline-container-org4333d08" class="outline-5">
+<h5 id="org4333d08">Page and file versioning</h5>
+<div class="outline-text-5" id="text-org4333d08">
 <p>
 Track every version and change that you and your teammates make to a page. Files
 are automatically versioned as well!
@@ -9781,9 +9875,9 @@ are automatically versioned as well!
 </div>
 </div>
 
-<div id="outline-container-org663235f" class="outline-5">
-<h5 id="org663235f">Templates</h5>
-<div class="outline-text-5" id="text-org663235f">
+<div id="outline-container-org3fb8ce3" class="outline-5">
+<h5 id="org3fb8ce3">Templates</h5>
+<div class="outline-text-5" id="text-org3fb8ce3">
 <p>
 We include best practice templates to help you get started with popular pages,
 so you don't have to fuss with formatting.
@@ -9791,9 +9885,9 @@ so you don't have to fuss with formatting.
 </div>
 </div>
 
-<div id="outline-container-org30844e7" class="outline-5">
-<h5 id="org30844e7">Permissions</h5>
-<div class="outline-text-5" id="text-org30844e7">
+<div id="outline-container-org8d041aa" class="outline-5">
+<h5 id="org8d041aa">Permissions</h5>
+<div class="outline-text-5" id="text-org8d041aa">
 <p>
 Keep your site and your content secure with granular permissions that give you
 complete control.
@@ -9801,9 +9895,9 @@ complete control.
 </div>
 </div>
 
-<div id="outline-container-orgc4371e6" class="outline-5">
-<h5 id="orgc4371e6">Jira</h5>
-<div class="outline-text-5" id="text-orgc4371e6">
+<div id="outline-container-orged2e399" class="outline-5">
+<h5 id="orged2e399">Jira</h5>
+<div class="outline-text-5" id="text-orged2e399">
 <p>
 Connect to Jira to provide insight into your development work with automatic
 linking, quick issue creation and reports in Confluence.
@@ -9813,17 +9907,17 @@ linking, quick issue creation and reports in Confluence.
 </div>
 </div>
 
-<div id="outline-container-orge8db1a0" class="outline-3">
-<h3 id="orge8db1a0"><span class="section-number-3">3.3</span> Jira</h3>
-<div class="outline-text-3" id="text-3-3">
+<div id="outline-container-orgcdab58e" class="outline-3">
+<h3 id="orgcdab58e"><span class="section-number-3">4.3</span> Jira</h3>
+<div class="outline-text-3" id="text-4-3">
 </div>
-<div id="outline-container-org3971b82" class="outline-4">
-<h4 id="org3971b82">Project management tool for agile teams</h4>
-<div class="outline-text-4" id="text-org3971b82">
+<div id="outline-container-orgeeec5ab" class="outline-4">
+<h4 id="orgeeec5ab">Project management tool for agile teams</h4>
+<div class="outline-text-4" id="text-orgeeec5ab">
 </div>
-<div id="outline-container-org3d89939" class="outline-5">
-<h5 id="org3d89939">Scrum boards</h5>
-<div class="outline-text-5" id="text-org3d89939">
+<div id="outline-container-orgbf1b9b2" class="outline-5">
+<h5 id="orgbf1b9b2">Scrum boards</h5>
+<div class="outline-text-5" id="text-orgbf1b9b2">
 <p>
 Agile teams can stay focused on delivering iterative and incremental value, as
 fast as possible, with customizable scrum boards.
@@ -9831,9 +9925,9 @@ fast as possible, with customizable scrum boards.
 </div>
 </div>
 
-<div id="outline-container-orgdb38a82" class="outline-5">
-<h5 id="orgdb38a82">Kanban boards</h5>
-<div class="outline-text-5" id="text-orgdb38a82">
+<div id="outline-container-org5c62459" class="outline-5">
+<h5 id="org5c62459">Kanban boards</h5>
+<div class="outline-text-5" id="text-org5c62459">
 <p>
 Flexible kanban boards give your team full visibility into what’s next so you
 can continuously deliver maximum output in minimal cycle time.
@@ -9841,9 +9935,9 @@ can continuously deliver maximum output in minimal cycle time.
 </div>
 </div>
 
-<div id="outline-container-orge6f9e82" class="outline-5">
-<h5 id="orge6f9e82">Agile reporting</h5>
-<div class="outline-text-5" id="text-orge6f9e82">
+<div id="outline-container-org456dce2" class="outline-5">
+<h5 id="org456dce2">Agile reporting</h5>
+<div class="outline-text-5" id="text-org456dce2">
 <p>
 Teams have access to more than a dozen out-of-the-box reports with real-time,
 actionable insights into how their team is performing sprint over sprint.
@@ -9851,9 +9945,9 @@ actionable insights into how their team is performing sprint over sprint.
 </div>
 </div>
 
-<div id="outline-container-org45fd3bc" class="outline-5">
-<h5 id="org45fd3bc">Roadmaps</h5>
-<div class="outline-text-5" id="text-org45fd3bc">
+<div id="outline-container-org5d08fe5" class="outline-5">
+<h5 id="org5d08fe5">Roadmaps</h5>
+<div class="outline-text-5" id="text-org5d08fe5">
 <p>
 Sketch out the big picture, communicate plans with stakeholders, and ensure your
 roadmap connects to your team's work - all in a few clicks.
@@ -9861,36 +9955,36 @@ roadmap connects to your team's work - all in a few clicks.
 </div>
 </div>
 
-<div id="outline-container-org8fe8a55" class="outline-5">
-<h5 id="org8fe8a55">Customizable workflows</h5>
-<div class="outline-text-5" id="text-org8fe8a55">
+<div id="outline-container-org78fe97a" class="outline-5">
+<h5 id="org78fe97a">Customizable workflows</h5>
+<div class="outline-text-5" id="text-org78fe97a">
 <p>
 Create customizable workflows that map to any style of work.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org64bc00c" class="outline-5">
-<h5 id="org64bc00c">Developer tool integrations</h5>
-<div class="outline-text-5" id="text-org64bc00c">
+<div id="outline-container-org2b98df2" class="outline-5">
+<h5 id="org2b98df2">Developer tool integrations</h5>
+<div class="outline-text-5" id="text-org2b98df2">
 <p>
 Integrate with developer tools for end-to-end traceability.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1751bf1" class="outline-5">
-<h5 id="org1751bf1">Custom filters</h5>
-<div class="outline-text-5" id="text-org1751bf1">
+<div id="outline-container-org840d57c" class="outline-5">
+<h5 id="org840d57c">Custom filters</h5>
+<div class="outline-text-5" id="text-org840d57c">
 <p>
 Create customer filters using Jira Query Language (JQL).
 </p>
 </div>
 </div>
 
-<div id="outline-container-org144371a" class="outline-5">
-<h5 id="org144371a">Rich APIs</h5>
-<div class="outline-text-5" id="text-org144371a">
+<div id="outline-container-org4833670" class="outline-5">
+<h5 id="org4833670">Rich APIs</h5>
+<div class="outline-text-5" id="text-org4833670">
 <p>
 Automate processes with Jira’s robust set of APIs.
 </p>
@@ -9899,9 +9993,9 @@ Automate processes with Jira’s robust set of APIs.
 </div>
 </div>
 
-<div id="outline-container-orgc8cfbf8" class="outline-3">
-<h3 id="orgc8cfbf8"><span class="section-number-3">3.4</span> Jira and Confluence</h3>
-<div class="outline-text-3" id="text-3-4">
+<div id="outline-container-orga676095" class="outline-3">
+<h3 id="orga676095"><span class="section-number-3">4.4</span> Jira and Confluence</h3>
+<div class="outline-text-3" id="text-4-4">
 <p>
 Confluence and Jira enable project transparency and automatic linking between
 Jira issues and software documentation in Confluence. Quick issue creation and
@@ -9910,22 +10004,22 @@ reports let your team work smarter and faster.
 </div>
 </div>
 
-<div id="outline-container-org3e91beb" class="outline-3">
-<h3 id="org3e91beb"><span class="section-number-3">3.5</span> BitBucket</h3>
-<div class="outline-text-3" id="text-3-5">
+<div id="outline-container-org042d795" class="outline-3">
+<h3 id="org042d795"><span class="section-number-3">4.5</span> BitBucket</h3>
+<div class="outline-text-3" id="text-4-5">
 </div>
-<div id="outline-container-orgda53189" class="outline-4">
-<h4 id="orgda53189">More than just Git code management</h4>
-<div class="outline-text-4" id="text-orgda53189">
+<div id="outline-container-orgce1daf3" class="outline-4">
+<h4 id="orgce1daf3">More than just Git code management</h4>
+<div class="outline-text-4" id="text-orgce1daf3">
 <p>
 Bitbucket gives teams one place to plan projects, collaborate on code, test, and
 deploy.
 </p>
 </div>
 
-<div id="outline-container-org26a3db4" class="outline-5">
-<h5 id="org26a3db4">Free unlimited private repositories</h5>
-<div class="outline-text-5" id="text-org26a3db4">
+<div id="outline-container-orgc9628cc" class="outline-5">
+<h5 id="orgc9628cc">Free unlimited private repositories</h5>
+<div class="outline-text-5" id="text-orgc9628cc">
 <p>
 Free for small teams under 5 and priced to scale with Standard ($2/user/mo) or
 Premium ($5/user/mo) plans.
@@ -9933,9 +10027,9 @@ Premium ($5/user/mo) plans.
 </div>
 </div>
 
-<div id="outline-container-org1b060ed" class="outline-5">
-<h5 id="org1b060ed">Best-in-class Jira &amp; Trello integration</h5>
-<div class="outline-text-5" id="text-org1b060ed">
+<div id="outline-container-orgdbc85bd" class="outline-5">
+<h5 id="orgdbc85bd">Best-in-class Jira &amp; Trello integration</h5>
+<div class="outline-text-5" id="text-orgdbc85bd">
 <p>
 Keep your projects organized by creating Bitbucket branches right from Jira
 issues or Trello cards.
@@ -9943,9 +10037,9 @@ issues or Trello cards.
 </div>
 </div>
 
-<div id="outline-container-org46fbadb" class="outline-5">
-<h5 id="org46fbadb">Built-in Continuous Delivery</h5>
-<div class="outline-text-5" id="text-org46fbadb">
+<div id="outline-container-org5134db7" class="outline-5">
+<h5 id="org5134db7">Built-in Continuous Delivery</h5>
+<div class="outline-text-5" id="text-org5134db7">
 <p>
 Build, test and deploy with integrated CI/CD. Benefit from configuration as code
 and fast feedback loops.
@@ -9953,9 +10047,9 @@ and fast feedback loops.
 </div>
 </div>
 
-<div id="outline-container-org4abbb48" class="outline-5">
-<h5 id="org4abbb48">Code Collaboration</h5>
-<div class="outline-text-5" id="text-org4abbb48">
+<div id="outline-container-org8d4dead" class="outline-5">
+<h5 id="org8d4dead">Code Collaboration</h5>
+<div class="outline-text-5" id="text-org8d4dead">
 <p>
 Build quality software with code review
 </p>
@@ -9968,9 +10062,9 @@ code with inline comments.
 </div>
 </div>
 
-<div id="outline-container-org7ab740f" class="outline-5">
-<h5 id="org7ab740f">Continuous Delivery</h5>
-<div class="outline-text-5" id="text-org7ab740f">
+<div id="outline-container-orgebfcf80" class="outline-5">
+<h5 id="orgebfcf80">Continuous Delivery</h5>
+<div class="outline-text-5" id="text-orgebfcf80">
 <p>
 Deploy often with built-in continuous delivery
 </p>
@@ -9982,9 +10076,9 @@ integrated CI/CD. Benefit from configuration as code and fast feedback loops.
 </div>
 </div>
 
-<div id="outline-container-org14efdd0" class="outline-5">
-<h5 id="org14efdd0">Security</h5>
-<div class="outline-text-5" id="text-org14efdd0">
+<div id="outline-container-orgd56920e" class="outline-5">
+<h5 id="orgd56920e">Security</h5>
+<div class="outline-text-5" id="text-orgd56920e">
 <p>
 Secure your workflow
 </p>
@@ -9999,57 +10093,57 @@ branch permissions and merge checks for quality code.
 </div>
 </div>
 
-<div id="outline-container-orga2978ae" class="outline-3">
-<h3 id="orga2978ae"><span class="section-number-3">3.6</span> Rundeck</h3>
-<div class="outline-text-3" id="text-3-6">
+<div id="outline-container-org73f3183" class="outline-3">
+<h3 id="org73f3183"><span class="section-number-3">4.6</span> Rundeck</h3>
+<div class="outline-text-3" id="text-4-6">
 </div>
-<div id="outline-container-org25b4450" class="outline-4">
-<h4 id="org25b4450">Manage automation from legacy to cloud services</h4>
-<div class="outline-text-4" id="text-org25b4450">
+<div id="outline-container-org70e80f6" class="outline-4">
+<h4 id="org70e80f6">Manage automation from legacy to cloud services</h4>
+<div class="outline-text-4" id="text-org70e80f6">
 <p>
 Leverage any scripting languages or tools you want to use.
 </p>
 </div>
 
-<div id="outline-container-org60940df" class="outline-5">
-<h5 id="org60940df">Scale Ops.</h5>
-<div class="outline-text-5" id="text-org60940df">
+<div id="outline-container-org4bb238c" class="outline-5">
+<h5 id="org4bb238c">Scale Ops.</h5>
+<div class="outline-text-5" id="text-org4bb238c">
 <p>
 Increase productivity. Implement self-service.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orge0db784" class="outline-5">
-<h5 id="orge0db784">Eliminate the wait.</h5>
-<div class="outline-text-5" id="text-orge0db784">
+<div id="outline-container-org9162710" class="outline-5">
+<h5 id="org9162710">Eliminate the wait.</h5>
+<div class="outline-text-5" id="text-org9162710">
 <p>
 Reduce ticket queues. Improve response times.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgabab4c1" class="outline-5">
-<h5 id="orgabab4c1">Stay in control.</h5>
-<div class="outline-text-5" id="text-orgabab4c1">
+<div id="outline-container-org532ff49" class="outline-5">
+<h5 id="org532ff49">Stay in control.</h5>
+<div class="outline-text-5" id="text-org532ff49">
 <p>
 Oversee everything. Delegate anything.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1dc912f" class="outline-5">
-<h5 id="org1dc912f">Be audit-ready.</h5>
-<div class="outline-text-5" id="text-org1dc912f">
+<div id="outline-container-orgf38dfdf" class="outline-5">
+<h5 id="orgf38dfdf">Be audit-ready.</h5>
+<div class="outline-text-5" id="text-orgf38dfdf">
 <p>
 Validate compliance. Log all Ops activity.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org44ee367" class="outline-5">
-<h5 id="org44ee367">Create a job</h5>
-<div class="outline-text-5" id="text-org44ee367">
+<div id="outline-container-orge19b04e" class="outline-5">
+<h5 id="orge19b04e">Create a job</h5>
+<div class="outline-text-5" id="text-orge19b04e">
 <p>
 by defining a single step or a workflow that can execute any set of commands,
 scripts, or tools on any number of local or remote nodes. Jobs can be triggered
@@ -10058,9 +10152,9 @@ by the scheduler or on-demand via the web interface or API.
 </div>
 </div>
 
-<div id="outline-container-org643a7fc" class="outline-5">
-<h5 id="org643a7fc">Safely hand off the job to others</h5>
-<div class="outline-text-5" id="text-org643a7fc">
+<div id="outline-container-org72bc926" class="outline-5">
+<h5 id="org72bc926">Safely hand off the job to others</h5>
+<div class="outline-text-5" id="text-org72bc926">
 <p>
 to execute or follow the output &#x2013; depending on the permissions you give
 them. Collaborate with others and build your organization's library of
@@ -10070,9 +10164,9 @@ repeatable and auditable actions. You can also let users to run ad-hoc commands
 </div>
 </div>
 
-<div id="outline-container-orgadb510c" class="outline-5">
-<h5 id="orgadb510c">Enjoy being the Hero.</h5>
-<div class="outline-text-5" id="text-orgadb510c">
+<div id="outline-container-org303dfae" class="outline-5">
+<h5 id="org303dfae">Enjoy being the Hero.</h5>
+<div class="outline-text-5" id="text-org303dfae">
 <p>
 You've safely given Dev and QA teams access to self-service operations tasks
 (restarts, health checks, deployment, data management, etc). Now you can spend
@@ -10084,17 +10178,17 @@ and interesting things that will further the business.
 </div>
 </div>
 
-<div id="outline-container-orgc4cd5cd" class="outline-3">
-<h3 id="orgc4cd5cd"><span class="section-number-3">3.7</span> Nexus Repository</h3>
-<div class="outline-text-3" id="text-3-7">
+<div id="outline-container-orgaa279a2" class="outline-3">
+<h3 id="orgaa279a2"><span class="section-number-3">4.7</span> Nexus Repository</h3>
+<div class="outline-text-3" id="text-4-7">
 </div>
-<div id="outline-container-org8e61552" class="outline-4">
-<h4 id="org8e61552">Flow control for binaries, build artifacts, and release candidates.</h4>
-<div class="outline-text-4" id="text-org8e61552">
+<div id="outline-container-orgdeeb460" class="outline-4">
+<h4 id="orgdeeb460">Flow control for binaries, build artifacts, and release candidates.</h4>
+<div class="outline-text-4" id="text-orgdeeb460">
 </div>
-<div id="outline-container-orgd4bb1a9" class="outline-5">
-<h5 id="orgd4bb1a9">The perfect system of record for all your software parts</h5>
-<div class="outline-text-5" id="text-orgd4bb1a9">
+<div id="outline-container-orgb135bd9" class="outline-5">
+<h5 id="orgb135bd9">The perfect system of record for all your software parts</h5>
+<div class="outline-text-5" id="text-orgb135bd9">
 <ul class="org-ul">
 <li>Manage components, build artifacts, and release candidates in one central location.</li>
 <li>Understand component security, license, and quality issues.</li>
@@ -10105,9 +10199,9 @@ and interesting things that will further the business.
 </div>
 </div>
 
-<div id="outline-container-org777cd9d" class="outline-5">
-<h5 id="org777cd9d">Universal support for all your favorite formats and tools.</h5>
-<div class="outline-text-5" id="text-org777cd9d">
+<div id="outline-container-org2d9a993" class="outline-5">
+<h5 id="org2d9a993">Universal support for all your favorite formats and tools.</h5>
+<div class="outline-text-5" id="text-org2d9a993">
 <ul class="org-ul">
 <li>Store and distribute Maven/Java, npm, NuGet, RubyGems, Docker, P2, OBR, APT and YUM and more.</li>
 <li>Manage components from dev through delivery: binaries, containers, assemblies, and finished goods.</li>
@@ -10119,17 +10213,17 @@ and interesting things that will further the business.
 </div>
 </div>
 
-<div id="outline-container-org498a79f" class="outline-3">
-<h3 id="org498a79f"><span class="section-number-3">3.8</span> SonarQube</h3>
-<div class="outline-text-3" id="text-3-8">
+<div id="outline-container-orgfc2ba64" class="outline-3">
+<h3 id="orgfc2ba64"><span class="section-number-3">4.8</span> SonarQube</h3>
+<div class="outline-text-3" id="text-4-8">
 </div>
-<div id="outline-container-org67cf600" class="outline-4">
-<h4 id="org67cf600">Continuous Code Quality</h4>
-<div class="outline-text-4" id="text-org67cf600">
+<div id="outline-container-orga02e77e" class="outline-4">
+<h4 id="orga02e77e">Continuous Code Quality</h4>
+<div class="outline-text-4" id="text-orga02e77e">
 </div>
-<div id="outline-container-org7e4a0ad" class="outline-5">
-<h5 id="org7e4a0ad">Continuous Inspection</h5>
-<div class="outline-text-5" id="text-org7e4a0ad">
+<div id="outline-container-org456315f" class="outline-5">
+<h5 id="org456315f">Continuous Inspection</h5>
+<div class="outline-text-5" id="text-org456315f">
 <p>
 SonarQube provides the capability to not only show health of an application but
 also to highlight issues newly introduced. With a Quality Gate in place, you can
@@ -10138,9 +10232,9 @@ fix the leak and therefore improve code quality systematically.
 </div>
 </div>
 
-<div id="outline-container-org43ca6b6" class="outline-5">
-<h5 id="org43ca6b6">Detect Tricky Issues</h5>
-<div class="outline-text-5" id="text-org43ca6b6">
+<div id="outline-container-org69a774e" class="outline-5">
+<h5 id="org69a774e">Detect Tricky Issues</h5>
+<div class="outline-text-5" id="text-org69a774e">
 <p>
 Our code analyzers are equipped with powerful path sensitive dataflow engines to
 detect tricky issues such as null-pointers dereferences, logic errors, resource
@@ -10149,9 +10243,9 @@ leaks&#x2026;
 </div>
 </div>
 
-<div id="outline-container-org9acf98f" class="outline-5">
-<h5 id="org9acf98f">Centralize Quality</h5>
-<div class="outline-text-5" id="text-org9acf98f">
+<div id="outline-container-org5dcac68" class="outline-5">
+<h5 id="org5dcac68">Centralize Quality</h5>
+<div class="outline-text-5" id="text-org5dcac68">
 <p>
 One place to provide a shared vision of code quality for developers, tech leads,
 managers and executives in charge of a few to a few thousands projects and also
@@ -10160,9 +10254,9 @@ to act as a toll gate for application promotion or release.
 </div>
 </div>
 
-<div id="outline-container-org8dc4b12" class="outline-5">
-<h5 id="org8dc4b12">DevOps Integration</h5>
-<div class="outline-text-5" id="text-org8dc4b12">
+<div id="outline-container-orgd5caf90" class="outline-5">
+<h5 id="orgd5caf90">DevOps Integration</h5>
+<div class="outline-text-5" id="text-orgd5caf90">
 <p>
 SonarQube integrates with the entire DevOps toolchain including build systems,
 CI engines, promotion pipelines&#x2026; using webhooks and its comprehensive RestAPI.
@@ -10174,13 +10268,13 @@ CI engines, promotion pipelines&#x2026; using webhooks and its comprehensive Res
 </div>
 
 
-<div id="outline-container-org7c3a03d" class="outline-2">
-<h2 id="org7c3a03d"><span class="section-number-2">4</span> Install convenience environment</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-orge3a5d87" class="outline-2">
+<h2 id="orge3a5d87"><span class="section-number-2">5</span> Install convenience environment</h2>
+<div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org779f17f" class="outline-3">
-<h3 id="org779f17f"><span class="section-number-3">4.1</span> atlassian1</h3>
-<div class="outline-text-3" id="text-4-1">
+<div id="outline-container-org00bd13f" class="outline-3">
+<h3 id="org00bd13f"><span class="section-number-3">5.1</span> atlassian1</h3>
+<div class="outline-text-3" id="text-5-1">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-core/infrastructure-setup
 </pre>
@@ -10432,9 +10526,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orgb298459" class="outline-3">
-<h3 id="orgb298459"><span class="section-number-3">4.2</span> atlcon</h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-org3c593c8" class="outline-3">
+<h3 id="org3c593c8"><span class="section-number-3">5.2</span> atlcon</h3>
+<div class="outline-text-3" id="text-5-2">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /misc/vagrant/opendevstack/ods-core/infrastructure-setup
 </pre>
@@ -10687,17 +10781,17 @@ vagrant
 </div>
 
 
-<div id="outline-container-orgbe98dd3" class="outline-2">
-<h2 id="orgbe98dd3"><span class="section-number-2">5</span> Installation and Runtime Topology</h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-org8fdfb92" class="outline-2">
+<h2 id="org8fdfb92"><span class="section-number-2">6</span> Installation and Runtime Topology</h2>
+<div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-orgca3f733" class="outline-3">
-<h3 id="orgca3f733"><span class="section-number-3">5.1</span> Atlassian products</h3>
-<div class="outline-text-3" id="text-5-1">
+<div id="outline-container-org25945fa" class="outline-3">
+<h3 id="org25945fa"><span class="section-number-3">6.1</span> Atlassian products</h3>
+<div class="outline-text-3" id="text-6-1">
 </div>
-<div id="outline-container-org99295d1" class="outline-4">
-<h4 id="org99295d1">Installation directory (/opt/atlassian)</h4>
-<div class="outline-text-4" id="text-org99295d1">
+<div id="outline-container-org8180081" class="outline-4">
+<h4 id="org8180081">Installation directory (/opt/atlassian)</h4>
+<div class="outline-text-4" id="text-org8180081">
 <div class="org-src-container">
 <pre class="src src-bash">sudo yum -y install tree
 </pre>
@@ -10829,9 +10923,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orgd682be7" class="outline-4">
-<h4 id="orgd682be7">Crowd</h4>
-<div class="outline-text-4" id="text-orgd682be7">
+<div id="outline-container-org1086a14" class="outline-4">
+<h4 id="org1086a14">Crowd</h4>
+<div class="outline-text-4" id="text-org1086a14">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lt /opt/atlassian/atlassian-crowd-2.11.2
 </pre>
@@ -11294,9 +11388,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org289d7ce" class="outline-4">
-<h4 id="org289d7ce">Confluence</h4>
-<div class="outline-text-4" id="text-org289d7ce">
+<div id="outline-container-orgdc3d0bd" class="outline-4">
+<h4 id="orgdc3d0bd">Confluence</h4>
+<div class="outline-text-4" id="text-orgdc3d0bd">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lt /opt/atlassian/confluence
 </pre>
@@ -11374,9 +11468,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org12cb94a" class="outline-4">
-<h4 id="org12cb94a">Jira</h4>
-<div class="outline-text-4" id="text-org12cb94a">
+<div id="outline-container-orgbb5b769" class="outline-4">
+<h4 id="orgbb5b769">Jira</h4>
+<div class="outline-text-4" id="text-orgbb5b769">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lt /opt/atlassian/jira
 </pre>
@@ -11420,9 +11514,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org5acd23b" class="outline-4">
-<h4 id="org5acd23b">BitBucket</h4>
-<div class="outline-text-4" id="text-org5acd23b">
+<div id="outline-container-org4e18994" class="outline-4">
+<h4 id="org4e18994">BitBucket</h4>
+<div class="outline-text-4" id="text-org4e18994">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lt /opt/atlassian/bitbucket/4.14.3
 </pre>
@@ -11519,13 +11613,13 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orgb29987e" class="outline-4">
-<h4 id="orgb29987e">Home directory structure (/srv/atlassian)</h4>
-<div class="outline-text-4" id="text-orgb29987e">
+<div id="outline-container-org7aedba2" class="outline-4">
+<h4 id="org7aedba2">Home directory structure (/srv/atlassian)</h4>
+<div class="outline-text-4" id="text-org7aedba2">
 </div>
-<div id="outline-container-orge0b35b0" class="outline-5">
-<h5 id="orge0b35b0">Atlassian products</h5>
-<div class="outline-text-5" id="text-orge0b35b0">
+<div id="outline-container-orge4574e6" class="outline-5">
+<h5 id="orge4574e6">Atlassian products</h5>
+<div class="outline-text-5" id="text-orge4574e6">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lt /srv/atlassian
 </pre>
@@ -11601,9 +11695,9 @@ vagrant
 </pre>
 </div>
 </div>
-<div id="outline-container-orga6ea743" class="outline-5">
-<h5 id="orga6ea743">Crowd</h5>
-<div class="outline-text-5" id="text-orga6ea743">
+<div id="outline-container-orgd844470" class="outline-5">
+<h5 id="orgd844470">Crowd</h5>
+<div class="outline-text-5" id="text-orgd844470">
 <div class="org-src-container">
 <pre class="src src-bash">cat /srv/atlassian/crowd/crowd.properties
 </pre>
@@ -11655,9 +11749,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org8497aef" class="outline-5">
-<h5 id="org8497aef">Confluence</h5>
-<div class="outline-text-5" id="text-org8497aef">
+<div id="outline-container-orgec523fb" class="outline-5">
+<h5 id="orgec523fb">Confluence</h5>
+<div class="outline-text-5" id="text-orgec523fb">
 <div class="org-src-container">
 <pre class="src src-bash">cat /srv/atlassian/crowd/crowd.cfg.xml
 </pre>
@@ -11691,9 +11785,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org35ab0d4" class="outline-5">
-<h5 id="org35ab0d4">Jira</h5>
-<div class="outline-text-5" id="text-org35ab0d4">
+<div id="outline-container-org7ab6fea" class="outline-5">
+<h5 id="org7ab6fea">Jira</h5>
+<div class="outline-text-5" id="text-org7ab6fea">
 <div class="org-src-container">
 <pre class="src src-bash">sudo cat /srv/atlassian/jira/dbconfig.xml
 </pre>
@@ -11729,9 +11823,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orgce7cf7f" class="outline-5">
-<h5 id="orgce7cf7f">BitBucket</h5>
-<div class="outline-text-5" id="text-orgce7cf7f">
+<div id="outline-container-org6672bdc" class="outline-5">
+<h5 id="org6672bdc">BitBucket</h5>
+<div class="outline-text-5" id="text-org6672bdc">
 <div class="org-src-container">
 <pre class="src src-bash">cat /srv/atlassian/bitbucket/shared/bitbucket.properties
 </pre>
@@ -11763,9 +11857,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org9030dc5" class="outline-4">
-<h4 id="org9030dc5">User home directories</h4>
-<div class="outline-text-4" id="text-org9030dc5">
+<div id="outline-container-org47df110" class="outline-4">
+<h4 id="org47df110">User home directories</h4>
+<div class="outline-text-4" id="text-org47df110">
 <div class="org-src-container">
 <pre class="src src-bash">ls -lt /home
 </pre>
@@ -11782,9 +11876,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orgd66d937" class="outline-3">
-<h3 id="orgd66d937"><span class="section-number-3">5.2</span> Rundeck</h3>
-<div class="outline-text-3" id="text-5-2">
+<div id="outline-container-orgd6402be" class="outline-3">
+<h3 id="orgd6402be"><span class="section-number-3">6.2</span> Rundeck</h3>
+<div class="outline-text-3" id="text-6-2">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /etc/rundeck
 </pre>
@@ -12006,9 +12100,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org935c921" class="outline-3">
-<h3 id="org935c921"><span class="section-number-3">5.3</span> Docker</h3>
-<div class="outline-text-3" id="text-5-3">
+<div id="outline-container-org4010d51" class="outline-3">
+<h3 id="org4010d51"><span class="section-number-3">6.3</span> Docker</h3>
+<div class="outline-text-3" id="text-6-3">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">cd</span> /var/lib/docker
 </pre>
@@ -12037,22 +12131,22 @@ vagrant
 </pre>
 </div>
 
-<div id="outline-container-orgc4e8152" class="outline-4">
-<h4 id="orgc4e8152">Nexus3</h4>
+<div id="outline-container-org7a62388" class="outline-4">
+<h4 id="org7a62388">Nexus3</h4>
 </div>
-<div id="outline-container-org4685ac9" class="outline-4">
-<h4 id="org4685ac9">SonarQube</h4>
-<div class="outline-text-4" id="text-org4685ac9">
+<div id="outline-container-org21e3484" class="outline-4">
+<h4 id="org21e3484">SonarQube</h4>
+<div class="outline-text-4" id="text-org21e3484">
 </div>
-<div id="outline-container-org202bc12" class="outline-5">
-<h5 id="org202bc12">SonarQube-PostGreSQL</h5>
+<div id="outline-container-orge53328b" class="outline-5">
+<h5 id="orge53328b">SonarQube-PostGreSQL</h5>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org00940e4" class="outline-3">
-<h3 id="org00940e4"><span class="section-number-3">5.4</span> PostGreSQL</h3>
-<div class="outline-text-3" id="text-5-4">
+<div id="outline-container-orgcde95e2" class="outline-3">
+<h3 id="orgcde95e2"><span class="section-number-3">6.4</span> PostGreSQL</h3>
+<div class="outline-text-3" id="text-6-4">
 <div class="org-src-container">
 <pre class="src src-bash">sudo ls -lisat /var/lib/pgsql
 </pre>
@@ -12108,9 +12202,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-org61ee3a6" class="outline-3">
-<h3 id="org61ee3a6"><span class="section-number-3">5.5</span> Processes</h3>
-<div class="outline-text-3" id="text-5-5">
+<div id="outline-container-org3373b52" class="outline-3">
+<h3 id="org3373b52"><span class="section-number-3">6.5</span> Processes</h3>
+<div class="outline-text-3" id="text-6-5">
 <div class="org-src-container">
 <pre class="src src-bash">ps -ef | grep java | grep -v grep | sort
 </pre>
@@ -12141,13 +12235,13 @@ vagrant
 </div>
 
 
-<div id="outline-container-org0fef71b" class="outline-2">
-<h2 id="org0fef71b"><span class="section-number-2">6</span> ToDo</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-org042012d" class="outline-2">
+<h2 id="org042012d"><span class="section-number-2">7</span> ToDo</h2>
+<div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orga4e63d6" class="outline-3">
-<h3 id="orga4e63d6"><span class="section-number-3">6.1</span> Configuring Minishift</h3>
-<div class="outline-text-3" id="text-6-1">
+<div id="outline-container-orgd0cbfeb" class="outline-3">
+<h3 id="orgd0cbfeb"><span class="section-number-3">7.1</span> Configuring Minishift</h3>
+<div class="outline-text-3" id="text-7-1">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #483d8b;">export</span> <span style="color: #a0522d;">MINISHIFT_HOME</span>=<span style="color: #8b2252;">"D:\misc\vagrant\opendevstack\.minishift"</span>
 </pre>
@@ -12160,9 +12254,9 @@ vagrant
 </div>
 </div>
 
-<div id="outline-container-orga67bd0b" class="outline-3">
-<h3 id="orga67bd0b"><span class="section-number-3">6.2</span> Using Minishift - An OpenShift Origin All-in-One VM</h3>
-<div class="outline-text-3" id="text-6-2">
+<div id="outline-container-orge68a3dd" class="outline-3">
+<h3 id="orge68a3dd"><span class="section-number-3">7.2</span> Using Minishift - An OpenShift Origin All-in-One VM</h3>
+<div class="outline-text-3" id="text-7-2">
 <div class="org-src-container">
 <pre class="src src-bash">minishift version
 </pre>
@@ -12307,9 +12401,9 @@ we make sure that the file <b>minishift_kubeconfig</b> exists.
 </div>
 </div>
 
-<div id="outline-container-orge536e9e" class="outline-3">
-<h3 id="orge536e9e"><span class="section-number-3">6.3</span> Problems when starting</h3>
-<div class="outline-text-3" id="text-6-3">
+<div id="outline-container-orgf43afd9" class="outline-3">
+<h3 id="orgf43afd9"><span class="section-number-3">7.3</span> Problems when starting</h3>
+<div class="outline-text-3" id="text-7-3">
 <pre class="example">
 # -- Starting profile 'minishift'
 # -- Check if deprecated options are used ... OK
@@ -12400,7 +12494,7 @@ we make sure that the file <b>minishift_kubeconfig</b> exists.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Dr. Volker Zell</p>
-<p class="date">Created: 2018-11-20 Tue 17:45</p>
+<p class="date">Created: 2018-11-21 Wed 07:06</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
