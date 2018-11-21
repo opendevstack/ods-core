@@ -97,6 +97,12 @@
 
 ## JDK 8
 
+- name: set internal vars for 1.8.0_192
+  set_fact:
+    jdk_version_detail: "{{ java_version }}u{{ java_subversion }}-b12"
+    jdk_tarball_hash: 750e1c8617c5452694857ad95c3ee230
+  when: java_version == 8 and java_subversion == 192
+
 - name: set internal vars for 1.8.0_181
   set_fact:
     jdk_version_detail: "{{ java_version }}u{{ java_subversion }}-b13"
