@@ -27,7 +27,7 @@ objects:
     source:
       contextDir: shared-images/nginx-authproxy-crowd
       git:
-        ref: production
+        ref: master
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token

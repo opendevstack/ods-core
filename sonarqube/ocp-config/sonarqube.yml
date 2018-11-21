@@ -27,7 +27,7 @@ objects:
       contextDir: sonarqube
       git:
         uri: ${REPO_BASE}/opendevstack/ods-core.git
-        ref: production 
+        ref: master 
       sourceSecret:
         name: cd-user-token
       type: Git

@@ -22,7 +22,7 @@ objects:
       type: Git
       contextDir: jenkins/master
       git:
-        ref: production
+        ref: master
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
@@ -56,7 +56,7 @@ objects:
     source:
       contextDir: jenkins/slave-base
       git:
-        ref: production
+        ref: master
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
