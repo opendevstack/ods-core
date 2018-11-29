@@ -69,6 +69,35 @@ objects:
             value: ${APP_DNS}        
       type: Docker
     triggers: []
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: jenkins-webhook-proxy
+    labels:
+      app: jenkins
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'jenkins-webhook-proxy:latest'
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: jenkins/webhook-proxy
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy: {}
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    triggers: []
 parameters:
 - name: REPO_BASE
   required: true
