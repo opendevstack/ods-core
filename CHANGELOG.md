@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.0] - 2018-12-03
+
 ### Added
 
 - `jenkins-slave-base` can be built on either centos7 or rhel7 configurable via buildconfig (#5)
@@ -17,7 +20,8 @@
 - Secrets for authproxy container (in shared images) was missing (#6)
 - Email sendout (#45)
 - Set Jenkins URL during initialization (#52)
-   
+
+
 ## [0.1.0] - 2018-07-27
 
 Initial release.
