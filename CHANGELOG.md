@@ -4,7 +4,7 @@
 
 ### Added
 
-- `jenkins-slava-base` can be built on either centos7 or rhel7 configurable via buildconfig (#5)
+- `jenkins-slave-base` can be built on either centos7 or rhel7 configurable via buildconfig (#5)
 - Nexus also contains a backup pvc (for the backup of db task)
 - Jenkins webhook proxy to proxy webhooks and manage pipelines (#45)
 
