@@ -1,35 +1,39 @@
 #!/bin/bash
+#
+# We assume that all ods repositories are placed next to each other
+# By default it is one level up from this script
 
-cd ods-configuration-sample
+ODS_DIR=""
+ODS_SAMPLE_DIR=`realpath ${ODS_DIR}/ods-configuration-sample`
+ODS_CONFIG_DIR=`realpath ${ODS_DIR}/ods-configuration`
 
+# check if we have a ods-configuration
+# and create one
+if [[ ! -d "${ODS_CONFIG_DIR}" ]] ; then
+  echo "creating ods configuration directory"
+  mkdir ${ODS_CONFIG_DIR}
+ fi
+ if [ "$(ls -A ${ODS_CONFIG_DIR})" ]; then
+ echo "ODS-configuration already initialised"
+else 
+  echo "Initialising ods-configuration directory."	
+  cd ${ODS_SAMPLE_DIR}
+  git archive master | tar -x -C ${ODS_CONFIG_DIR}  
+  cd ${ODS_CONFIG_DIR}
+  find . -name "*.sample" -exec bash -c 'cp {} $(dirname {})/$(basename {} .sample)' \;
+  exit
+fi  
+
+
+# ok, we have an ods configuration
+# so lets ensure sample is up to date
+cd ${ODS_SAMPLE_DIR}
 if [[ `git status --porcelain` ]]; then
   echo "updating configuration ..."
   git pull origin master
+  cd ${ODS_SAMPLE_DIR}
+  git archive master | tar -x -C ${ODS_CONFIG_DIR}
 else 
   echo "configuration is up to date"
 fi
 
-echo "Initializing ods-configuration? (Warning! The script will copie all files from /ods-configuration-sample into /ods-configuration and override all .env files in /ods-configuration)"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) shopt -s extglob
-              cp -r ../ods-configuration-sample/. ../ods-configuration;
-              find ../ods-configuration -name '*.sample' -type f | while read NAME ; do cp "${NAME}" "${NAME%.sample}"; done; 
-              break;;
-        No )  break;;
-    esac
-done
-# cp $(find ! ../ods-configuration-sample -name ".git*") ../ods-confiduration; 
-
-echo "Copy sample config to configuration directory?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) cp -r ../ods-configuration-sample/. ../ods-configuration;
-              break;;
-        No )  exit;;
-    esac
-done
-
-  
- 
- 
