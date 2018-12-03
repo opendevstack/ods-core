@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	namespaceFile            = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	caCert                   = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	pipelineConfigFilename   = "pipeline.json"
@@ -55,6 +56,7 @@ type Client struct {
 // Server represents this service, and is a global.
 type Server struct {
 	Client            *Client
+	Namespace         string
 	TriggerSecret     string
 	ProtectedBranches []string
 	RepoBase          string
@@ -115,8 +117,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	namespace, err := getFileContent(namespaceFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	server = &Server{
 		Client:            client,
+		Namespace:         namespace,
 		TriggerSecret:     triggerSecret,
 		ProtectedBranches: protectedBranches,
 		RepoBase:          repoBase,
@@ -196,7 +204,6 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			log.Println(requestID, "Skipping unknown event", req.EventKey)
 			return
 		}
-		namespace := project + "-cd"
 		pipeline := component + "-"
 
 		// Extract JIRA user story from branch name if present
@@ -211,7 +218,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		event := &Event{
 			Kind:      kind,
 			Project:   project,
-			Namespace: namespace,
+			Namespace: s.Namespace,
 			Repo:      repo,
 			Component: component,
 			Branch:    branch,
@@ -402,7 +409,7 @@ func (e *Event) String() string {
 }
 
 func newClient(openShiftAPIHost string) (*Client, error) {
-	token, err := getToken()
+	token, err := getFileContent(tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token: %s", err)
 	}
@@ -464,8 +471,8 @@ func getSecureClient() (*http.Client, error) {
 	return &http.Client{Transport: transport, Timeout: 10 * time.Second}, nil
 }
 
-func getToken() (string, error) {
-	content, err := ioutil.ReadFile(tokenFile)
+func getFileContent(filename string) (string, error) {
+	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
