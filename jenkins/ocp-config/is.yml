@@ -29,3 +29,14 @@ objects:
     dockerImageRepository: jenkins-slave-base
     lookupPolicy:
       local: false
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    metadata:
+    name: jenkins-webhook-proxy
+    labels:
+      app: jenkins
+  spec:
+    dockerImageRepository: jenkins-webhook-proxy
+    lookupPolicy:
+      local: false
