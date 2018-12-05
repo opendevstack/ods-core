@@ -69,8 +69,40 @@ objects:
             value: ${APP_DNS}        
       type: Docker
     triggers: []
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: jenkins-webhook-proxy
+    labels:
+      app: jenkins
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'jenkins-webhook-proxy:latest'
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: jenkins/webhook-proxy
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy: {}
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    triggers: []
 parameters:
 - name: REPO_BASE
+  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
   required: true
 - name: JENKINS_SLAVE_BASE_IMAGE
+  description: configuration which slave dockerfile to use, either .centos7 or .rhel7
 - name: APP_DNS
+  description: OpenShift application base dns - used for grabbing the root ca and adding into the slave
