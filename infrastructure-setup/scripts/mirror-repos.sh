@@ -16,7 +16,7 @@ fi
 cd $BASE_DIR
 
 git clone --bare https://github.com/opendevstack/ods-configuration-sample.git
-#git clone --bare https://github.com/opendevstack/ods-core.git
+git clone --bare https://github.com/opendevstack/ods-core.git
 git clone --bare https://github.com/opendevstack/ods-jenkins-shared-library.git
 git clone --bare https://github.com/opendevstack/ods-provisioning-app.git
 git clone --bare https://github.com/opendevstack/ods-project-quickstarters.git
