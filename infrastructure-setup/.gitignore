@@ -3,3 +3,4 @@
 .vagrant
 *.retry
 .DS_STORE
+.idea
