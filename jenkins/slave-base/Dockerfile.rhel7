@@ -3,7 +3,8 @@ FROM registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
 MAINTAINER Michael Sauter <michael.sauter@boehringer-ingelheim.com>
 
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
-    OWASP_DEPENDENCY_CHECK_VERSION=3.2.1
+    OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
+    CNES_REPORT_VERSION=2.0.0
 
 # Hack to fix issues with broken repositories
 # See https://access.redhat.com/support/cases/#/case/02108199
@@ -53,9 +54,14 @@ RUN cd /tmp && \
     rm -rf dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip
 ENV PATH=/usr/local/dependency-check-cli/bin:$PATH
 
+# add sq cnes report jar
+RUN cd /tmp && \
+    curl -L -O https://github.com/lequal/sonar-cnes-report/releases/download/${CNES_REPORT_VERSION}/cnesreport.jar && \
+    mkdir /usr/local/cnes && \
+    mv cnesreport.jar /usr/local/cnes/ && \
+    chmod 777 /usr/local/cnes/cnesreport.jar
+
 # set java proxy var
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN chmod 777 /tmp/set_java_proxy.sh
 RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
-
-
