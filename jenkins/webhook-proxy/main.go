@@ -204,23 +204,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			log.Println(requestID, "Skipping unknown event", req.EventKey)
 			return
 		}
-		pipeline := component + "-"
-
-		// Extract ticket ID from branch name if present
-		lowercaseBranch := strings.ToLower(branch)
-		lowercaseProject := strings.ToLower(project)
-		ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)-.*")
-		matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
-		if len(matches) > 0 {
-			pipeline = pipeline + matches[1]
-		} else {
-			// Cut all non-alphanumeric characters
-			safeCharsRegex := regexp.MustCompile("[^-a-zA-Z0-9]+")
-			pipeline = pipeline + safeCharsRegex.ReplaceAllString(
-				strings.Replace(lowercaseBranch, "/", "-", -1),
-				"",
-			)
-		}
+		pipeline := makePipelineName(project, component, branch)
 
 		event := &Event{
 			Kind:      kind,
@@ -492,4 +476,24 @@ func randStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func makePipelineName(project string, component string, branch string) string {
+	pipeline := component + "-"
+	// Extract ticket ID from branch name if present
+	lowercaseBranch := strings.ToLower(branch)
+	lowercaseProject := strings.ToLower(project)
+	ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)-.*")
+	matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
+	if len(matches) > 0 {
+		pipeline = pipeline + matches[1]
+	} else {
+		// Cut all non-alphanumeric characters
+		safeCharsRegex := regexp.MustCompile("[^-a-zA-Z0-9]+")
+		pipeline = pipeline + safeCharsRegex.ReplaceAllString(
+			strings.Replace(lowercaseBranch, "/", "-", -1),
+			"",
+		)
+	}
+	return pipeline
 }
