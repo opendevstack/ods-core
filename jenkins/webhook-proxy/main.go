@@ -206,13 +206,20 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		}
 		pipeline := component + "-"
 
-		// Extract JIRA user story from branch name if present
-		re := regexp.MustCompile(".*-([0-9]+)-.*")
-		matches := re.FindStringSubmatch(branch)
+		// Extract ticket ID from branch name if present
+		lowercaseBranch := strings.ToLower(branch)
+		lowercaseProject := strings.ToLower(project)
+		ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)-.*")
+		matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
 		if len(matches) > 0 {
 			pipeline = pipeline + matches[1]
 		} else {
-			pipeline = pipeline + strings.Replace(strings.ToLower(branch), "/", "-", -1)
+			// Cut all non-alphanumeric characters
+			safeCharsRegex := regexp.MustCompile("[^-a-zA-Z0-9]+")
+			pipeline = pipeline + safeCharsRegex.ReplaceAllString(
+				strings.Replace(lowercaseBranch, "/", "-", -1),
+				"",
+			)
 		}
 
 		event := &Event{
