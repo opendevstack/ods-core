@@ -17,6 +17,12 @@ func TestMakePipelineName(t *testing.T) {
 			"bugfix/PRJ-529-bar-6-baz",
 			"comp-529",
 		},
+		{ // also allow a bare ticket id.
+			"PRJ",
+			"comp",
+			"bugfix/PRJ-529",
+			"comp-529",
+		},
 		{
 			// case insensitive comparison of project
 			"pRJ",
@@ -26,17 +32,17 @@ func TestMakePipelineName(t *testing.T) {
 		},
 		{
 			// case insensitive comparison of component
-			// case of component maintained in pipeline
+			// component appears in lowercase in pipeline
 			"PRJ",
 			"ComP",
 			"bugfix/PRJ-529-bar-6-baz",
-			"ComP-529",
+			"comp-529",
 		},
 		{
 			// missing - project in request
 			"",
 			"comp",
-			"bugfix/PRJ529-bar-6-baz",
+			"bugfix/PRJ-529-bar-6-baz",
 			"comp-6",
 		},
 		{
@@ -46,14 +52,14 @@ func TestMakePipelineName(t *testing.T) {
 			"comp-bugfix-",
 		},
 		{
-			// todo: is this desired acceptable
+			// assert current behavior, but could be changed in the future.
 			"PRJ",
 			"comp",
 			"bugfix/PRJ-529-PRJ-777-bar-6-baz",
 			"comp-777",
 		},
 		{
-			// todo: is this desired acceptable
+			// assert current behavior, but could be changed in the future.
 			"PRJ",
 			"comp",
 			"bugfix/PRJ-529/PRJ-777-bar-6-baz",
@@ -62,27 +68,26 @@ func TestMakePipelineName(t *testing.T) {
 		// Cases which leads to pipeline string of
 		// {comp}-{sanitized(branch)}
 		{
-			// project in branch not complete
+			// project is a prefix or project in branch
 			"PR",
 			"comp",
 			"bugfix/PRJ-529-bar-6-baz",
 			"comp-bugfix-prj-529-bar-6-baz",
 		},
 		{
-			// project in branch not complete
+			// project in branch is a prefix of project
 			"PRJL",
 			"comp",
 			"bugfix/PRJ-529-bar-6-baz",
 			"comp-bugfix-prj-529-bar-6-baz",
 		},
 		{
-			// missing - between project and number
+			// missing '-' between project and number
 			"PRJ",
 			"comp",
 			"bugfix/PRJ529-bar-6-baz",
 			"comp-bugfix-prj529-bar-6-baz",
 		},
-		// Some more fundamental error cases
 	}
 
 	for _, tt := range tests {
