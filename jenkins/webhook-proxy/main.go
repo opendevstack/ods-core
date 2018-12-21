@@ -209,7 +209,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		// Extract ticket ID from branch name if present
 		lowercaseBranch := strings.ToLower(branch)
 		lowercaseProject := strings.ToLower(project)
-		ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)-.*")
+		ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)")
 		matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
 		if len(matches) > 0 {
 			pipeline = pipeline + matches[1]
