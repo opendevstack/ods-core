@@ -23,7 +23,7 @@ objects:
     source:
       contextDir: shared-images/openresty-nginx
       git:
-        ref: feature/BIX-511-waf-api-gateway-quickstarter
+        ref: production
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
@@ -55,7 +55,7 @@ objects:
     source:
       contextDir: shared-images/nginx-authproxy-crowd
       git:
-        ref: feature/BIX-511-waf-api-gateway-quickstarter
+        ref: production
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
@@ -70,4 +70,5 @@ objects:
     triggers: []
 parameters:
 - name: REPO_BASE
+  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
   required: true
