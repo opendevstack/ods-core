@@ -60,7 +60,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
 	curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor_linux_amd64 && \
 	mv tailor_linux_amd64 /usr/local/bin/tailor && \
-	chmod a+x tailor && \
+	chmod a+x /usr/local/bin/tailor && \
 	tailor version
 
 # set java proxy var
