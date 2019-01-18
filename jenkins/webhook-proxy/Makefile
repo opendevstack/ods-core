@@ -1,3 +1,8 @@
+test: test-unit
+
+test-unit:
+	@(go test -cover)
+
 fmt:
 	@(gofmt -w .)
 
