@@ -1,3 +1,41 @@
 = Infrastructure Setup
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+The infrastructure setup part contains the scripts to setup OpenDevstack.
+It uses https://www.ansible.com[Ansible] for installing the Atlassian tools and the provisioning app (including https://www.rundeck.com/open-source[Rundeck].
+Setting up an https://docs.ansible.com/ansible/latest/network/getting_started/basic_concepts.html#id2[Ansible control host] is beyond the scope of this document.
+
+Each individual component is set-up using a seperate playbook. So you can decide which playbooks to run, depending on your current environment.
+
+== The different playbooks
+
+We have different playbooks depending on the environment in which you install the Atlassian tools and Rundeck.
+The playbooks depend on roles. The roles provide variables for customization. The different variables can be looked up under each role at `default/main.yml`.
+
+.General Playbooks
+postgresql.yml::
+Sets up a (local) PostgreSQL for use with Atlassian tools.
+schemas.yml::
+Sets up the required schemas for Atlassian tools
+crowd.yml::
+Sets up Atlassian Crowd as an Identity and SSO provider
+bitbucket.yml::
+Sets up Atlassian Bitbucket
+jira.yml::
+Sets up Atlassian Jira 
+jira_enable_sso.yml::
+After basic setup of Crowd and Jira setup, enable SSO functionality.
+confluence.yml::
+Sets up Atlassian Confluence
+confluence_enable_sso.yml::
+After basic setup of Crowd and Confluence setup, enable SSO functionality.
+
+Beside the basic playbooks, it might be required to run additional playbooks if you setup the Atlassian tools on AWS.
+
+.Special Plabyooks
+
+crowd_post_setup.yml::
+Takes care that login to crowd is possible by inserting the AWS LB IP addresses into the database tables.
+
+
+
+
