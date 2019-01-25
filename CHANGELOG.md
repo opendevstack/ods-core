@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Wrong ticket number extracted if branch contains multiple numbers ([#71](https://github.com/opendevstack/ods-core/pull/71))
+
 
 ## [1.0.0] - 2018-12-03
 
