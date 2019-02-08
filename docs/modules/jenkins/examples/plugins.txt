@@ -1,1 +1,6 @@
-../../../../jenkins/master/plugins.txt
+token-macro:2.3
+greenballs:1.15
+credentials-binding:1.12
+email-ext:2.63
+sonar:2.6.1
+ansicolor:0.5.2
