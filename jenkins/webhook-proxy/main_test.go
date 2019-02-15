@@ -103,5 +103,56 @@ func TestMakePipelineName(t *testing.T) {
 			)
 		}
 	}
+}
 
+func TestIsProtectedBranch(t *testing.T) {
+	tests := []struct {
+		protectedBranchs []string
+		branch           string
+		expected         bool
+	}{
+		{
+			[]string{"master"},
+			"develop",
+			false,
+		},
+		{
+			[]string{"master", "develop"},
+			"develop",
+			true,
+		},
+		{
+			[]string{"*"},
+			"develop",
+			true,
+		},
+		{
+			[]string{"master", "release/"},
+			"release/v1",
+			true,
+		},
+		{
+			[]string{"master", "release/"},
+			"release",
+			false,
+		},
+		{
+			[]string{"hotfix/"},
+			"feature/v2",
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		actual := isProtectedBranch(tt.protectedBranchs, tt.branch)
+		if tt.expected != actual {
+			t.Errorf(
+				"Expected '%v' but '%v' returned by isProtectedBranch(protectedBranchs='%s', branch='%s')",
+				tt.expected,
+				actual,
+				tt.protectedBranchs,
+				tt.branch,
+			)
+		}
+	}
 }
