@@ -230,15 +230,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 		} else if event.Kind == "delete" {
-			for _, b := range s.ProtectedBranches {
-				if b == event.Branch {
-					log.Println(
-						requestID,
-						b,
-						"is protected - its pipeline cannot be deleted",
-					)
-					return
-				}
+			protected := isProtectedBranch(s.ProtectedBranches, event.Branch)
+			if protected {
+				log.Println(
+					requestID,
+					event.Branch,
+					"is protected - its pipeline will not be deleted",
+				)
+				return
 			}
 			err := server.Client.DeletePipeline(event)
 			if err != nil {
@@ -323,7 +322,7 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 // OpenShift.
 func (c *Client) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s",
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Background",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
@@ -496,4 +495,19 @@ func makePipelineName(project string, component string, branch string) string {
 		)
 	}
 	return pipeline
+}
+
+func isProtectedBranch(protectedBranches []string, branch string) bool {
+	for _, b := range protectedBranches {
+		if b == "*" {
+			return true
+		}
+		if strings.HasSuffix(b, "/") && strings.HasPrefix(branch, b) {
+			return true
+		}
+		if b == branch {
+			return true
+		}
+	}
+	return false
 }
