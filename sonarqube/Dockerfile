@@ -21,7 +21,7 @@ RUN set -x \
     # uid                  sonarsource_deployer (Sonarsource Deployer) <infra@sonarsource.com>
     # sub   2048R/06855C1D 2015-05-25
     # && if [[ $HTTP_PROXY != "" ]]; then gpg --keyserver ha.pool.sks-keyservers.net --keyserver-options "timeout=10 http-proxy=$http_proxy" --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE; else gpg --keyserver ha.pool.sks-keyservers.net --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE; fi \
-    && mkdir /opt \
+    && mkdir -p /opt \
     && cd /opt \
     && wget -O sonarqube.zip --no-verbose https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-$SONAR_VERSION.zip \
     # && wget -O sonarqube.zip.asc --no-verbose https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-$SONAR_VERSION.zip.asc \
