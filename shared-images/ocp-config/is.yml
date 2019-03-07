@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Template
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: shared-services
+      component: openresty-nginx
+      template: bc-docker
+    name: openresty-nginx
+  spec:
+    dockerImageRepository: openresty-nginx
+    lookupPolicy:
+      local: false
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: shared-services
+      component: nginx-authproxy
+      template: bc-docker
+    name: nginx-authproxy
+  spec:
+    dockerImageRepository: authproxy
+    lookupPolicy:
+      local: false
