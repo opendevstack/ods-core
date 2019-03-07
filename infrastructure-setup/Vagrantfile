@@ -15,7 +15,7 @@ Vagrant.configure(2) do |config|
   # VirtualBox Configuration
 
   machines = {
-               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.3', :mem => '8192', :cpu => 2 }
+               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.5', :mem => '8192', :cpu => 2 }
              }
 
   # Atlassian and rundeck Host
@@ -41,7 +41,7 @@ Vagrant.configure(2) do |config|
 
   # Ansible controller
   config.vm.define "atlcon", primary:true, autostart: true do |vm_config|
-    vm_config.vm.box = "bento/centos-7.3"
+    vm_config.vm.box = "bento/centos-7.5"
     vm_config.vm.box_check_update = false
     vm_config.vm.hostname = "atlcon"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
