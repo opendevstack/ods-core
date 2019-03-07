@@ -204,16 +204,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			log.Println(requestID, "Skipping unknown event", req.EventKey)
 			return
 		}
-		pipeline := component + "-"
-
-		// Extract JIRA user story from branch name if present
-		re := regexp.MustCompile(".*-([0-9]+)-.*")
-		matches := re.FindStringSubmatch(branch)
-		if len(matches) > 0 {
-			pipeline = pipeline + matches[1]
-		} else {
-			pipeline = pipeline + strings.Replace(strings.ToLower(branch), "/", "-", -1)
-		}
+		pipeline := makePipelineName(project, component, branch)
 
 		event := &Event{
 			Kind:      kind,
@@ -239,15 +230,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 		} else if event.Kind == "delete" {
-			for _, b := range s.ProtectedBranches {
-				if b == event.Branch {
-					log.Println(
-						requestID,
-						b,
-						"is protected - its pipeline cannot be deleted",
-					)
-					return
-				}
+			protected := isProtectedBranch(s.ProtectedBranches, event.Branch)
+			if protected {
+				log.Println(
+					requestID,
+					event.Branch,
+					"is protected - its pipeline will not be deleted",
+				)
+				return
 			}
 			err := server.Client.DeletePipeline(event)
 			if err != nil {
@@ -332,7 +322,7 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 // OpenShift.
 func (c *Client) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s",
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Background",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
@@ -485,4 +475,39 @@ func randStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func makePipelineName(project string, component string, branch string) string {
+	pipeline := strings.ToLower(component) + "-"
+	// Extract ticket ID from branch name if present
+	lowercaseBranch := strings.ToLower(branch)
+	lowercaseProject := strings.ToLower(project)
+	ticketRegex := regexp.MustCompile(".*" + lowercaseProject + "-([0-9]+)")
+	matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
+	if len(matches) > 0 {
+		pipeline = pipeline + matches[1]
+	} else {
+		// Cut all non-alphanumeric characters
+		safeCharsRegex := regexp.MustCompile("[^-a-zA-Z0-9]+")
+		pipeline = pipeline + safeCharsRegex.ReplaceAllString(
+			strings.Replace(lowercaseBranch, "/", "-", -1),
+			"",
+		)
+	}
+	return pipeline
+}
+
+func isProtectedBranch(protectedBranches []string, branch string) bool {
+	for _, b := range protectedBranches {
+		if b == "*" {
+			return true
+		}
+		if strings.HasSuffix(b, "/") && strings.HasPrefix(branch, b) {
+			return true
+		}
+		if b == branch {
+			return true
+		}
+	}
+	return false
 }
