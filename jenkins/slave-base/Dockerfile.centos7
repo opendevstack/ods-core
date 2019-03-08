@@ -6,6 +6,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141\
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1
 
 ARG APP_DNS=192.168.99.100.nip.io
+ARG OC_VERSION=3.11.43
 
 RUN yum -y install openssl 
 RUN yum -y install gnutls-utils
@@ -21,6 +22,13 @@ RUN cd /tmp && \
     mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/local/sonar-scanner-cli && \
     rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip
 ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
+
+# Overwrite oc client
+RUN cd /tmp && \
+	curl -O https://mirror.openshift.com/pub/openshift-v3/clients/${OC_VERSION}/linux/oc.tar.gz && \
+	tar -xvf oc.tar.gz && \
+	mv oc /usr/bin/ && \
+	chmod +x /usr/bin/oc
 
 # Install Sonar Scanner
 RUN cd /tmp && \

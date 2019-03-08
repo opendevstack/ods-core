@@ -12,6 +12,7 @@ RUN yum-config-manager --enable rhel-7-server-rpms && \
     yum makecache
     
 ARG APP_DNS=192.168.99.100.nip.io
+ARG OC_VERSION=3.11.43
 
 RUN yum -y install openssl 
 RUN yum -y install gnutls-utils
@@ -19,6 +20,13 @@ RUN yum -y install gnutls-utils
 # fetch certificates and store them in tmp directory
 RUN echo ${APP_DNS}
 RUN gnutls-cli --insecure --print-cert ${APP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
+
+# Overwrite oc client
+RUN cd /tmp && \
+	curl -O https://mirror.openshift.com/pub/openshift-v3/clients/${OC_VERSION}/linux/oc.tar.gz && \
+	tar -xvf oc.tar.gz && \
+	mv oc /usr/bin/ && \
+	chmod +x /usr/bin/oc
 
 # Install Sonar Scanner
 RUN cd /tmp && \
