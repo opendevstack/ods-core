@@ -5,4 +5,4 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt &
     rm -r /opt/openshift/configuration/jobs/OpenShift* && \
     touch /var/lib/jenkins/configured
 COPY configuration/ /opt/openshift/configuration/
-ENV JAVA_OPTS="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
+ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"

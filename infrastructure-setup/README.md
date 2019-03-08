@@ -1,4 +1,4 @@
-# OpenDevStack Infrastructure Repository
+# OpenDevStack Infrastructure
 
 ## Ansible Provisioning
 The provision via ansible has to be done at the ansible controller. 

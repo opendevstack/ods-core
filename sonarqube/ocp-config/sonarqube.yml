@@ -27,6 +27,7 @@ objects:
       contextDir: sonarqube
       git:
         uri: ${REPO_BASE}/opendevstack/ods-core.git
+        ref: production 
       sourceSecret:
         name: cd-user-token
       type: Git
@@ -238,8 +239,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    annotations:
-      description: Keeps track of changes in the application image
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -252,7 +251,7 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -264,13 +263,12 @@ objects:
     resources:
       requests:
         storage: 2Gi
-    storageClassName: gp2
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -281,12 +279,12 @@ objects:
     resources:
       requests:
         storage: 2Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: gp2
-      volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: sonarqube
@@ -297,6 +295,7 @@ objects:
     resources:
       requests:
         storage: 1Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: Route
   metadata:
@@ -401,38 +400,60 @@ objects:
 parameters:
 - displayName: OC project
   name: OC_PROJECT
+  description: Name of the ocp project to deploy to. This is normally the "cd" project
   required: true
+# this must be base64 encoded.
 - displayName: Admin Password
   name: ADMIN_PASSWORD
+  description: The base64 encoded admin password
   required: true
 - displayName: Admin Username
   name: ADMIN_USERNAME
+  description: the sonarqube admin username
   required: true
 - displayName: Auth Token
   name: AUTH_TOKEN
   required: true
 - displayName: Crowd Application
   name: CROWD_APPLICATION
+  description: application name as setup in crowd for authn/z
   required: true
 - displayName: Crowd Password
   name: CROWD_PASSWORD
+  description: base64 encoded application password as setup in crowd for authn/z
   required: true
 - displayName: Crowd URL
   name: CROWD_URL
+  description: url under which crowd is reachable from sonaruqbe
   required: true
+# e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
   name: DATABASE_JDBC_URL
+  description: database jdbc url
   required: true
 - displayName: Database Name
   name: DATABASE_NAME
+  description: database name, e.g. sonarqube
   required: true
 - displayName: Database Password
   name: DATABASE_PASSWORD
+  description: base64 encoded database user password
   required: true
 - displayName: Database User
   name: DATABASE_USER
+  description: the database user to connect ot the database
   required: true
 - name: SONARQUBE_HOST
+  description: Host without protocol exposed by the sonarqube route
   required: true
 - name: REPO_BASE
   required: true
+  description: Repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+- name: STORAGE_CLASS_DATA
+  # for AWS the default is gp2
+  description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_PROVISIONER
+  description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_CLASS_BACKUP
+  # for AWS the default would be gp2-encrypted
+  description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
