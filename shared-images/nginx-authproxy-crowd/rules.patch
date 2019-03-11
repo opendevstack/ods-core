@@ -1,9 +1,0 @@
-6c6
-< debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
----
-> debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS) $(shell pkg-config --libs libcurl)
-105c105,106
-< 			--add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module
----
-> 			--add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
-> 			--add-module=$(MODULESDIR)/ngx_http_auth_crowd_module
