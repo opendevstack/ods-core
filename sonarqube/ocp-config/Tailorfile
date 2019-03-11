@@ -2,4 +2,4 @@ namespace cd
 selector  app=sonarqube
 param-dir ../../../ods-configuration/ods-core/sonarqube/ocp-config
 
-bc,dc,is,pvc,route,svc,secret,configmap
+bc,dc,is,pvc,route,svc,secret

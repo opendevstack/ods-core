@@ -27,5 +27,4 @@ objects:
     wildcardPolicy: None
 parameters:
 - name: NEXUS_HOST
-  description: Nexus host without protocol - which is attached based on the configuration in the route.yml
   required: true

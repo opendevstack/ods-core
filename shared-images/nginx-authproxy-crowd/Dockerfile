@@ -52,8 +52,8 @@ RUN sed -i -e 's/# deb-src/deb-src/' /etc/apt/sources.list && \
     mv ngx_http_auth_crowd_module-master/ ngx_http_auth_crowd_module && \
     cat ${BUILD_DIR}/rules.patch | patch -p0 ${BUILD_DIR}/nginx-1.10.3/debian/rules && \
     cd ${BUILD_DIR}/nginx-1.10.3 && dpkg-buildpackage -b && \
-    dpkg -i ${BUILD_DIR}/nginx-common_1.10.3-0ubuntu0.16.04.3_all.deb && \
-    dpkg -i ${BUILD_DIR}/nginx-full_1.10.3-0ubuntu0.16.04.3_amd64.deb && \
+    dpkg -i ${BUILD_DIR}/nginx-common_1.10.3-0ubuntu0.16.04.2_all.deb && \
+    dpkg -i ${BUILD_DIR}/nginx-full_1.10.3-0ubuntu0.16.04.2_amd64.deb && \
     rm -rf ${BUILD_DIR}
 
 RUN apt-get install -y curl
