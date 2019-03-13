@@ -14,7 +14,6 @@ RUN yum-config-manager --enable rhel-7-server-rpms && \
     yum makecache
     
 ARG APP_DNS=192.168.99.100.nip.io
-ARG OC_VERSION=3.11.43
 
 RUN yum -y install openssl 
 RUN yum -y install gnutls-utils
@@ -38,13 +37,6 @@ RUN cat /tmp/oc_app.crt
 RUN $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit && \
     echo "yes" | $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword && \
     echo "yes"
-
-# Overwrite oc client
-RUN cd /tmp && \
-	curl -O https://mirror.openshift.com/pub/openshift-v3/clients/${OC_VERSION}/linux/oc.tar.gz && \
-	tar -xvf oc.tar.gz && \
-	mv oc /usr/bin/ && \
-	chmod +x /usr/bin/oc
 	
 # Install Sonar Scanner
 RUN cd /tmp && \
