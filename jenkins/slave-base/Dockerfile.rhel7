@@ -37,7 +37,6 @@ RUN cat /tmp/oc_app.crt
 RUN $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit && \
     echo "yes" | $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword && \
     echo "yes"
-	
 # Install Sonar Scanner
 RUN cd /tmp && \
     curl -O http://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
