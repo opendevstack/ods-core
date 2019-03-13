@@ -66,7 +66,10 @@ objects:
         dockerfilePath: ${JENKINS_SLAVE_BASE_IMAGE}
         env:
           - name: APP_DNS
-            value: ${APP_DNS}        
+            value: ${APP_DNS}
+        from:
+          kind: DockerImage
+          name: ${JENKINS_SLAVE_BASE_FROM_IMAGE}
       type: Docker
     triggers: []
 - apiVersion: v1
@@ -104,5 +107,7 @@ parameters:
   required: true
 - name: JENKINS_SLAVE_BASE_IMAGE
   description: configuration which slave dockerfile to use, either .centos7 or .rhel7
+- name: JENKINS_SLAVE_BASE_FROM_IMAGE
+  description: configuration which slave base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the slave
