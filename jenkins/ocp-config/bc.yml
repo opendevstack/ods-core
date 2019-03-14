@@ -9,7 +9,6 @@ objects:
     name: jenkins-master
     labels:
       app: jenkins
-    creationTimestamp: null
   spec:
     nodeSelector: null
     postCommit: {}
@@ -43,7 +42,6 @@ objects:
     name: jenkins-slave-base
     labels:
       app: jenkins
-    creationTimestamp: null
   spec:
     nodeSelector: null
     output:
