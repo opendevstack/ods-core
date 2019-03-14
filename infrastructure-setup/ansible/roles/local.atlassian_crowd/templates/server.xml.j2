@@ -15,6 +15,7 @@
                    useBodyEncodingForURI="true"
                    URIEncoding="UTF-8"
                    compression="on"
+                   sendReasonPhrase="true"
                    compressableMimeType="text/html,text/xml,application/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript"
                    {% if atlassian_crowd_proxy_name %}proxyName="{{atlassian_crowd_proxy_name}}"
                    proxyPort="443"
@@ -38,8 +39,6 @@
     -->
     <!--APR library loader. Documentation at /docs/apr.html -->
     <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
-    <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
-    <Listener className="org.apache.catalina.core.JasperListener" />
     <!-- Prevent memory leaks due to use of particular java/javax APIs-->
     <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
     <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />

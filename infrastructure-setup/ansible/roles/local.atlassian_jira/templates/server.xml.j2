@@ -52,6 +52,9 @@
 
         <Connector port="8080"
 
+                   relaxedPathChars="[]|"
+                   relaxedQueryChars="[]|{}^&#x5c;&#x60;&quot;&lt;&gt;"
+
                    maxThreads="150"
                    minSpareThreads="25"
                    connectionTimeout="20000"
