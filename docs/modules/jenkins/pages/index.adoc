@@ -1,0 +1,103 @@
+= Jenkins
+
+OpenDevStack provides several customized Jenkins Docker Images based on the official OpenShift images.
+The idea is, that you do not need to configure anything on Jenkings before you can start using it.
+
+In `ods-core/jenkins`, you find the following directory structure:
+
+.Table Directories
+
+|===
+|Directory | Description
+
+|master
+|Dockerfile for Jenkins Master
+
+|ocp-config
+|OpenShift templates and Tailorfile
+
+|slave-base
+|Dockerfile and customization for Jenkins Slave Images
+
+|webhook-proxy
+|Dockerfile and source code for Bitbucket webhook proxy
+
+|===
+
+
+== Jenkins Master
+
+The following customizations are applied to enable more automatic deployment of Jenkins.
+
+=== Configured Plugins
+
+We have included some base plugins
+,===
+include::{examplesdir}/plugins.txt[]
+,===
+
+=== Init groovy scripts
+
+Jira offers to deploy https://wiki.jenkins.io/display/JENKINS/Post-initialization+script[ post-initialization ] scripts.
+
+.Table Post-Initialization Scripts
+|===
+|Script | Description
+
+|url.groovy | Sets the Jenkins Location based on the OpenShift route
+|sonarqube.groovy | Sets the sonarserver url and auth token based on the configured secrets and config maps
+
+|===
+
+The following environment variables must be available to Jenkins:
+
+SONAR_SERVER_URL::
+specifies the location of the sonarqube server.
+SONAR_AUTH_TOKEN::
+this is the sonarqube auth token that is generated when deploying and configuring sonarqube
+
+=== Mail Sending
+
+We enable (in Dockerfile) the sending of mails to unknown users and users without read rights.
+
+== Jenkins Slave
+
+We have a base image for different jenkins slaves.
+The concrete slave images are then configured as part of the quickstarters.
+The base image contains the following customizations
+
+* Sonarqube Scanner
+* Sonarqube CNES Report Plugin
+* OWASP Dependency Checker
+* Tailor
+* Setting of Enterprise Proxy
+
+When the docker image is built, it fetchtes automatically the OpenShift root CA certificate and stores it, so that the `oc`-cli tool
+can pick it up later and also adds the base domain wildcard certificate to the Java certificate store.
+
+The setting of the enterprise proxy takes care that Jenkins slave works also on OpenShift clusters in enterprises that use a web proxy.
+
+== Webhook Proxy
+
+Provides one endpoint accepting webhooks from BitBucket and forwards them to the
+corresponding Jenkins pipeline (which is determined based on the branch name).
+If there is no corresponding pipeline yet, it will be created on the fly. Once a
+branch is deleted or a pull request declined/merged, the corresponding Jenkins
+pipeline is deleted as well.
+
+=== Usage
+
+Go to "Repository Settings > Webhooks" and click on "Create webhook". Enter
+`Jenkins` as Title and the route URL (see following [Setup](#setup) section) as
+URL. Under "Repository events", select `Push`. Under "Pull request events",
+select `Merged` and `Declined`. Save your changes and you're done! Any other
+webhooks already setup to trigger Jenkins are not needed anymore and should be
+deactivated or deleted.
+
+=== Setup
+
+Run `tailor update` in `ocp-config`. This will create `BuildConfig` and
+`ImageStream` in the central `cd` namespace. Next, you will have to create a
+`DeploymentConfig`, `Service` and `Route` in the namespace your Jenkins instance
+runs.
+
