@@ -20,7 +20,11 @@ echo "Step 2/X: Get Configuration Sample Repository from GitHub"
 #clone configuration sample repository
 cd ${OPENDEVSTACK_BASE_DIR}
 if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-configuration-sample" ] ; then
-  git clone https://github.com/opendevstack/ods-configuration-sample.git
+  #git clone https://github.com/opendevstack/ods-configuration-sample.git
+  git clone https://github.com/tjaeschke/ods-configuration-sample.git
+  cd ods-configuration-sample
+  git fetch origin
+  git checkout -b infrastructure-refactoring origin/infrastructure-refactoring
 else
   echo "Update configuration sample"
   cd $OPENDEVSTACK_BASE_DIR/ods-configuration-sample
@@ -28,9 +32,10 @@ else
 fi
 
 echo "Step 3/X: Copy configuration"
-cd ${OPENDEVSTACK_BASE_DIR}
-cp -rf ./ods-configuration-sample/. ./ods-configuration
-find ods-configuration -name '*.sample' -type f | while read NAME ; do cp -f "${NAME}" "${NAME%.sample}" ; done
+cd ${cwd}/scripts
+./configuration-sample.sh
+#cp -rf ./ods-configuration-sample/. ./ods-configuration
+#find ods-configuration -name '*.sample' -type f | while read NAME ; do cp -f "${NAME}" "${NAME%.sample}" ; done
 
 echo "Step 4/X: Init local Git repository for configuration"
 cd ${OPENDEVSTACK_BASE_DIR}
@@ -44,7 +49,8 @@ git commit -m "Initial configuration commit"
 echo "Step 2/3: Setup and start VMs from Vagrant"
 
 #start vagrant
-//vagrant up
+cd ${cwd}
+vagrant up
 
 cd ${cwd}
 

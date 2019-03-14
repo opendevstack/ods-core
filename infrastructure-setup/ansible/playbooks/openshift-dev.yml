@@ -1,0 +1,54 @@
+- hosts: openshift
+  roles:
+  - role: andrewrothstein.openshift-origin-client-tools
+    oc_ver: v3.11.0
+  tasks:
+  - name: "install docker"
+    yum:
+      name: docker-1.13.1
+    become: True
+  - import_tasks: add_json.yml
+    vars:
+      additional_json:
+        insecure-registries : 
+          - "172.30.0.0/16"
+      target_path: /etc/docker/daemon.json 
+    become: True
+    notify: restart docker service
+  - name: "enable docker service"
+    service:
+      name: docker
+      enabled: True
+      state: started
+    become: True
+
+  - name: "remove any exited containers"
+    shell: docker ps --quiet --all --filter 'status=exited' | xargs docker rm
+    become: True
+
+  - name: "starting oc cluster"
+    command: /usr/local/bin/oc cluster up --base-dir=/home/vagrant/.oc/profiles/odsdev --public-hostname='192.168.56.101.nip.io'
+    async: 600
+    poll: 0
+    become: True
+
+  - debug:
+      msg: "{{ item }}"
+    with_items:
+    - "starting the openshift environment can take up to 10 min... please check url directly"
+    - "the console url would be https://192.168.56.101.nip.io:8443/console"
+
+  handlers:
+  - name: restart docker service
+    service:
+      name: docker
+      state: restarted
+    become: True
+  vars:
+    openshift_client_url: https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+
+
+
+ 
+    
+

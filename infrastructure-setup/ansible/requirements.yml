@@ -1,0 +1,6 @@
+---
+- src: andrewrothstein.openshift-origin-client-tools
+  version: v1.0.9
+# modified -> modified neel.rundeck
+#- src: neel.rundeck
+#  version: 17.03.16
