@@ -8,9 +8,7 @@ All the contained components except Atlassian tools are built in the `CD` namesp
 ## Contents
 1. [Jenkins master](jenkins/master) & base slave - the basis of the ODS build engine <br>
 The [base slave](jenkins/slave-base) provides plugins for OWASP, Sonarqube, and CNES and is HTTP proxy aware.
-Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder slaves`. These `slaves` are based on this `base slave` and are hosted in the [ods-project-quickstarter repository](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves) - next to their respective [boilerplates](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates). 
-
-Instances of those images are within project specific `project-cd` namespaces.
+Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder slaves`. These `slaves` are based on this `base slave` and are hosted in the [ods-project-quickstarter repository](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves) - next to their respective [boilerplates](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates). <br><br>Instances/Deployments of those images are within project specific `project-cd` namespaces.
 
 1. [Nexus](nexus) - repository manager <br>
 Nexus is used as artifact manager throughout OpenDevStacl. Each [`jenkins slave`](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves) is configured to bind to the installed NEXUS to centralize build / dependency artifact resolution. There is one central instance of Nexus in the `CD` project
