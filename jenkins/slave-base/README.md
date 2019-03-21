@@ -10,3 +10,4 @@ The base jenkins slave used by all ODS [builder slaves](https://github.com/opend
 [jenkins shared library](https://github.com/opendevstack/ods-jenkins-shared-library)'s stage `stageScanForSonarQube` 
 1. [OWASP scan plugin](https://dl.bintray.com/jeremy-long/owasp/)
 1. Creates proxy awareness when `HTTP_PROXY` is injected during build pahse
+1. [Tailor](https://github.com/opendevstack/tailor) - on top of òpenshift CLI` to provide infrastrucure as code
