@@ -6,13 +6,13 @@ If there is no corresponding pipeline yet, it will be created on the fly. Once a
 branch is deleted or a pull request declined/merged, the corresponding Jenkins
 pipeline is deleted as well.
 
-Jenkins pipelines, within a project are created when provisioning quickstarters,
+Jenkinsfiles, within a project are created when provisioning quickstarters,
 thru the [provision app](https://github.com/opendevstack/ods-provisioning-app).
 The [quickstarter boilerplates](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates) 
 contain the appropriate skeletons.
 
 One instance of the webhook proxy runs in every `project`-cd namespace next to 
-the jenkins instance for this `project`
+the jenkins instance for this `project`.
 
 ## Usage
 
