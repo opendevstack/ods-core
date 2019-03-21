@@ -14,7 +14,7 @@ Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-proj
 Nexus is used as artifact manager throughout OpenDevStacl. Each [`jenkins slave`](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves) is configured to bind to the installed NEXUS to centralize build / dependency artifact resolution. There is one central instance of Nexus in the `CD` project
 
 1. [Sonarqube](sonarqube) - Sofware quality management <br>
-The OpenDevStack version of Sonarqube - preconfigured with language plugins used by the [`boilerplates`](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates). All generated `jenkinsfiles` contain a stage `https://github.com/opendevstack/ods-jenkins-shared-library/blob/master/vars/stageScanForSonarQube.txt` for sourcecode review - which connects to this central instance. There is one central instance of Nexus in the `CD` project
+The OpenDevStack version of Sonarqube - preconfigured with language plugins used by the [`boilerplates`](https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates). All generated `jenkinsfiles` contain a stage `stageScanForSonarQube` for sourcecode review - which connects to this central instance. There is one central instance of SQ in the `CD` project
 
 1. [Shared images](shared-images) - Docker Images for common functionality <br>
    1. The [authentication proxy for crowd](shared-images/nginx-authproxy-crowd) - used by the RShiny and Jupyther quickstarters, which themselves don't provide direct authentication integration.
