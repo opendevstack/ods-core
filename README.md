@@ -3,7 +3,7 @@
 ## Introduction
 OpenDevStack (ODS) Core houses the all the central infrastructure components.
 
-All the contained components except Atlassian tools are built in the `CD` namespace.
+All the contained components except Atlassian tools are built in the Openshift central `CD` namespace.
 
 ## Contents
 1. [Jenkins master](jenkins/master) & base slave - the basis of the ODS build engine <br>
