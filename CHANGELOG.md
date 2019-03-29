@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- SonarQube image build failed due to erronous `mkdir` call ([#81](https://github.com/opendevstack/ods-core/issues/81))
+- nginx-authproxy-crowd image build failed due to outdated Nginx dependency ([#84](https://github.com/opendevstack/ods-core/issues/84))
 
 ## [1.0.1] - 2019-01-25
 
