@@ -25,6 +25,7 @@
   - name: "remove any exited containers"
     shell: docker ps --quiet --all --filter 'status=exited' | xargs docker rm
     become: True
+    ignore_errors: true
 
   - name: "starting oc cluster"
     command: /usr/local/bin/oc cluster up --base-dir=/home/vagrant/.oc/profiles/odsdev --public-hostname='192.168.56.101.nip.io'
