@@ -22,7 +22,7 @@ git clone --bare https://github.com/opendevstack/ods-provisioning-app.git
 git clone --bare https://github.com/opendevstack/ods-project-quickstarters.git
 
 cd ods-configuration-sample.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-configuration-sample.git; cd -
-cd ods-core.git; git pull origin; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-core.git; cd -
+cd ods-core.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-core.git; cd -
 cd ods-jenkins-shared-library.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-jenkins-shared-library.git; cd -
 cd ods-project-quickstarters.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-project-quickstarters.git; cd -
 cd ods-provisioning-app.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-provisioning-app.git; cd -
