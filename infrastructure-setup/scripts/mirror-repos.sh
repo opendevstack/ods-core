@@ -38,13 +38,13 @@ rm -rf ods-jenkins-shared-library.git
 echo "prepare ods-provisioning-app"
 git clone --bare https://github.com/opendevstack/ods-provisioning-app.git
 cd ods-provisioning-app.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-provisioning-app.git; cd -
-cd ods-project-quickstarters.git; git branch production; git push downstream; cd -
+cd ods-provisioning-app.git; git branch production; git push downstream; cd -
 rm -rf ods-provisioning-app.git
 
 echo "prepare ods-project-quickstarters"
 git clone --bare https://github.com/opendevstack/ods-project-quickstarters.git
 cd ods-project-quickstarters.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-project-quickstarters.git; cd -
-cd ods-provisioning-app.git; git branch production; git push downstream; cd -
+cd ods-project-quickstarters.git; git branch production; git push downstream; cd -
 rm -rf ods-project-quickstarters.git
 
 cd ${cwd}
