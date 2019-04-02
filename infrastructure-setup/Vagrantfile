@@ -28,6 +28,9 @@ Vagrant.configure(2) do |config|
      machine_config.vm.box = machine_details[:box]
      machine_config.vm.network :private_network, ip: machine_ip
      machine_config.vm.hostname = machine_name.to_s
+
+     machine_config.vm.synced_folder "../../..", "/ods"
+
      machine_config.vm.provider :virtualbox do |vb|
        reserved_mem = machine_details[:mem] || default_mem
        reserved_cpu = machine_details[:cpu] || default_cpu
