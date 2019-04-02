@@ -51,8 +51,8 @@
     - start jira
 
 
-- include: configure-eazybi.yml
-  static: no
+#- include: configure-eazybi.yml
+#  static: no
 # TODO: so far no silent configuration found. can probably be removed
 # add properties for jira automated setup: see
 #- name: add jira configuration properties for automated setup
