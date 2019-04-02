@@ -3,6 +3,16 @@
   - role: andrewrothstein.openshift-origin-client-tools
     oc_ver: v3.11.0
   tasks:
+  - name: download confluence installer
+    get_url:
+      url: "https://github.com/opendevstack/tailor/releases/download/v0.9.3/tailor_linux_amd64"
+      dest: "/usr/local/bin/tailor"
+      owner: root
+      group: root
+      mode: 0755
+      validate_certs: no
+      force: no
+    become: True
   - name: "install docker"
     yum:
       name: docker-1.13.1
