@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2019-04-02
+
 ### Fixed
 
 - SonarQube image build failed due to erronous `mkdir` call ([#81](https://github.com/opendevstack/ods-core/issues/81))
