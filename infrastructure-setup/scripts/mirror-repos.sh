@@ -15,6 +15,8 @@ fi
 
 cd $BASE_DIR
 
+git config http.postBuffer 524288000
+
 echo -e "Clone repositories"
 echo -e "\nPrepare ods-configuration-sample"
 git clone --bare https://github.com/opendevstack/ods-configuration-sample.git
