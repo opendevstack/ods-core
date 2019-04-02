@@ -20,18 +20,18 @@ git clone --bare https://github.com/opendevstack/ods-core.git
 git clone --bare https://github.com/opendevstack/ods-jenkins-shared-library.git
 git clone --bare https://github.com/opendevstack/ods-provisioning-app.git
 git clone --bare https://github.com/opendevstack/ods-project-quickstarters.git
-#!/bin/sh
+
 cd ods-configuration-sample.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-configuration-sample.git; cd -
 cd ods-core.git; git pull origin; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-core.git; cd -
 cd ods-jenkins-shared-library.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-jenkins-shared-library.git; cd -
 cd ods-project-quickstarters.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-project-quickstarters.git; cd -
 cd ods-provisioning-app.git; git remote add --mirror=push downstream ${TARGET_REPO_BASE}/opendevstack/ods-provisioning-app.git; cd -
-#!/bin/sh
-cd ods-configuration-sample.git; git branch -d production; git push downstream; cd -
-cd ods-core.git; git branch -d production; git push downstream; cd -
-cd ods-jenkins-shared-library.git; git branch -d production; git branch production; git push downstream; cd -
-cd ods-project-quickstarters.git; git branch -d production; git branch production; git push downstream; cd -
-cd ods-provisioning-app.git; git branch -d production; git branch production; git push downstream; cd -
+
+cd ods-configuration-sample.git; git branch production; git push downstream; cd -
+cd ods-core.git; git branch production; git push downstream; cd -
+cd ods-jenkins-shared-library.git; git branch production; git push downstream; cd -
+cd ods-project-quickstarters.git; git branch production; git push downstream; cd -
+cd ods-provisioning-app.git; git branch production; git push downstream; cd -
 
 rm -rf ods-configuration-sample.git
 rm -rf ods-core.git
