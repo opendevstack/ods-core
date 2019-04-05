@@ -2,7 +2,7 @@
 - name: download jira installer
   get_url:
     url: "https://downloads.atlassian.com/software/jira/downloads/{{ atlassian_jira_installer_package }}"
-    dest: "/tmp"
+    dest: "/tmp/{{ atlassian_jira_installer_package }}"
     owner: root
     group: root
     mode: 0754
