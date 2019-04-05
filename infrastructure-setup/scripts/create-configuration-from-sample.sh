@@ -15,9 +15,10 @@ echo ${ODS_CONFIG_DIR}
 if [[ ! -d "${ODS_CONFIG_DIR}" ]] ; then
   echo "creating ods configuration directory"
   mkdir ${ODS_CONFIG_DIR}
- fi
- if [ "$(ls -A ${ODS_CONFIG_DIR})" ]; then
- echo "ODS-configuration already initialised"
+fi
+
+if [ "$(ls -A ${ODS_CONFIG_DIR})" ]; then
+  echo "ODS-configuration already initialised"
 else 
   echo "Initialising ods-configuration directory."	
   cd ${ODS_SAMPLE_DIR}

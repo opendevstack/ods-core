@@ -10,7 +10,7 @@ cd ../..
 OPENDEVSTACK_BASE_DIR=${PWD}
 
 #write base dir to local config file
-echo "OPENDEVSTACK_BASE_DIR=${PWD}" > ${cwd}/local.config
+echo "OPENDEVSTACK_BASE_DIR=${PWD}" > ${OPENDEVSTACK_BASE_DIR}/local.config
 
 echo "Step 1/X: Ensure ods-core is up to date"
 cd ${cwd}/..
@@ -31,11 +31,9 @@ else
   git pull origin
 fi
 
-echo "Step 3/X: Copy configuration"
+echo "Step 3/X: Create configuration"
 cd ${cwd}/scripts
 ./configuration-sample.sh
-#cp -rf ./ods-configuration-sample/. ./ods-configuration
-#find ods-configuration -name '*.sample' -type f | while read NAME ; do cp -f "${NAME}" "${NAME%.sample}" ; done
 
 echo "Step 4/X: Init local Git repository for configuration"
 cd ${OPENDEVSTACK_BASE_DIR}

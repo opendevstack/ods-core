@@ -3,27 +3,17 @@
   tasks:
   - name: "install additional packages"
     package:
-      name: "{{ item }}"
-    with_items:
-    - vim
-    - tig
-    - python2-pip
-    - tmux
+      name: ['vim','python2-pip','tmux']
     become: True
 
   - name: "install python libraries for postgres"
     pip:
-      name: "{{ item }}"
-    with_items:
-    - psycopg2
+      name: ['psycopg2']
     become: True
 
   - name: "install python libraries for aws"
     pip:
-      name: "{{ item }}"
-    with_items:
-    - boto
-    - awscli
+      name: ['boto', 'awscli']
     become: True
     when: environment_enable_aws == true
 

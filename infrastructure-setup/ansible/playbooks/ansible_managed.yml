@@ -3,16 +3,11 @@
   tasks:
   - name: install additional packages
     package:
-      name: "{{ item }}"
-    with_items:
-      - vim
-      - python2-pip
-      - tmux
-      - htop
+      name: ['vim','python2-pip','tmux','htop']
     become: true
   - name: "install python libraries for aws"
     pip:
-      name: "{{ item }}"
+      name: ['boto', 'awscli']
     with_items:
       - awscli
     become: true

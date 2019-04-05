@@ -7,11 +7,8 @@
     become: True
   - name: "install basic packages"
     yum:
-      name: "{{ item }}"
+      name: ['chrony', 'htop']
       update_cache: True
-    with_items:
-    - chrony
-    - htop
     become: True
   - name: "set timezone to UTC"
     command: timedatectl set-timezone UTC
