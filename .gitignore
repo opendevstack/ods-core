@@ -11,3 +11,4 @@
 .idea
 *.box
 .vault_pass.txt
+/infrastructure-setup/deployment_token.txt
