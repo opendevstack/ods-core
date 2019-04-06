@@ -15,8 +15,6 @@ if [ ! -d "$BASE_DIR" ] ; then
 	exit 1
 fi
 
-cd $BASE_DIR
-
 echo -e "Mirror repositories"
 echo -e "\nMirror ods-configuration-sample"
 cd ${BASE_DIR}
