@@ -7,6 +7,7 @@
    repository.createMavenHosted('candidates', 'candidates', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
    repository.createMavenHosted('releases', 'releases', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
    repository.createNpmProxy('npmjs', 'https://registry.npmjs.org', 'default', true);
+   repository.createPyPiProxy('pypi-proxy', 'https://pypi.org/', 'default', false);
    repository.createMavenProxy('atlassian_public', 'https://maven.atlassian.com/content/repositories/atlassian-public/','atlassian_public', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
    repository.createMavenProxy('jcenter', 'https://jcenter.bintray.com','default', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
    repository.createMavenProxy('sbt-plugins', 'http://dl.bintray.com/sbt/sbt-plugin-releases/','default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
@@ -14,6 +15,8 @@
    repository.createMavenProxy('typesafe-ivy-releases', 'https://dl.bintray.com/typesafe/ivy-releases','default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
    def ivy_members = ['sbt-plugins', 'sbt-releases', 'typesafe-ivy-releases'];
    repository.createMavenGroup('ivy-releases',ivy_members,'default');
+   def pypi_members = ['pypi-proxy']
+   repository.createPyPiGroup('pypi-all',pypi_members,'default');
    repositoryManager = repository.repositoryManager;
    repository = repositoryManager.get('maven-public');
    config = repository.configuration.copy();
