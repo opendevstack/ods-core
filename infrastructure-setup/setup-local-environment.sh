@@ -10,30 +10,32 @@ cd ../..
 OPENDEVSTACK_BASE_DIR=${PWD}
 
 #write base dir to local config file
+echo "Write base directory for installtion to local config file ${OPENDEVSTACK_BASE_DIR}/local.config"
 echo "OPENDEVSTACK_BASE_DIR=${PWD}" > ${OPENDEVSTACK_BASE_DIR}/local.config
 
 echo "Step 1/X: Ensure ods-core is up to date"
 cd ${cwd}/..
 git pull
 
-echo "Step 2/X: Get Configuration Sample Repository from GitHub"
-#clone configuration sample repository
+echo "Step 2/X: Create production branch and work from there"
 cd ${OPENDEVSTACK_BASE_DIR}
-if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-configuration-sample" ] ; then
-  #git clone https://github.com/opendevstack/ods-configuration-sample.git
-  git clone https://github.com/tjaeschke/ods-configuration-sample.git
-  cd ods-configuration-sample
-  git fetch origin
-  git checkout -b infrastructure-refactoring origin/infrastructure-refactoring
-else
-  echo "Update configuration sample"
-  cd $OPENDEVSTACK_BASE_DIR/ods-configuration-sample
-  git pull origin
-fi
+git checkout production
 
-echo "Step 3/X: Create configuration"
+echo "Step 3/X: Clone necessary repositories and create production branch"
 cd ${cwd}/scripts
-./configuration-sample.sh
+./checkout-repositories.sh
+
+echo "Step 4/X: Configure necessary parameters for the openshift cluster environment and templates"
+cd ${cwd}/scripts
+./configure-oc-template-variables.sh
+
+echo "Step 5/X: Create configuration"
+cd ${cwd}/scripts
+./create-configuration-from-sample.sh
+
+echo "Step 6/X: Create configuration"
+cd ${cwd}/scripts
+./create-configuration-from-sample.sh
 
 echo "Step 4/X: Init local Git repository for configuration"
 cd ${OPENDEVSTACK_BASE_DIR}
@@ -41,15 +43,22 @@ cd ods-configuration
 git init
 git add --all
 git commit -m "Initial configuration commit"
-#git remote add origin http://opendevstack.admin@192.168.56.31:7990/scm/odsst/odsst-occonfig-artifacts.git
-#git push -u origin master
 
-echo "Step 2/3: Setup and start VMs from Vagrant"
-
+echo "Step 7/X: Setup and start VMs from Vagrant"
 #start vagrant
 cd ${cwd}
 vagrant up
 
+echo "Step 8/X: Base Installation with ansible"
+#start vagrant
+cd ${cwd}
+vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -i inventories/dev dev.yml"
+
 cd ${cwd}
 
-echo $PATH
+echo "Before procedding with the installation in script ${cwd}/prepare-local-environment.sh , you will have to configure the atlassian tools and setup the CD user"
+echo "First you will have to configure Atlassian Crowd"
+echo "Crowd: http://192.168.56.31:8095/"
+echo "Jira: http://192.168.56.31:8080/"
+echo "Confluence: http://192.168.56.31:8090/"
+echo "Bitbucket: http://192.168.56.31:7990/"

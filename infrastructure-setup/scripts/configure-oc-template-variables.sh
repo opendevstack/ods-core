@@ -3,6 +3,9 @@
 ODS_DIR="../../.."
 ODS_SAMPLE_DIR=`realpath ${ODS_DIR}`
 
+#ansible vault
+
+
 #Openshift ClusterIp
 clusterIp="192.168.56.101"
 bitbucketHost="http://cd_user@192.168.56.31:7990/scm"
@@ -35,6 +38,9 @@ provision_mail_pw="mail"
 
 echo -e "Basic configuration script for installation with vagrant, ansible and tailor\n"
 echo -e "The default values reflect the changes, that have to be made to in the OKD templates before importing them with tailor\n"
+
+echo -e "\nConfigure initial vault password (opendevstack) for installation and copy to ansible directory in .vault_pass.txt\n"
+echo -e "opendevstack" > ../ansible/.vault_pass.txt
 
 echo -e "\nOKD IP configuration\n"
 read -e -p "Enter your OpenShift Cluster IP and press [ENTER] (default: $clusterIp): " inputvagrant halt

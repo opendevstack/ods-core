@@ -8,3 +8,6 @@
 /Processing
 /=
 /Running
+.idea
+*.box
+.vault_pass.txt
