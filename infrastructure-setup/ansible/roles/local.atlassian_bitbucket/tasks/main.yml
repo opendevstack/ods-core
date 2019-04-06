@@ -2,7 +2,7 @@
 - name: download bitbucket installer
   get_url:
     url: "https://downloads.atlassian.com/software/stash/downloads/{{atlassian_bitbucket_installer_package}}"
-    dest: "/tmp"
+    dest: "/tmp/{{atlassian_bitbucket_installer_package}}"
     owner: root
     group: root
     mode: 0754
