@@ -1,0 +1,8 @@
+{
+  "name":"createUser",
+  "content":"import groovy.json.JsonSlurper;
+  def user = new JsonSlurper().parseText(args);
+  security.addUser(user.id, user.firstName, user.lastName, user.email, true, user.password, user.roleIds);",
+  "type":"groovy"
+}
+

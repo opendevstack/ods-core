@@ -2,20 +2,15 @@
 # Debian based OS
 - name: Debian | Install supporting packages
   apt:
-    name: "{{ item }}"
+    name: ['python-pip', 'python-setuptools']
     state: present
   become: yes
-  with_items:
-    - python-pip
-    - python-setuptools
 
 - name: Debian | Install supporting python packages
   pip:
-    name: "{{ item }}"
+    name: ['httplib2']
     state: present
   become: yes
-  with_items:
-    - httplib2
 
 - name: Debian | Add Bintray GPG key for rundeck repo
   apt_key:
