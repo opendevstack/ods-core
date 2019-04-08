@@ -19,9 +19,9 @@ curl -u admin:admin123 --insecure -k -X DELETE "https://nexus-cd.192.168.56.101.
 sleep .5s
 echo -e "Setup developer role\n"
 curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script" -d @json/createRole.json
-curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: text/plain' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script/createRole/run" -d @json/developer-role.json
+curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script/createRole/run" -d @json/developer-role.json
 sleep 3s
 echo -e "Setup developer user\n"
 curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script" -d @json/createUser.json
-curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: text/plain' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script/createUser/run" -d @json/developer-user.json
+curl -u admin:admin123 --insecure -k -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script/createUser/run" -d @json/developer-user.json
 sleep .5s
