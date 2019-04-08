@@ -24,7 +24,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-configuration-sample" ] ; then
   git clone https://github.com/opendevstack/ods-configuration-sample.git
   cd ods-configuration-sample
   git fetch origin
-  git checkout production
+  git checkout -b production
 else
   echo "Update configuration sample"
   cd $OPENDEVSTACK_BASE_DIR/ods-configuration-sample
@@ -37,7 +37,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-jenkins-shared-library" ] ; then
   git clone https://github.com/opendevstack/ods-jenkins-shared-library.git
   cd ods-jenkins-shared-library
   git fetch origin
-  git checkout production
+  git checkout -b production
 else
   echo "Update shared library"
   cd $OPENDEVSTACK_BASE_DIR/ods-jenkins-shared-library
@@ -50,7 +50,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-provisioning-app" ] ; then
   git clone https://github.com/opendevstack/ods-provisioning-app.git
   cd ods-provisioning-app
   git fetch origin
-  git checkout production
+  git checkout -b production
 else
   echo "Update shared library"
   cd $OPENDEVSTACK_BASE_DIR/ods-provisioning-app
@@ -63,7 +63,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-project-quickstarters" ] ; then
   git clone https://github.com/opendevstack/ods-project-quickstarters.git
   cd ods-project-quickstarters
   git fetch origin
-  git checkout production
+  git checkout -b production
 else
   echo "Update shared library"
   cd $OPENDEVSTACK_BASE_DIR/ods-project-quickstarters
