@@ -1,5 +1,5 @@
 #!/bin/sh
-# This scripts mirros the core ods repos into your own Bitbucket server.
+# This scripts updates and checks out the core ods repos, used to setup the OpenDevStack.
 # By default, this is the Bitbucket server on your local machine as created by the getting started guide.
 # You can cutomize this by providing an environment variable: "REPO_TARGET_BASE" pointing to your git repo.
 # This includes everything before the project / repo part, this means everything before "/opendevstack/..."

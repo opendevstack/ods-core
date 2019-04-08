@@ -2,8 +2,12 @@
   roles:
   - role: andrewrothstein.openshift-origin-client-tools
     oc_ver: v3.11.0
+  - role: geerlingguy.git
+    become: true
+    git_install_from_source: true
+    git_install_from_source_force_update: true
   tasks:
-  - name: download confluence installer
+  - name: download tailor
     get_url:
       url: "https://github.com/opendevstack/tailor/releases/download/v0.9.3/tailor_linux_amd64"
       dest: "/usr/local/bin/tailor"
@@ -37,11 +41,20 @@
     become: True
     ignore_errors: true
 
-  - name: "starting oc cluster"
-    command: /usr/local/bin/oc cluster up --base-dir=/home/vagrant/.oc/profiles/odsdev --public-hostname='192.168.56.101.nip.io'
-    async: 600
-    poll: 0
+   - name: "Copy service definition"
+    template:
+      src: "openshift.service.j2"
+      dest: "/etc/systemd/system/openshift.service"
     become: True
+
+  - name: "Enable OpenShift service"
+    become: True
+    systemd:
+      name: openshift
+      enabled: yes
+      daemon-reload: yes
+      state: started
+    notify: start openshift
 
   - debug:
       msg: "{{ item }}"

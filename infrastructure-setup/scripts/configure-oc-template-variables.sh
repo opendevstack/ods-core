@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# This scripts initializes the base varibale to use to setup a local development environment.
+#
 #Variables
 ODS_DIR="../../.."
 ODS_SAMPLE_DIR=`realpath ${ODS_DIR}`
