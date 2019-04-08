@@ -2,7 +2,7 @@ controller ansible_host=192.168.56.110 ansible_connection=local
 
 [tag_ansible_managed]
 atlassian ansible_host=192.168.56.31 ansible_private_key_file=/vagrant/.vagrant/machines/atlassian/virtualbox/private_key
-openshift  ansible_host=192.168.56.101 ansible_private_key_file=/vagrant/.vagrant/machines/openshift/virtualbox/private_key
+openshift ansible_host=192.168.56.101 ansible_private_key_file=/vagrant/.vagrant/machines/openshift/virtualbox/private_key
 
 [dev]
 atlassian
@@ -28,4 +28,3 @@ atlassian
 
 [tag_hostgroup_rundeck_dev]
 atlassian
-

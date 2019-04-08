@@ -8,8 +8,6 @@
   - name: "install python libraries for aws"
     pip:
       name: ['boto', 'awscli']
-    with_items:
-      - awscli
     become: true
     when: environment_enable_aws == true
   - name: install bashrc

@@ -4,7 +4,7 @@
 # You can cutomize this by providing an environment variable: "REPO_TARGET_BASE" pointing to your git repo.
 # This includes everything before the project / repo part, this means everything before "/opendevstack/..."
 #
-source ../../local.config
+source ../../../local.config
 
 BASE_DIR=${OPENDEVSTACK_DIR:-"/tmp"}
 TARGET_REPO_BASE=${REPO_TARGET_BASE:-"http://192.168.56.31:7990/scm/"}

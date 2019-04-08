@@ -18,7 +18,7 @@ cd ${cwd}/..
 git pull
 
 echo "Step 2/X: Create production branch and work from there"
-cd ${OPENDEVSTACK_BASE_DIR}
+cd ${cwd}/..
 git checkout production
 
 echo "Step 3/X: Clone necessary repositories and create production branch"
@@ -33,26 +33,25 @@ echo "Step 5/X: Create configuration"
 cd ${cwd}/scripts
 ./create-configuration-from-sample.sh
 
-echo "Step 6/X: Create configuration"
+echo "Step 6/X: Replace ENV variables with preconfigured values"
 cd ${cwd}/scripts
-./create-configuration-from-sample.sh
+./replace-oc-template-values.sh
 
-echo "Step 4/X: Init local Git repository for configuration"
+echo "Step 7/X: Init local Git repository for configuration"
 cd ${OPENDEVSTACK_BASE_DIR}
 cd ods-configuration
 git init
 git add --all
 git commit -m "Initial configuration commit"
 
-echo "Step 7/X: Setup and start VMs from Vagrant"
+echo "Step 8/X: Setup and start VMs from Vagrant"
 #start vagrant
 cd ${cwd}
 vagrant up
 
-echo "Step 8/X: Base Installation with ansible"
-#start vagrant
+echo "Step 9/X: Base Installation with ansible"
 cd ${cwd}
-vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -i inventories/dev dev.yml"
+vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev dev.yml"
 
 cd ${cwd}
 

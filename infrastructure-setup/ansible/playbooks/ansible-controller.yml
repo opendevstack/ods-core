@@ -3,12 +3,18 @@
   tasks:
   - name: "install additional packages"
     package:
-      name: ['vim','python2-pip','tmux']
+      name: ['vim','python2-pip','tmux', 'git']
     become: True
+
+#  - name: "upgrade pip"
+#    pip:
+#      name: pip
+#      extra_args: --upgrade
+#    become: True
 
   - name: "install python libraries for postgres"
     pip:
-      name: ['psycopg2']
+      name: psycopg2-binary
     become: True
 
   - name: "install python libraries for aws"
