@@ -81,7 +81,7 @@
       become_user: postgres
       register: root_login_user_result
       ignore_errors: True
-      failed_when: "'already exists' not in root_login_user_result.stderr and root_login_user_result|failed"
+      failed_when: "'already exists' not in root_login_user_result.stderr and root_login_user_result is failed"
 
   handlers:
     - name: start postgresql
