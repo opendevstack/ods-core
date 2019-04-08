@@ -63,7 +63,7 @@
 
     - name: install required pip packages to manage postgresql_db
       pip:
-        name: psycopg2
+        name: psycopg2-binary
 
     - name: create atlassian database
       postgresql_db:
