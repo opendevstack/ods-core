@@ -1,19 +1,13 @@
 ---
 - name: Ensure old versions of Docker are not installed.
   package:
-    name: '{{ item }}'
+    name: ['docker', 'docker-engine']
     state: absent
-  with_items:
-    - docker
-    - docker-engine
 
 - name: Ensure depdencies are installed.
   apt:
-    name: "{{ item }}"
+    name: ['apt-transport-https', 'ca-certificates']
     state: present
-  with_items:
-    - apt-transport-https
-    - ca-certificates
 
 - name: Add Docker apt key.
   apt_key:
