@@ -17,6 +17,15 @@
       validate_certs: no
       force: no
     become: True
+
+  - name: set export Path
+    copy:
+      dest: /etc/profile.d/oc.sh
+      content: |
+        export PATH=$PATH:/usr/local/bin/
+      mode: 0755
+    become: True
+
   - name: "install docker"
     yum:
       name: docker-1.13.1
@@ -41,7 +50,7 @@
     become: True
     ignore_errors: true
 
-   - name: "Copy service definition"
+  - name: "Copy service definition"
     template:
       src: "openshift.service.j2"
       dest: "/etc/systemd/system/openshift.service"
