@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
-cwd = ${pwd}
+export PATH=$PATH:/usr/local/bin/
+BASE_DIR=${OPENDEVSTACK_BASE_DIR:-"/ods"}
+cwd=${pwd}
 
-if [ $HOSTNAME -ne "openshift" ] ; then
+if [ "$HOSTNAME" != "openshift" ] ; then
 	echo "This script has to be executed on the openshift VM"
 	exit 1
 fi
 
-sudo -i
-
-oc login -u system:admin
-oc project cd
+/usr/local/bin/oc login -u system:admin
+/usr/local/bin/oc project cd

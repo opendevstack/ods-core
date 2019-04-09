@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 # This script is meant to be usd on the openshift VM
+export PATH=$PATH:/usr/local/bin/
 
 BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
 CLUSTER_DIR=/opt/oc/profiles/odsdev
-cwd = ${pwd}
+cwd=${pwd}
 
-if [ $HOSTNAME -ne "openshift" ] ; then
+if [ "$HOSTNAME" != "openshift" ] ; then
 	echo "This script has to be executed on the openshift VM"
 	exit 1
 fi
-
-sudo -i
 
 oc login -u system:admin
 
@@ -24,7 +23,8 @@ oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:se
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/sa-deployment-token.txt\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/sa-deployment-token.txt
 
-${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/upload-templates.sh
+cd ${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/
+./upload-templates.sh
 
 #create secrets for cd_user
 oc process -n cd templates/secrets -p PROJECT=cd | oc create -n cd -f-
@@ -46,5 +46,5 @@ oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=r
 oc rollout latest dc/router
 
 echo "Expose registry route"
-oc create route passthrough --service=docker-registry --hostname=docker-registry-default.192.168.99.100.nip.io -n default
+oc create route passthrough --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default
 
