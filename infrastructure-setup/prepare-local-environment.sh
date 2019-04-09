@@ -24,17 +24,17 @@ vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepar
 sleep 5s
 
 echo "Step X/X: Add OpenShift certificate to atlassian VM"
-#vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/import-certificate-to-atlassian-jvm.sh"
+vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/import-certificate-to-atlassian-jvm.sh"
 
 echo "Step X/X: Prepare Nexus"
-#vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-nexus.sh"
+vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-nexus.sh"
 
 echo "Step X/X: Prepare Sonarqube"
-#vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-sonarqube.sh"
+vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-sonarqube.sh"
 
 echo "Step X/X: Prepare Jenkins Builds"
-#vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-jenkins-builds.sh"
+vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-jenkins-builds.sh"
 
 echo "Step X/X: Prepare Provisioning App"
-#vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
+vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
 

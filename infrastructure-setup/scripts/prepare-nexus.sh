@@ -13,14 +13,27 @@ fi
 oc login -u system:admin
 oc project cd
 
-oc /ods/ods-workshop/ods-core/nexus/ocp-config
-yes 'y' | tailor update --force
+cd /ods/ods-core/nexus/ocp-config
+yes 'y' | tailor update -v --force
 
 cd ${cwd}
 
-#curl -s -o /dev/null -w "%{http_code}" https://nexus-cd.192.168.56.101.nip.io/
+STATUS_CODE="000"
+
+echo "Waiting for Nexus to get available"
+while [ "$STATUS_CODE" != "200" ]
+do
+  echo -n "."
+  STATUS_CODE=$(curl --insecure -s -o /dev/null -w %{http_code} https://nexus-cd.192.168.56.101.nip.io/)
+done
+
+echo "Create Nexus resources"
+cd /ods/ods-core/infrastructure-setup/scripts/
+./create-nexus-resources.sh
 
 cd ${BASE_DIR}
+
+
 
 
 

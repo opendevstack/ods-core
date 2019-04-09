@@ -9,5 +9,5 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 	exit 1
 fi
 
-/usr/local/bin/oc login -u system:admin
-/usr/local/bin/oc project cd
+oc login -u system:admin
+oc project cd

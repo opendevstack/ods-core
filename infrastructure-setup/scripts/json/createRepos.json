@@ -15,7 +15,7 @@
    repository.createMavenProxy('typesafe-ivy-releases', 'https://dl.bintray.com/typesafe/ivy-releases','default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
    def ivy_members = ['sbt-plugins', 'sbt-releases', 'typesafe-ivy-releases'];
    repository.createMavenGroup('ivy-releases',ivy_members,'default');
-   def pypi_members = ['pypi-proxy']
+   def pypi_members = ['pypi-proxy'];
    repository.createPyPiGroup('pypi-all',pypi_members,'default');
    repositoryManager = repository.repositoryManager;
    repository = repositoryManager.get('maven-public');
