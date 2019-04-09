@@ -26,6 +26,21 @@
       mode: 0755
     become: True
 
+  - name: set file logging for cluster up
+    copy:
+      dest: /etc/rsyslog.d/oc.conf
+      content: |
+        if $programname == 'occlusterup' then /var/log/oc/oc.log
+        & stop
+      mode: 0755
+    become: True
+
+  - name: restart rsyslog service
+    service:
+      name: rsyslog
+      state: restarted
+    become: True
+
   - name: "install docker"
     yum:
       name: docker-1.13.1
@@ -56,6 +71,10 @@
       dest: "/etc/systemd/system/openshift.service"
     become: True
 
+  - name: "first time starting oc cluster, writing config"
+    command: /usr/local/bin/oc cluster up --base-dir=/opt/oc/profiles/odsdev --public-hostname=192.168.56.101.nip.io --enable=[-sample-templates] --server-loglevel=1 --write-config=true
+    become: True
+
   - name: "Enable OpenShift service"
     become: True
     systemd:
@@ -63,7 +82,7 @@
       enabled: yes
       daemon-reload: yes
       state: started
-    notify: start openshift
+    ignore_errors: True
 
   - debug:
       msg: "{{ item }}"

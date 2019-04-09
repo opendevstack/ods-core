@@ -26,11 +26,15 @@ sleep 5s
 echo "Step X/X: Add OpenShift certificate to atlassian VM"
 vagrant ssh atlassian -c "/ods/ods-core/infrastructure-setup/scripts/import-certificate-to-atlassian-jvm.sh"
 
-echo "Step X/X: Prepare OpenDevStack Template project"
-
 echo "Step X/X: Prepare Nexus"
+vagrant ssh atlassian -c "/ods/ods-core/infrastructure-setup/scripts/prepare-nexus.sh"
 
 echo "Step X/X: Prepare Sonarqube"
+vagrant ssh atlassian -c "/ods/ods-core/infrastructure-setup/scripts/prepare-sonarqube.sh"
 
-echo "Step X/X: Prepare Jenkins"
+echo "Step X/X: Prepare Jenkins Builds"
+vagrant ssh atlassian -c "/ods/ods-core/infrastructure-setup/scripts/prepare-jenkins-builds.sh"
+
+echo "Step X/X: Prepare Provisioning App"
+vagrant ssh atlassian -c "/ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
 

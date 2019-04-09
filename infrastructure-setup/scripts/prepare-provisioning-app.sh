@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+JENKINS_ROLE=admin
+PROJECT=prov
+
+BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
+cwd = ${pwd}
+
+if [ $HOSTNAME -ne "openshift" ] ; then
+	echo "This script has to be executed on the openshift VM"
+	exit 1
+fi
+
+sudo -i
+
+oc login -u system:admin
+
+oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:jenkins -n ${PROJECT}-dev
+oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:jenkins -n ${PROJECT}-test
+oc policy add-role-to-user system:image-puller system:serviceaccount:prov-cd:jenkins -n cd
