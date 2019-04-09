@@ -4,7 +4,7 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-ExecStart=/usr/local/bin/oc cluster up --base-dir=/home/vagrant/.oc/profiles/odsdev --public-hostname='192.168.56.101.nip.io' --loglevel=1 --metrics=true
+ExecStart=/usr/local/bin/oc cluster up --base-dir=/home/vagrant/.oc/profiles/odsdev --public-hostname='192.168.56.101.nip.io' --loglevel=1
 ExecStop=/usr/local/bin/oc cluster down
 Restart=no
 StandardOutput=syslog
