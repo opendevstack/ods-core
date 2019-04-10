@@ -24,7 +24,9 @@ else
   cd ${ODS_SAMPLE_DIR}
   git archive master | tar -x -C ${ODS_CONFIG_DIR}  
   cd ${ODS_CONFIG_DIR}
+  rm -f ./.gitignore
   find . -name "*.sample" -exec bash -c 'cp {} $(dirname {})/$(basename {} .sample)' \;
+
   exit
 fi  
 

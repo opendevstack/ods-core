@@ -45,7 +45,7 @@ echo -e "\nConfigure initial vault password (opendevstack) for installation and 
 echo -e "opendevstack" > ../ansible/.vault_pass.txt
 
 echo -e "\nOKD IP configuration\n"
-read -e -p "Enter your OpenShift Cluster IP and press [ENTER] (default: $clusterIp): " inputvagrant halt
+read -e -p "Enter your OpenShift Cluster IP and press [ENTER] (default: $clusterIp): " input
 clusterIp=${input:-$clusterIp}
 
 echo -e "\nBitbucket repo configuration\n"

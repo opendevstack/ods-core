@@ -23,6 +23,7 @@ STATUS_CODE="000"
 echo "Waiting for Nexus to get available"
 while [ "$STATUS_CODE" != "200" ]
 do
+  sleep 5s
   echo -n "."
   STATUS_CODE=$(curl --insecure -s -o /dev/null -w %{http_code} https://nexus-cd.192.168.56.101.nip.io/)
 done

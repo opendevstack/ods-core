@@ -48,6 +48,7 @@ cd ods-configuration
 git init
 git add --all
 git commit -m "Initial configuration commit"
+git checkout -b production
 
 echo "Step 8/9: Setup and start VMs from Vagrant"
 #start vagrant
