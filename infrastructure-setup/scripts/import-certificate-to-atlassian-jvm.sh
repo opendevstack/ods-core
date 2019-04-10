@@ -7,7 +7,7 @@ cwd=${pwd}
 
 if [ "$HOSTNAME" != "atlassian" ] ; then
 	echo "This script has to be executed on the atlassian VM"
-	exit 1
+	exit
 fi
 
 openssl s_client -connect 192.168.56.101:8443 -showcerts < /dev/null 2>/dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${BASE_DIR}/openshift.crt

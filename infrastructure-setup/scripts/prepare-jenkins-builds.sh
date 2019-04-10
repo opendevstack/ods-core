@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-
 export PATH=$PATH:/usr/local/bin/
+
 BASE_DIR=${OPENDEVSTACK_BASE_DIR:-"/ods"}
 cwd=${pwd}
 
@@ -12,9 +12,9 @@ fi
 oc login -u system:admin
 oc project cd
 
+echo "Update Jenkins Config"
 cd ${BASE_DIR}/ods-core/jenkins/ocp-config
-#yes 'y' |
-tailor update -v --force
+yes 'y' | tailor update -v --force
 
 echo "Start Jenkins Builds"
 oc start-build -n cd jenkins-master --follow

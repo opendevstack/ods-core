@@ -9,7 +9,7 @@ cwd=${pwd}
 
 if [ "$HOSTNAME" != "openshift" ] ; then
 	echo "This script has to be executed on the openshift VM"
-	exit 1
+	exit
 fi
 
 oc login -u system:admin
