@@ -13,6 +13,7 @@ fi
 
 oc login -u system:admin
 
+echo "create projects for Provision Application"
 oc new-project ${PROJECT}-cd --display-name="${PROJECT}-cd"
 oc new-project ${PROJECT}-dev --display-name="${PROJECT}-dev"
 oc new-project ${PROJECT}-test --display-name="${PROJECT}-test"
@@ -30,7 +31,9 @@ cd ${BASE_DIR}/ods-provisioning-app/ocp-config/prov-app
 yes 'y' | tailor update -f Tailorfile.dev --force
 yes 'y' | tailor update -f Tailorfile.test --force
 
+echo "Set higher Timeout for jenkins"
 oc annotate route jenkins --overwrite haproxy.router.openshift.io/timeout=600s -n prov-cd
 
+echo "Start initial application build"
 oc start-build -n prov-cd ods-provisioning-app-production
 
