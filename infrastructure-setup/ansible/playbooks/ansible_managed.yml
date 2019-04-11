@@ -3,7 +3,7 @@
   tasks:
   - name: install additional packages
     package:
-      name: ['vim','python2-pip','tmux','htop']
+      name: ['vim','python2-pip','tmux','htop','jq']
     become: true
   - name: "install python libraries for aws"
     pip:

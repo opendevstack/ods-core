@@ -19,6 +19,11 @@
     "project.ssh-connect-timeout":"0",
     "project.ssh-keypath":"/var/lib/rundeck/.ssh/id_rsa",
     "service.FileCopier.default.provider":"jsch-scp",
-    "service.NodeExecutor.default.provider":"jsch-ssh"
+    "service.NodeExecutor.default.provider":"jsch-ssh",
+    "resources.source.1.type":"file",
+    "resources.source.1.config.file":"/var/rundeck/projects/${project.name}/etc/resources.xml",
+    "resources.source.1.config.format":"resourcexml",
+    "resources.source.1.config.includeServerNode":"true",
+    "resources.source.1.config.generateFileAutomatically":"true"
   }
 }
