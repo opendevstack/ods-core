@@ -1,6 +1,13 @@
 ---
 - src: andrewrothstein.openshift-origin-client-tools
   version: v1.0.9
+- src: geerlingguy.nginx
+  version: 2.6.2
+- src: geerlingguy.docker
+  version: 2.0.4
+- src: geerlingguy.git
+  version: 2.0.4
+
 # modified -> modified neel.rundeck
 #- src: neel.rundeck
 #  version: 17.03.16
