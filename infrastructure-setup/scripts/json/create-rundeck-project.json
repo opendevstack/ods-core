@@ -12,7 +12,6 @@
     "project.disable.executions":"false",
     "project.disable.schedule":"false",
     "project.jobs.gui.groupExpandLevel":"1",
-    "project.name":"test2",
     "project.nodeCache.delay":"30",
     "project.nodeCache.enabled":"true",
     "project.ssh-authentication":"privateKey",
