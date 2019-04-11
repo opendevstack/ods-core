@@ -4,6 +4,9 @@ source ../../local.config
 
 #current workdir
 cwd=${PWD}
+if [ ! -d "$OPENDEVSTACK_BASE_DIR/certs" ] ; then
+  mkdir $OPENDEVSTACK_BASE_DIR
+fi
 
 #Activate single sign on
 echo "Step X/X: Enable Jira SSO"
@@ -37,4 +40,8 @@ vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepar
 
 echo "Step X/X: Prepare Provisioning App"
 vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
+
+echo "Step X/X: Prepare Provisioning App"
+vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-rundeck.sh"
+
 

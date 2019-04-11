@@ -1,0 +1,24 @@
+{
+  "name": "Quickstarters",
+  "config": {
+    "project.globals.bitbucket_host":"http://192.168.56.31:7990",
+    "project.globals.bitbucket_sshhost":"ssh://git@192.168.56.31:7999",
+    "project.globals.openshift_apihost":"https://192.168.56.101:8443",
+    "project.globals.openshift_apihost_lookup":"192.168.56.101:8443",
+    "project.globals.globals.nexus_host":"https://nexus-cd.192.168.99.100.nip.io/",
+    "project.globals.openshift_dockerregistry":"https://docker-registry-default.192.168.99.100.nip.io:443",
+    "project.globals.rundeck_os_user":"rundeck:rundeck",
+    "project.globals.openshift_user":"deployment",
+    "project.disable.executions":"false",
+    "project.disable.schedule":"false",
+    "project.jobs.gui.groupExpandLevel":"1",
+    "project.nodeCache.delay":"30",
+    "project.nodeCache.enabled":"true",
+    "project.ssh-authentication":"privateKey",
+    "project.ssh-command-timeout":"0",
+    "project.ssh-connect-timeout":"0",
+    "project.ssh-keypath":"/var/lib/rundeck/.ssh/id_rsa",
+    "service.FileCopier.default.provider":"jsch-scp",
+    "service.NodeExecutor.default.provider":"jsch-ssh"
+  }
+}
