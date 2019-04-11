@@ -24,6 +24,9 @@ yes 'y' | tailor update bc --force
 
 oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:jenkins -n ${PROJECT}-dev
 oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:jenkins -n ${PROJECT}-test
+oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:default -n ${PROJECT}-dev
+oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT}-cd:default -n ${PROJECT}-test
+
 oc policy add-role-to-user system:image-puller system:serviceaccount:prov-cd:jenkins -n cd
 oc policy add-role-to-user system:image-puller system:serviceaccount:prov-cd:default -n cd
 
