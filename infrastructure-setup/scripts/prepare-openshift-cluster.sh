@@ -48,5 +48,5 @@ REGISTRY_HOSTNAME=`oc get route/docker-registry -o jsonpath='{.spec.host}'`
 
 
 echo "Expose registry route"
-oc create route passthrough --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default
+oc create route edge --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default
 
