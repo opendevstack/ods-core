@@ -30,7 +30,7 @@
     vars:
       additional_json:
         insecure-registries :
-          - "https://nexus-cd.192.168.56.101.nip.io"
+          - "nexus-cd.192.168.56.101.nip.io"
       target_path: /etc/docker/daemon.json
     become: True
     notify: restart docker service
