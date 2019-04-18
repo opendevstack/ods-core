@@ -92,7 +92,7 @@ objects:
             value: ${ELASTICSEARCH_MASTER_COMPONENT}.${NAMESPACE}.svc
           - name: ELASTICSEARCH_CLUSTERNAME
             value: ${CLUSTER_NAME}
-          image: dsi-test/airflow-elasticsearch:latest
+          image: shared-services/elasticsearch:7.0.0
           imagePullPolicy: Always
           name: ${COMPONENT_NAME}
           ports:
@@ -122,8 +122,8 @@ objects:
         - ${COMPONENT_NAME}
         from:
           kind: ImageStreamTag
-          name: airflow-elasticsearch:latest
-          namespace: dsi-test
+          name: elasticsearch:7.0.0
+          namespace: shared-services
       type: ImageChange
     - type: ConfigChange
   status:
