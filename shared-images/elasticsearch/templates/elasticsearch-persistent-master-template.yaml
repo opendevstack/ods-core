@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: elasticsearch-ephemeral-node-template
+  name: elasticsearch-persistent-master-template
 objects:
   - apiVersion: v1
     kind: Secret
