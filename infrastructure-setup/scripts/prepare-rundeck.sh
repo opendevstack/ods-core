@@ -37,7 +37,7 @@ ssh-keyscan -p 7999 -t rsa localhost > ~/.ssh/known_hosts
 ssh-keyscan -p 7999 -t rsa localhost > /var/lib/rundeck/.ssh/known_hosts
 chown rundeck:rundeck /var/lib/rundeck/.ssh/known_hosts
 echo -e "\nGet SCM information"
-$CURL "${RUNDECK_URL}/api/23/project/Quickstarters2/scm/import/config"
+$CURL "${RUNDECK_URL}/api/23/project/Quickstarters/scm/import/config"
 echo -e "\nSetup SCM information"
 $CURL --header 'Content-Type: application/json' "${RUNDECK_URL}/api/23/project/Quickstarters/scm/import/plugin/git-import/setup" -d @json/setup-scm-rundeck.json
 echo -e "\nGet SCM actions"
