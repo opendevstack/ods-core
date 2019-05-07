@@ -2,3 +2,5 @@ rundeck_bitbucket_host_external: 192.168.56.31
 rundeck_bitbucket_host_internal: localhost
 rundeck_bitbucket_port: 7999
 rundeck_cduser_name: cd_user
+rundeck_domain: "192.168.56.31:4440"
+rundeck_crowd_url: http://192.168.56.31:8095/crowd/

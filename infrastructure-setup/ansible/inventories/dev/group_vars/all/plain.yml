@@ -2,10 +2,4 @@ postgresql_host: 192.168.56.31
 postgresql_port: 5432
 postgresql_root_login_user: db_root
 
-atlassian_crowd_proxy_name:
-atlassian_crowd_url: http://192.168.56.31:8095/crowd
-
-rundeck_domain: "192.168.56.31:4440"
-rundeck_crowd_url: http://192.168.56.31:8095/crowd/
-
 environment_enable_aws: false

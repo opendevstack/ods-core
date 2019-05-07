@@ -1,8 +1,9 @@
 # overwrite some default values that are set to AWS environment
 # for local testing
 # see tag_hostgroup_crowd on ec2 inventory for details
-atlassian_crowd_url: http://localhost:8095/crowd
-atlassian_crowd_demo_url: http://localhost:8095/demo
-atlassian_crowd_openidserver_url: http://localhost:8095/openidserver
+atlassian_crowd_proxy_name:
+atlassian_crowd_url: http://192.168.56.31:8095/crowd
+atlassian_crowd_demo_url: http://192.168.56.31:8095/demo
+atlassian_crowd_openidserver_url: http://192.168.56.31:8095/openidserver
 atlassian_crowd_applications: []
 atlassian_crowd_lb_adresses: []
