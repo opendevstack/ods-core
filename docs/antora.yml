@@ -2,7 +2,7 @@ name: ods-core
 title: ODS Core
 version: latest
 start_page: infrastructure-setup:index.adoc
-nav: 
+nav:
 - modules/ROOT/nav.adoc
 - modules/infrastructure-setup/nav.adoc
 - modules/jenkins/nav.adoc
