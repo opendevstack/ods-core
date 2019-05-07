@@ -1,0 +1,21 @@
+- debug:
+    msg: "cname: {{item.cname}}"
+
+- name: creating CSR json
+  template:
+    src: "csr.json.j2"
+    dest: "{{pki_dir}}/{{item.cname}}.csr.json"
+    mode: 0600
+  vars:
+    cname: "{{item.cname}}"
+
+- name: generating server csr.json files
+  shell: >-
+    {{pki_cfssl_bin_directory}}/cfssl gencert
+    -ca {{pki_dir}}/ca.pem
+    -ca-key {{pki_dir}}/ca-key.pem
+    -hostname {{ ([item.cname] + (['localhost', '127.0.0.1'] if item.include_localhost is defined and item.include_localhost else []) + (item.sans|default([])) + (item.altips|default([]))) | join(",") }} {{item.cname}}.csr.json
+    | {{pki_cfssl_bin_directory}}/cfssljson -bare {{item.cname}}
+  args:
+    chdir: "{{pki_dir}}"
+    creates: "{{pki_dir}}/{{item.cname}}.pem"

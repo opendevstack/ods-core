@@ -182,7 +182,7 @@
 
 - name: configure connection pool
   lineinfile:
-    path: "{{ atlassian_crowd_home }}/crowd.cfg.xml"
+    path: "{{ atlassian_crowd_home }}/shared/crowd.cfg.xml"
     regexp: 'hibernate.c3p0.max_size'
     line: '    <property name="hibernate.c3p0.max_size">100</property>'
   become: true

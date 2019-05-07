@@ -1,0 +1,8 @@
+# set atlassian versions
+atlassian_crowd_version: 3.3.0
+atlassian_bitbucket_version: 5.13.0
+atlassian_jira_version: 7.12.3
+atlassian_confluence_version: 6.6.9
+# set rundeck version
+rundeck_version: 2.11.8-1.59.GA
+git_version: 2.19.1

@@ -1,5 +1,5 @@
 ---
-- hosts: tag_ansible_test
+- hosts: tag_ansible_dev
 
   vars_prompt:
     - name: "release_version"

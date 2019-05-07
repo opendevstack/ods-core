@@ -1,0 +1,48 @@
+---
+# defaults file for openshift-origin-client-tools
+oc_mirror: https://github.com/openshift/origin/releases/download
+oc_platform: linux-64bit
+
+oc_ver: v3.11.0
+oc_sha: '0cbc58b'
+
+oc_checksums:
+  v3.6.1:
+    '008f2d5':
+      linux-64bit: sha256:922afb7a5642040ea7a6b780cd68eb1d15533b6376b503351a4c38a452338d11
+      mac: sha256:b7ecd27a0e3821868255898ef0ab47dfe0e5e371da6a58b0cbadd687e8dccca0
+  v3.7.0:
+    '7ed6862':
+      linux-64bit: sha256:573e39965633671aac08d68f57d66ff182fb646649523914f0a60debb6515eba
+      mac: sha256:7b00cf3535e9b5a33c30a143bdb5621fe49f73aee63c77ff4a7f8d0212be4f0a
+  v3.7.1:
+    'ab0f056':
+      linux-64bit: sha256:56e9dbff7e5e4ade1e92cc10ff1bd1ae2789ec400be0d8a5b2177fd6c465af21
+      mac: sha256:e2cdad103485580166e4aef14e111551439c2c18a1ed77376b16808755b363ea
+  v3.7.2:
+    '282e43f':
+      linux-64bit: sha256:abc89f025524eb205e433622e59843b09d2304cc913534c4ed8af627da238624
+      mac: sha256:8ae2f51cdde5c76a33add98c64efc30f11f5c0fbd1dacc5ae5d0f147b96f7d18
+  v3.9.0:
+    '191fece':
+      linux-64bit: sha256:6ed2fb1579b14b4557e4450a807c97cd1b68a6c727cd1e12deedc5512907222e
+      mac: sha256:32bdd9464866c8e93d8cf4a3a7718b0bc9fa0f2881f045b97997fa014b52a40b
+  v3.10.0:
+    'dd10d17':
+      linux-64bit: sha256:0f54235127884309d19b23e8e64e347f783efd6b5a94b49bfc4d0bf472efb5b8
+      mac: sha256:ae847e3ae278b9420342e651305d34f1ed806b55a23874fc47595a57874e30c6
+  v3.11.0:
+    '0cbc58b':
+      linux-64bit: sha256:4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3
+      mac: sha256:75d58500aec1a2cee9473dfa826c81199669dbc0f49806e31a13626b5e4cfcf0
+
+oc_install_parent_dir: /usr/local/bin
+
+oc_privilege_escalation: True
+
+# Timeout in seconds for oc download request
+oc_download_timeout: 10
+
+# Whether the symlink should be forced or not. No for backwards compatibility.
+force_oc_link: no
+force_oc_unarchive: no

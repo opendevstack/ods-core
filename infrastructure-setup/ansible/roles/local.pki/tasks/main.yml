@@ -1,0 +1,71 @@
+---
+# tasks file for local.pki
+- name: Download statically linked cfssl binary
+  become: True
+  get_url:
+    url: https://pkg.cfssl.org/{{pki_cfssl_version}}/cfssl_linux-amd64
+    dest: "{{pki_cfssl_bin_directory}}/cfssl"
+    mode: 0755
+    checksum: "{{pki_cfssl_checksum}}"
+
+- name: Download statically linked cfssljson binary
+  become: True
+  get_url:
+    url: https://pkg.cfssl.org/{{pki_cfssl_version}}/cfssljson_linux-amd64
+    dest: "{{pki_cfssl_bin_directory}}/cfssljson"
+    mode: 0755
+    checksum: "{{pki_cfssljson_checksum}}"
+
+- name: ensure PKI dir exists
+  file:
+    path: "{{pki_dir}}"
+    state: directory
+
+- name: creating CA CSR json
+  with_items:
+    - cacsr.json
+    - client.json
+  template:
+    src: "{{item}}.j2"
+    dest: "{{pki_dir}}/{{item}}"
+    mode: 0600
+
+- name: creating ca csr json
+  template:
+    src: "csr.json.j2"
+    dest: "{{pki_dir}}/csr.json"
+    mode: 0600
+  vars:
+    cname: "test"
+
+- name: create CA CSR
+  when: not pki_self_sign
+  shell: '{{pki_cfssl_root}}/cfssl genkey cacsr.json | {{pki_cfssl_root}}/cfssljson -bare ca'
+  args:
+    chdir: "{{pki_dir}}"
+    creates: "{{pki_dir}}/ca.csr"
+
+- name: create certificate authority key pair and CSR
+  when: pki_self_sign
+  shell: '{{pki_cfssl_bin_directory}}/cfssl genkey -initca cacsr.json | {{pki_cfssl_bin_directory}}/cfssljson -bare ca'
+  args:
+    chdir: '{{pki_dir}}'
+    creates: '{{pki_dir}}/ca.pem'
+
+- name: generating server certs files
+  include: server.yml
+  with_items: "{{pki_servers}}"
+
+- name: generating client csr.json files
+  with_items: "{{pki_clients}}"
+  shell: >-
+    {{pki_cfssl_bin_directory}}/cfssl gencert
+    -ca {{pki_dir}}/ca.pem
+    -ca-key {{pki_dir}}/ca-key.pem
+    -hostname {{ item }}
+    -profile=client
+    client.json
+    | {{pki_cfssl_bin_directory}}/cfssljson -bare {{item}}
+  args:
+    chdir: "{{pki_dir}}"
+    creates: "{{pki_dir}}/{{item}}.pem"

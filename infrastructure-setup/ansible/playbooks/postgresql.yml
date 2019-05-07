@@ -2,7 +2,7 @@
 # Installs for local testing a Postgresql 9.4 DB
 # this is only required, when not running on AWS
 
-- hosts: atlassian-db
+- hosts: "{{ target_hosts | default('tag_hostgroup_atlassian_db') }}"
   become: True
   tasks:
     - name: exclude standard postgresql package
@@ -63,7 +63,7 @@
 
     - name: install required pip packages to manage postgresql_db
       pip:
-        name: psycopg2
+        name: psycopg2-binary
 
     - name: create atlassian database
       postgresql_db:
@@ -81,7 +81,7 @@
       become_user: postgres
       register: root_login_user_result
       ignore_errors: True
-      failed_when: "'already exists' not in root_login_user_result.stderr and root_login_user_result|failed"
+      failed_when: "'already exists' not in root_login_user_result.stderr and root_login_user_result is failed"
 
   handlers:
     - name: start postgresql

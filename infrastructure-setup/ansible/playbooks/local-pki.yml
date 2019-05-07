@@ -1,0 +1,69 @@
+---
+- hosts: controller
+  roles:
+  - role: local.pki
+    pki_servers:
+      - cname: "192.168.56.31.nip.io"
+        include_localhost: True
+        sans:
+          - "*.192.168.56.31.nip.io"
+        altips:
+        - 192.168.56.31
+      - cname: "192.168.56.101.nip.io"
+        include_localhost: True
+        sans:
+          - "*.192.168.56.101.nip.io"
+        altips:
+        - 192.168.56.101
+    pki_ca:
+      cname: ca.opendevstack.local
+      sans: []
+      altips: []
+    pki_names:
+      - C: DE
+        L: 'Essen'
+        O: 'DevOps'
+    pki_clients:
+- hosts: atlassian
+  tags: 
+  - copy certs
+  tasks:
+    - name: name:  
+      import_tasks: "tls-server-cert.yml"
+      vars:
+        cert_bundle:
+          in_certs:
+          - "/home/vagrant/pki/ca.pem"
+          - "/home/vagrant/pki/192.168.56.31.nip.io.pem"
+          out: "/etc/ssl/192.168.56.31.nip.io.pem"
+          owner: root
+          group: root
+          mode: 0644
+        key_map:
+          in: "~/pki/192.168.56.31.nip.io-key.pem"
+          out: "/etc/ssl/private/192.168.56.31.nip.io.key"
+          owner: root
+          group: root
+          mode: 0644
+    
+- hosts: openshift
+  tags: 
+  - copy certs
+  tasks:
+    - name: name:  
+      import_tasks: "tls-server-cert.yml"
+      vars:
+        cert_bundle:
+          in_certs:
+          - "/home/vagrant/pki/ca.pem"
+          - "/home/vagrant/pki/192.168.56.101.nip.io.pem"
+          out: "/etc/ssl/192.168.56.101.nip.io.pem"
+          owner: root
+          group: root
+          mode: 0644
+        key_map:
+          in: "~/pki/192.168.56.101.nip.io-key.pem"
+          out: "/etc/ssl/private/192.168.56.101.nip.io.key"
+          owner: root
+          group: root
+          mode: 0644

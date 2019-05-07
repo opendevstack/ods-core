@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_bitbucket_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_rundeck_dev') }}"
   roles:
     - role: modified.neel.rundeck
       tags:
@@ -9,7 +9,7 @@
       rundeck_database_host: "{{ postgresql_host }}"
       rundeck_crowd_users: opendevstack-users
       rundeck_crowd_admins: opendevstack-administrators
-      rundeck_contextpath: /rundeck
+      rundeck_contextpath: /
       rundeck_crowd_jaas_jars:
         - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/commons-codec-1.2.jar
         - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/commons-httpclient-3.1.jar
@@ -25,3 +25,19 @@
       tags:
         - docker
       become: true
+  tasks:
+  - import_tasks: add_json.yml
+    vars:
+      additional_json:
+        insecure-registries :
+          - "docker-registry-default.192.168.56.101.nip.io"
+      target_path: /etc/docker/daemon.json
+    become: True
+    notify: restart docker service
+
+  handlers:
+  - name: restart docker service
+    service:
+      name: docker
+      state: restarted
+    become: True

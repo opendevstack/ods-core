@@ -2,7 +2,7 @@
 - name: download confluence installer
   get_url:
     url: "https://downloads.atlassian.com/software/confluence/downloads/{{ atlassian_confluence_installer_package }}" 
-    dest: "/tmp"
+    dest: "/tmp/{{ atlassian_confluence_installer_package }}"
     owner: root
     group: root
     mode: 0754

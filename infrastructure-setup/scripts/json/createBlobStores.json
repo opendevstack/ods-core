@@ -1,0 +1,8 @@
+{  
+   "name":"createBlobStores",
+   "content":"import org.sonatype.nexus.blobstore.api.BlobStoreManager;
+   blobStore.createFileBlobStore('candidates','/nexus-data/blobs/candidates'); 
+   blobStore.createFileBlobStore('releases','/nexus-data/blobs/releases'); 
+   blobStore.createFileBlobStore('atlassian_public','/nexus-data/blobs/atlassian_public')",
+   "type":"groovy"
+}

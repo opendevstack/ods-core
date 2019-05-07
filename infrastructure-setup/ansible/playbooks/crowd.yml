@@ -1,8 +1,6 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_crowd_dev') }}"
+  pre_tasks:
+  - include_tasks: common/common-tasks.yml
   roles:
-  - role: srsp.oracle-java
-    become: True
-    java_version: 8
-    java_subversion: 181
   - role: local.atlassian_crowd

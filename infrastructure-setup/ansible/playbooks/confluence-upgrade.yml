@@ -1,10 +1,6 @@
 ---
-- hosts: "{{ target_hosts | default('tag_hostgroup_confluence_test') }}"
+- hosts: "{{ target_hosts | default('tag_hostgroup_confluence_dev') }}"
   roles:
-#  - role: williamyeh.oracle-java
-#    become: True
-#    java_version: 8
-#    java_subversion: 112
   - role: local.atlassian_confluence
     tags: confluence
     atlassian_confluence_upgrade: true

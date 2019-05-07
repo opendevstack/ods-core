@@ -1,4 +1,6 @@
 .project
+.config
 .vagrant
 *.retry
 .DS_STORE
+.idea
