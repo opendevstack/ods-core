@@ -322,7 +322,7 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 // OpenShift.
 func (c *Client) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Background",
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
