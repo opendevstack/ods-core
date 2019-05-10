@@ -68,6 +68,38 @@ objects:
           name: openresty-nginx:1.0
       type: Docker
     triggers: []
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: shared-services
+      component: airflow
+      template: bc-docker
+    name: airflow
+  spec:
+    failedBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow:1.10.3
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: shared-images/airflow
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Dockerfile        
+      type: Docker
+    triggers: []
 parameters:
 - name: REPO_BASE
   description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
