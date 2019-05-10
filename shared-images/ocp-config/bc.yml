@@ -97,7 +97,10 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: Dockerfile        
+        dockerfilePath: Dockerfile  
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/rhscl/python-36-rhel7
       type: Docker
     triggers: []
 parameters:
