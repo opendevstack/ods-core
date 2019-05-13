@@ -7,6 +7,7 @@
 {{ lib.form_css() }}
 {{ super() }}
 <link href="{{ url_for("static", filename="bootstrap-toggle.min.css") }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for("openshift_plugin.static", filename="styles.css") }}" rel="stylesheet" type="text/css">
 
 <script src="{{ url_for("openshift_plugin.static", filename="ng-graph-view.js") }}"></script>
 

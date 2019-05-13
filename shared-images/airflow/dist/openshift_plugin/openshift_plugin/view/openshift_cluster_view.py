@@ -216,10 +216,10 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
             "to": "airflow-scheduler",
             "from": "airflow-elasticsearch"
         }, {
-            "to": "airflow-kibana",
+            "to": "airflow-elasticsearch-kibana",
             "from": "airflow-elasticsearch"
         }, {
-            "from": "airflow-kibana",
+            "from": "airflow-elasticsearch-kibana",
             "to": "airflow-elasticsearch"
         }]
 
@@ -305,17 +305,17 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
         else:
             return None
 
-        image_tag = None
+        image_tag_name = None
         for image_tag in image['spec']['tags']:
-            if image_tag['from']['name'] is image_hash:
-                image_tag = image_tag['name']
+            if image_tag['from']['name'] == image_hash:
+                image_tag_name = image_tag['name']
                 break
 
-        if image_tag:
+        if image_tag_name:
             return "{0}/console/project/{1}/browse/images/{2}/{3}?tab=body".format(
                 host,
                 namespace,
                 image_stream,
-                image_tag)
+                image_tag_name)
         else:
             return None
