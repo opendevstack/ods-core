@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 from airflow import configuration
 from airflow.contrib.kubernetes.kube_client import get_kube_client
@@ -19,7 +20,7 @@ class OpenshiftRequestFactory(SimplePodRequestFactory):
 
     @staticmethod
     def extract_cmds(pod, req):
-        req['spec']['containers'][0]['command'] = ["/entrypoint.sh"]
+        req['spec']['containers'][0]['command'] = ["/entrypoint.sh"] + pod.cmds
 
     @staticmethod
     def extract_labels(pod, req):
