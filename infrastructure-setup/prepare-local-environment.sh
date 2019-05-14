@@ -41,5 +41,5 @@ vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepar
 echo "Step 9/10: Prepare Provisioning App"
 vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
 
-echo "Step 10/10: Prepare Provisioning App"
+echo "Step 10/10: Prepare Rundeck"
 vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-rundeck.sh"
