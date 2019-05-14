@@ -72,7 +72,7 @@
     become: True
 
   - name: "first time starting oc cluster, writing config"
-    command: /usr/local/bin/oc cluster up --base-dir=/opt/oc/profiles/odsdev --public-hostname=192.168.56.101.nip.io --server-loglevel=1 --write-config=true
+    command: /usr/local/bin/oc cluster up --base-dir=/opt/oc/profiles/odsdev --public-hostname=192.168.56.101.nip.io --routing-suffix=192.168.56.101.nip.io --server-loglevel=1 --write-config=true
     become: True
 
   - name: "Enable OpenShift service"
