@@ -1,6 +1,12 @@
 {
   "processors": [
     {
+      "set": {
+        "field": "offset",
+        "value": "{{ log.offset }}"
+      }
+    },
+    {
       "grok": {
         "field": "log.file.path",
         "patterns": [
