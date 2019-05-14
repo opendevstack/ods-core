@@ -43,6 +43,10 @@ echo -e "Set pipeline trigger secret\n"
 find . -iname "cm.env" -exec sed -i "s|PIPELINE_TRIGGER_SECRET=changeme|PIPELINE_TRIGGER_SECRET=$pipeline_trigger_secret|g" {} \;
 find . -iname "bc.env" -exec sed -i "s|PIPELINE_TRIGGER_SECRET=changeme|PIPELINE_TRIGGER_SECRET=$pipeline_trigger_secret|g" {} \;
 
+echo -e "Set docker registry for local development\n"
+find . -iname "*.env" -exec sed -i "s|DOCKER_REGISTRY=docker-registry.default.svc:5000|DOCKER_REGISTRY=$docker_registry_ip|g" {} \;
+
+
 #Provision Application
 echo -e "Set provision application crowd password\n"
 find . -iname "cm.env" -exec sed -i "s|CROWD_PASSWORD=changeme|CROWD_PASSWORD=$provision_crowd_pw|g" {} \;
