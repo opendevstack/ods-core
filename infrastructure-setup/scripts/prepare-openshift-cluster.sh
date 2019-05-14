@@ -21,7 +21,7 @@ oc create sa deployment -n cd
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment
 
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
-oc sa get-token deployment -n cd > ${BASE_DIR}/sa-deployment-token.txt
+oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
 cd ${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/
 ./upload-templates.sh
