@@ -5,7 +5,7 @@ source ../../local.config
 #current workdir
 cwd=${PWD}
 if [ ! -d "$OPENDEVSTACK_BASE_DIR/certs" ] ; then
-  mkdir $OPENDEVSTACK_BASE_DIR
+  mkdir $OPENDEVSTACK_BASE_DIR/certs
 fi
 
 #Activate single sign on
