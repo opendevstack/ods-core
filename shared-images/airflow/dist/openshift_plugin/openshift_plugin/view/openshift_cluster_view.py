@@ -112,7 +112,7 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
                                                                 oc_pod['status']['container_statuses'] else None,
             "image": {
                 "reference": oc_pod['spec']['containers'][0]['image'],
-                "url": self.get_image_url(host, namespace, oc_pod['spec']['containers'][0]['image'])
+                "url": self.get_image_url(host, oc_pod['spec']['containers'][0]['image'])
             },
             "url": "{0}/console/project/{1}/browse/pods/{2}?tab=details".format(
                 host,
@@ -276,7 +276,7 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
 
         return deployment_configs
 
-    def get_image_url(self, host, namespace, image_reference: str):
+    def get_image_url(self, host, image_reference: str):
         if "kibana" in image_reference:
             return "https://www.docker.elastic.co"
 
@@ -286,6 +286,7 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
         kube_client = get_kube_client()
 
         image_hash = image_reference.split("/")[-1]
+        namespace = image_reference.split("/")[-2]
 
         if "@" in image_hash:
             image_stream, image_sha256 = image_hash.split("@")
