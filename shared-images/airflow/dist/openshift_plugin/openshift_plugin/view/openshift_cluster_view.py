@@ -287,29 +287,31 @@ class OpenshiftClusterView(BaseView, SuperUserMixin, LoggingMixin):
 
         image_hash = image_reference.split("/")[-1]
 
-        image_stream, image_sha256 = image_hash.split("@")
+        if "@" in image_hash:
+            image_stream, image_sha256 = image_hash.split("@")
+            headers = {"Authorization": kube_client.api_client.configuration.get_api_key_with_prefix('authorization')}
+            url = "{0}/oapi/v1/namespaces/{1}/imagestreams/{2}".format(kube_client.api_client.configuration.host,
+                                                                       namespace, image_stream)
 
-        headers = {"Authorization": kube_client.api_client.configuration.get_api_key_with_prefix('authorization')}
-        url = "{0}/oapi/v1/namespaces/{1}/imagestreams/{2}".format(kube_client.api_client.configuration.host,
-                                                                   namespace, image_stream)
+            response = requests.get(url,
+                                    headers=headers,
+                                    params={
+                                        "labelSelector": self.AIRFLOW_LABEL
+                                    },
+                                    verify=kube_client.api_client.configuration.ssl_ca_cert)
 
-        response = requests.get(url,
-                                headers=headers,
-                                params={
-                                    "labelSelector": self.AIRFLOW_LABEL
-                                },
-                                verify=kube_client.api_client.configuration.ssl_ca_cert)
+            if response.status_code == 200:
+                image = response.json()
+            else:
+                return None
 
-        if response.status_code == 200:
-            image = response.json()
+            image_tag_name = None
+            for image_tag in image['spec']['tags']:
+                if image_tag['from']['name'] == image_hash:
+                    image_tag_name = image_tag['name']
+                    break
         else:
-            return None
-
-        image_tag_name = None
-        for image_tag in image['spec']['tags']:
-            if image_tag['from']['name'] == image_hash:
-                image_tag_name = image_tag['name']
-                break
+            image_stream, image_tag_name = image_hash.split(":")
 
         if image_tag_name:
             return "{0}/console/project/{1}/browse/images/{2}/{3}?tab=body".format(
