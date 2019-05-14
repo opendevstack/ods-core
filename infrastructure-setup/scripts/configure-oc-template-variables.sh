@@ -104,7 +104,7 @@ echo -e "\nWrite configuration to ${ODS_SAMPLE_DIR}/local.env.config\n"
 #Openshift ClusterIp
 echo "#Configuration variables" > ${ODS_SAMPLE_DIR}/local.env.config
 echo "ODS_DIR=${ODS_SAMPLE_DIR}" >> ${ODS_SAMPLE_DIR}/local.env.config
-
+echo "docker_registry_ip=${docker_registry_ip}" >> ${ODS_SAMPLE_DIR}/local.env.config
 echo "cluster_ip=${clusterIp}" >> ${ODS_SAMPLE_DIR}/local.env.config
 echo "bitbucket_host=${bitbucketHost}" >> ${ODS_SAMPLE_DIR}/local.env.config
 echo "cd_user_name=${cd_user_name}" >> ${ODS_SAMPLE_DIR}/local.env.config
