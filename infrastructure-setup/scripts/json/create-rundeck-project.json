@@ -6,7 +6,7 @@
     "project.globals.openshift_apihost":"https://192.168.56.101:8443",
     "project.globals.openshift_apihost_lookup":"192.168.56.101:8443",
     "project.globals.nexus_host":"https://nexus-cd.192.168.56.101.nip.io/",
-    "project.globals.openshift_dockerregistry":"https://docker-registry-default.192.168.56.101.nip.io:443",
+    "project.globals.openshift_dockerregistry":"docker-registry-default.192.168.56.101.nip.io",
     "project.globals.rundeck_os_user":"rundeck:rundeck",
     "project.globals.openshift_user":"deployment",
     "project.disable.executions":"false",
