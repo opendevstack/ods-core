@@ -41,12 +41,6 @@ oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- 
 oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=router-certs
 oc rollout latest dc/router
 
-echo -e "Create and replace old registry cert"
-oc project default
-REGISTRY_IP=`oc get service docker-registry -o jsonpath='{.spec.clusterIP}'`
-REGISTRY_HOSTNAME=`oc get route/docker-registry -o jsonpath='{.spec.host}'`
-
-
 echo "Expose registry route"
 oc create route edge --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default
 
