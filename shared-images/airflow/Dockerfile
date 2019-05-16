@@ -34,9 +34,9 @@ ARG AIRFLOW_DEPS=""
 ENV AIRFLOW_HOME=$HOME/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE yes
 
-ARG nexus_username
-ARG nexus_password
-ARG nexus_url
+ARG NEXUS_USERNAME
+ARG NEXUS_PASSWORD
+ARG NEXUS_URL
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -76,9 +76,9 @@ RUN buildDeps=' \
         rsync \
         nmap-ncat \
     && localedef -c -f UTF-8 -i en_US en_US.UTF-8 \
-    && if [[ ! -z ${nexus_url} ]]; \
-        then pip install -U -i https://${nexus_username}:${nexus_password}@${nexus_url:8}/repository/pypi-all/simple pip setuptools wheel \
-        && pip install -i https://${nexus_username}:${nexus_password}@${nexus_url:8}/repository/pypi-all/simple $pipDeps; \
+    && if [[ ! -z ${NEXUS_URL} ]]; \
+        then pip install -U -i https://${NEXUS_USERNAME}:${NEXUS_PASSWORD}@${NEXUS_URL:8}/repository/pypi-all/simple pip setuptools wheel \
+        && pip install -i https://${NEXUS_USERNAME}:${NEXUS_PASSWORD}@${NEXUS_URL:8}/repository/pypi-all/simple $pipDeps; \
         else pip install -U pip setuptools wheel \
         && pip install $pipDeps; \
     fi \
