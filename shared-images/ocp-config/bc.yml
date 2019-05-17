@@ -80,7 +80,7 @@ objects:
     failedBuildsHistoryLimit: 5
     successfulBuildsHistoryLimit: 5
     nodeSelector: null
-    output:
+    output:   
       to:
         kind: ImageStreamTag
         name: elasticsearch:7.0.0
