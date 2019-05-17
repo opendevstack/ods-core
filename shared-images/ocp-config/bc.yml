@@ -73,6 +73,38 @@ objects:
   metadata:
     labels:
       app: shared-services
+      component: elasticsearch
+      template: bc-docker
+    name: elasticsearch
+  spec:
+    failedBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: elasticsearch:7.0.0
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: shared-images/elasticsearch
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Dockerfile
+      type: Docker
+    triggers: []
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: shared-services
       component: airflow
       template: bc-docker
     name: airflow
@@ -97,10 +129,7 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: Dockerfile  
-        from:
-          kind: DockerImage
-          name: registry.access.redhat.com/rhscl/python-36-rhel7
+        dockerfilePath: Dockerfile
       type: Docker
     triggers: []
 parameters:
