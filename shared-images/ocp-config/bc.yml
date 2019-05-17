@@ -98,7 +98,7 @@ objects:
     strategy:
       dockerStrategy:
         dockerfilePath: Dockerfile
-      type: Docker
+      type: Docker  
     triggers: []
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
