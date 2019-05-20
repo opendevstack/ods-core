@@ -119,7 +119,7 @@ nexus_password_base64=`echo -n $nexus_password | base64`
 echo "nexus_password_base64=${nexus_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 
 echo "sonar_admin_password=${sonar_admin_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
-sonar_admin_password_base64=`echo -n sonar_admin_password | base64`
+sonar_admin_password_base64=`echo -n $sonar_admin_password | base64`
 echo "sonar_admin_password_base64=${sonar_admin_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 
 echo "sonar_crowd_password=${sonar_crowd_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
@@ -130,14 +130,14 @@ sonarqube_database_password_base64=`echo -n $sonarqube_database_password | base6
 echo "sonarqube_database_password_base64=${sonarqube_database_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 
 echo "crowd_rshiny_realm_user=${crowd_rshiny_realm_user}" >> ${ODS_SAMPLE_DIR}/local.env.config
-crowd_rshiny_realm_user_base64=`echo -n crowd_rshiny_realm_user | base64`
+crowd_rshiny_realm_user_base64=`echo -n $crowd_rshiny_realm_user | base64`
 echo "crowd_rshiny_realm_user_base64=${crowd_rshiny_realm_user_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 echo "crowd_rshiny_realm_pw=${crowd_rshiny_realm_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
-crowd_rshiny_realm_pw_base64=`echo -n crowd_rshiny_realm_pw | base64`
+crowd_rshiny_realm_pw_base64=`echo -n $crowd_rshiny_realm_pw | base64`
 echo "crowd_rshiny_realm_pw_base64=${crowd_rshiny_realm_pw_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 
 echo "pipeline_trigger_secret=${pipeline_trigger_secret}" >> ${ODS_SAMPLE_DIR}/local.env.config
-pipeline_trigger_secret_base64=`echo -n pipeline_trigger_secret | base64`
+pipeline_trigger_secret_base64=`echo -n $pipeline_trigger_secret | base64`
 echo "pipeline_trigger_secret_base64=${pipeline_trigger_secret_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
 
 echo "provision_crowd_pw=${provision_crowd_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
