@@ -38,8 +38,14 @@ vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepar
 echo "Step 8/10: Prepare Jenkins Builds"
 vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-jenkins-builds.sh"
 
-echo "Step 9/10: Prepare Provisioning App"
+echo "Step 9/11: Prepare Jenkins Slave Builds"
+read -e -p "Do you want to build all Jenkins slaves? This will take some time. [y,n] (default: n):" input
+if [[ $input == "Y" || $input == "y" ]]; then
+  vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-jenkins-slave-builds.sh"
+fi
+
+echo "Step 10/11: Prepare Provisioning App"
 vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-provisioning-app.sh"
 
-echo "Step 10/10: Prepare Rundeck"
+echo "Step 11/11: Prepare Rundeck"
 vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-rundeck.sh"
