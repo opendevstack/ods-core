@@ -16,6 +16,7 @@
       name: "{{ item }}"
     with_items:
     - boto
+    - psycopg2-binary
     - psycopg2
     - awscli
     become: True
