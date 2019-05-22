@@ -9,6 +9,7 @@
     - tig
     - python2-pip
     - tmux
+    - python-psycopg2
     become: True
 
   - name: "install python libraries"
