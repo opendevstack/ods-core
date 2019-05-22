@@ -9,6 +9,7 @@
     - tig
     - python2-pip
     - tmux
+    - python-psycopg2
     become: True
 
   - name: "install python libraries"
@@ -16,6 +17,7 @@
       name: "{{ item }}"
     with_items:
     - boto
+    - psycopg2-binary
     - psycopg2
     - awscli
     become: True
