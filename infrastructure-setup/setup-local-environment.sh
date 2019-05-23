@@ -54,7 +54,7 @@ echo "Step 8/9: Setup and start VMs from Vagrant"
 #start vagrant
 cd ${cwd}
 read -e -n1 -p "Use Vagrant VMs? [y,n] (default: y):" input
-${input:-"y"}
+input=${input:-"y"}
 if [[ $input == "Y" || $input == "y" ]]; then
   vagrant up
 fi
