@@ -69,40 +69,40 @@ else
   echo "Prepare hosts"
   vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/prepare-environment.yml"
   read -e -n1 -p "Install database and create schemas? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/install-database.yml"
   fi
   echo "Install Atlassian tools"
   read -e -n1 -p "Install Atlassian Crowd? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/crowd.yml"
   fi
   read -e -n1 -p "Install Atlassian Jira? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/jira.yml"
   fi
   read -e -n1 -p "Install Atlassian Confluence? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/confluence.yml"
   fi
   read -e -n1 -p "Install Atlassian Bitbucket? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/bitbucket.yml"
   fi
   echo "Rundeck Installation"
   read -e -n1 -p "Install Rundeck? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/rundeck.yml"
   fi
   echo "OKD installation"
   read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
-  input=${input:-"y"}${input:-"y"}
+  input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/install-openshift-dev.yml"
   fi
