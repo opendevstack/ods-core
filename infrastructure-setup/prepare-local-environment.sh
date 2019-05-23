@@ -12,7 +12,7 @@ fi
 echo "Step 1/10: Enable Jira SSO"
 cd ${cwd}
 read -e -n1 -p "Enable Jira SSO with Crowd? [y,n] (default: y):" input
-input=${input:-"y"}${input:-"y"}
+input=${input:-"y"}
 if [[ $input == "Y" || $input == "y" ]]; then
   vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/jira-enable-sso.yml"
 fi
@@ -21,7 +21,7 @@ fi
 echo "Step 2/10: Enable Confluence SSO"
 cd ${cwd}
 read -e -n1 -p "Enable Confluence SSO with Crowd? [y,n] (default: y):" input
-input=${input:-"y"}${input:-"y"}
+input=${input:-"y"}
 if [[ $input == "Y" || $input == "y" ]]; then
   vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/confluence-enable-sso.yml"
 fi
