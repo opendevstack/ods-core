@@ -29,6 +29,11 @@ cd ${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/
 #create secrets for cd_user
 oc process -n cd templates/secrets -p PROJECT=cd | oc create -n cd -f-
 
+if [[ ! -d "${BASE_DIR}/certs" ]] ; then
+  echo "creating certs directory"
+  mkdir ${BASE_DIR}/certs
+fi
+
 cd ${BASE_DIR}/certs
 
 echo -e "Create and replace old router cert"
