@@ -26,7 +26,7 @@ const (
 	triggerSecretEnvVar      = "TRIGGER_SECRET"
 	triggerSecretDefault     = "secret101"
 	protectedBranchesEnvVar  = "PROTECTED_BRANCHES"
-	protectedBranchesDefault = "master,develop,production,staging,release"
+	protectedBranchesDefault = "master,develop,production,staging,release/"
 	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
 	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
