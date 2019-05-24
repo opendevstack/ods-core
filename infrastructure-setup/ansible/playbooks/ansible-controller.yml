@@ -3,7 +3,7 @@
   tasks:
   - name: "install additional packages"
     package:
-      name: ['vim','python2-pip','tmux', 'git']
+      name: ['vim','python2-pip','tmux', 'tig', 'python-psycopg2']
     become: True
 
 #  - name: "upgrade pip"
@@ -19,7 +19,7 @@
 
   - name: "install python libraries for aws"
     pip:
-      name: ['boto', 'awscli']
+      name: ['boto', 'awscli', ]
     become: True
     when: environment_enable_aws == true
 
