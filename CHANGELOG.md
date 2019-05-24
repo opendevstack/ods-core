@@ -2,7 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- `jenkins-slave-base`'s FROM is configurable now - to ensure pickup of the right OC delivered version  ([#88](https://github.com/opendevstack/ods-core/issues/88))
+- `GIT LFS` enabled and installed on the `jenkins-slave-base` ([#76](https://github.com/opendevstack/ods-core/issues/76))
+- `travis build` addition for webhook proxy
+
+### Changed
+- [`shared-images/nginx-authproxy-crowd`](shared-images/nginx-authproxy-crowd) is based on the `openresty shared image` rather than a from scratch debian build
+
+### Fixed
+
+- SQ build fails: mkdir /opt mkdir: can't create directory '/opt': File exists ([#81](https://github.com/opendevstack/ods-core/issues/76))
+
 ## [1.0.2] - 2019-04-02
+
+### Fixed
+
+- SQ build fails: mkdir /opt mkdir: can't create directory '/opt': File exists ([#81](https://github.com/opendevstack/ods-core/issues/76))
 
 ## [1.0.1] - 2019-01-25
 

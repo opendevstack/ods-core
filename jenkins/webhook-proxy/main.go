@@ -47,7 +47,13 @@ type Event struct {
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
-type Client struct {
+type Client interface {
+	Forward(e *Event) error
+	CreatePipelineIfRequired(e *Event) error
+	DeletePipeline(e *Event) error
+}
+
+type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
@@ -55,7 +61,7 @@ type Client struct {
 
 // Server represents this service, and is a global.
 type Server struct {
-	Client            *Client
+	Client            Client
 	Namespace         string
 	TriggerSecret     string
 	ProtectedBranches []string
@@ -132,9 +138,9 @@ func main() {
 
 	log.Println("Ready to accept requests")
 
-	http.HandleFunc("/", server.HandleRoot())
-
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux := http.NewServeMux()
+	mux.Handle("/", server.HandleRoot())
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 // HandleRoot handles all requests to this service.
@@ -171,7 +177,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				requestID,
 				"trigger_secret param not given / not matching",
 			)
-			http.Error(w, "Not authorized", 401)
+			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -251,7 +257,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *Client) Forward(e *Event) error {
+func (c *ocClient) Forward(e *Event) error {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
@@ -275,7 +281,7 @@ func (c *Client) Forward(e *Event) error {
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
 // received event exists in OpenShift.
-func (c *Client) CreatePipelineIfRequired(e *Event) error {
+func (c *ocClient) CreatePipelineIfRequired(e *Event) error {
 	exists, err := c.checkPipeline(e)
 	if err != nil {
 		return err
@@ -320,9 +326,9 @@ func (c *Client) CreatePipelineIfRequired(e *Event) error {
 
 // DeletePipeline removes the pipeline corresponding to the event from
 // OpenShift.
-func (c *Client) DeletePipeline(e *Event) error {
+func (c *ocClient) DeletePipeline(e *Event) error {
 	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Background",
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
@@ -352,7 +358,7 @@ func (c *Client) DeletePipeline(e *Event) error {
 
 // checkPipeline determines whether the pipeline corresponding to the given
 // event already exists.
-func (c *Client) checkPipeline(e *Event) (bool, error) {
+func (c *ocClient) checkPipeline(e *Event) (bool, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s",
 		c.OpenShiftAPIBaseURL,
@@ -379,7 +385,7 @@ func (c *Client) checkPipeline(e *Event) (bool, error) {
 }
 
 // do executes the request.
-func (c *Client) do(req *http.Request) (*http.Response, error) {
+func (c *ocClient) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	return c.HTTPClient.Do(req)
@@ -398,7 +404,7 @@ func (e *Event) String() string {
 	)
 }
 
-func newClient(openShiftAPIHost string) (*Client, error) {
+func newClient(openShiftAPIHost string) (*ocClient, error) {
 	token, err := getFileContent(tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token: %s", err)
@@ -414,7 +420,7 @@ func newClient(openShiftAPIHost string) (*Client, error) {
 		openShiftAPIHost,
 	)
 
-	return &Client{
+	return &ocClient{
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
