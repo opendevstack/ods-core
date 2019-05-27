@@ -19,7 +19,7 @@
 
   - name: "install python libraries for aws"
     pip:
-      name: ['boto', 'awscli', ]
+      name: ['boto', 'awscli']
     become: True
     when: environment_enable_aws == true
 
