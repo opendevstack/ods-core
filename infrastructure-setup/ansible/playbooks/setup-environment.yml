@@ -1,0 +1,4 @@
+- import_playbook: prepare-environment.yml
+- import_playbook: install-database.yml
+- import_playbook: install-atlassian-environment.yml
+- import_playbook: install-openshift-dev.yml

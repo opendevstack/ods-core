@@ -1,0 +1,8 @@
+{
+  "id": "developer",
+  "firstName": "OpenDevStack",
+  "lastName": "Developer",
+  "email": "developer@opendevstack.org",
+  "password": "developer",
+  "roleIds": ["opendevstack-developer"]
+}

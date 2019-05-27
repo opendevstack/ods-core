@@ -1,0 +1,42 @@
+---
+# defaults file for local.pki
+pki_cfssl_version: R1.2
+pki_cfssljson_checksum: sha256:1c9e628c3b86c3f2f8af56415d474c9ed4c8f9246630bd21c3418dbe5bf6401e
+pki_cfssl_checksum: sha256:eb34ab2179e0b67c29fd55f52422a94fe751527b06a403a79325fed7cf0145bd
+pki_dir: "~/pki"
+pki_cfssl_bin_directory: /usr/local/bin
+pki_self_sign: True
+pki_ca:
+  cname: ca.example.com
+  sans: []
+  altips: []
+pki_names:
+  - C: DE
+    L: 'Dorsten'
+    O: 'DevOps'
+    OU: WWW
+    ST: 'NRW'
+
+pki_key:
+  algo: rsa
+  size: 2048
+
+pki_servers:
+  - cname: www-1.example.com
+    include_localhost: True
+    sans:
+      - www.example.com
+    altips: []
+  - cname: www-2.example.com
+    include_localhost: True
+    sans:
+      - www.example.com
+    altips: []
+  - cname: www-3.example.com
+    include_localhost: True
+    sans:
+      - www.example.com
+    altips: []
+
+pki_clients:
+  - client1

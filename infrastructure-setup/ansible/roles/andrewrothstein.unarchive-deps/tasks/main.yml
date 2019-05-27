@@ -1,0 +1,22 @@
+---
+- name: resolve platform specific vars
+  include_vars: "{{item}}"
+  with_first_found:
+    - files:
+        - "{{ansible_distribution}}-{{ansible_distribution_release}}.yml"
+        - "{{ansible_distribution}}.yml"
+        - "{{ansible_os_family}}.yml"
+      skip: true
+      paths:
+        - '{{role_path}}/vars'
+
+- name: install common pkgs...
+  become: '{{unarchive_deps_privilege_escalation | default(True)}}'
+  become_user: root
+  with_items:
+    - '{{unarchive_deps_all_pkgs}}'
+    - '{{unarchive_deps_tar_pkg|default("tar")}}'
+    - '{{unarchive_deps_xz_pkg|default("xz")}}'
+  package:
+    name: '{{item}}'
+    state: present

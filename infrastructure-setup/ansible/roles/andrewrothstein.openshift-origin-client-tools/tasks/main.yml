@@ -1,0 +1,66 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: check for install
+  become: '{{ oc_privilege_escalation }}'
+  become_user: root
+  stat:
+    path: '{{ oc_unarchive_dir }}/oc'
+  changed_when: false
+  register: oc_binary_present
+
+- when: not oc_binary_present.stat.exists
+  block:
+    - name: download...
+      become: '{{ oc_privilege_escalation }}'
+      become_user: root
+      get_url:
+        url: '{{ oc_download_url }}'
+        dest: /tmp/{{ oc_filename }}
+        mode: 0644
+        checksum: '{{ oc_checksum }}'
+        timeout: '{{ oc_download_timeout }}'
+
+    - name: create directory for unarchive if required...
+      become: '{{ oc_privilege_escalation }}'
+      become_user: root
+      file:
+        path: '{{ oc_unarchive_dir }}'
+        state: directory
+        mode: 0755
+
+    - name: unarchive
+      become: '{{ oc_privilege_escalation }}'
+      become_user: root
+      unarchive:
+        remote_src: yes
+        src: /tmp/{{ oc_filename }}
+        dest: '{{ oc_unarchive_dir }}'
+        creates: '{{ oc_install_dir }}/oc'
+  always:
+    - name: cleanup
+      become: yes
+      become_user: root
+      file:
+        path: /tmp/{{ oc_filename }}
+        state: absent
+
+- name: link
+  become: '{{ oc_privilege_escalation }}'
+  become_user: root
+  with_items:
+    - oc
+  file:
+    src: '{{ oc_install_dir }}/{{ item }}'
+    dest: '{{ oc_install_parent_dir }}/{{ item }}'
+    state: link
+    force: '{{ force_oc_link }}'

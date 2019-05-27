@@ -64,14 +64,20 @@
     mode: 0644
   become: true
 
-- name: Install | Add private ssh key of cd_user
+- name: Generate | Add private ssh key of cd_user for bitbucket
+  user:
+    name: rundeck
+    generate_ssh_key: yes
+    ssh_key_file: /var/lib/rundeck/.ssh/id_rsa_bitbucket
+    ssh_key_type: rsa
+  become: yes
+
+- name: Copy public key for cd_user to /ods/ folder
   copy:
-    content: "{{ rundeck_cduser_private_key }}"
-    dest: "{{ rundeck_home_dir }}/.ssh/id_rsa_bitbucket"
-    owner: "{{ rundeck_user }}"
-    group: "{{ rundeck_group }}"
-    mode: 0600
-  become: true
+    src: /var/lib/rundeck/.ssh/id_rsa_bitbucket.pub
+    remote_src: yes
+    dest: /ods/id_rsa_bitbucket.pub
+  become: True
 
 - name: Install | Ensure home directory has correct permissions
   file:

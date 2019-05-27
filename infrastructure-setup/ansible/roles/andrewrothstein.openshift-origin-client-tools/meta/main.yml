@@ -1,0 +1,40 @@
+---
+galaxy_info:
+  author: Andrew Rothstein
+  description: installs oc
+  company: BlackRock
+  license:
+    - MIT
+  min_ansible_version: 2.0
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - jessie
+        - stretch
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Alpine
+      versions:
+        - all
+    - name: Darwin
+      versions:
+        - all
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - openshift
+    - origin
+
+dependencies:
+  - role: andrewrothstein.unarchive-deps
+    version: v1.0.10
+  - role: andrewrothstein.alpine-glibc-shim
+    version: v2.0.7

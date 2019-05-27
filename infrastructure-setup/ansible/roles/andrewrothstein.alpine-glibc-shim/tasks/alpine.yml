@@ -1,0 +1,40 @@
+---
+- name: pkg deps
+  command: apk add --no-cache --virtual=.build-dependencies wget ca-certificates
+
+- name: download/install key
+  get_url:
+    url: '{{alpine_glibc_shim_key_url}}'
+    dest: /etc/apk/keys/{{alpine_glibc_shim_key}}
+
+- name: download pkgs...
+  with_items: '{{alpine_glibc_shim_pkg_prefixes}}'
+  get_url:
+    url: '{{alpine_glibc_shim_mirror}}/{{alpine_glibc_shim_ver}}/{{item}}-{{alpine_glibc_shim_ver}}.apk'
+    dest: /tmp/{{item}}-{{alpine_glibc_shim_ver}}.apk
+    checksum: '{{alpine_glibc_shim_checksums[alpine_glibc_shim_ver][item]}}'
+    mode: 0644
+
+- name: install pkgs...
+  with_items: '{{alpine_glibc_shim_pkg_prefixes}}'
+  command: apk add --no-cache /tmp/{{item}}-{{alpine_glibc_shim_ver}}.apk
+
+- name: fix locales...
+  command: /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8
+  ignore_errors: True
+
+- name: template default local for sh
+  with_items:
+    - f: locale.sh
+      d: /etc/profile.d
+      m: '0644'
+  template:
+    src: '{{item.f}}.j2'
+    dest: '{{item.d}}/{{item.f}}'
+    mode: '{{item.m}}'
+  
+- name: cleanup...
+  with_items:
+    - glibc-i18n
+    - .build-dependencies
+  command: apk del {{item}}

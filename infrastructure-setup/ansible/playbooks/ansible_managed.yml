@@ -3,19 +3,13 @@
   tasks:
   - name: install additional packages
     package:
-      name: "{{ item }}"
-    with_items:
-      - vim
-      - python2-pip
-      - tmux
-      - htop
+      name: ['vim','python2-pip','tmux','htop','jq']
     become: true
-  - name: "install python libraries"
+  - name: "install python libraries for aws"
     pip:
-      name: "{{ item }}"
-    with_items:
-      - awscli
+      name: ['boto', 'awscli']
     become: true
+    when: environment_enable_aws == true
   - name: install bashrc
     template:
       src: templates/bashrc_managed.j2

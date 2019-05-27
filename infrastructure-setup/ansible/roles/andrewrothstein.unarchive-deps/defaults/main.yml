@@ -1,0 +1,5 @@
+---
+unarchive_deps_all_pkgs:
+  - unzip
+  - gzip
+  - bzip2
