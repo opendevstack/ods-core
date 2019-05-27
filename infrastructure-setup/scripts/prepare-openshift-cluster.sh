@@ -21,13 +21,18 @@ oc create sa deployment -n cd
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment
 
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
-oc sa get-token deployment -n cd > ${BASE_DIR}/sa-deployment-token.txt
+oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
 cd ${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/
 ./upload-templates.sh
 
 #create secrets for cd_user
 oc process -n cd templates/secrets -p PROJECT=cd | oc create -n cd -f-
+
+if [[ ! -d "${BASE_DIR}/certs" ]] ; then
+  echo "creating certs directory"
+  mkdir ${BASE_DIR}/certs
+fi
 
 cd ${BASE_DIR}/certs
 
@@ -40,12 +45,6 @@ oc create secret tls router-certs --cert=router.pem --key=router.key -o json --d
 oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- service.alpha.openshift.io/serving-cert-signed-by-
 oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=router-certs
 oc rollout latest dc/router
-
-echo -e "Create and replace old registry cert"
-oc project default
-REGISTRY_IP=`oc get service docker-registry -o jsonpath='{.spec.clusterIP}'`
-REGISTRY_HOSTNAME=`oc get route/docker-registry -o jsonpath='{.spec.host}'`
-
 
 echo "Expose registry route"
 oc create route edge --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default

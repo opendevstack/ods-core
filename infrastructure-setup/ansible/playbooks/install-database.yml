@@ -1,0 +1,2 @@
+- import_playbook: postgresql.yml
+- import_playbook: schemas.yml

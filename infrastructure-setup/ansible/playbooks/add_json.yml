@@ -1,4 +1,10 @@
 ---
+- name: ensure file exists
+  copy:
+    content: "{}"
+    dest: "{{ target_path }}"
+    force: no
+
 - name: load var from file
   slurp:
     src: "{{ target_path }}"

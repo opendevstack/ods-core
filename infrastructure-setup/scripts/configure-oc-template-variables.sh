@@ -3,14 +3,17 @@
 #
 #Variables
 ODS_DIR="../../.."
-ODS_SAMPLE_DIR=`realpath ${ODS_DIR}`
+ODS_BASE_DIR=`realpath ${ODS_DIR}`
 
 #ansible vault
-
+vault_password="opendevstack"
 
 #Openshift ClusterIp
 clusterIp="192.168.56.101"
 bitbucketHost="http://cd_user@192.168.56.31:7990/scm"
+
+#Openshift local default Docker registry IP
+docker_registry_ip=172.30.1.1:5000
 
 #CD User
 cd_user_name="cd_user"
@@ -42,11 +45,16 @@ echo -e "Basic configuration script for installation with vagrant, ansible and t
 echo -e "The default values reflect the changes, that have to be made to in the OKD templates before importing them with tailor\n"
 
 echo -e "\nConfigure initial vault password (opendevstack) for installation and copy to ansible directory in .vault_pass.txt\n"
-echo -e "opendevstack" > ../ansible/.vault_pass.txt
+read -e -p "Enter your ansible vault password and press [ENTER] (default: $vault_password): " input
+echo -e ${input:-$vault_password} > ../ansible/.vault_pass.txt
 
 echo -e "\nOKD IP configuration\n"
 read -e -p "Enter your OpenShift Cluster IP and press [ENTER] (default: $clusterIp): " input
 clusterIp=${input:-$clusterIp}
+
+echo -e "\nOKD docker registry configuration\n"
+read -e -p "Enter your OpenShift Cluster internal Docker registry IP and press [ENTER] (default: $docker_registry_ip): " input
+docker_registry_ip=${input:-$docker_registry_ip}
 
 echo -e "\nBitbucket repo configuration\n"
 read -e -p "Enter your local Bitbucket installation repository path and press [ENTER] (default: $bitbucketHost): " input
@@ -91,48 +99,48 @@ provision_jasypt_pw=${input:-$provision_jasypt_pw}
 read -e -p "Enter your provision application mail password and press [ENTER] (default: $provision_mail_pw): " input
 provision_mail_pw=${input:-$provision_mail_pw}
 
-echo -e "\nWrite configuration to ${ODS_SAMPLE_DIR}/local.env.config\n"
+echo -e "\nWrite configuration to ${ODS_BASE_DIR}/local.env.config\n"
 
 
 #Openshift ClusterIp
-echo "#Configuration variables" > ${ODS_SAMPLE_DIR}/local.env.config
-echo "ODS_DIR=${ODS_SAMPLE_DIR}" >> ${ODS_SAMPLE_DIR}/local.env.config
-
-echo "cluster_ip=${clusterIp}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "bitbucket_host=${bitbucketHost}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "cd_user_name=${cd_user_name}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "#Configuration variables" > ${ODS_BASE_DIR}/local.env.config
+echo "ODS_DIR=${ODS_BASE_DIR}" >> ${ODS_BASE_DIR}/local.env.config
+echo "docker_registry_ip=${docker_registry_ip}" >> ${ODS_BASE_DIR}/local.env.config
+echo "cluster_ip=${clusterIp}" >> ${ODS_BASE_DIR}/local.env.config
+echo "bitbucket_host=${bitbucketHost}" >> ${ODS_BASE_DIR}/local.env.config
+echo "cd_user_name=${cd_user_name}" >> ${ODS_BASE_DIR}/local.env.config
 cd_user_name_base64=`echo -n $cd_user_name | base64`
-echo "cd_user_name_base64=${cd_user_name_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "cd_user_pw=${cd_user_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "cd_user_name_base64=${cd_user_name_base64}" >> ${ODS_BASE_DIR}/local.env.config
+echo "cd_user_pw=${cd_user_pw}" >> ${ODS_BASE_DIR}/local.env.config
 cd_user_pw_base64=`echo -n $cd_user_pw | base64`
-echo "cd_user_pw_base64=${cd_user_pw_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "cd_user_pw_base64=${cd_user_pw_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "nexus_password=${nexus_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "nexus_password=${nexus_password}" >> ${ODS_BASE_DIR}/local.env.config
 nexus_password_base64=`echo -n $nexus_password | base64`
-echo "nexus_password_base64=${nexus_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "nexus_password_base64=${nexus_password_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "sonar_admin_password=${sonar_admin_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
-sonar_admin_password_base64=`echo -n sonar_admin_password | base64`
-echo "sonar_admin_password_base64=${sonar_admin_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "sonar_admin_password=${sonar_admin_password}" >> ${ODS_BASE_DIR}/local.env.config
+sonar_admin_password_base64=`echo -n $sonar_admin_password | base64`
+echo "sonar_admin_password_base64=${sonar_admin_password_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "sonar_crowd_password=${sonar_crowd_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "sonar_crowd_password=${sonar_crowd_password}" >> ${ODS_BASE_DIR}/local.env.config
 sonar_crowd_password_base64=`echo -n $sonar_crowd_password | base64`
-echo "sonar_crowd_password_base64=${sonar_crowd_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "sonarqube_database_password=${sonarqube_database_password}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "sonar_crowd_password_base64=${sonar_crowd_password_base64}" >> ${ODS_BASE_DIR}/local.env.config
+echo "sonarqube_database_password=${sonarqube_database_password}" >> ${ODS_BASE_DIR}/local.env.config
 sonarqube_database_password_base64=`echo -n $sonarqube_database_password | base64`
-echo "sonarqube_database_password_base64=${sonarqube_database_password_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "sonarqube_database_password_base64=${sonarqube_database_password_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "crowd_rshiny_realm_user=${crowd_rshiny_realm_user}" >> ${ODS_SAMPLE_DIR}/local.env.config
-crowd_rshiny_realm_user_base64=`echo -n crowd_rshiny_realm_user | base64`
-echo "crowd_rshiny_realm_user_base64=${crowd_rshiny_realm_user_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "crowd_rshiny_realm_pw=${crowd_rshiny_realm_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
-crowd_rshiny_realm_pw_base64=`echo -n crowd_rshiny_realm_pw | base64`
-echo "crowd_rshiny_realm_pw_base64=${crowd_rshiny_realm_pw_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "crowd_rshiny_realm_user=${crowd_rshiny_realm_user}" >> ${ODS_BASE_DIR}/local.env.config
+crowd_rshiny_realm_user_base64=`echo -n $crowd_rshiny_realm_user | base64`
+echo "crowd_rshiny_realm_user_base64=${crowd_rshiny_realm_user_base64}" >> ${ODS_BASE_DIR}/local.env.config
+echo "crowd_rshiny_realm_pw=${crowd_rshiny_realm_pw}" >> ${ODS_BASE_DIR}/local.env.config
+crowd_rshiny_realm_pw_base64=`echo -n $crowd_rshiny_realm_pw | base64`
+echo "crowd_rshiny_realm_pw_base64=${crowd_rshiny_realm_pw_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "pipeline_trigger_secret=${pipeline_trigger_secret}" >> ${ODS_SAMPLE_DIR}/local.env.config
-pipeline_trigger_secret_base64=`echo -n pipeline_trigger_secret | base64`
-echo "pipeline_trigger_secret_base64=${pipeline_trigger_secret_base64}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "pipeline_trigger_secret=${pipeline_trigger_secret}" >> ${ODS_BASE_DIR}/local.env.config
+pipeline_trigger_secret_base64=`echo -n $pipeline_trigger_secret | base64`
+echo "pipeline_trigger_secret_base64=${pipeline_trigger_secret_base64}" >> ${ODS_BASE_DIR}/local.env.config
 
-echo "provision_crowd_pw=${provision_crowd_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "provision_jasypt_pw=${provision_jasypt_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
-echo "provision_mail_pw=${provision_mail_pw}" >> ${ODS_SAMPLE_DIR}/local.env.config
+echo "provision_crowd_pw=${provision_crowd_pw}" >> ${ODS_BASE_DIR}/local.env.config
+echo "provision_jasypt_pw=${provision_jasypt_pw}" >> ${ODS_BASE_DIR}/local.env.config
+echo "provision_mail_pw=${provision_mail_pw}" >> ${ODS_BASE_DIR}/local.env.config

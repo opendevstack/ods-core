@@ -28,6 +28,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-configuration-sample" ] ; then
 else
   echo "Update configuration sample"
   cd $OPENDEVSTACK_BASE_DIR/ods-configuration-sample
+  git fetch origin
   git pull origin
 fi
 
@@ -41,6 +42,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-jenkins-shared-library" ] ; then
 else
   echo "Update shared library"
   cd $OPENDEVSTACK_BASE_DIR/ods-jenkins-shared-library
+  git fetch origin
   git pull origin
 fi
 
@@ -54,6 +56,7 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-provisioning-app" ] ; then
 else
   echo "Update shared library"
   cd $OPENDEVSTACK_BASE_DIR/ods-provisioning-app
+  git fetch origin
   git pull origin
 fi
 

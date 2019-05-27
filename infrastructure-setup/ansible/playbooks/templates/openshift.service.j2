@@ -4,7 +4,7 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-ExecStart=/usr/local/bin/oc cluster up --base-dir=/opt/oc/profiles/odsdev --public-hostname=192.168.56.101.nip.io --server-loglevel=10
+ExecStart=/usr/local/bin/oc cluster up --base-dir=/opt/oc/profiles/odsdev --public-hostname=192.168.56.101.nip.io --routing-suffix=192.168.56.101.nip.io --server-loglevel=10
 ExecStop=/usr/local/bin/oc cluster down
 Restart=no
 StandardOutput=syslog
