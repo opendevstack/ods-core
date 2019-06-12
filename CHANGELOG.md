@@ -2,19 +2,30 @@
 
 ## [Unreleased]
 
+
+## [1.1.0] - 2019-05-28
+
 ### Added
 
-- `jenkins-slave-base`'s FROM is configurable now - to ensure pickup of the right OC delivered version  ([#88](https://github.com/opendevstack/ods-core/issues/88))
 - `GIT LFS` enabled and installed on the `jenkins-slave-base` ([#76](https://github.com/opendevstack/ods-core/issues/76))
-- `travis build` addition for webhook proxy
+- `travis build` addition for webhook proxy ([#64](https://github.com/opendevstack/ods-core/issues/64))
+- Scripted Nexus setup ([#42](https://github.com/opendevstack/ods-core/issues/42))
+- Webhook Proxy: Allow to protect all branches or branches with certain prefix ([#55](https://github.com/opendevstack/ods-core/issues/55))
+- Add tailor CLI to Jenkins base slave ([#62](https://github.com/opendevstack/ods-core/issues/62))
 - Add Jenkins slave `nodejs10-angular`
 
 ### Changed
+
+- `jenkins-slave-base`'s FROM is configurable now - to ensure pickup of the right OC delivered version  ([#88](https://github.com/opendevstack/ods-core/issues/88))
 - [`shared-images/nginx-authproxy-crowd`](shared-images/nginx-authproxy-crowd) is based on the `openresty shared image` rather than a from scratch debian build
+- Oracle Java role not required anymore ([#40](https://github.com/opendevstack/ods-core/issues/40))
 
 ### Fixed
 
 - SQ build fails: mkdir /opt mkdir: can't create directory '/opt': File exists ([#81](https://github.com/opendevstack/ods-core/issues/76))
+- OC pipelines not in sync with Jenkins: custom fix openshift Jenkins plugin copied to plugins until it is not officially released/provided ([#86](https://github.com/opendevstack/ods-core/issues/86))
+- Copy files in `init.groovy.d` during boot from image to volume ([#97](https://github.com/opendevstack/ods-core/issues/97))
+- Prevents builds from being orphaned ([#72](https://github.com/opendevstack/ods-core/issues/72))
 
 ## [1.0.2] - 2019-04-02
 
