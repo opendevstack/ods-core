@@ -12,6 +12,7 @@
 - Scripted Nexus setup ([#42](https://github.com/opendevstack/ods-core/issues/42))
 - Webhook Proxy: Allow to protect all branches or branches with certain prefix ([#55](https://github.com/opendevstack/ods-core/issues/55))
 - Add tailor CLI to Jenkins base slave ([#62](https://github.com/opendevstack/ods-core/issues/62))
+- Add Jenkins slave `nodejs10-angular`
 
 ### Changed
 
