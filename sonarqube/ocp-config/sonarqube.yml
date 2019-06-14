@@ -34,10 +34,10 @@ objects:
     strategy:
       dockerStrategy:
         env:
-          - name: $SONAR_DISTRIBUTION_URL
-            value: ${SONAR_DISTRIBUTION_URL}
           - name: SONAR_VERSION
             value: ${SONAR_VERSION}
+          - name: SONAR_DISTRIBUTION_URL
+            value: ${SONAR_DISTRIBUTION_URL}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
@@ -463,6 +463,6 @@ parameters:
   # for AWS the default would be gp2-encrypted
   description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
 - name: SONAR_DISTRIBUTION_URL
-  description: Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip
+  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
 - name: SONAR_VERSION
-  description: Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL
+  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
