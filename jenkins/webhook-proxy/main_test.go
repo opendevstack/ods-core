@@ -166,9 +166,9 @@ type mockClient struct {
 	Event *Event
 }
 
-func (c *mockClient) Forward(e *Event) error {
+func (c *mockClient) Forward(e *Event) ([]byte, error) {
 	c.Event = e
-	return nil
+	return nil, nil
 }
 func (c *mockClient) CreatePipelineIfRequired(e *Event) error {
 	c.Event = e
@@ -288,5 +288,51 @@ func TestHandleRootReadsRequests(t *testing.T) {
 		if !reflect.DeepEqual(example.expectedEvent, mc.Event) {
 			t.Errorf("Got event: %v, want: %v", mc.Event, example.expectedEvent)
 		}
+	}
+}
+
+func TestForward(t *testing.T) {
+	// Sample response from OpenShift
+	expected, err := ioutil.ReadFile("test-fixtures/webhook-triggered-payload.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Create a stub that returns the fixed response
+	apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(expected)
+	}))
+
+	// Client pointing to the API stub created above
+	c := &ocClient{
+		HTTPClient:          &http.Client{},
+		OpenShiftAPIBaseURL: apiStub.URL,
+		Token:               "foo",
+	}
+	server = &Server{
+		Client:            c,
+		Namespace:         "foo",
+		TriggerSecret:     "s3cr3t",
+		ProtectedBranches: []string{"baz"},
+		RepoBase:          "https://domain.com",
+	}
+
+	event := &Event{
+		Kind:      "forward",
+		Project:   "proj",
+		Namespace: "foo",
+		Repo:      "repository",
+		Component: "repository",
+		Branch:    "master",
+		Pipeline:  "repository-master",
+	}
+
+	// Ensure the response from OpenShift is forwarded as-is to the client
+	actual, err := c.Forward(event)
+	if err != nil {
+		t.Error(err)
+	}
+	if string(actual) != string(expected) {
+		t.Errorf("Got response: %s, want: %s", actual, expected)
 	}
 }

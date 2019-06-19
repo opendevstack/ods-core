@@ -48,7 +48,7 @@ type Event struct {
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
-	Forward(e *Event) error
+	Forward(e *Event) ([]byte, error)
 	CreatePipelineIfRequired(e *Event) error
 	DeletePipeline(e *Event) error
 }
@@ -167,6 +167,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			} `json:"fromRef"`
 		} `json:"pullRequest"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := randStringBytes(6)
 		log.Println(requestID, "-----")
@@ -230,11 +231,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				log.Println(requestID, err)
 				return
 			}
-			err = server.Client.Forward(event)
+			res, err := server.Client.Forward(event)
 			if err != nil {
 				log.Println(requestID, err)
 				return
 			}
+			_, err = w.Write(res)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+
 		} else if event.Kind == "delete" {
 			protected := isProtectedBranch(s.ProtectedBranches, event.Branch)
 			if protected {
@@ -257,7 +263,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *ocClient) Forward(e *Event) error {
+func (c *ocClient) Forward(e *Event) ([]byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
@@ -272,11 +278,13 @@ func (c *ocClient) Forward(e *Event) error {
 		url,
 		new(bytes.Buffer),
 	)
-	_, err := c.do(req)
+	res, err := c.do(req)
 	if err != nil {
-		return fmt.Errorf("Got error %s", err)
+		return nil, fmt.Errorf("Got error %s", err)
 	}
-	return nil
+	defer res.Body.Close()
+
+	return ioutil.ReadAll(res.Body)
 }
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
