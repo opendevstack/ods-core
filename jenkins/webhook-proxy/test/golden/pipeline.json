@@ -2,7 +2,7 @@
     "kind": "BuildConfig",
     "apiVersion": "v1",
     "metadata": {
-        "name": "NAME",
+        "name": "repository-master",
         "creationTimestamp": null
     },
     "spec": {
@@ -10,7 +10,7 @@
             {
                 "type": "Generic",
                 "generic": {
-                    "secret": "TRIGGER_SECRET"
+                    "secret": "s3cr3t"
                 }
             }
         ],
@@ -18,8 +18,8 @@
         "source": {
             "type": "Git",
             "git": {
-                "uri": "GIT_URI",
-                "ref": "BRANCH"
+                "uri": "https://domain.com/proj/repository.git",
+                "ref": "master"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"

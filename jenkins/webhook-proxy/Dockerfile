@@ -1,7 +1,7 @@
 # Ideally we would us a very small image like plain alpine and just copy the
 # pre-built binary into it, but due to e.g. multistage builds not available in
 # OpenShift yet, for now the easiest is to build the binary in this image.
-FROM golang:1.11-alpine
+FROM golang:1.12-alpine
 
 RUN apk add --no-cache ca-certificates && \
     mkdir -p /home/webhook-proxy && \
@@ -9,7 +9,7 @@ RUN apk add --no-cache ca-certificates && \
     chmod g+w /home/webhook-proxy
 
 COPY main.go /home/webhook-proxy/main.go
-COPY pipeline.json /home/webhook-proxy/pipeline.json
+COPY pipeline.template.json /home/webhook-proxy/pipeline.template.json
 
 WORKDIR /home/webhook-proxy
 
