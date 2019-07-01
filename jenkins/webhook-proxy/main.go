@@ -45,14 +45,21 @@ type Event struct {
 	Branch    string
 	Pipeline  string
 	RequestID string
-	GitURI    string
+}
+
+// BuildConfigData represents the data to be rendered into the BuildConfig template.
+type BuildConfigData struct {
+	Name          string
+	TriggerSecret string
+	GitURI        string
+	Branch        string
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
 	Forward(e *Event, triggerSecret string) ([]byte, error)
-	CreatePipelineIfRequired(tmpl *template.Template, e *Event) error
+	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error
 	DeletePipeline(e *Event) error
 }
 
@@ -60,7 +67,6 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
-	TriggerSecret       string
 }
 
 // Server represents this service, and is a global.
@@ -229,13 +235,6 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		}
 		pipeline := makePipelineName(project, component, branch)
 
-		gitURI := fmt.Sprintf(
-			"%s/%s/%s.git",
-			s.RepoBase,
-			project,
-			repo,
-		)
-
 		event := &Event{
 			Kind:      kind,
 			Project:   project,
@@ -245,12 +244,23 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			Branch:    branch,
 			Pipeline:  pipeline,
 			RequestID: requestID,
-			GitURI:    gitURI,
 		}
 		log.Println(requestID, event)
 
 		if event.Kind == "forward" {
-			err := s.Client.CreatePipelineIfRequired(tmpl, event)
+			gitURI := fmt.Sprintf(
+				"%s/%s/%s.git",
+				s.RepoBase,
+				event.Project,
+				event.Repo,
+			)
+			buildConfigData := BuildConfigData{
+				Name:          event.Pipeline,
+				TriggerSecret: s.TriggerSecret,
+				GitURI:        gitURI,
+				Branch:        event.Branch,
+			}
+			err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {
 				log.Println(requestID, err)
 				return
@@ -313,7 +323,7 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
 // received event exists in OpenShift.
-func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event) error {
+func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error {
 	exists, err := c.checkPipeline(e)
 	if err != nil {
 		return err
@@ -323,7 +333,7 @@ func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event) e
 		return nil
 	}
 
-	jsonBuffer, err := getBuildConfig(tmpl, e, c.TriggerSecret)
+	jsonBuffer, err := getBuildConfig(tmpl, data)
 	if err != nil {
 		return err
 	}
@@ -456,23 +466,11 @@ func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error)
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
-		TriggerSecret:       triggerSecret,
 	}, nil
 }
 
-func getBuildConfig(tmpl *template.Template, e *Event, triggerSecret string) (*bytes.Buffer, error) {
+func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffer, error) {
 	b := bytes.NewBuffer([]byte{})
-	data := struct {
-		Name          string
-		TriggerSecret string
-		GitURI        string
-		Branch        string
-	}{
-		Name:          e.Pipeline,
-		TriggerSecret: triggerSecret,
-		GitURI:        e.GitURI,
-		Branch:        e.Branch,
-	}
 	err := tmpl.Execute(b, data)
 	if err != nil {
 		return nil, fmt.Errorf("Could not fill template %s", pipelineConfigFilename)
