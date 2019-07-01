@@ -27,6 +27,7 @@ const (
 	repoBaseEnvVar           = "REPO_BASE"
 	triggerSecretEnvVar      = "TRIGGER_SECRET"
 	triggerSecretDefault     = "secret101"
+	jenkinsfilePathDefault   = "Jenkinsfile"
 	protectedBranchesEnvVar  = "PROTECTED_BRANCHES"
 	protectedBranchesDefault = "master,develop,production,staging,release/"
 	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
@@ -49,10 +50,11 @@ type Event struct {
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
 type BuildConfigData struct {
-	Name          string
-	TriggerSecret string
-	GitURI        string
-	Branch        string
+	Name            string
+	TriggerSecret   string
+	GitURI          string
+	Branch          string
+	JenkinsfilePath string
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
@@ -194,7 +196,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			return
 		}
 
-		triggerSecretParam := r.URL.Query().Get("trigger_secret")
+		queryValues := r.URL.Query()
+		triggerSecretParam := queryValues.Get("trigger_secret")
 		if triggerSecretParam != s.TriggerSecret {
 			log.Println(
 				requestID,
@@ -202,6 +205,12 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			)
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
+		}
+
+		jenkinsfilePath := jenkinsfilePathDefault
+		jenkinsfilePathParam := queryValues.Get("jenkinsfile_path")
+		if jenkinsfilePathParam != "" {
+			jenkinsfilePath = jenkinsfilePathParam
 		}
 
 		req := &request{}
@@ -255,10 +264,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				event.Repo,
 			)
 			buildConfigData := BuildConfigData{
-				Name:          event.Pipeline,
-				TriggerSecret: s.TriggerSecret,
-				GitURI:        gitURI,
-				Branch:        event.Branch,
+				Name:            event.Pipeline,
+				TriggerSecret:   s.TriggerSecret,
+				GitURI:          gitURI,
+				Branch:          event.Branch,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 			err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {

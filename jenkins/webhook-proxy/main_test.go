@@ -337,10 +337,11 @@ func TestGetBuildConfig(t *testing.T) {
 		t.Error(err)
 	}
 	data := BuildConfigData{
-		Name:          "repository-master",
-		TriggerSecret: "s3cr3t",
-		GitURI:        "https://domain.com/proj/repository.git",
-		Branch:        "master",
+		Name:            "repository-master",
+		TriggerSecret:   "s3cr3t",
+		GitURI:          "https://domain.com/proj/repository.git",
+		Branch:          "master",
+		JenkinsfilePath: "foo/Jenkinsfile",
 	}
 	b, err := getBuildConfig(tmpl, data)
 	if err != nil {
