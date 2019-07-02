@@ -79,6 +79,18 @@ RUN cd /tmp && \
     git lfs version && \
     rm -rf /tmp/git-lfs*
 
+# optionally install snyk
+RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ; else echo 'Installing snyk... getting binary from' $SNYK_DISTRIBUTION_URL \
+  && curl -L $SNYK_DISTRIBUTION_URL --output snyk \
+  && mv snyk /usr/local/ \
+  && chmod +rwx /usr/local/snyk \
+  && mkdir -p $HOME/.config/configstore/ \
+  && chmod -R g+rw $HOME/.config/configstore/ \
+  && echo 'Snyk CLI version:' \
+  && /usr/local/snyk --version \
+  && echo 'Snyk installation completed!'; fi
+ENV PATH=/usr/local/snyk:$PATH
+
 # set java proxy var
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN chmod 777 /tmp/set_java_proxy.sh
