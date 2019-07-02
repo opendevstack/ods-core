@@ -1,8 +1,8 @@
 ---
 - name: download jira installer
   get_url:
-    url: "https://downloads.atlassian.com/software/jira/downloads/{{ atlassian_jira_installer_package }}"
-    dest: "/tmp"
+    url: "https://product-downloads.atlassian.com/software/jira/downloads/{{ atlassian_jira_installer_package }}"
+    dest: "/tmp/{{ atlassian_jira_installer_package }}"
     owner: root
     group: root
     mode: 0754
@@ -51,8 +51,8 @@
     - start jira
 
 
-- include: configure-eazybi.yml
-  static: no
+#- include: configure-eazybi.yml
+#  static: no
 # TODO: so far no silent configuration found. can probably be removed
 # add properties for jira automated setup: see
 #- name: add jira configuration properties for automated setup

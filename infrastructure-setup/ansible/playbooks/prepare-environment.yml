@@ -1,0 +1,3 @@
+- import_playbook: ansible-controller.yml
+- import_playbook: base-packages-and-config.yml
+- import_playbook: ansible_managed.yml

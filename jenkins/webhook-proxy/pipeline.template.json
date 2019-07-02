@@ -1,0 +1,39 @@
+{
+    "kind": "BuildConfig",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "{{.Name}}",
+        "creationTimestamp": null
+    },
+    "spec": {
+        "triggers": [
+            {
+                "type": "Generic",
+                "generic": {
+                    "secret": "{{.TriggerSecret}}"
+                }
+            }
+        ],
+        "runPolicy": "Serial",
+        "source": {
+            "type": "Git",
+            "git": {
+                "uri": "{{.GitURI}}",
+                "ref": "{{.Branch}}"
+            },
+            "sourceSecret": {
+                "name": "cd-user-with-password"
+            }
+        },
+        "strategy": {
+            "type": "JenkinsPipeline",
+            "jenkinsPipelineStrategy": {
+                "jenkinsfilePath": "Jenkinsfile"
+            }
+        },
+        "output": {},
+        "resources": {},
+        "postCommit": {},
+        "nodeSelector": {}
+    }
+}

@@ -14,4 +14,7 @@ for f in ${source_init_groovy_dir}/*.groovy; do
     cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
 done
 
+echo "Copy fixed version of openshift-sync plugin (https://github.com/opendevstack/ods-core/issues/86) ..."
+cp /opt/openshift/openshift-sync.jar /var/lib/jenkins/plugins/openshift-sync/WEB-INF/lib/openshift-sync.jar
+
 /usr/libexec/s2i/run

@@ -1,0 +1,46 @@
+---
+machine:
+  services:
+    - docker
+
+dependencies:
+  pre:
+    - sudo -H pip install --upgrade pip
+    - sudo -H pip install circleci-helpers ansible-galaxy-local-deps dcb==0.0.14
+    - ansible-galaxy-local-deps-write
+
+test:
+  override:
+    - ? |
+          circle-matrix <<"EHD"
+            env:
+              - OS=alpine_3.3
+              - OS=alpine_3.4
+              - OS=alpine_3.5
+              - OS=alpine_3.6
+              - OS=alpine_3.7
+              - OS=alpine_edge
+              - OS=centos_7
+              - OS=fedora_23
+              - OS=fedora_24
+              - OS=fedora_25
+              - OS=fedora_26
+              - OS=fedora_27
+              - OS=debian_jessie
+              - OS=debian_stretch
+              - OS=ubuntu_trusty
+              - OS=ubuntu_xenial
+              - OS=ubuntu_bionic
+
+            script:
+              - >-
+                dcb
+                --upstreamgroup andrewrothstein
+                --upstreamapp docker-ansible-role
+                --write ${OS}
+                --build ${OS}
+                --push ${OS}
+
+          EHD
+      :
+        parallel: true

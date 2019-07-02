@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: Andrew Rothstein
+  description: installs a glibc shim for Alpine Linux
+  company: BlackRock
+  license:
+    - MIT
+  min_ansible_version: 2.0
+  platforms:
+    - name: Alpine
+      versions:
+        - all
+  galaxy_tags:
+    - development
+
+dependencies: []

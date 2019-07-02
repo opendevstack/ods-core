@@ -1,0 +1,43 @@
+---
+- hosts: "{{ target_hosts | default('tag_hostgroup_confluence_dev') }}"
+  tasks:
+    - name: remove old authenticator
+      lineinfile:
+        path: "{{atlassian_confluence_installation_dir}}/confluence/WEB-INF/classes/seraph-config.xml"
+        regexp: '<authenticator class="com.atlassian.confluence.user.ConfluenceAuthenticator"/>'
+        line: '<!-- <authenticator class="com.atlassian.confluence.user.ConfluenceAuthenticator"/> -->'
+      become: True
+
+    - name: ensure we have the SSO authenticator enabled
+      lineinfile:
+        path: "{{atlassian_confluence_installation_dir}}/confluence/WEB-INF/classes/seraph-config.xml"
+        regexp: '<!-- <authenticator class="com.atlassian.confluence.user.ConfluenceCrowdSSOAuthenticator"/> -->'
+        line: '<authenticator class="com.atlassian.confluence.user.ConfluenceCrowdSSOAuthenticator"/>'
+      become: True
+      notify:
+      - stop confluence
+      - start confluence
+
+    - name: "create crowd.properties files"
+      template:
+        src: crowd.properties.j2
+        dest: "{{atlassian_confluence_installation_dir}}/confluence/WEB-INF/classes/crowd.properties"
+      become: True
+      notify:
+      - stop confluence
+      - start confluence
+
+  handlers:
+  - name: stop confluence
+    command: service confluence stop
+    become: True
+
+  - name: start confluence
+    command: service confluence start
+    become: True
+
+  vars:
+    application_name: confluence
+    application_password: "{{crowd_application_password_confluence}}"
+    application_login_url: "{{atlassian_confluence_application_url}}"
+    application_crowd_base_url: "{{atlassian_crowd_url}}"    

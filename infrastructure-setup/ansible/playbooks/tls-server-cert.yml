@@ -1,0 +1,41 @@
+    - name: "create tempdir"
+      tempfile:
+        state: directory
+      register: temp_dir
+
+    - name: copy to tempdir
+      copy:
+        src: "{{ item }}"
+        dest: "{{ temp_dir.path }}"
+      with_items: "{{ cert_bundle.in_certs }}"
+
+    - name: "combine multiple certs"
+      assemble:
+        src: "{{ temp_dir.path }}"
+        dest: "{{ cert_bundle.out }}"
+        remote_src: True
+        owner: 
+        group: root
+        mode: 0644
+      become: True
+    - name: "remove temp directory"
+      file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+      become: True
+    
+    - name: "create key diretory"
+      file:
+        path: "/etc/ssl/private"
+        state: directory
+        mode: 0644
+      become: True
+
+    - name: "copy key"
+      copy:
+        src: "{{ key_map.in }}"
+        dest: "{{ key_map.out }}"
+        owner: "{{ key_map.owner }}"
+        group: "{{ key_map.group }}"
+        mode: "{{ key_map.mode }}"
+      become: True

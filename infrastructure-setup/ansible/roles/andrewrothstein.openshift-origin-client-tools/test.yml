@@ -1,0 +1,10 @@
+---
+- hosts: all
+  roles:
+    - role: '{{playbook_dir}}'
+  tasks:
+    - name: grab oc version
+      command: /usr/local/bin/oc version
+      register: observed_oc_version
+    - debug:
+        var: observed_oc_version.stdout_lines

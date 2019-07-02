@@ -1,0 +1,9 @@
+{
+  "name":"createRole",
+  "content":"import groovy.json.JsonSlurper;
+  def role = new JsonSlurper().parseText(args);
+  security.addRole(role.id, role.name, role.description, role.privilegeIds, role.roleIds);",
+  "type":"groovy"
+}
+
+

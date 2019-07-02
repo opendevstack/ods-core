@@ -1,7 +1,7 @@
 ---
 atlassian_crowd_version: 2.11.2
 
-atlassian_crowd_baseurl: https://www.atlassian.com/software/crowd/downloads/binary/
+atlassian_crowd_baseurl: https://product-downloads.atlassian.com/software/crowd/downloads
 atlassian_crowd_basedir: /opt/atlassian
 atlassian_crowd_home: /srv/atlassian/crowd
 
@@ -15,7 +15,8 @@ atlassian_crowd_url: http://192.168.31.56:8095/crowd
 atlassian_crowd_demo_url: http://192.168.31.56:8095/demo
 atlassian_crowd_openidserver_url: http://192.168.31.56:8095/openidserver
 
-atlassian_crowd_jdbc_url: "jdbc:postgresql://{{postgresql_host}}:{{postgresql_port}}/atlassian"
+atlassian_crowd_jdbc_url: "jdbc:postgresql://{{postgresql_host}}:{{postgresql_port}}/crowd"
+atlassian_crowdid_jdbc_url: "jdbc:postgresql://{{postgresql_host}}:{{postgresql_port}}/crowdid"
 atlassian_crowd_jvm_xms: 128m
 atlassian_crowd_jvm_xmx: 512m
 
