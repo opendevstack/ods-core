@@ -1,6 +1,6 @@
 name: ods-core
 title: ODS Core
-version: latest
+version: 1.1
 start_page: infrastructure-setup:index.adoc
 nav:
 - modules/ROOT/nav.adoc
