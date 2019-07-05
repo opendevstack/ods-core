@@ -1,0 +1,49 @@
+{
+    "kind": "Build",
+    "apiVersion": "build.openshift.io/v1",
+    "metadata": {
+        "name": "be-docker-plain-master-23",
+        "namespace": "ods28-cd",
+        "selfLink": "/apis/build.openshift.io/v1/namespaces/ods28-cd/buildconfigs/be-docker-plain-master-23/instantiate",
+        "uid": "c8e9c214-85fc-11e9-9b41-0050569e63cb",
+        "resourceVersion": "129839908",
+        "creationTimestamp": "2019-06-03T12:40:36Z",
+        "labels": {
+            "buildconfig": "be-docker-plain-master",
+            "openshift.io/build-config.name": "be-docker-plain-master",
+            "openshift.io/build.start-policy": "Serial"
+        },
+        "annotations": {
+            "openshift.io/build-config.name": "be-docker-plain-master",
+            "openshift.io/build.number": "23"
+        },
+        "ownerReferences": [
+            {
+                "apiVersion": "build.openshift.io/v1",
+                "kind": "BuildConfig",
+                "name": "be-docker-plain-master",
+                "uid": "aaf71a4d-6db1-11e9-9bbe-0050569e63cb",
+                "controller": true
+            }
+        ]
+    },
+    "spec": {
+        "serviceAccount": "builder",
+        "source": {
+            "type": "Git",
+            "git": {
+                "uri": "https://domain.com/scm/ods28/ods28-be-docker-plain.git",
+                "ref": "master"
+            },
+            "status": {
+                "phase": "New",
+                "config": {
+                    "kind": "BuildConfig",
+                    "namespace": "ods28-cd",
+                    "name": "be-docker-plain-master"
+                },
+                "output": {}
+            }
+        }
+    }
+}

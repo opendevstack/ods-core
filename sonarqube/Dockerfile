@@ -1,7 +1,6 @@
 FROM openjdk:8-alpine
 
-ENV SONAR_VERSION=7.3 \
-    SONARQUBE_HOME=/opt/sonarqube \
+ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
     SONARQUBE_JDBC_PASSWORD=sonar \
     SONARQUBE_JDBC_URL=
@@ -23,7 +22,7 @@ RUN set -x \
     # && if [[ $HTTP_PROXY != "" ]]; then gpg --keyserver ha.pool.sks-keyservers.net --keyserver-options "timeout=10 http-proxy=$http_proxy" --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE; else gpg --keyserver ha.pool.sks-keyservers.net --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE; fi \
     && mkdir -p /opt \
     && cd /opt \
-    && wget -O sonarqube.zip --no-verbose https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-$SONAR_VERSION.zip \
+    && wget -O sonarqube.zip --no-verbose $SONAR_DISTRIBUTION_URL \
     # && wget -O sonarqube.zip.asc --no-verbose https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-$SONAR_VERSION.zip.asc \
     # && gpg --batch --verify sonarqube.zip.asc sonarqube.zip \
     && unzip sonarqube.zip \
