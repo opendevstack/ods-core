@@ -29,15 +29,19 @@ else
 fi
 
 tar xfz /vagrant/downloads/keycloak-${VERSION}.tar.gz -C /opt
-rm -f /opt/keycloak
+#rm -f /opt/keycloak
 ln -s /opt/keycloak-${VERSION} /opt/keycloak
 
-rm -f /etc/default/wildfly.conf
+#rm -f /etc/default/wildfly.conf
 cp -f /vagrant/conf/wildfly.conf /etc/default/wildfly.conf
 
-rm -f /etc/init.d/keycloak
+#rm -f /etc/init.d/keycloak
 cp -f /vagrant/conf/wildfly-init-redhat.sh /opt/keycloak/wildfly-init-redhat.sh
-rm -f /etc/init.d/keycloak
+
+chmod a+x /opt/keycloak/wildfly-init-redhat.sh
+chown vagrant:vagrant /opt/keycloak/wildfly-init-redhat.sh
+
+#rm -f /etc/init.d/keycloak
 ln -s /opt/keycloak/wildfly-init-redhat.sh /etc/init.d/keycloak
 /sbin/chkconfig --add keycloak
 /sbin/chkconfig --level 345 keycloak on
