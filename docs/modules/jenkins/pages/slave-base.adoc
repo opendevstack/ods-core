@@ -1,0 +1,15 @@
+= ODS Jenkins Slave base
+
+== Introduction
+
+The base jenkins slave used by all ODS https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves[builder slaves]
+
+== Features / Plugins
+
+. Creates trust relationship with applications in the openshift cluster (thru certificate management)
+. http://repo1.maven.org/maven2/org/sonarsource/scanner[Sonarqube scanner plugin] binding to the central link:../sonarqube[SQ instance]
+. https://github.com/lequal/sonar-cnes-report[Sonarqube report plugin] used to download the scan results within the
+https://github.com/opendevstack/ods-jenkins-shared-library[jenkins shared library]'s stage `stageScanForSonarQube`
+. https://dl.bintray.com/jeremy-long/owasp/[OWASP scan plugin]
+. Creates proxy awareness when `HTTP_PROXY` is injected during build pahse
+. https://github.com/opendevstack/tailor[Tailor] - on top of `openshift CLI` to provide infrastrucure as code
