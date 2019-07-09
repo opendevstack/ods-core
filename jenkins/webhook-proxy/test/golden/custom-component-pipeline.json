@@ -2,7 +2,7 @@
     "kind": "BuildConfig",
     "apiVersion": "v1",
     "metadata": {
-        "name": "repository-master",
+        "name": "baz-foo",
         "creationTimestamp": null
     },
     "spec": {
@@ -19,8 +19,8 @@
         "source": {
             "type": "Git",
             "git": {
-                "uri": "https://domain.com/proj/repository.git",
-                "ref": "master"
+                "uri": "https://domain.com/bar/repository.git",
+                "ref": "foo"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"
@@ -29,8 +29,8 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "foo/Jenkinsfile",
-                "env": [{"name":"FOO","value":"bar"}]
+                "jenkinsfilePath": "Jenkinsfile",
+                "env": [{"name":"FOO_BAR","value":"baz"}]
             }
         },
         "output": {},

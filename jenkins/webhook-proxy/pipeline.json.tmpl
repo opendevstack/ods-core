@@ -10,7 +10,8 @@
             {
                 "type": "Generic",
                 "generic": {
-                    "secret": "{{.TriggerSecret}}"
+                    "secret": "{{.TriggerSecret}}",
+                    "allowEnv": true
                 }
             }
         ],
@@ -28,7 +29,8 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "{{.JenkinsfilePath}}"
+                "jenkinsfilePath": "{{.JenkinsfilePath}}",
+                "env": {{.Env}}
             }
         },
         "output": {},
