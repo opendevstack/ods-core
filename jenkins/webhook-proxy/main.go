@@ -230,6 +230,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		componentParam := queryValues.Get("component")
 
 		var event *Event
+
 		if strings.HasPrefix(r.URL.Path, "/custom") {
 			req := &requestCustom{}
 			json.NewDecoder(r.Body).Decode(req)
@@ -313,7 +314,12 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				event.Project,
 				event.Repo,
 			)
-			env, _ := json.Marshal(event.Env)
+			env, err := json.Marshal(event.Env)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
 			buildConfigData := BuildConfigData{
 				Name:            event.Pipeline,
 				TriggerSecret:   s.TriggerSecret,
@@ -322,7 +328,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				JenkinsfilePath: jenkinsfilePath,
 				Env:             string(env),
 			}
-			err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
+			err = s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {
 				log.Println(requestID, err)
 				return
@@ -335,6 +341,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			_, err = w.Write(res)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
 			}
 
 		} else if event.Kind == "delete" {
