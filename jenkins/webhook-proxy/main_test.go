@@ -171,7 +171,7 @@ func (c *mockClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 	c.Event = e
 	return nil, nil
 }
-func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event) error {
+func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error {
 	c.Event = e
 	return nil
 }
@@ -232,7 +232,6 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Component: "repository",
 				Branch:    "master",
 				Pipeline:  "repository-master",
-				GitURI:    "https://domain.com/proj/repository.git",
 			},
 		},
 		{
@@ -245,7 +244,6 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Component: "repository",
 				Branch:    "admin/file-1505781548644",
 				Pipeline:  "repository-admin-file-1505781548644",
-				GitURI:    "https://domain.com/proj/repository.git",
 			},
 		},
 		{
@@ -258,7 +256,6 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Component: "repository",
 				Branch:    "decline-me",
 				Pipeline:  "repository-decline-me",
-				GitURI:    "https://domain.com/proj/repository.git",
 			},
 		},
 	}
@@ -322,7 +319,6 @@ func TestForward(t *testing.T) {
 		Component: "repository",
 		Branch:    "master",
 		Pipeline:  "repository-master",
-		GitURI:    "https://domain.com/proj/repository.git",
 	}
 
 	// Ensure the response from OpenShift is forwarded as-is to the client
@@ -336,26 +332,25 @@ func TestForward(t *testing.T) {
 }
 
 func TestGetBuildConfig(t *testing.T) {
-	event := &Event{
-		Kind:      "forward",
-		Project:   "proj",
-		Namespace: "foo",
-		Repo:      "repository",
-		Component: "repository",
-		Branch:    "master",
-		Pipeline:  "repository-master",
-		GitURI:    "https://domain.com/proj/repository.git",
-	}
-
 	tmpl, err := template.ParseFiles(pipelineConfigFilename)
 	if err != nil {
 		t.Error(err)
 	}
-	b, err := getBuildConfig(tmpl, event, "s3cr3t")
+	data := BuildConfigData{
+		Name:            "repository-master",
+		TriggerSecret:   "s3cr3t",
+		GitURI:          "https://domain.com/proj/repository.git",
+		Branch:          "master",
+		JenkinsfilePath: "foo/Jenkinsfile",
+	}
+	b, err := getBuildConfig(tmpl, data)
 	if err != nil {
 		t.Error(err)
 	}
 	configBytes, err := ioutil.ReadFile("test/golden/pipeline.json")
+	if err != nil {
+		t.Error(err)
+	}
 	actual := b.String()
 	expected := string(configBytes)
 	if actual != expected {
