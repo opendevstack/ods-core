@@ -28,7 +28,7 @@ def globalLibrariesParameters = [
   branch:               "master",
   credentialId:         credentialsId,
   implicit:             false,
-  name:                 "OpenDevStack MRO shared library",
+  name:                 "ods-mro-jenkins-shared-library",
   repository:           mroLibRepoPath
 ]
 
