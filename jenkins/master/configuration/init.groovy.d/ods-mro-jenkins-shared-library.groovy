@@ -13,9 +13,12 @@ println "INFO: Jenkins adding mro shared lib: ${namespace}"
 
 def buildSharedLibName = "ods-jenkins-shared-library"
 
-def environment = "env".execute().text.trim()
+def envVars = Jenkins.instance.getGlobalNodeProperties()[0].getEnvVars()
+println envVars
 
-println "INFO: ${env}"
+// println envVars['myVar']
+def environment = "env".execute().text.trim()
+println "INFO: ${environment}"
 
 def buildSharedLibraryRepository = "env | grep SHARED_LIBRARY_REPOSITORY | cut -d '=' -f2".execute().text.trim()
 def mroLibRepoPath = buildSharedLibraryRepository.replace(buildSharedLibName, "ods-mro-jenkins-shared-library")
