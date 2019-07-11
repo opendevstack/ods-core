@@ -6,4 +6,4 @@ sonar:2.6.1
 ansicolor:0.5.2
 workflow-cps-global-lib:2.13
 junit:1.28
-blueocean:1.17
+blueocean:1.17.0
