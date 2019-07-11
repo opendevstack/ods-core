@@ -12,7 +12,7 @@ def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".ex
 println "INFO: Jenkins adding mro shared lib: ${namespace}"
 
 def buildSharedLibName = "ods-jenkins-shared-library"
-def buildSharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
+def buildSharedLibraryRepository = "env | grep SHARED_LIBRARY_REPOSITORY | cut -d '=' -f2".execute().text.trim()
 def mroLibRepoPath = buildSharedLibraryRepository.replace(buildSharedLibName, "ods-mro-jenkins-shared-library")
 
 println "INFO: Jenkins adding mro shared lib path: ${mroLibRepoPath}"
