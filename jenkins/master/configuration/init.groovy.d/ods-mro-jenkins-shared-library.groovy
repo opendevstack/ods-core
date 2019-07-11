@@ -11,6 +11,12 @@ import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever
 def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".execute().text.trim()
 println "INFO: Jenkins adding mro shared lib: ${namespace}"
 
+def buildSharedLibName = "ods-jenkins-shared-library"
+def buildSharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
+def mroLibRepoPath = buildSharedLibraryRepository.replace(buildSharedLibName, "ods-mro-jenkins-shared-library")
+
+println "INFO: Jenkins adding mro shared lib path: ${mroLibRepoPath}"
+
 def credentialsId = namespace + "-cd-user-with-password"
 // parameters
 def globalLibrariesParameters = [
@@ -18,7 +24,7 @@ def globalLibrariesParameters = [
   credentialId:         credentialsId,
   implicit:             false,
   name:                 "OpenDevStack MRO shared library",
-  repository:           "https://cd_user@bitbucket-dev.biscrum.com/scm/opendevstack/ods-jenkins-shared-library.git"
+  repository:           mroLibRepoPath
 ]
 
 // define global library
