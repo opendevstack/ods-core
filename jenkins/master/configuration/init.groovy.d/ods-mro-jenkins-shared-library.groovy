@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever
 def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".execute().text.trim()
 println "INFO: Jenkins adding mro shared lib: ${namespace}"
 
-def credentialsId = namespace + "cd-user-with-password"
+def credentialsId = namespace + "-cd-user-with-password"
 // parameters
 def globalLibrariesParameters = [
   branch:               "master",
