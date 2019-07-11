@@ -1,8 +1,9 @@
 token-macro:2.3
 greenballs:1.15
-credentials-binding:1.12
+credentials-binding:1.13
 email-ext:2.63
 sonar:2.6.1
 ansicolor:0.5.2
 workflow-cps-global-lib:2.13
 junit:1.28
+blueocean:1.17
