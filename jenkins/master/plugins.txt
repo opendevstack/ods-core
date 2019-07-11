@@ -4,3 +4,4 @@ credentials-binding:1.12
 email-ext:2.63
 sonar:2.6.1
 ansicolor:0.5.2
+workflow-cps-global-lib:2.13
