@@ -28,6 +28,9 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
+        env:
+          - name: APP_DNS
+            value: ${APP_DNS}
         from:
           kind: ImageStreamTag
           name: jenkins:2
