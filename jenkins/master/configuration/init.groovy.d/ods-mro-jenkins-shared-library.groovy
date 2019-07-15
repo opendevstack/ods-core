@@ -12,29 +12,30 @@ def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".ex
 println "INFO: Jenkins adding mro shared lib: ${namespace}"
 
 def buildSharedLibName = "ods-jenkins-shared-library"
+def mroSharedLibName = "ods-mro-jenkins-shared-library"
 
 def env = System.getenv()
 def buildSharedLibraryRepository = env['SHARED_LIBRARY_REPOSITORY']
 
 println "INFO: Jenkins adding mro shared lib - build lib path ${buildSharedLibraryRepository}"
 
-def mroLibRepoPath = buildSharedLibraryRepository.replace(buildSharedLibName, "ods-mro-jenkins-shared-library")
+def mroLibRepoPath = buildSharedLibraryRepository.replace(buildSharedLibName, mroSharedLibName)
 
-println "INFO: Jenkins adding mro shared lib path: ${mroLibRepoPath}"
+println "INFO: Jenkins adding mro shared lib path: ${mroLibRepoPath}, name ${mroSharedLibName}"
 
 def credentialsId = namespace + "-cd-user-with-password"
 // parameters
 def globalLibrariesParameters = [
-  branch:               "master",
+  branch:               "production",
   credentialId:         credentialsId,
   implicit:             false,
-  name:                 "ods-mro-jenkins-shared-library",
+  name:                 mroSharedLibName,
   repository:           mroLibRepoPath
 ]
 
 // define global library
 GitSCMSource gitSCMSource = new GitSCMSource(
-  "ods-mro-jenkins-shared-library",
+  globalLibrariesParameters.name,
   globalLibrariesParameters.repository,
   globalLibrariesParameters.credentialId,
   "*",
