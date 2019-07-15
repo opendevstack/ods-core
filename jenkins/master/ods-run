@@ -24,7 +24,7 @@ echo "Copy grape config and amending with nexus ..."
 mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
 sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|_NEXUS_HOST|$NEXUS_HOST|g" $HOME/.groovy/grapeConfig.xml
+sed -i.bak -e "s|__NEXUS_HOST|$NEXUS_HOST|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
