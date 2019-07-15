@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add Multirepo / rm jenkins library and jenkins shared build library as globals lib into jenkins ([#146](https://github.com/opendevstack/ods-core/issues/146))
 
 ## [1.1.0] - 2019-05-28
 
