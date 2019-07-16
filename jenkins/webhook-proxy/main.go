@@ -185,7 +185,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		} `json:"pullRequest"`
 	}
 
-	type requestCustom struct {
+	type requestBuild struct {
 		Branch     string    `json:"branch"`
 		Project    string    `json:"project"`
 		Repository string    `json:"repository"`
@@ -231,8 +231,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		var event *Event
 
-		if strings.HasPrefix(r.URL.Path, "/custom") {
-			req := &requestCustom{}
+		if strings.HasPrefix(r.URL.Path, "/build") {
+			req := &requestBuild{}
 			json.NewDecoder(r.Body).Decode(req)
 
 			component := componentParam

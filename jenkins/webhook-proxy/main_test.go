@@ -333,7 +333,7 @@ func TestForward(t *testing.T) {
 	}
 }
 
-func TestCustom(t *testing.T) {
+func TestBuildEndpoint(t *testing.T) {
 	examples := []struct {
 		name           string
 		path           string
@@ -343,24 +343,24 @@ func TestCustom(t *testing.T) {
 	}{
 		{
 			"request without trigger secret",
-			"/custom",
-			"test/fixtures/custom-payload.json",
+			"/build",
+			"test/fixtures/build-payload.json",
 			401,
 			"",
 		},
 		{
 			"payload only with trigger secret",
-			"/custom?trigger_secret=s3cr3t",
-			"test/fixtures/custom-payload.json",
+			"/build?trigger_secret=s3cr3t",
+			"test/fixtures/build-payload.json",
 			200,
-			"test/golden/custom-pipeline.json",
+			"test/golden/build-pipeline.json",
 		},
 		{
 			"payload with params and trigger secret",
-			"/custom?component=baz&trigger_secret=s3cr3t",
-			"test/fixtures/custom-payload.json",
+			"/build?component=baz&trigger_secret=s3cr3t",
+			"test/fixtures/build-payload.json",
 			200,
-			"test/golden/custom-component-pipeline.json",
+			"test/golden/build-component-pipeline.json",
 		},
 	}
 
@@ -406,7 +406,7 @@ func TestCustom(t *testing.T) {
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
-			// Make request to /custom with payload
+			// Make request to /build with payload
 			f, err := os.Open(example.payloadFile)
 			if err != nil {
 				t.Fatal(err)
