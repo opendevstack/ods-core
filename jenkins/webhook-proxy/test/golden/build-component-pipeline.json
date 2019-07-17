@@ -1,0 +1,41 @@
+{
+    "kind": "BuildConfig",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "baz-foo",
+        "creationTimestamp": null
+    },
+    "spec": {
+        "triggers": [
+            {
+                "type": "Generic",
+                "generic": {
+                    "secret": "s3cr3t",
+                    "allowEnv": true
+                }
+            }
+        ],
+        "runPolicy": "Serial",
+        "source": {
+            "type": "Git",
+            "git": {
+                "uri": "https://domain.com/bar/repository.git",
+                "ref": "foo"
+            },
+            "sourceSecret": {
+                "name": "cd-user-with-password"
+            }
+        },
+        "strategy": {
+            "type": "JenkinsPipeline",
+            "jenkinsPipelineStrategy": {
+                "jenkinsfilePath": "Jenkinsfile",
+                "env": [{"name":"FOO_BAR","value":"baz"}]
+            }
+        },
+        "output": {},
+        "resources": {},
+        "postCommit": {},
+        "nodeSelector": {}
+    }
+}

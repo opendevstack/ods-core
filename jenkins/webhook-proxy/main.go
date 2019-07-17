@@ -14,6 +14,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
+	"text/template"
 	"time"
 )
 
@@ -21,16 +23,22 @@ const (
 	namespaceFile            = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	caCert                   = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-	pipelineConfigFilename   = "pipeline.json"
+	pipelineConfigFilename   = "pipeline.json.tmpl"
 	repoBaseEnvVar           = "REPO_BASE"
 	triggerSecretEnvVar      = "TRIGGER_SECRET"
 	triggerSecretDefault     = "secret101"
+	jenkinsfilePathDefault   = "Jenkinsfile"
 	protectedBranchesEnvVar  = "PROTECTED_BRANCHES"
 	protectedBranchesDefault = "master,develop,production,staging,release/"
 	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
 	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+
+type EnvPair struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
 
 // Event is the internal representation of a BitBucket event described in
 // https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
@@ -43,13 +51,24 @@ type Event struct {
 	Branch    string
 	Pipeline  string
 	RequestID string
+	Env       []EnvPair
+}
+
+// BuildConfigData represents the data to be rendered into the BuildConfig template.
+type BuildConfigData struct {
+	Name            string
+	TriggerSecret   string
+	GitURI          string
+	Branch          string
+	JenkinsfilePath string
+	Env             string
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
-	Forward(e *Event) error
-	CreatePipelineIfRequired(e *Event) error
+	Forward(e *Event, triggerSecret string) ([]byte, error)
+	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error
 	DeletePipeline(e *Event) error
 }
 
@@ -68,14 +87,12 @@ type Server struct {
 	RepoBase          string
 }
 
-var server *Server
-
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
-	log.Println("Booted")
+	log.Println("Initialised")
 
 	repoBase := os.Getenv(repoBaseEnvVar)
 	if len(repoBase) == 0 {
@@ -118,7 +135,7 @@ func main() {
 		)
 	}
 
-	client, err := newClient(openShiftAPIHost)
+	client, err := newClient(openShiftAPIHost, triggerSecret)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -128,7 +145,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	server = &Server{
+	server := &Server{
 		Client:            client,
 		Namespace:         namespace,
 		TriggerSecret:     triggerSecret,
@@ -136,7 +153,7 @@ func main() {
 		RepoBase:          repoBase,
 	}
 
-	log.Println("Ready to accept requests")
+	log.Println("Booted")
 
 	mux := http.NewServeMux()
 	mux.Handle("/", server.HandleRoot())
@@ -151,7 +168,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		} `json:"project"`
 		Slug string `json:"slug"`
 	}
-	type request struct {
+	type requestBitbucket struct {
 		EventKey   string     `json:"eventKey"`
 		Repository repository `json:"repository"`
 		Changes    []struct {
@@ -167,12 +184,35 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			} `json:"fromRef"`
 		} `json:"pullRequest"`
 	}
+
+	type requestBuild struct {
+		Branch     string    `json:"branch"`
+		Project    string    `json:"project"`
+		Repository string    `json:"repository"`
+		Env        []EnvPair `json:"env"`
+	}
+
+	var (
+		init sync.Once
+		tmpl *template.Template
+		err  error
+	)
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := randStringBytes(6)
 		log.Println(requestID, "-----")
 
-		triggerSecretParam := r.URL.Query().Get("trigger_secret")
-		if triggerSecretParam != server.TriggerSecret {
+		init.Do(func() {
+			tmpl, err = template.ParseFiles(pipelineConfigFilename)
+		})
+		if err != nil {
+			log.Println(requestID, err.Error())
+			http.Error(w, "Could not parse pipeline config template", http.StatusInternalServerError)
+			return
+		}
+
+		queryValues := r.URL.Query()
+		triggerSecretParam := queryValues.Get("trigger_secret")
+		if triggerSecretParam != s.TriggerSecret {
 			log.Println(
 				requestID,
 				"trigger_secret param not given / not matching",
@@ -181,60 +221,129 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			return
 		}
 
-		req := &request{}
-		json.NewDecoder(r.Body).Decode(req)
+		jenkinsfilePath := jenkinsfilePathDefault
+		jenkinsfilePathParam := queryValues.Get("jenkinsfile_path")
+		if jenkinsfilePathParam != "" {
+			jenkinsfilePath = jenkinsfilePathParam
+		}
 
-		var project string
-		var repo string
-		var component string
-		var kind string
-		var branch string
+		componentParam := queryValues.Get("component")
 
-		if req.EventKey == "repo:refs_changed" {
-			project = strings.ToLower(req.Repository.Project.Key)
-			repo = req.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
-			branch = req.Changes[0].Ref.DisplayID
-			if req.Changes[0].Type == "DELETE" {
+		var event *Event
+
+		if strings.HasPrefix(r.URL.Path, "/build") {
+			req := &requestBuild{}
+			json.NewDecoder(r.Body).Decode(req)
+
+			component := componentParam
+			if component == "" {
+				component = strings.Replace(req.Repository, req.Project+"-", "", -1)
+			}
+			pipeline := makePipelineName(req.Project, component, req.Branch)
+
+			event = &Event{
+				Kind:      "forward",
+				Project:   req.Project,
+				Namespace: s.Namespace,
+				Repo:      req.Repository,
+				Component: component,
+				Branch:    req.Branch,
+				Pipeline:  pipeline,
+				RequestID: requestID,
+				Env:       req.Env,
+			}
+
+		} else if r.URL.Path == "/" {
+
+			req := &requestBitbucket{}
+			json.NewDecoder(r.Body).Decode(req)
+
+			var project string
+			var repo string
+			var kind string
+			var branch string
+			component := componentParam
+
+			if req.EventKey == "repo:refs_changed" {
+				project = strings.ToLower(req.Repository.Project.Key)
+				repo = req.Repository.Slug
+				if component == "" {
+					component = strings.Replace(repo, project+"-", "", -1)
+				}
+				branch = req.Changes[0].Ref.DisplayID
+				if req.Changes[0].Type == "DELETE" {
+					kind = "delete"
+				} else {
+					kind = "forward"
+				}
+			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
+				project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
+				repo = req.PullRequest.FromRef.Repository.Slug
+				if component == "" {
+					component = strings.Replace(repo, project+"-", "", -1)
+				}
+				branch = req.PullRequest.FromRef.DisplayID
 				kind = "delete"
 			} else {
-				kind = "forward"
+				log.Println(requestID, "Skipping unknown event", req.EventKey)
+				return
 			}
-		} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
-			project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
-			repo = req.PullRequest.FromRef.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
-			branch = req.PullRequest.FromRef.DisplayID
-			kind = "delete"
+			pipeline := makePipelineName(project, component, branch)
+
+			event = &Event{
+				Kind:      kind,
+				Project:   project,
+				Namespace: s.Namespace,
+				Repo:      repo,
+				Component: component,
+				Branch:    branch,
+				Pipeline:  pipeline,
+				RequestID: requestID,
+			}
 		} else {
-			log.Println(requestID, "Skipping unknown event", req.EventKey)
+			http.NotFound(w, r)
 			return
 		}
-		pipeline := makePipelineName(project, component, branch)
 
-		event := &Event{
-			Kind:      kind,
-			Project:   project,
-			Namespace: s.Namespace,
-			Repo:      repo,
-			Component: component,
-			Branch:    branch,
-			Pipeline:  pipeline,
-			RequestID: requestID,
-		}
 		log.Println(requestID, event)
 
 		if event.Kind == "forward" {
-			err := server.Client.CreatePipelineIfRequired(event)
+			gitURI := fmt.Sprintf(
+				"%s/%s/%s.git",
+				s.RepoBase,
+				event.Project,
+				event.Repo,
+			)
+			env, err := json.Marshal(event.Env)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			buildConfigData := BuildConfigData{
+				Name:            event.Pipeline,
+				TriggerSecret:   s.TriggerSecret,
+				GitURI:          gitURI,
+				Branch:          event.Branch,
+				JenkinsfilePath: jenkinsfilePath,
+				Env:             string(env),
+			}
+			err = s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {
 				log.Println(requestID, err)
 				return
 			}
-			err = server.Client.Forward(event)
+			res, err := s.Client.Forward(event, s.TriggerSecret)
 			if err != nil {
 				log.Println(requestID, err)
 				return
 			}
+			_, err = w.Write(res)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
 		} else if event.Kind == "delete" {
 			protected := isProtectedBranch(s.ProtectedBranches, event.Branch)
 			if protected {
@@ -245,7 +354,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				)
 				return
 			}
-			err := server.Client.DeletePipeline(event)
+			err := s.Client.DeletePipeline(event)
 			if err != nil {
 				log.Println(requestID, err)
 				return
@@ -257,13 +366,13 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *ocClient) Forward(e *Event) error {
+func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
-		server.TriggerSecret,
+		triggerSecret,
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
@@ -272,16 +381,18 @@ func (c *ocClient) Forward(e *Event) error {
 		url,
 		new(bytes.Buffer),
 	)
-	_, err := c.do(req)
+	res, err := c.do(req)
 	if err != nil {
-		return fmt.Errorf("Got error %s", err)
+		return nil, fmt.Errorf("Got error %s", err)
 	}
-	return nil
+	defer res.Body.Close()
+
+	return ioutil.ReadAll(res.Body)
 }
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
 // received event exists in OpenShift.
-func (c *ocClient) CreatePipelineIfRequired(e *Event) error {
+func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error {
 	exists, err := c.checkPipeline(e)
 	if err != nil {
 		return err
@@ -291,7 +402,7 @@ func (c *ocClient) CreatePipelineIfRequired(e *Event) error {
 		return nil
 	}
 
-	jsonStr, err := getBuildConfig(e)
+	jsonBuffer, err := getBuildConfig(tmpl, data)
 	if err != nil {
 		return err
 	}
@@ -304,7 +415,7 @@ func (c *ocClient) CreatePipelineIfRequired(e *Event) error {
 	req, _ := http.NewRequest(
 		"POST",
 		url,
-		bytes.NewBuffer(jsonStr),
+		jsonBuffer,
 	)
 	res, err := c.do(req)
 	if err != nil {
@@ -404,7 +515,7 @@ func (e *Event) String() string {
 	)
 }
 
-func newClient(openShiftAPIHost string) (*ocClient, error) {
+func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error) {
 	token, err := getFileContent(tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token: %s", err)
@@ -427,25 +538,13 @@ func newClient(openShiftAPIHost string) (*ocClient, error) {
 	}, nil
 }
 
-func getBuildConfig(e *Event) ([]byte, error) {
-	configBytes, err := ioutil.ReadFile(pipelineConfigFilename)
+func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffer, error) {
+	b := bytes.NewBuffer([]byte{})
+	err := tmpl.Execute(b, data)
 	if err != nil {
-		return []byte{}, err
+		return nil, fmt.Errorf("Could not fill template %s", pipelineConfigFilename)
 	}
-
-	gitURI := fmt.Sprintf(
-		"%s/%s/%s.git",
-		server.RepoBase,
-		e.Project,
-		e.Repo,
-	)
-
-	configBytes = bytes.Replace(configBytes, []byte("NAME"), []byte(e.Pipeline), -1)
-	configBytes = bytes.Replace(configBytes, []byte("TRIGGER_SECRET"), []byte(server.TriggerSecret), -1)
-	configBytes = bytes.Replace(configBytes, []byte("GIT_URI"), []byte(gitURI), -1)
-	configBytes = bytes.Replace(configBytes, []byte("BRANCH"), []byte(e.Branch), -1)
-
-	return configBytes, nil
+	return b, nil
 }
 
 func getSecureClient() (*http.Client, error) {

@@ -2,7 +2,7 @@
     "kind": "BuildConfig",
     "apiVersion": "v1",
     "metadata": {
-        "name": "NAME",
+        "name": "{{.Name}}",
         "creationTimestamp": null
     },
     "spec": {
@@ -10,7 +10,8 @@
             {
                 "type": "Generic",
                 "generic": {
-                    "secret": "TRIGGER_SECRET"
+                    "secret": "{{.TriggerSecret}}",
+                    "allowEnv": true
                 }
             }
         ],
@@ -18,8 +19,8 @@
         "source": {
             "type": "Git",
             "git": {
-                "uri": "GIT_URI",
-                "ref": "BRANCH"
+                "uri": "{{.GitURI}}",
+                "ref": "{{.Branch}}"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"
@@ -28,7 +29,8 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "Jenkinsfile"
+                "jenkinsfilePath": "{{.JenkinsfilePath}}",
+                "env": {{.Env}}
             }
         },
         "output": {},
