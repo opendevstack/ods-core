@@ -42,6 +42,7 @@ The following environment variables are read by the proxy:
 | TRIGGER_SECRET | The secret which protects the pipeline to be executed from outside. This variable is set by the template and usually does not need to be modified. |
 
 Moreover, one can pass the following query parameters to the proxy:
+
 | Variable | Description |
 | --- | --- |
 | jenkinsfile_path | The path to the `Jenkinsfile`. By default, the `Jenkinsfile` is assumed to be in the root of the repository, therefore this value defaults to simply `Jenkinsfile`. |
