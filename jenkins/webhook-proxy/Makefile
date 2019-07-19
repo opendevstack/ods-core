@@ -1,10 +1,13 @@
 test: test-unit
 
 test-unit:
-	@(go test -cover)
+	@(go test -v -cover)
 
 fmt:
 	@(gofmt -w .)
+
+lint:
+	golangci-lint run
 
 build: build-linux build-darwin build-windows
 
