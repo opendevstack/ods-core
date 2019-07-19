@@ -350,56 +350,63 @@ func TestForward(t *testing.T) {
 }
 
 func TestBuildEndpoint(t *testing.T) {
-	examples := []struct {
-		name           string
-		path           string
-		payloadFile    string
-		expectedStatus int
-		goldenFile     string
+	tests := map[string]struct {
+		path                       string
+		payloadFile                string
+		expectedStatus             int
+		expectedBody               string
+		goldenOpenshiftPayloadFile string
 	}{
-		{
-			"request without trigger secret",
+		"request without trigger secret": {
 			"/build",
 			"test/fixtures/build-payload.json",
 			401,
 			"",
+			"",
 		},
-		{
-			"payload only with trigger secret",
+		"payload only with trigger secret": {
 			"/build?trigger_secret=s3cr3t",
 			"test/fixtures/build-payload.json",
 			200,
+			"",
 			"test/golden/build-pipeline.json",
 		},
-		{
-			"payload with params and trigger secret",
+		"payload with param and trigger secret": {
 			"/build?component=baz&trigger_secret=s3cr3t",
 			"test/fixtures/build-payload.json",
 			200,
+			"",
 			"test/golden/build-component-pipeline.json",
+		},
+		"broken payload with trigger secret": {
+			"/build?trigger_secret=s3cr3t",
+			"test/fixtures/build-broken-payload.json",
+			400,
+			"Cannot parse JSON\n",
+			"",
 		},
 	}
 
-	for _, example := range examples {
-		t.Run(example.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			// Expected payload to create the BuildConfig
-			expected := []byte{}
-			if example.goldenFile != "" {
-				e, err := ioutil.ReadFile(example.goldenFile)
+			expectedOpenshiftPayload := []byte{}
+			if tc.goldenOpenshiftPayloadFile != "" {
+				e, err := ioutil.ReadFile(tc.goldenOpenshiftPayloadFile)
 				if err != nil {
 					t.Fatal(err)
 				} else {
-					expected = e
+					expectedOpenshiftPayload = e
 				}
 			}
 
-			var actual []byte
+			var actualOpenshiftPayload []byte
 			// Create OpenShift stub: Returns 404 when asked for a pipeline,
 			// and writes the body of the request to +actual+  when pipeline
 			// is to be created.
 			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if strings.HasSuffix(r.URL.Path, "/buildconfigs") && r.Method == "POST" {
-					actual, _ = ioutil.ReadAll(r.Body)
+					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
 				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
 					http.Error(w, "Not found", http.StatusNotFound)
@@ -423,21 +430,29 @@ func TestBuildEndpoint(t *testing.T) {
 			server := httptest.NewServer(s.HandleRoot())
 
 			// Make request to /build with payload
-			f, err := os.Open(example.payloadFile)
+			f, err := os.Open(tc.payloadFile)
 			if err != nil {
 				t.Fatal(err)
 			}
-			res, err := http.Post(server.URL+example.path, "application/json", f)
+			res, err := http.Post(server.URL+tc.path, "application/json", f)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			if res.StatusCode != example.expectedStatus {
-				t.Fatalf("Got response %d, want: %d", res.StatusCode, example.expectedStatus)
+			if res.StatusCode != tc.expectedStatus {
+				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.expectedStatus)
 			}
 
-			if len(expected) > 0 && string(actual) != string(expected) {
-				t.Fatalf("Got request body: %s, want: %s", actual, expected)
+			if len(expectedOpenshiftPayload) > 0 && string(actualOpenshiftPayload) != string(expectedOpenshiftPayload) {
+				t.Fatalf("Got request body: %s, want: %s", actualOpenshiftPayload, expectedOpenshiftPayload)
+			}
+
+			actualBody, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(tc.expectedBody) > 0 && string(actualBody) != tc.expectedBody {
+				t.Fatalf("Got response body: %s, want: %s", actualBody, tc.expectedBody)
 			}
 		})
 	}

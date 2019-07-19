@@ -233,7 +233,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
 			req := &requestBuild{}
-			json.NewDecoder(r.Body).Decode(req)
+			err := json.NewDecoder(r.Body).Decode(req)
+			if err != nil {
+				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				return
+			}
 
 			component := componentParam
 			if component == "" {
@@ -256,7 +260,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		} else if r.URL.Path == "/" {
 
 			req := &requestBitbucket{}
-			json.NewDecoder(r.Body).Decode(req)
+			err := json.NewDecoder(r.Body).Decode(req)
+			if err != nil {
+				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				return
+			}
 
 			var project string
 			var repo string
