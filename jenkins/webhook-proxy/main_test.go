@@ -195,24 +195,40 @@ func testServer() (*httptest.Server, *mockClient) {
 }
 
 func TestHandleRootRequiresTriggerSecret(t *testing.T) {
-	ts, _ := testServer()
+	ts, mc := testServer()
 	defer ts.Close()
 
-	f, err := os.Open("test/fixtures/repo-refs-changed-payload.json")
-	if err != nil {
-		t.Error(err)
-		return
+	tests := map[string]struct {
+		URL string
+	}{
+		"without trigger_secret param:":   {ts.URL},
+		"with empty trigger_secret param": {ts.URL + "?trigger_secret="},
+		"with wrong trigger_secret param": {ts.URL + "?trigger_secret=abc"},
 	}
-	res, err := http.Post(ts.URL, "application/json", f)
-	if err != nil {
-		t.Error(err)
-		return
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open("test/fixtures/repo-refs-changed-payload.json")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			res, err := http.Post(tc.URL, "application/json", f)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			expected := http.StatusUnauthorized
+			actual := res.StatusCode
+			if expected != actual {
+				t.Fatalf("Got status %v, want %v", actual, expected)
+			}
+			if mc.Event != nil {
+				t.Fatalf("Event was %v, want nil", mc.Event)
+			}
+		})
 	}
-	expected := http.StatusUnauthorized
-	actual := res.StatusCode
-	if expected != actual {
-		t.Errorf("Got status %v, want %v", actual, expected)
-	}
+
 }
 
 func TestHandleRootReadsRequests(t *testing.T) {
