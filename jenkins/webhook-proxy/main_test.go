@@ -173,9 +173,9 @@ func (c *mockClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 	c.Event = e
 	return nil, nil
 }
-func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error {
+func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
 	c.Event = e
-	return nil
+	return 0, nil
 }
 func (c *mockClient) DeletePipeline(e *Event) error {
 	c.Event = e
