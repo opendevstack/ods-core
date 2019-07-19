@@ -319,7 +319,10 @@ func TestForward(t *testing.T) {
 
 	// Create a stub that returns the fixed response
 	apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(expected)
+		_, err := w.Write(expected)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 
 	// Client pointing to the API stub created above
