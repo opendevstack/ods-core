@@ -316,6 +316,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		log.Println(requestID, event)
 
+		if !event.IsValid() {
+			http.Error(w, "Invalid input", http.StatusBadRequest)
+			return
+		}
+
 		if event.Kind == "forward" {
 			gitURI := fmt.Sprintf(
 				"%s/%s/%s.git",
@@ -509,6 +514,19 @@ func (c *ocClient) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	return c.HTTPClient.Do(req)
+}
+
+// IsValid performs basic snaity checks for event values.
+func (e *Event) IsValid() bool {
+	// Only forward and delete are recognized right now.
+	if e.Kind != "forward" && e.Kind != "delete" {
+		return false
+	}
+	// Pipeline consists of at least one char component, a dash and one char branch.
+	if len(e.Pipeline) < 3 {
+		return false
+	}
+	return len(e.Project) > 0 && len(e.Namespace) > 0 && len(e.Repo) > 0 && len(e.Component) > 0 && len(e.Branch) > 0
 }
 
 func (e *Event) String() string {

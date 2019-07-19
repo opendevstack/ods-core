@@ -388,6 +388,13 @@ func TestBuildEndpoint(t *testing.T) {
 			"Cannot parse JSON\n",
 			"",
 		},
+		"invalid payload with trigger secret": {
+			"/build?trigger_secret=s3cr3t",
+			"test/fixtures/build-invalid-payload.json",
+			400,
+			"Invalid input\n",
+			"",
+		},
 	}
 
 	for name, tc := range tests {
