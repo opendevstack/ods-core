@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -11,6 +12,12 @@ import (
 	"testing"
 	"text/template"
 )
+
+// SETUP
+func TestMain(m *testing.M) {
+	log.SetOutput(ioutil.Discard)
+	m.Run()
+}
 
 func TestMakePipelineName(t *testing.T) {
 	tests := []struct {
@@ -354,46 +361,67 @@ func TestForward(t *testing.T) {
 
 func TestBuildEndpoint(t *testing.T) {
 	tests := map[string]struct {
-		path                       string
-		payloadFile                string
-		expectedStatus             int
-		expectedBody               string
-		goldenOpenshiftPayloadFile string
+		whPath                   string
+		whPayload                string
+		whExpectedStatus         int
+		whExpectedBody           string
+		openshiftExpectedPayload string
+		openshiftResponseFile    string
+		openshiftResponseStatus  int
 	}{
 		"request without trigger secret": {
-			"/build",
-			"test/fixtures/build-payload.json",
-			401,
-			"",
-			"",
+			whPath:                   "/build",
+			whPayload:                "test/fixtures/build-payload.json",
+			whExpectedStatus:         401,
+			whExpectedBody:           "",
+			openshiftExpectedPayload: "",
+			openshiftResponseFile:    "",
+			openshiftResponseStatus:  0,
 		},
-		"payload only with trigger secret": {
-			"/build?trigger_secret=s3cr3t",
-			"test/fixtures/build-payload.json",
-			200,
-			"",
-			"test/golden/build-pipeline.json",
+		"valid payload": {
+			whPath:                   "/build?trigger_secret=s3cr3t",
+			whPayload:                "test/fixtures/build-payload.json",
+			whExpectedStatus:         200,
+			whExpectedBody:           "",
+			openshiftExpectedPayload: "test/golden/build-pipeline.json",
+			openshiftResponseFile:    "",
+			openshiftResponseStatus:  201,
 		},
-		"payload with param and trigger secret": {
-			"/build?component=baz&trigger_secret=s3cr3t",
-			"test/fixtures/build-payload.json",
-			200,
-			"",
-			"test/golden/build-component-pipeline.json",
+		"valid payload with param": {
+			whPath:                   "/build?component=baz&trigger_secret=s3cr3t",
+			whPayload:                "test/fixtures/build-payload.json",
+			whExpectedStatus:         200,
+			whExpectedBody:           "",
+			openshiftExpectedPayload: "test/golden/build-component-pipeline.json",
+			openshiftResponseFile:    "",
+			openshiftResponseStatus:  201,
 		},
-		"broken payload with trigger secret": {
-			"/build?trigger_secret=s3cr3t",
-			"test/fixtures/build-broken-payload.json",
-			400,
-			"Cannot parse JSON\n",
-			"",
+		"broken payload": {
+			whPath:                   "/build?trigger_secret=s3cr3t",
+			whPayload:                "test/fixtures/build-broken-payload.txt",
+			whExpectedStatus:         400,
+			whExpectedBody:           "Cannot parse JSON\n",
+			openshiftExpectedPayload: "",
+			openshiftResponseFile:    "",
+			openshiftResponseStatus:  0,
 		},
-		"invalid payload with trigger secret": {
-			"/build?trigger_secret=s3cr3t",
-			"test/fixtures/build-invalid-payload.json",
-			400,
-			"Invalid input\n",
-			"",
+		"invalid payload": {
+			whPath:                   "/build?trigger_secret=s3cr3t",
+			whPayload:                "test/fixtures/build-invalid-payload.json",
+			whExpectedStatus:         400,
+			whExpectedBody:           "Invalid input\n",
+			openshiftExpectedPayload: "",
+			openshiftResponseFile:    "",
+			openshiftResponseStatus:  0,
+		},
+		"accepted payload rejected by OpenShift": {
+			whPath:                   "/build?trigger_secret=s3cr3t",
+			whPayload:                "test/fixtures/build-rejected-payload.json",
+			whExpectedStatus:         422,
+			whExpectedBody:           "Could not create pipeline\n",
+			openshiftExpectedPayload: "",
+			openshiftResponseFile:    "test/fixtures/build-rejected-openshift-response.json",
+			openshiftResponseStatus:  422,
 		},
 	}
 
@@ -401,13 +429,21 @@ func TestBuildEndpoint(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Expected payload to create the BuildConfig
 			expectedOpenshiftPayload := []byte{}
-			if tc.goldenOpenshiftPayloadFile != "" {
-				e, err := ioutil.ReadFile(tc.goldenOpenshiftPayloadFile)
+			if tc.openshiftExpectedPayload != "" {
+				e, err := ioutil.ReadFile(tc.openshiftExpectedPayload)
 				if err != nil {
 					t.Fatal(err)
-				} else {
-					expectedOpenshiftPayload = e
 				}
+				expectedOpenshiftPayload = e
+			}
+
+			openshiftResponseBody := []byte{}
+			if tc.openshiftResponseFile != "" {
+				or, err := ioutil.ReadFile(tc.openshiftResponseFile)
+				if err != nil {
+					t.Fatal(err)
+				}
+				openshiftResponseBody = or
 			}
 
 			var actualOpenshiftPayload []byte
@@ -420,7 +456,10 @@ func TestBuildEndpoint(t *testing.T) {
 				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
 					http.Error(w, "Not found", http.StatusNotFound)
+					return
 				}
+				w.WriteHeader(tc.openshiftResponseStatus)
+				w.Write(openshiftResponseBody)
 			}))
 
 			// Client pointing to the API stub created above
@@ -440,17 +479,17 @@ func TestBuildEndpoint(t *testing.T) {
 			server := httptest.NewServer(s.HandleRoot())
 
 			// Make request to /build with payload
-			f, err := os.Open(tc.payloadFile)
+			f, err := os.Open(tc.whPayload)
 			if err != nil {
 				t.Fatal(err)
 			}
-			res, err := http.Post(server.URL+tc.path, "application/json", f)
+			res, err := http.Post(server.URL+tc.whPath, "application/json", f)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			if res.StatusCode != tc.expectedStatus {
-				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.expectedStatus)
+			if res.StatusCode != tc.whExpectedStatus {
+				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.whExpectedStatus)
 			}
 
 			if len(expectedOpenshiftPayload) > 0 && string(actualOpenshiftPayload) != string(expectedOpenshiftPayload) {
@@ -461,8 +500,8 @@ func TestBuildEndpoint(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(tc.expectedBody) > 0 && string(actualBody) != tc.expectedBody {
-				t.Fatalf("Got response body: %s, want: %s", actualBody, tc.expectedBody)
+			if len(tc.whExpectedBody) > 0 && string(actualBody) != tc.whExpectedBody {
+				t.Fatalf("Got response body: %s, want: %s", actualBody, tc.whExpectedBody)
 			}
 		})
 	}
