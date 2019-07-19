@@ -30,7 +30,17 @@ done
 
 echo "Create Nexus resources"
 cd /ods/ods-core/infrastructure-setup/scripts/
-./create-nexus-resources.sh
+
+# check if generated nexus password exists
+$(oc rsh -n cd $(oc get pods -n cd | cut -d" " -f1 | grep "nexus") test -f "/nexus-data/admin.password")
+if [ $? -eq 0 ]
+then 
+  NEXUS_PW=$(echo `oc -n cd rsh $(oc get pods -n cd | cut -d" " -f1 | grep "nexus") cat /nexus-data/admin.password`|tr -d '\r')  
+else
+  NEXUS_PW=admin123
+fi
+
+./create-nexus-resources.sh $NEXUS_PW
 
 cd ${BASE_DIR}
 
