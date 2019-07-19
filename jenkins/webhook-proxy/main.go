@@ -35,6 +35,7 @@ const (
 	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
+// EnvPair represents an environment variable
 type EnvPair struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
