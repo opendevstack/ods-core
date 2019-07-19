@@ -16,7 +16,7 @@ import (
 // SETUP
 func TestMain(m *testing.M) {
 	log.SetOutput(ioutil.Discard)
-	m.Run()
+	os.Exit(m.Run())
 }
 
 func TestMakePipelineName(t *testing.T) {
@@ -459,7 +459,10 @@ func TestBuildEndpoint(t *testing.T) {
 					return
 				}
 				w.WriteHeader(tc.openshiftResponseStatus)
-				w.Write(openshiftResponseBody)
+				_, err := w.Write(openshiftResponseBody)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}))
 
 			// Client pointing to the API stub created above
