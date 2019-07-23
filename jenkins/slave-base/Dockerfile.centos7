@@ -5,7 +5,7 @@ LABEL maintainer="Richard Attermeyer <richard.attermeyer@opitz-consulting.com>"
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
     CNES_REPORT_VERSION=2.0.0 \
-    TAILOR_VERSION=0.9.4 \
+    TAILOR_VERSION=0.9.5 \
     GIT_LFS_VERSION=2.6.1
 
 ARG APP_DNS=192.168.99.100.nip.io
