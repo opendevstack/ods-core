@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -16,6 +15,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 )
 
@@ -23,7 +23,7 @@ const (
 	namespaceFile            = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	caCert                   = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-	pipelineConfigFilename   = "pipeline.template.json"
+	pipelineConfigFilename   = "pipeline.json.tmpl"
 	repoBaseEnvVar           = "REPO_BASE"
 	triggerSecretEnvVar      = "TRIGGER_SECRET"
 	triggerSecretDefault     = "secret101"
@@ -34,6 +34,12 @@ const (
 	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
 	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+
+// EnvPair represents an environment variable
+type EnvPair struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
 
 // Event is the internal representation of a BitBucket event described in
 // https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
@@ -46,6 +52,7 @@ type Event struct {
 	Branch    string
 	Pipeline  string
 	RequestID string
+	Env       []EnvPair
 }
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
@@ -55,13 +62,14 @@ type BuildConfigData struct {
 	GitURI          string
 	Branch          string
 	JenkinsfilePath string
+	Env             string
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
 	Forward(e *Event, triggerSecret string) ([]byte, error)
-	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error
+	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
 }
 
@@ -161,7 +169,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		} `json:"project"`
 		Slug string `json:"slug"`
 	}
-	type request struct {
+	type requestBitbucket struct {
 		EventKey   string     `json:"eventKey"`
 		Repository repository `json:"repository"`
 		Changes    []struct {
@@ -176,6 +184,13 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				DisplayID  string     `json:"displayId"`
 			} `json:"fromRef"`
 		} `json:"pullRequest"`
+	}
+
+	type requestBuild struct {
+		Branch     string    `json:"branch"`
+		Project    string    `json:"project"`
+		Repository string    `json:"repository"`
+		Env        []EnvPair `json:"env"`
 	}
 
 	var (
@@ -213,48 +228,98 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			jenkinsfilePath = jenkinsfilePathParam
 		}
 
-		req := &request{}
-		json.NewDecoder(r.Body).Decode(req)
+		componentParam := queryValues.Get("component")
 
-		var project string
-		var repo string
-		var component string
-		var kind string
-		var branch string
+		var event *Event
 
-		if req.EventKey == "repo:refs_changed" {
-			project = strings.ToLower(req.Repository.Project.Key)
-			repo = req.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
-			branch = req.Changes[0].Ref.DisplayID
-			if req.Changes[0].Type == "DELETE" {
+		if strings.HasPrefix(r.URL.Path, "/build") {
+			req := &requestBuild{}
+			err := json.NewDecoder(r.Body).Decode(req)
+			if err != nil {
+				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				return
+			}
+
+			component := componentParam
+			if component == "" {
+				component = strings.Replace(req.Repository, req.Project+"-", "", -1)
+			}
+			pipeline := makePipelineName(req.Project, component, req.Branch)
+
+			event = &Event{
+				Kind:      "forward",
+				Project:   req.Project,
+				Namespace: s.Namespace,
+				Repo:      req.Repository,
+				Component: component,
+				Branch:    req.Branch,
+				Pipeline:  pipeline,
+				RequestID: requestID,
+				Env:       req.Env,
+			}
+
+		} else if r.URL.Path == "/" {
+
+			req := &requestBitbucket{}
+			err := json.NewDecoder(r.Body).Decode(req)
+			if err != nil {
+				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				return
+			}
+
+			var project string
+			var repo string
+			var kind string
+			var branch string
+			component := componentParam
+
+			if req.EventKey == "repo:refs_changed" {
+				project = strings.ToLower(req.Repository.Project.Key)
+				repo = req.Repository.Slug
+				if component == "" {
+					component = strings.Replace(repo, project+"-", "", -1)
+				}
+				branch = req.Changes[0].Ref.DisplayID
+				if req.Changes[0].Type == "DELETE" {
+					kind = "delete"
+				} else {
+					kind = "forward"
+				}
+			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
+				project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
+				repo = req.PullRequest.FromRef.Repository.Slug
+				if component == "" {
+					component = strings.Replace(repo, project+"-", "", -1)
+				}
+				branch = req.PullRequest.FromRef.DisplayID
 				kind = "delete"
 			} else {
-				kind = "forward"
+				log.Println(requestID, "Skipping unknown event", req.EventKey)
+				return
 			}
-		} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
-			project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
-			repo = req.PullRequest.FromRef.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
-			branch = req.PullRequest.FromRef.DisplayID
-			kind = "delete"
+			pipeline := makePipelineName(project, component, branch)
+
+			event = &Event{
+				Kind:      kind,
+				Project:   project,
+				Namespace: s.Namespace,
+				Repo:      repo,
+				Component: component,
+				Branch:    branch,
+				Pipeline:  pipeline,
+				RequestID: requestID,
+			}
 		} else {
-			log.Println(requestID, "Skipping unknown event", req.EventKey)
+			http.NotFound(w, r)
 			return
 		}
-		pipeline := makePipelineName(project, component, branch)
 
-		event := &Event{
-			Kind:      kind,
-			Project:   project,
-			Namespace: s.Namespace,
-			Repo:      repo,
-			Component: component,
-			Branch:    branch,
-			Pipeline:  pipeline,
-			RequestID: requestID,
-		}
 		log.Println(requestID, event)
+
+		if !event.IsValid() {
+			http.Error(w, "Invalid input", http.StatusBadRequest)
+			return
+		}
 
 		if event.Kind == "forward" {
 			gitURI := fmt.Sprintf(
@@ -263,16 +328,24 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				event.Project,
 				event.Repo,
 			)
+			env, err := json.Marshal(event.Env)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
 			buildConfigData := BuildConfigData{
 				Name:            event.Pipeline,
 				TriggerSecret:   s.TriggerSecret,
 				GitURI:          gitURI,
 				Branch:          event.Branch,
 				JenkinsfilePath: jenkinsfilePath,
+				Env:             string(env),
 			}
-			err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
+			statusCode, err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {
 				log.Println(requestID, err)
+				http.Error(w, "Could not create pipeline", statusCode)
 				return
 			}
 			res, err := s.Client.Forward(event, s.TriggerSecret)
@@ -283,6 +356,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			_, err = w.Write(res)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
 			}
 
 		} else if event.Kind == "delete" {
@@ -333,19 +407,20 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
 // received event exists in OpenShift.
-func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) error {
+// It returns any errors, the status code and the response body
+func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
 	exists, err := c.checkPipeline(e)
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	if exists {
-		return nil
+		return 200, nil
 	}
 
 	jsonBuffer, err := getBuildConfig(tmpl, data)
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	url := fmt.Sprintf(
@@ -360,20 +435,22 @@ func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, d
 	)
 	res, err := c.do(req)
 	if err != nil {
-		msg := fmt.Sprintf("error: %s", err.Error())
-		return errors.New(msg)
+		return 500, fmt.Errorf("could not make OpenShift request: %s", err)
 	}
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return 500, fmt.Errorf("could not read OpenShift response body: %s", err)
+	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return errors.New(string(body))
+		return res.StatusCode, fmt.Errorf("could not create pipeline: %s", body)
 	}
 
 	log.Println(e.RequestID, "Created pipeline", e.Pipeline)
 
-	return nil
+	return res.StatusCode, nil
 }
 
 // DeletePipeline removes the pipeline corresponding to the event from
@@ -392,8 +469,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	)
 	res, err := c.do(req)
 	if err != nil {
-		msg := fmt.Sprintf("error: %s", err.Error())
-		return errors.New(msg)
+		return fmt.Errorf("could not make OpenShift request: %s", err)
 	}
 	defer res.Body.Close()
 
@@ -424,8 +500,7 @@ func (c *ocClient) checkPipeline(e *Event) (bool, error) {
 	)
 	res, err := c.do(req)
 	if err != nil {
-		msg := fmt.Sprintf("error: %s", err.Error())
-		return false, errors.New(msg)
+		return false, fmt.Errorf("could not make OpenShift request: %s", err)
 	}
 	defer res.Body.Close()
 
@@ -441,6 +516,19 @@ func (c *ocClient) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	return c.HTTPClient.Do(req)
+}
+
+// IsValid performs basic snaity checks for event values.
+func (e *Event) IsValid() bool {
+	// Only forward and delete are recognized right now.
+	if e.Kind != "forward" && e.Kind != "delete" {
+		return false
+	}
+	// Pipeline consists of at least one char component, a dash and one char branch.
+	if len(e.Pipeline) < 3 {
+		return false
+	}
+	return len(e.Project) > 0 && len(e.Namespace) > 0 && len(e.Repo) > 0 && len(e.Component) > 0 && len(e.Branch) > 0
 }
 
 func (e *Event) String() string {

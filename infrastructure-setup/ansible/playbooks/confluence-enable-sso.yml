@@ -11,7 +11,7 @@
     - name: ensure we have the SSO authenticator enabled
       lineinfile:
         path: "{{atlassian_confluence_installation_dir}}/confluence/WEB-INF/classes/seraph-config.xml"
-        regexp: '<!-- <authenticator class="com.atlassian.confluence.user.ConfluenceCrowdSSOAuthenticator"/> -->'
+        regexp: '[<!-- ]?<authenticator class=\"com.atlassian.confluence.user.ConfluenceCrowdSSOAuthenticator\"/>[ -->]?'
         line: '<authenticator class="com.atlassian.confluence.user.ConfluenceCrowdSSOAuthenticator"/>'
       become: True
       notify:
@@ -40,4 +40,4 @@
     application_name: confluence
     application_password: "{{crowd_application_password_confluence}}"
     application_login_url: "{{atlassian_confluence_application_url}}"
-    application_crowd_base_url: "{{atlassian_crowd_url}}"    
+    application_crowd_base_url: "{{atlassian_crowd_url}}"
