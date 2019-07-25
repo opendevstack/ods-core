@@ -29,6 +29,7 @@ const (
 	protectedBranchesDefault = "master,develop,production,staging,release/"
 	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
+	namespaceSuffix          = "-cd"
 	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
@@ -62,6 +63,7 @@ type ocClient struct {
 // Server represents this service, and is a global.
 type Server struct {
 	Client            Client
+	Project           string
 	Namespace         string
 	TriggerSecret     string
 	ProtectedBranches []string
@@ -128,8 +130,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	project := strings.TrimSuffix(namespace, namespaceSuffix)
+
 	server = &Server{
 		Client:            client,
+		Project:           project,
 		Namespace:         namespace,
 		TriggerSecret:     triggerSecret,
 		ProtectedBranches: protectedBranches,
@@ -146,9 +151,6 @@ func main() {
 // HandleRoot handles all requests to this service.
 func (s *Server) HandleRoot() http.HandlerFunc {
 	type repository struct {
-		Project struct {
-			Key string `json:"key"`
-		} `json:"project"`
 		Slug string `json:"slug"`
 	}
 	type request struct {
@@ -184,16 +186,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		req := &request{}
 		json.NewDecoder(r.Body).Decode(req)
 
-		var project string
 		var repo string
 		var component string
 		var kind string
 		var branch string
 
 		if req.EventKey == "repo:refs_changed" {
-			project = strings.ToLower(req.Repository.Project.Key)
 			repo = req.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
+			component = strings.Replace(repo, s.Project+"-", "", -1)
 			branch = req.Changes[0].Ref.DisplayID
 			if req.Changes[0].Type == "DELETE" {
 				kind = "delete"
@@ -201,20 +201,19 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				kind = "forward"
 			}
 		} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
-			project = strings.ToLower(req.PullRequest.FromRef.Repository.Project.Key)
 			repo = req.PullRequest.FromRef.Repository.Slug
-			component = strings.Replace(repo, project+"-", "", -1)
+			component = strings.Replace(repo, s.Project+"-", "", -1)
 			branch = req.PullRequest.FromRef.DisplayID
 			kind = "delete"
 		} else {
 			log.Println(requestID, "Skipping unknown event", req.EventKey)
 			return
 		}
-		pipeline := makePipelineName(project, component, branch)
+		pipeline := makePipelineName(s.Project, component, branch)
 
 		event := &Event{
 			Kind:      kind,
-			Project:   project,
+			Project:   s.Project,
 			Namespace: s.Namespace,
 			Repo:      repo,
 			Component: component,
