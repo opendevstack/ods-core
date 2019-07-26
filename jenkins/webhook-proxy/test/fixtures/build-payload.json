@@ -1,6 +1,5 @@
 {
     "branch": "foo",
-    "project": "bar",
     "repository": "repository",
     "env": [
        {

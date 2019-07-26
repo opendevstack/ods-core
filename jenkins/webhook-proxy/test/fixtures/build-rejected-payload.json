@@ -1,6 +1,5 @@
 {
     "branch": "master",
-    "project": "bar",
     "repository": "123",
     "env": [
        {
