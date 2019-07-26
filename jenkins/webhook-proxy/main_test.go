@@ -183,7 +183,8 @@ func testServer() (*httptest.Server, *mockClient) {
 	mc := &mockClient{}
 	server = &Server{
 		Client:            mc,
-		Namespace:         "foo",
+		Project:           "bar",
+		Namespace:         "bar-cd",
 		TriggerSecret:     "s3cr3t",
 		ProtectedBranches: []string{"baz"},
 		RepoBase:          "https://domain.com",
@@ -225,8 +226,8 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"repo-refs-changed-payload.json",
 			&Event{
 				Kind:      "forward",
-				Project:   "proj",
-				Namespace: "foo",
+				Project:   "bar",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
@@ -237,8 +238,8 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"pr-merged-payload.json",
 			&Event{
 				Kind:      "delete",
-				Project:   "proj",
-				Namespace: "foo",
+				Project:   "bar",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "admin/file-1505781548644",
@@ -249,8 +250,8 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"pr-declined-payload.json",
 			&Event{
 				Kind:      "delete",
-				Project:   "proj",
-				Namespace: "foo",
+				Project:   "bar",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "decline-me",
