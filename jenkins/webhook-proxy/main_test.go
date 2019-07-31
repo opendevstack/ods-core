@@ -193,7 +193,8 @@ func testServer() (*httptest.Server, *mockClient) {
 	mc := &mockClient{}
 	server := &Server{
 		Client:            mc,
-		Namespace:         "foo",
+		Namespace:         "bar-cd",
+		Project:           "bar",
 		TriggerSecret:     "s3cr3t",
 		ProtectedBranches: []string{"baz"},
 		RepoBase:          "https://domain.com",
@@ -251,8 +252,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"repo-refs-changed-payload.json",
 			&Event{
 				Kind:      "forward",
-				Project:   "proj",
-				Namespace: "foo",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
@@ -263,8 +263,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"pr-merged-payload.json",
 			&Event{
 				Kind:      "delete",
-				Project:   "proj",
-				Namespace: "foo",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "admin/file-1505781548644",
@@ -275,8 +274,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			"pr-declined-payload.json",
 			&Event{
 				Kind:      "delete",
-				Project:   "proj",
-				Namespace: "foo",
+				Namespace: "bar-cd",
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "decline-me",
@@ -341,8 +339,7 @@ func TestForward(t *testing.T) {
 
 	event := &Event{
 		Kind:      "forward",
-		Project:   "proj",
-		Namespace: "foo",
+		Namespace: "bar-cd",
 		Repo:      "repository",
 		Component: "repository",
 		Branch:    "master",
@@ -474,7 +471,8 @@ func TestBuildEndpoint(t *testing.T) {
 			// Server using the special client
 			s := &Server{
 				Client:            c,
-				Namespace:         "foo",
+				Namespace:         "bar-cd",
+				Project: "bar",
 				TriggerSecret:     "s3cr3t",
 				ProtectedBranches: []string{"baz"},
 				RepoBase:          "https://domain.com",
@@ -514,7 +512,8 @@ func TestNotFound(t *testing.T) {
 	// Server using a mocked client
 	s := &Server{
 		Client:            &mockClient{},
-		Namespace:         "foo",
+		Namespace:         "bar-cd",
+		Project: "bar",
 		TriggerSecret:     "s3cr3t",
 		ProtectedBranches: []string{"baz"},
 		RepoBase:          "https://domain.com",
