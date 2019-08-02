@@ -1,1 +1,3 @@
-* xref:index.adoc[Shared Images]
+* Shared Images
+** xref:openresty-nginx.adoc[OpenResty Base image + WAF]
+** xref:nginx-authproxy-crowd.adoc[Crowd Authproxy]
