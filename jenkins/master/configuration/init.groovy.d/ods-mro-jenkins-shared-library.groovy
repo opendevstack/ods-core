@@ -9,7 +9,7 @@ import org.jenkinsci.plugins.workflow.libs.LibraryConfiguration
 import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever
 
 def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".execute().text.trim()
-println "INFO: Jenkins adding mro shared lib: ${namespace}"
+println "INFO: Jenkins adding mro shared lib into namespace: ${namespace}"
 
 def buildSharedLibName = "ods-jenkins-shared-library"
 def mroSharedLibName = "ods-mro-jenkins-shared-library"

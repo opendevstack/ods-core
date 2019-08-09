@@ -16,6 +16,8 @@ def buildSharedLibName = "ods-jenkins-shared-library"
 def env = System.getenv()
 def buildSharedLibraryRepository = env['SHARED_LIBRARY_REPOSITORY']
 
+println "INFO: Jenkins adding ods build shared lib path: ${mroLibRepoPath}, name ${mroSharedLibName}"
+
 def credentialsId = namespace + "-cd-user-with-password"
 // parameters
 def globalLibrariesParameters = [
@@ -51,7 +53,21 @@ libraryConfiguration.setDefaultVersion(globalLibrariesParameters.branch)
 libraryConfiguration.setImplicit(globalLibrariesParameters.implicit)
 
 // set new Jenkins Global Library
-globalLibraries.get().setLibraries([libraryConfiguration])
+def List<LibraryConfiguration> existingLibs = globalLibraries.get().getLibraries()
+
+println "INFO: Found existing libraries: " + existingLibs.size
+
+for (LibraryConfiguration config : existingLibs) {
+  if (config.getName() == buildSharedLibName) {
+    println "DEBUG: lib already existing, skipping"
+    return
+  }
+}
+
+println "DEBUG: Adding ODS build shared lib"
+
+// add the lib
+existingLibs.add(libraryConfiguration)
 
 // save current Jenkins state to disk
 jenkins.save()
