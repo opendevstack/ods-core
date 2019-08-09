@@ -58,7 +58,22 @@ libraryConfiguration.setDefaultVersion(globalLibrariesParameters.branch)
 libraryConfiguration.setImplicit(globalLibrariesParameters.implicit)
 
 // set new Jenkins Global Library
-globalLibraries.get().setLibraries([libraryConfiguration])
+def List<LibraryConfiguration> existingLibs = globalLibraries.get().getLibraries()
+
+println "INFO: Found existing libraries: " + existingLibs.size
+
+for (LibraryConfiguration config : existingLibs) {
+  if (config.getName() == mroSharedLibName) {
+    println "DEBUG: mro lib already existing, skipping"
+    return
+  }
+}
+
+println "DEBUG: Adding MRO build shared lib"
+
+// add the lib
+existingLibs.add(libraryConfiguration)
+
 
 // save current Jenkins state to disk
 jenkins.save()

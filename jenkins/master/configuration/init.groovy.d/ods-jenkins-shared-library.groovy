@@ -16,7 +16,7 @@ def buildSharedLibName = "ods-jenkins-shared-library"
 def env = System.getenv()
 def buildSharedLibraryRepository = env['SHARED_LIBRARY_REPOSITORY']
 
-println "INFO: Jenkins adding ods build shared lib path: ${mroLibRepoPath}, name ${mroSharedLibName}"
+println "INFO: Jenkins adding ods build shared lib ${buildSharedLibName}"
 
 def credentialsId = namespace + "-cd-user-with-password"
 // parameters
