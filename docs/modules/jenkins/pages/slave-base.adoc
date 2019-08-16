@@ -13,3 +13,4 @@ https://github.com/opendevstack/ods-jenkins-shared-library[jenkins shared librar
 . https://dl.bintray.com/jeremy-long/owasp/[OWASP scan plugin]
 . Creates proxy awareness when `HTTP_PROXY` is injected during build pahse
 . https://github.com/opendevstack/tailor[Tailor] - on top of `openshift CLI` to provide infrastrucure as code
+. https://snyk.io[Snyk] - used to scan and monitor projects vulnerable third-party dependencies
