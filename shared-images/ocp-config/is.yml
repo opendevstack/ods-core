@@ -37,5 +37,16 @@ objects:
     dockerImageRepository: elasticsearch
     lookupPolicy:
       local: false
-
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: shared-services
+      component: airflow
+      template: bc-docker
+    name: airflow
+  spec:
+    dockerImageRepository: airflow
+    lookupPolicy:
+      local: false
 
