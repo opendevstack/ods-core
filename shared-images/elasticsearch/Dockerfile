@@ -12,9 +12,6 @@ COPY ./scripts/* /usr/share/elasticsearch/bin/
 
 ENV CERT_PATH=/usr/share/elasticsearch/config/certs
 
-# In order to create a Elastic Search Cluster the certificates should be created and copyed into the 
-# docker images instead of beeing created during the docker build process
-
 RUN mkdir -p ${CERT_PATH} && \
     chmod +x /usr/share/elasticsearch/bin/* && \
 	yum -y --quiet install rsync && \
