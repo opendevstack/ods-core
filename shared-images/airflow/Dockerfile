@@ -101,7 +101,7 @@ COPY dist/oauth ${HOME}/oauth
 COPY dist/openshift_plugin ${HOME}/openshift_plugin
 
 RUN pip install ${HOME}/oauth \
-    && pip install ${HOME}/openshift_plugin \
+    && CFLAGS=-std=c99 pip install ${HOME}/openshift_plugin \
     && chgrp -R 0 ${AIRFLOW_HOME} \
     && chmod -R g=u ${AIRFLOW_HOME} \
     && chmod +x /entrypoint.sh \
