@@ -28,6 +28,11 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
+        env:
+          - name: APP_DNS
+            value: ${APP_DNS}
+          - name: TARGET_HOSTS
+            value: ${TARGET_HOSTS}
         from:
           kind: ImageStreamTag
           name: jenkins:2
@@ -67,6 +72,8 @@ objects:
             value: ${APP_DNS}
           - name: SNYK_DISTRIBUTION_URL
             value: ${SNYK_DISTRIBUTION_URL}
+          - name: TARGET_HOSTS
+            value: ${TARGET_HOSTS}
         from:
           kind: DockerImage
           name: ${JENKINS_SLAVE_BASE_FROM_IMAGE}
@@ -113,3 +120,5 @@ parameters:
   description: OpenShift application base dns - used for grabbing the root ca and adding into the slave
 - name: SNYK_DISTRIBUTION_URL
   description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+- name: TARGET_HOSTS
+  description: if you have multiple DNS with different root ca, add them here seperated by ';'. They are added to jenkins master
