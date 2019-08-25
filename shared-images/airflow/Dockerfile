@@ -7,7 +7,7 @@ FROM centos/python-36-centos7
 ARG AIRFLOW_VERSION=1.10.3
 ARG FILE_BEATS_VERSION=7.0.0
 
-MAINTAINER Hugo Wruck Schneider <hugo.wruck_schneider@boehringer-ingelheim.com>
+LABEL maintainer="Hugo Wruck Schneider <hugo.wruck_schneider@boehringer-ingelheim.com>"
 
 ENV SUMMARY="OpenDevStack Provided Airflow ${AIRFLOW_VERSION} Base Image compatible with OpenShift"
 ENV DESCRIPTION="OpenDevStack Provided Airflow ${AIRFLOW_VERSION} Base Image compatible with OpenShift. This image \
@@ -27,7 +27,7 @@ LABEL   "name"="openshift3/airflow" \
         "io.k8s.display-name"="Airflow ${AIRFLOW_VERSION}" \
         "com.redhat.component"="airflow-rhel7-docker"
 
-ARG PYTHON_DEPS=""
+ARG PYTHON_DEPS="Flask==1.0.0 tzlocal<2.0.0.0,>=1.5.0.0"
 
 ARG AIRFLOW_DEPS=""
 
@@ -114,11 +114,14 @@ RUN pip install ${HOME}/oauth \
     && chmod -R g=u /var/log/filebeat  \
     && chmod g+r /etc/filebeat/filebeat.yml
 
-RUN if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi
+RUN if [ -n "${PYTHON_DEPS}" ]; then \
+        if [[ ! -z ${NEXUS_URL} ]]; \
+            then pip install -i https://${NEXUS_USERNAME}:${NEXUS_PASSWORD}@${NEXUS_URL:8}/repository/pypi-all/simple -U ${PYTHON_DEPS}; \
+            else pip install -U ${PYTHON_DEPS}; \
+        fi \
+    fi
 
 USER 1001
-
-
 
 # Only the port for the webserver (8080) is exposed. Exposing the ports for flower
 # and for the http server on the worker is not advisable but if need this should be changed.
