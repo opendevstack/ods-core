@@ -1,0 +1,15 @@
+logging.level: warning
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - ${AIRFLOW_HOME}/logs/**/*.log
+processors:
+- add_kubernetes_metadata:
+    in_cluster: true
+    namespace: default
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_URL}"]
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  pipeline: airflow-filebeat-pipeline

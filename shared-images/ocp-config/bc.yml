@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: Template
-objects:
+objects:  
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
@@ -66,6 +66,70 @@ objects:
         from:
           kind: ImageStreamTag
           name: openresty-nginx:1.0
+      type: Docker
+    triggers: []
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: shared-services
+      component: elasticsearch
+      template: bc-docker
+    name: elasticsearch
+  spec:
+    failedBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:   
+      to:
+        kind: ImageStreamTag
+        name: elasticsearch:7.0.0
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: shared-images/elasticsearch
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Dockerfile
+      type: Docker  
+    triggers: []
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: shared-services
+      component: airflow
+      template: bc-docker
+    name: airflow
+  spec:
+    failedBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow:1.10.3
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: shared-images/airflow
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Dockerfile
       type: Docker
     triggers: []
 parameters:
