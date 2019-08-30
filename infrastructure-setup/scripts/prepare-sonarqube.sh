@@ -42,8 +42,6 @@ find . -iname "sonarqube.env" -exec sed -i "s|AUTH_TOKEN=$sonar_admin_password_b
 find . -iname "templates.env" -exec sed -i "s|SONAR_SERVER_AUTH_TOKEN=$sonar_admin_password_base64|SONAR_SERVER_AUTH_TOKEN=$TOKEN_BASE64|g" {} \;
 find . -iname "secret.env" -exec sed -i "s|SONAR_SERVER_AUTH_TOKEN=$sonar_admin_password_base64|SONAR_SERVER_AUTH_TOKEN=$TOKEN_BASE64|g" {} \;
 
-# upload_templates.sh has been removed.
-
 oc project cd
 cd /ods/ods-core/sonarqube/ocp-config
 yes 'y' | tailor update -v --force

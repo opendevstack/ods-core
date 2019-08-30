@@ -29,7 +29,6 @@ oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:se
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
-# upload_templates.sh has been removed. However secret is still needed.
 # create secrets for cd_user
 CD_USER_PWD=$(grep CD_USER_PWD $configuration_location | cut -d '=' -f 2-)
 oc process -f ${BASE_DIR}/ods-project-quickstarters/ocp-templates/ocp-config/cd-user/secret.yml -p CD_USER_PWD=${CD_USER_PWD} |  oc create -n cd -f-
