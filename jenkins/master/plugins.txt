@@ -4,3 +4,7 @@ credentials-binding:1.18
 email-ext:2.63
 sonar:2.6.1
 ansicolor:0.5.2
+workflow-cps-global-lib:2.13
+junit:1.28
+blueocean:1.18.0
+workflow-durable-task-step:2.28
