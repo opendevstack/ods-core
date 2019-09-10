@@ -1,0 +1,75 @@
+{% extends "airflow/master.html" %}
+{% import 'admin/lib.html' as lib with context %}
+{% block title %}Airflow - Worker Image DAG Sync{% endblock %}
+{% block head_css %}
+    {{ lib.form_css() }}
+    {{ super() }}
+    <link href="{{ url_for("static", filename="bootstrap-toggle.min.css") }}" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block body %}
+    <h1>Worker Image DAGs Sync</h1>
+    {% if files is defined %}
+        <p>Image used:</p>
+        <table class="table table-striped table-bordered table-hover model-list">
+            <tr>
+                <td>Name</td>
+                <td>{{ image['metadata']['name'] }}</td>
+            </tr>
+            <tr>
+                <td>Created at</td>
+                <td>{{ image['metadata']['creationTimestamp'] }}</td>
+            </tr>
+        </table>
+        <p>For more information, <a target="_blank" href="{{ image_url }}">click here!</a></p>
+
+        <table class="table table-striped table-bordered table-hover model-list">
+            <thead>
+            <tr>
+                {% block list_header scoped %}
+                    <th class="column-header">
+                        File name
+                    </th>
+                    <th class="column-header">
+                        Creation Time
+                    </th>
+                    <th class="column-header">
+                        Size
+                    </th>
+                {% endblock %}
+            </tr>
+            </thead>
+            {% for file in files %}
+                <tr>
+                    {% block list_row scoped %}
+                        <td>{{ file['filename'] }}</td>
+                        <td>{{ file['datetime'] }}</td>
+                        <td>{{ file['size'] }} Bytes</td>
+                    {% endblock %}
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="999">
+                        {% block empty_list_message %}
+                            <div class="text-center">
+                                {{ admin_view.get_empty_list_message() }}
+                            </div>
+                        {% endblock %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <p>Requesting the synchronization of the worker image information will replace the code for any existing
+            dags.</p>
+        <form method="post" action="{{ url_for("openshiftworkerimagesyncview.request_sync") }}">
+            <input name="_csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <button type="submit">Request Sync</button>
+        </form>
+    {% elif request_sync is defined %}
+        <h2>{{ request_sync }}</h2>
+    {% else %}
+        <form method="post">
+            <input name="_csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <button type="submit">Load worker image DAG information</button>
+        </form>
+    {% endif %}
+{% endblock %}}

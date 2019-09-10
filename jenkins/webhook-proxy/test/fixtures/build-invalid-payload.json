@@ -1,0 +1,10 @@
+{
+    "branch": "",
+    "repository": "repository",
+    "env": [
+       {
+          "name": "FOO_BAR",
+          "value": "baz"
+       }
+    ]
+ }

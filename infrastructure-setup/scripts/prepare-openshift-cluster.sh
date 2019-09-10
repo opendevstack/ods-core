@@ -11,6 +11,12 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 	exit
 fi
 
+configuration_location=${BASE_DIR}/ods-configuration/ods-project-quickstarters/ocp-templates/templates/templates.env
+if [[ ! -f $configuration_location ]]; then
+	echo "Cannot find file: ${configuration_location} - please ensure you have copied ods-configuration-sample and created template.env"
+	exit 1
+fi
+
 oc login -u system:admin
 
 oc new-project cd --description="Base project holding the templates and the Repositoy Manager" --display-name="OpenDevStack Templates"
@@ -23,11 +29,9 @@ oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:se
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
-cd ${BASE_DIR}/ods-project-quickstarters/ocp-templates/scripts/
-./upload-templates.sh
-
-#create secrets for cd_user
-oc process -n cd templates/secrets -p PROJECT=cd | oc create -n cd -f-
+# create secrets for cd_user
+CD_USER_PWD=$(grep CD_USER_PWD $configuration_location | cut -d '=' -f 2-)
+oc process -f ${BASE_DIR}/ods-project-quickstarters/ocp-templates/ocp-config/cd-user/secret.yml -p CD_USER_PWD=${CD_USER_PWD} |  oc create -n cd -f-
 
 if [[ ! -d "${BASE_DIR}/certs" ]] ; then
   echo "creating certs directory"

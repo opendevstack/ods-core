@@ -6,4 +6,4 @@ atlassian_confluence_version: 6.14.3
 # set rundeck version
 rundeck_version: 2.11.8-1.59.GA
 git_version: 2.19.1
-tailor_version: 0.9.4
+tailor_version: 0.9.5

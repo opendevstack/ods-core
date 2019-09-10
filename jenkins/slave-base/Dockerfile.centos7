@@ -5,10 +5,11 @@ LABEL maintainer="Richard Attermeyer <richard.attermeyer@opitz-consulting.com>"
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
     CNES_REPORT_VERSION=2.0.0 \
-    TAILOR_VERSION=0.9.4 \
+    TAILOR_VERSION=0.9.5 \
     GIT_LFS_VERSION=2.6.1
 
 ARG APP_DNS=192.168.99.100.nip.io
+ARG SNYK_DISTRIBUTION_URL
 
 RUN yum -y install openssl
 RUN yum -y install gnutls-utils
@@ -72,6 +73,18 @@ RUN cd /tmp && \
     bash  /tmp/git-lfs/install.sh && \
     git lfs version && \
     rm -rf /tmp/git-lfs*
+
+# optionally install snyk
+RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ; else echo 'Installing snyk... getting binary from' $SNYK_DISTRIBUTION_URL \
+  && curl -Lv $SNYK_DISTRIBUTION_URL --output snyk \
+  && mv snyk /usr/local/bin \
+  && chmod +rwx /usr/local/bin/snyk \
+  && mkdir -p $HOME/.config/configstore/ \
+  && chmod -R g+rw $HOME/.config/configstore/ \
+  && echo 'Snyk CLI version:' \
+  && snyk --version \
+  && echo 'Snyk installation completed!'; fi
+
 
 # set java proxy var
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh

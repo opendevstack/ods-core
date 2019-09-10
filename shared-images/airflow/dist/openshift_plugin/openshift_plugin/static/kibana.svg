@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>logo_product_kibana_30</title>
+    <desc>Created with Sketch.</desc>
+    <g id="logo_product_kibana_30" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-8" transform="translate(3.000000, 0.000000)">
+            <polygon id="Fill-1" fill="#F04E98" points="0 0.0003 0 26.9893 24 0.0003"></polygon>
+            <path d="M0,11 L0,26.989 L11.567,13.981 C8.136,12.088 4.197,11 0,11" id="Fill-2" fill="#343741"></path>
+            <path d="M14.125,15.6191 L2.242,28.9831 L1.338,30.0001 L23.475,30.0001 C22.228,24.1171 18.815,19.0451 14.125,15.6191" id="Fill-4" fill="#00BFB3"></path>
+        </g>
+    </g>
+</svg>
