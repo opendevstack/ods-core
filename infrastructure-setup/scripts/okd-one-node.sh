@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 yum install -y git vim
-export DOMAIN=192.168.56.101
+export DOMAIN=192.168.56.101.nip.io
 export USERNAME=richard
 export PASSWORD=changeit
 curl https://raw.githubusercontent.com/gshipley/installcentos/master/install-openshift.sh | INTERACTIVE=false /bin/bash
