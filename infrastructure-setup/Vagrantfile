@@ -45,7 +45,7 @@ Vagrant.configure(2) do |config|
 		   
   # openshift
   config.vm.define "openshift", primary:true, autostart: true do |vm_config|
-    vm_config.vm.box = "bento/centos-7.6"
+    vm_config.vm.box = "bento/centos-7.5"
     vm_config.vm.box_check_update = false
     vm_config.vm.hostname = "openshift"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
@@ -81,7 +81,7 @@ Vagrant.configure(2) do |config|
 
   # Identity Manager
   config.vm.define "idmanager" do |vm_config|
-    vm_config.vm.box = "bento/centos-7.6"
+    vm_config.vm.box = "bento/centos-7.5"
     vm_config.vm.box_check_update = false
     vm_config.vm.hostname = "idmanager"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]

@@ -100,14 +100,18 @@ else
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/rundeck.yml"
   fi
-  echo "OKD installation"
-  read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
-  input=${input:-"y"}
-  if [[ $input == "Y" || $input == "y" ]]; then
-     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/download-openshift-install-script.yml"
-     vagrant ssh openshift -c "cd /tmp/ && sudo DOMAIN='https://192.168.56.101.nip.io' USERNAME='admin' PASSWORD='admin' INTERACTIVE=false  ./install-openshift.sh"
-  fi
 fi
+
+echo "OKD installation"
+read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
+input=${input:-"y"}
+if [[ $input == "Y" || $input == "y" ]]; then
+   echo "Download Openshift installation script"
+   vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/download-openshift-install-script.yml"
+   echo "Run install-openshift.sh"
+   vagrant ssh openshift -c "cd /tmp/ && sudo DOMAIN='192.168.56.101.nip.io' USERNAME='admin' PASSWORD='admin' INTERACTIVE=false  ./install-openshift.sh"
+fi
+
 
 cd ${cwd}
 
