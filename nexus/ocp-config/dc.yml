@@ -33,7 +33,7 @@ objects:
           deploymentconfig: nexus3
       spec:
         containers:
-        - image: sonatype/nexus3:latest
+        - image: sonatype/3.18.1
           imagePullPolicy: Always
           name: nexus3
           ports:
