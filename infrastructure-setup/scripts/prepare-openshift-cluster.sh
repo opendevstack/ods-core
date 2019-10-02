@@ -24,12 +24,14 @@ oc new-project cd --description="Base project holding the templates and the Repo
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin developer
 
 oc create sa deployment -n cd
+oc adm policy add-cluster-role-to-user admin system:serviceaccount:cd:deployment
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment
+oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cd:deployment
 
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
-# create secrets for cd_user
+#create secrets for cd_user
 CD_USER_PWD=$(grep CD_USER_PWD $configuration_location | cut -d '=' -f 2-)
 oc process -f ${BASE_DIR}/ods-project-quickstarters/ocp-templates/ocp-config/cd-user/secret.yml -p CD_USER_PWD=${CD_USER_PWD} |  oc create -n cd -f-
 
@@ -52,4 +54,3 @@ oc rollout latest dc/router
 
 echo "Expose registry route"
 oc create route edge --service=docker-registry --hostname=docker-registry-default.192.168.56.101.nip.io -n default
-
