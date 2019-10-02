@@ -13,3 +13,5 @@
 *.box
 .vault_pass.txt
 /infrastructure-setup/deployment_token.txt
+infrastructure-setup/downloads
+infrastructure-setup/exports
