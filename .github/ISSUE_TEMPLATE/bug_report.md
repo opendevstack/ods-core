@@ -27,5 +27,10 @@ If applicable, add screenshots to help explain your problem.
  - OpenShift: [e.g. 3.9, 3.11]
  - OpenDevStack [e.g. 1.0, 1.1]
 
+**Log Output (ensure to remove any confidential information like tokens, project names, etc.**
+```
+Log output here...
+```
+
 **Additional context**
 Add any other context about the problem here.
