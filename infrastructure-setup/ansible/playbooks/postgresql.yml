@@ -62,10 +62,9 @@
         name: python-pip
 
     - name: "install additional packages"
-      package:
-        name: "{{ item }}"
-      with_items:
-        - python-psycopg2
+      yum:
+        name: ['python2-psycopg2']
+        update_cache: true
       become: True
 
     - name: install required pip packages to manage postgresql_db
