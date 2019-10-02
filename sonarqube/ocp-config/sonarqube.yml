@@ -32,12 +32,7 @@ objects:
         name: cd-user-token
       type: Git
     strategy:
-      dockerStrategy:
-        env:
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
-          - name: SONAR_DISTRIBUTION_URL
-            value: ${SONAR_DISTRIBUTION_URL}
+      dockerStrategy: {}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
@@ -462,7 +457,4 @@ parameters:
 - name: STORAGE_CLASS_BACKUP
   # for AWS the default would be gp2-encrypted
   description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
-- name: SONAR_DISTRIBUTION_URL
-  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
-- name: SONAR_VERSION
-  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+
