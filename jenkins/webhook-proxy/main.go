@@ -168,6 +168,9 @@ func main() {
 // HandleRoot handles all requests to this service.
 func (s *Server) HandleRoot() http.HandlerFunc {
 	type repository struct {
+		Project struct {
+			Key string `json:"key"`
+		} `json:"project"`
 		Slug string `json:"slug"`
 	}
 	type requestBitbucket struct {
@@ -230,6 +233,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		componentParam := queryValues.Get("component")
 
+		project := s.Project
+
 		var event *Event
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
@@ -242,9 +247,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 			component := componentParam
 			if component == "" {
-				component = strings.Replace(req.Repository, s.Project+"-", "", -1)
+				component = strings.Replace(req.Repository, project+"-", "", -1)
 			}
-			pipeline := makePipelineName(s.Project, component, req.Branch)
+			pipeline := makePipelineName(project, component, req.Branch)
 
 			event = &Event{
 				Kind:      "forward",
@@ -271,10 +276,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			var branch string
 			component := componentParam
 
+			if (project == "prov-cd" || project == "cd") && strings.ToLower(req.Repository.Project.Key) == "opendevstack" {
+				project = "opendevstack"
+			}
+
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, s.Project+"-", "", -1)
+					component = strings.Replace(repo, project+"-", "", -1)
 				}
 				branch = req.Changes[0].Ref.DisplayID
 				if req.Changes[0].Type == "DELETE" {
@@ -285,7 +294,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, s.Project+"-", "", -1)
+					component = strings.Replace(repo, project+"-", "", -1)
 				}
 				branch = req.PullRequest.FromRef.DisplayID
 				kind = "delete"
@@ -293,7 +302,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				log.Println(requestID, "Skipping unknown event", req.EventKey)
 				return
 			}
-			pipeline := makePipelineName(s.Project, component, branch)
+			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
 				Kind:      kind,
@@ -320,7 +329,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			gitURI := fmt.Sprintf(
 				"%s/%s/%s.git",
 				s.RepoBase,
-				s.Project,
+				project,
 				event.Repo,
 			)
 			env, err := json.Marshal(event.Env)
