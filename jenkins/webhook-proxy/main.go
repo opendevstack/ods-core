@@ -276,7 +276,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			var branch string
 			component := componentParam
 
-			if (project == "prov-cd" || project == "cd") && strings.ToLower(req.Repository.Project.Key) == "opendevstack" {
+			if (s.Namespace == "prov-cd" || s.Namespace == "cd") && strings.ToLower(req.Repository.Project.Key) == "opendevstack" {
 				project = "opendevstack"
 			}
 
