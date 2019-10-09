@@ -32,6 +32,8 @@ Vagrant.configure(2) do |config|
      #set base directory for ods projects
      machine_config.vm.synced_folder "../..", "/ods"
 
+     machine_config.vm.provision "shell", inline: "sudo sed -i 's/obsoletes=1/obsoletes=0/' /etc/yum.conf"
+
      machine_config.vm.provider :virtualbox do |vb|
        reserved_mem = machine_details[:mem] || default_mem
        reserved_cpu = machine_details[:cpu] || default_cpu
