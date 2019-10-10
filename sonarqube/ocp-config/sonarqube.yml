@@ -1,15 +1,11 @@
 apiVersion: v1
 kind: Template
 metadata:
-  annotations: {}
-  creationTimestamp: null
   name: sonarqube
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -41,7 +37,6 @@ objects:
   metadata:
     annotations:
       template.alpha.openshift.io/wait-for-ready: "true"
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -58,8 +53,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           name: sonarqube-postgresql
       spec:
@@ -142,8 +135,6 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -160,8 +151,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           app: sonarqube
           deploymentconfig: sonarqube
@@ -239,7 +228,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -252,7 +240,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -269,7 +256,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-data
@@ -285,7 +271,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-extensions
@@ -299,8 +284,6 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -323,16 +306,12 @@ objects:
     crowd-password: ${CROWD_PASSWORD}
   kind: Secret
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-app
   type: Opaque
 - kind: ConfigMap
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -353,7 +332,6 @@ objects:
       template.openshift.io/expose-database_name: '{.data[''database-name'']}'
       template.openshift.io/expose-password: '{.data[''database-password'']}'
       template.openshift.io/expose-username: '{.data[''database-user'']}'
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -364,7 +342,6 @@ objects:
   metadata:
     annotations:
       template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -382,8 +359,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube

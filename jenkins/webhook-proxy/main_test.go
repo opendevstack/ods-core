@@ -244,13 +244,13 @@ func TestHandleRootReadsRequests(t *testing.T) {
 	defer ts.Close()
 
 	// The expected events depend on the values in the payload files.
-	examples := []struct {
+	tests := map[string]struct {
 		payloadFile   string
 		expectedEvent *Event
 	}{
-		{
-			"repo-refs-changed-payload.json",
-			&Event{
+		"Refs changed": {
+			payloadFile: "repo-refs-changed-payload.json",
+			expectedEvent: &Event{
 				Kind:      "forward",
 				Namespace: "bar-cd",
 				Repo:      "repository",
@@ -259,9 +259,9 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Pipeline:  "repository-master",
 			},
 		},
-		{
-			"pr-merged-payload.json",
-			&Event{
+		"PR merged": {
+			payloadFile: "pr-merged-payload.json",
+			expectedEvent: &Event{
 				Kind:      "delete",
 				Namespace: "bar-cd",
 				Repo:      "repository",
@@ -270,9 +270,9 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Pipeline:  "repository-admin-file-1505781548644",
 			},
 		},
-		{
-			"pr-declined-payload.json",
-			&Event{
+		"PR declined": {
+			payloadFile: "pr-declined-payload.json",
+			expectedEvent: &Event{
 				Kind:      "delete",
 				Namespace: "bar-cd",
 				Repo:      "repository",
@@ -283,35 +283,119 @@ func TestHandleRootReadsRequests(t *testing.T) {
 		},
 	}
 
-	for _, example := range examples {
-		f, err := os.Open("test/fixtures/" + example.payloadFile)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		// Use secret defined in fake server.
-		res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		_, err = ioutil.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			t.Error(err)
-		}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Use secret defined in fake server.
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		expected := http.StatusOK
-		actual := res.StatusCode
-		if expected != actual {
-			t.Errorf("Got status: %v, want: %v", actual, expected)
-		}
+			expected := http.StatusOK
+			actual := res.StatusCode
+			if expected != actual {
+				t.Fatalf("Got status: %v, want: %v", actual, expected)
+			}
 
-		// RequestID cannot be known in advance, so set it now from actual value.
-		example.expectedEvent.RequestID = mc.Event.RequestID
-		if !reflect.DeepEqual(example.expectedEvent, mc.Event) {
-			t.Errorf("Got event: %v, want: %v", mc.Event, example.expectedEvent)
-		}
+			// RequestID cannot be known in advance, so set it now from actual value.
+			tc.expectedEvent.RequestID = mc.Event.RequestID
+			if !reflect.DeepEqual(tc.expectedEvent, mc.Event) {
+				t.Fatalf("Got event: %v, want: %v", mc.Event, tc.expectedEvent)
+			}
+		})
+	}
+}
+
+func TestNamespaceRestriction(t *testing.T) {
+	tests := map[string]struct {
+		payloadFile      string
+		project          string
+		expectedPipeline string
+	}{
+		"Prov App": {
+			payloadFile:      "prov-app-changed-payload.json",
+			project:          "prov",
+			expectedPipeline: "prov-app-pipeline.json",
+		},
+		"Other": {
+			payloadFile:      "prov-app-changed-payload.json",
+			project:          "foo",
+			expectedPipeline: "foo-cd-pipeline.json",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			expectedOpenshiftPayload, err := ioutil.ReadFile("test/golden/" + tc.expectedPipeline)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var actualOpenshiftPayload []byte
+			// Create OpenShift stub: Returns 404 when asked for a pipeline,
+			// and writes the body of the request to +actual+  when pipeline
+			// is to be created.
+			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if strings.HasSuffix(r.URL.Path, "/buildconfigs") && r.Method == "POST" {
+					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
+				}
+				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
+					http.Error(w, "Not found", http.StatusNotFound)
+					return
+				}
+				w.WriteHeader(200)
+				_, err := w.Write([]byte(""))
+				if err != nil {
+					t.Fatal(err)
+				}
+			}))
+
+			// Client pointing to the API stub created above
+			c := &ocClient{
+				HTTPClient:          &http.Client{},
+				OpenShiftAPIBaseURL: apiStub.URL,
+				Token:               "foo",
+			}
+			// Server using the special client
+			fakeSecret := "s3cr3t"
+			s := &Server{
+				Client:            c,
+				Namespace:         tc.project + "-cd",
+				Project:           tc.project,
+				TriggerSecret:     fakeSecret,
+				ProtectedBranches: []string{"baz"},
+				RepoBase:          "https://domain.com",
+			}
+			ts := httptest.NewServer(s.HandleRoot())
+			defer ts.Close()
+
+			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err := http.Post(ts.URL+"?trigger_secret="+fakeSecret, "application/json", f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(expectedOpenshiftPayload) > 0 && string(actualOpenshiftPayload) != string(expectedOpenshiftPayload) {
+				t.Fatalf("Got request body: %s, want: %s", actualOpenshiftPayload, expectedOpenshiftPayload)
+			}
+		})
 	}
 }
 
@@ -472,7 +556,7 @@ func TestBuildEndpoint(t *testing.T) {
 			s := &Server{
 				Client:            c,
 				Namespace:         "bar-cd",
-				Project: "bar",
+				Project:           "bar",
 				TriggerSecret:     "s3cr3t",
 				ProtectedBranches: []string{"baz"},
 				RepoBase:          "https://domain.com",
@@ -513,7 +597,7 @@ func TestNotFound(t *testing.T) {
 	s := &Server{
 		Client:            &mockClient{},
 		Namespace:         "bar-cd",
-		Project: "bar",
+		Project:           "bar",
 		TriggerSecret:     "s3cr3t",
 		ProtectedBranches: []string{"baz"},
 		RepoBase:          "https://domain.com",
