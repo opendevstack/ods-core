@@ -1,11 +1,4 @@
 - hosts: openshift
-  #  roles:
-  #  - role: andrewrothstein.openshift-origin-client-tools
-  #    oc_ver: v3.11.0
-  #  - role: geerlingguy.git
-  #    become: true
-  #    git_install_from_source: true
-  #    git_install_from_source_force_update: true
   tasks:
     - name: "install additional packages"
       package:
@@ -31,23 +24,6 @@
         validate_certs: no
         force: no
       become: true
-#    - name: run openshift install script
-#      shell: ./install-openshift.sh
-#      #shell: ./test.sh
-#      environment:
-#        DOMAIN: "https://192.168.56.101.nip.io"
-#        USERNAME: "admin"
-#        PASSWORD: "admin"
-#        INTERACTIVE: "false"
-#      register: shell_result
-#      #changed_when: "not 'The target installation directory is not empty' in installer_result.stdout"
-#      #failed_when: "not installer_result.rc == 0 and not 'The target installation directory is not empty' in installer_result.stdout"
-#      args:
-#        executable: /bin/bash
-#        chdir: "/tmp"
-#      become: true
-#    - debug:
-#        var: shell_result.stdout_lines
 
 
     

@@ -3,7 +3,7 @@
 export PATH=$PATH:/usr/local/bin/
 
 BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
-CLUSTER_DIR=/opt/oc/profiles/odsdev
+
 cwd=${pwd}
 
 if [ "$HOSTNAME" != "openshift" ] ; then
@@ -31,7 +31,7 @@ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cd
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
-#create secrets for cd_user
+echo -e create secrets for cd_user
 CD_USER_PWD=$(grep CD_USER_PWD $configuration_location | cut -d '=' -f 2-)
 oc process -f ${BASE_DIR}/ods-project-quickstarters/ocp-templates/ocp-config/cd-user/secret.yml -p CD_USER_PWD=${CD_USER_PWD} |  oc create -n cd -f-
 
@@ -45,8 +45,10 @@ cd ${BASE_DIR}/certs
 echo -e "Create and replace old router cert"
 oc project default
 oc get --export secret -o yaml router-certs > ${BASE_DIR}/old-router-certs-secret.yaml
-oc adm ca create-server-cert --signer-cert=${CLUSTER_DIR}/kube-apiserver/ca.crt --signer-key=${CLUSTER_DIR}/kube-apiserver/ca.key --signer-serial=${CLUSTER_DIR}/kube-apiserver/ca.serial.txt --hostnames='kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.192.168.56.101.nip.io,192.168.56.101,*.router.default.svc.cluster.local,router.default.svc.cluster.local' --cert=router.crt --key=router.key
-cat router.crt ${CLUSTER_DIR}/kube-apiserver/ca.crt router.key > router.pem
+
+oc adm ca create-server-cert --signer-cert=/etc/origin/master/ca.crt --signer-key=/etc/origin/master/ca.key --signer-serial=/etc/origin/master/ca.serial.txt --hostnames='kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.192.168.56.101.nip.io,192.168.56.101,*.router.default.svc.cluster.local,router.default.svc.cluster.local' --cert=router.crt --key=router.key
+
+cat router.crt /etc/origin/master/ca.crt router.key > router.pem
 oc create secret tls router-certs --cert=router.pem --key=router.key -o json --dry-run | oc replace -f -
 oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- service.alpha.openshift.io/serving-cert-signed-by-
 oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=router-certs

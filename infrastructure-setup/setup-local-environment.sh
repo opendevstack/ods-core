@@ -109,7 +109,7 @@ if [[ $input == "Y" || $input == "y" ]]; then
    echo "Download Openshift installation script"
    vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/download-openshift-install-script.yml"
    echo "Run install-openshift.sh"
-   vagrant ssh openshift -c "cd /tmp/ && sudo DOMAIN='192.168.56.101.nip.io' USERNAME='admin' PASSWORD='admin' INTERACTIVE=false  ./install-openshift.sh"
+   vagrant ssh openshift -c "cd /tmp/ && sudo DOMAIN='192.168.56.101.nip.io' USERNAME='admin' PASSWORD='admin' INTERACTIVE=false VERSION=3.11 ./install-openshift.sh"
 fi
 
 
