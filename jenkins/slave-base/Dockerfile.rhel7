@@ -5,7 +5,7 @@ LABEL maintainer="Michael Sauter <michael.sauter@boehringer-ingelheim.com>"
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
     CNES_REPORT_VERSION=2.0.0 \
-    TAILOR_VERSION=0.9.5 \
+    TAILOR_VERSION=0.10.2 \
     GIT_LFS_VERSION=2.6.1
 
 # Hack to fix issues with broken repositories
@@ -66,8 +66,8 @@ RUN cd /tmp && \
 
 # Install Tailor
 RUN cd /tmp && \
-	curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor_linux_amd64 && \
-	mv tailor_linux_amd64 /usr/local/bin/tailor && \
+	curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 && \
+	mv tailor-linux-amd64 /usr/local/bin/tailor && \
 	chmod a+x /usr/local/bin/tailor && \
 	tailor version
 
