@@ -22,6 +22,7 @@ echo -e "Set base64 encoded Nexus user password\n"
 find . -iname "*.env" -exec sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=$nexus_password_base64|g" {} \;
 echo -e "Set base64 encoded sonarqube auth token dummy value. Has to be changed after sonarqube has been installed and a valid token has been generated\n"
 find . -iname "*.env" -exec sed -i "s|SONAR_SERVER_AUTH_TOKEN=.*$|SONAR_SERVER_AUTH_TOKEN=$sonar_admin_password_base64|g" {} \;
+echo -e "Set if Crowd should be used for authentication\n"
 find . -iname "*.env" -exec sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=$sonarqube_crowd_auth|g" {} \;
 
 find . -iname "*.env" -exec sed -i "s|AUTH_TOKEN=.*$|AUTH_TOKEN=$sonar_admin_password_base64|g" {} \;

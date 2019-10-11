@@ -79,7 +79,7 @@ read -e -p "Enter Sonarqube Crowd password and press [ENTER] (default: $sonar_cr
 sonar_crowd_password=${input:-$sonar_crowd_password}
 read -e -p "Enter Sonarqube database password and press [ENTER] (default: $sonarqube_database_password): " input
 sonarqube_database_password=${input:-$sonarqube_database_password}
-read -e -p "Do you want to use Crowd fo sonarqube authentication (true or false) [ENTER] (default: $sonar_crowd_auth): " input
+read -e -p "Do you want to use Crowd for Sonarqube authentication (true or false) [ENTER] (default: $sonar_crowd_auth): " input
 sonarqube_crowd_auth=${input:-$sonar_crowd_auth}
 
 echo -e "\nRShiny configuration\n"
