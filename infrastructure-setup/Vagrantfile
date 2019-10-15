@@ -8,7 +8,7 @@ Vagrant.configure(2) do |config|
   ui = Vagrant::UI::Colored.new
   default_mem = 2560
   default_cpu = 1
-
+  
   # The most common vagranturation options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
@@ -46,19 +46,20 @@ Vagrant.configure(2) do |config|
   end # machines
 		   
   # openshift
-  config.vm.define "openshift", primary:true, autostart: true do |vm_config|
-    vm_config.vm.box = "bento/centos-7.5"
+  config.vm.define "okd", primary:true, autostart: true do |vm_config|
+    vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.box_check_update = false
-    vm_config.vm.hostname = "openshift"
+    vm_config.vm.hostname = "okd"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
     vm_config.vm.synced_folder "./.vagrant", "/vagrant/.vagrant", mount_options: ["dmode=700,fmode=600"]
     vm_config.vm.synced_folder "../..", "/ods"
     vm_config.vm.network :private_network, ip: "192.168.56.101"
     vm_config.vm.provider :virtualbox do |vb|
-      vb.name = "openshift"
+      vb.name = "okd"
       vb.customize ["modifyvm", :id, "--groups", "/opendevstack"]
       vb.customize ["modifyvm", :id, "--memory", 8192]
-      vb.customize ["modifyvm", :id, "--cpus", 2]
+      vb.customize ["modifyvm", :id, "--cpus", 4]
+      vb.memory = "8192"
       vb.gui = false
     end
     vm_config.vm.provision "shell", path: "scripts/ansible.sh"
