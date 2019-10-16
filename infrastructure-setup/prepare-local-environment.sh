@@ -46,6 +46,14 @@ if [[ $input == "Y" || $input == "y" ]]; then
   vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/import-certificate-to-atlassian-jvm.sh"
 fi
 
+echo "Step 6/10: Create local persistent volumes at openshift host"
+read -e -n1 -p "Create local persistent volumes? [y,n] (default: y):" input
+input=${input:-"y"}
+if [[ $input == "Y" || $input == "y" ]]; then
+  vagrant ssh openshift -c "sudo /ods/ods-core/infrastructure-setup/scripts/create-local-pv.sh"
+fi
+
+
 echo "Step 6/10: Prepare Nexus"
 read -e -n1 -p "Prepare Nexus? [y,n] (default: y):" input
 input=${input:-"y"}
