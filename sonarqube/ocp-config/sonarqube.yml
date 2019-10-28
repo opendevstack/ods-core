@@ -196,6 +196,8 @@ objects:
                 name: sonarqube-app
           - name: SONAR_AUTH_CROWD
             value: ${SONAR_AUTH_CROWD}
+          - name: IDP_DNS
+            value: ${IDP_DNS}
           imagePullPolicy: Always
           ports:
           - containerPort: 9000
@@ -442,3 +444,5 @@ parameters:
   description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
 - name: SONAR_AUTH_CROWD
   description: "Set to true, if you want to use crowd as identity provider"
+- name: IDP_DNS
+  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
