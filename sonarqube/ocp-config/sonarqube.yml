@@ -34,6 +34,8 @@ objects:
             value: ${SONAR_VERSION}
           - name: SONAR_DISTRIBUTION_URL
             value: ${SONAR_DISTRIBUTION_URL}
+          - name: IDP_DNS
+            value: ${IDP_DNS}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
@@ -196,8 +198,6 @@ objects:
                 name: sonarqube-app
           - name: SONAR_AUTH_CROWD
             value: ${SONAR_AUTH_CROWD}
-          - name: IDP_DNS
-            value: ${IDP_DNS}
           imagePullPolicy: Always
           ports:
           - containerPort: 9000

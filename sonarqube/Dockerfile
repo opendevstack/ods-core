@@ -1,7 +1,6 @@
 FROM openjdk:8-alpine
 
-ENV IDP_DNS=example.org \
-    SONARQUBE_HOME=/opt/sonarqube \
+ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
     SONARQUBE_JDBC_PASSWORD=sonar \
     SONARQUBE_JDBC_URL=
