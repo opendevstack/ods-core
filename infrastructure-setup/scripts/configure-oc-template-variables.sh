@@ -27,6 +27,7 @@ sonar_admin_password="sonarqube"
 sonar_crowd_password="sonarqube"
 sonarqube_database_password="sonarqube"
 sonar_server_auth_token=${sonar_admin_password}
+sonar_crowd_auth=true
 
 #rshiny
 crowd_rshiny_realm_user="rshiny"
@@ -78,6 +79,8 @@ read -e -p "Enter Sonarqube Crowd password and press [ENTER] (default: $sonar_cr
 sonar_crowd_password=${input:-$sonar_crowd_password}
 read -e -p "Enter Sonarqube database password and press [ENTER] (default: $sonarqube_database_password): " input
 sonarqube_database_password=${input:-$sonarqube_database_password}
+read -e -p "Do you want to use Crowd for Sonarqube authentication (true or false) [ENTER] (default: $sonar_crowd_auth): " input
+sonarqube_crowd_auth=${input:-$sonar_crowd_auth}
 
 echo -e "\nRShiny configuration\n"
 read -e -p "Enter your RShiny user name and press [ENTER] (default: $crowd_rshiny_realm_user): " input
@@ -129,6 +132,8 @@ echo "sonar_crowd_password_base64=${sonar_crowd_password_base64}" >> ${ODS_BASE_
 echo "sonarqube_database_password=${sonarqube_database_password}" >> ${ODS_BASE_DIR}/local.env.config
 sonarqube_database_password_base64=`echo -n $sonarqube_database_password | base64`
 echo "sonarqube_database_password_base64=${sonarqube_database_password_base64}" >> ${ODS_BASE_DIR}/local.env.config
+echo "sonarqube_crowd_auth=${sonarqube_crowd_auth}" >> ${ODS_BASE_DIR}/local.env.config
+
 
 echo "crowd_rshiny_realm_user=${crowd_rshiny_realm_user}" >> ${ODS_BASE_DIR}/local.env.config
 crowd_rshiny_realm_user_base64=`echo -n $crowd_rshiny_realm_user | base64`

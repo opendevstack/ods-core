@@ -29,6 +29,8 @@ objects:
       type: Git
     strategy:
       dockerStrategy: {}
+          - name: IDP_DNS
+            value: ${IDP_DNS}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
@@ -189,6 +191,8 @@ objects:
               secretKeyRef:
                 key: crowd-password
                 name: sonarqube-app
+          - name: SONAR_AUTH_CROWD
+            value: ${SONAR_AUTH_CROWD}
           imagePullPolicy: Always
           ports:
           - containerPort: 9000
@@ -392,15 +396,12 @@ parameters:
 - displayName: Crowd Application
   name: CROWD_APPLICATION
   description: application name as setup in crowd for authn/z
-  required: true
 - displayName: Crowd Password
   name: CROWD_PASSWORD
   description: base64 encoded application password as setup in crowd for authn/z
-  required: true
 - displayName: Crowd URL
   name: CROWD_URL
   description: url under which crowd is reachable from sonaruqbe
-  required: true
 # e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
   name: DATABASE_JDBC_URL
@@ -432,4 +433,11 @@ parameters:
 - name: STORAGE_CLASS_BACKUP
   # for AWS the default would be gp2-encrypted
   description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
-
+- name: SONAR_DISTRIBUTION_URL
+  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
+- name: SONAR_VERSION
+  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+- name: SONAR_AUTH_CROWD
+  description: "Set to true, if you want to use crowd as identity provider"
+- name: IDP_DNS
+  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"

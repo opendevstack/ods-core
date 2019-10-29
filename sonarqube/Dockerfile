@@ -51,6 +51,7 @@ RUN update-ca-certificates
 
 RUN keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/cacerts -noprompt -storepass changeit
 
+
 USER sonarqube
 
 VOLUME "$SONARQUBE_HOME/data"
