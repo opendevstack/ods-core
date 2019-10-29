@@ -247,8 +247,6 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      annotations:
-        volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
       labels:
         app: sonarqube
         template: postgresql-persistent-template
@@ -263,8 +261,6 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      annotations:
-        volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
       labels:
         app: sonarqube
       name: sonarqube-data
@@ -278,8 +274,6 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      annotations:
-        volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
       labels:
         app: sonarqube
       name: sonarqube-extensions
@@ -433,8 +427,6 @@ parameters:
   - name: STORAGE_CLASS_DATA
     # for AWS the default is gp2
     description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
-  - name: STORAGE_PROVISIONER
-    description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
   - name: STORAGE_CLASS_BACKUP
     # for AWS the default would be gp2-encrypted
     description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
