@@ -98,7 +98,16 @@ else
   read -e -n1 -p "Install Rundeck? [y,n] (default: y):" input
   input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
-     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/rundeck.yml"
+     read -e -n1 -p "Use Crowd Authentication for rundeck? (Otherwise, local users will be configured for rundeck)? [y,n] (default: y):" input
+     input=${input:-"y"}
+     if [[ $input == "Y" || $input == "y" ]]; then
+       crowd="true"
+       echo "ok: using crowd for authentication"
+     else
+       crowd="false"
+       echo "ok: using local users for authentication"
+     fi
+     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev --extra-vars 'rundeck_crowd=$crowd' playbooks/rundeck.yml"
   fi
 fi
 

@@ -15,7 +15,7 @@ Vagrant.configure(2) do |config|
   # VirtualBox Configuration
 
   machines = {
-               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.5', :mem => '8192', :cpu => 2 }
+               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.5', :mem => '6144', :cpu => 2 }
              }
 
   # Atlassian and rundeck Host
@@ -57,11 +57,12 @@ Vagrant.configure(2) do |config|
     vm_config.vm.provider :virtualbox do |vb|
       vb.name = "openshift"
       vb.customize ["modifyvm", :id, "--groups", "/opendevstack"]
-      vb.customize ["modifyvm", :id, "--memory", 8192]
-      vb.customize ["modifyvm", :id, "--cpus", 4]
-      vb.memory = "8192"
+      vb.customize ["modifyvm", :id, "--memory", 10240]
+      vb.customize ["modifyvm", :id, "--cpus", 2]
+      vb.memory = "10240"
       vb.gui = false
     end
+    vm_config.vm.provision "shell", inline: "sudo sed -i 's/obsoletes=1/obsoletes=0/' /etc/yum.conf"
     vm_config.vm.provision "shell", path: "scripts/ansible.sh"
   end
 
@@ -94,7 +95,7 @@ Vagrant.configure(2) do |config|
     vm_config.vm.provider :virtualbox do |vb|
       vb.name = "idmanager"
       vb.customize ["modifyvm", :id, "--groups", "/opendevstack"]
-      vb.customize ["modifyvm", :id, "--memory", 2048]
+      vb.customize ["modifyvm", :id, "--memory", 1536]
       vb.customize ["modifyvm", :id, "--cpus", 2]
       vb.gui = false
     end

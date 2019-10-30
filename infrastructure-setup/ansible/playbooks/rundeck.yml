@@ -21,6 +21,16 @@
         - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/jsr311-api-1.1.1.jar
         - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/slf4j-api-1.7.5.jar
         - https://github.com/realloc/crowd-jaas/releases/download/v0.0.2/slf4j-simple-1.7.5.jar
+      rundeck_users:
+        - name: "opendevstack.admin"
+          password: "admin"
+          roles:
+            - user
+            - admin
+        - name: "opendevstack.user"
+          password: "user"
+          roles:
+            - user
     - role: geerlingguy.docker
       tags:
         - docker
@@ -32,6 +42,8 @@
         insecure-registries :
           - "docker-registry-default.192.168.56.101.nip.io"
           - "docker-registry-default.192.168.56.101.nip.io:443"
+          - "docker-registry-default.apps.192.168.56.101.nip.io"
+          - "docker-registry-default.apps.192.168.56.101.nip.io:443"
       target_path: /etc/docker/daemon.json
     become: True
     notify: restart docker service
