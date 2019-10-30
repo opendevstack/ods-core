@@ -789,7 +789,7 @@ After the configuration of the Atlassian tools has been done, it's time to conti
 In this step the basic configuration for the OpenShift cluster takes place, as well as the installation of Sonarqube, Nexus3 and the Provisioning application.
 In addition Rundeck will be prepared automatically as far as possible.
 
-Navigate to the *ods-core/infrastructure-setup/scripts* directory on your local machine and execute the script
+Navigate to the *ods-core/infrastructure-setup/* directory on your local machine and execute the script
 
 `prepare-local-environment.sh`
 
