@@ -1,2 +1,2 @@
-* xref:infrastructure-setup:index.adoc[Intro]
+* xref:ROOT:infrastructure_setup.adoc[Infrastructure Setup]
 * xref:ROOT:sysenv-requirements.adoc[System and Environment Requirements]
