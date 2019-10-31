@@ -17,4 +17,17 @@ done
 echo "Copy fixed version of openshift-sync plugin (https://github.com/opendevstack/ods-core/issues/86) ..."
 cp /opt/openshift/openshift-sync.jar /var/lib/jenkins/plugins/openshift-sync/WEB-INF/lib/openshift-sync.jar
 
+NEXUS_SHORT=$(echo $NEXUS_HOST | sed -e "s|https://||g" | sed -e "s|http://||g") 
+
+echo "Copy grape config and amending with nexus ..."
+
+mkdir -p $HOME/.groovy
+cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
+sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
+sed -i.bak -e "s|__NEXUS_HOST|$NEXUS_HOST|g" $HOME/.groovy/grapeConfig.xml
+sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
+sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
+
+cat $HOME/.groovy/grapeConfig.xml
+
 /usr/libexec/s2i/run

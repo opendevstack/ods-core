@@ -8,7 +8,10 @@ matrix:
         - "1.11.x"
       before_install:
         - go get golang.org/x/tools/cmd/goimports
+        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+
       before_script:
         - cd jenkins/webhook-proxy
       script:
+        - env GO111MODULE=on make lint
         - env GO111MODULE=on make test

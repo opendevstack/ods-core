@@ -2,7 +2,7 @@
     "kind": "BuildConfig",
     "apiVersion": "v1",
     "metadata": {
-        "name": "{{.Name}}",
+        "name": "ods-provisioning-app-production",
         "creationTimestamp": null
     },
     "spec": {
@@ -10,7 +10,8 @@
             {
                 "type": "Generic",
                 "generic": {
-                    "secret": "{{.TriggerSecret}}"
+                    "secret": "s3cr3t",
+                    "allowEnv": true
                 }
             }
         ],
@@ -18,8 +19,8 @@
         "source": {
             "type": "Git",
             "git": {
-                "uri": "{{.GitURI}}",
-                "ref": "{{.Branch}}"
+                "uri": "https://domain.com/foo/ods-provisioning-app.git",
+                "ref": "production"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"
@@ -28,7 +29,8 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "{{.JenkinsfilePath}}"
+                "jenkinsfilePath": "Jenkinsfile",
+                "env": null
             }
         },
         "output": {},

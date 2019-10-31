@@ -1,15 +1,11 @@
 apiVersion: v1
 kind: Template
 metadata:
-  annotations: {}
-  creationTimestamp: null
   name: nexus3
 objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: nexus3
     name: nexus3
@@ -18,7 +14,7 @@ objects:
     port:
       targetPort: 8081-tcp
     tls:
-      insecureEdgeTerminationPolicy: Redirect
+      insecureEdgeTerminationPolicy: Allow
       termination: edge
     to:
       kind: Service

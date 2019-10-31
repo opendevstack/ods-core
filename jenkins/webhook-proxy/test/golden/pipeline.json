@@ -10,7 +10,8 @@
             {
                 "type": "Generic",
                 "generic": {
-                    "secret": "s3cr3t"
+                    "secret": "s3cr3t",
+                    "allowEnv": true
                 }
             }
         ],
@@ -28,7 +29,8 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "foo/Jenkinsfile"
+                "jenkinsfilePath": "foo/Jenkinsfile",
+                "env": [{"name":"FOO","value":"bar"}]
             }
         },
         "output": {},

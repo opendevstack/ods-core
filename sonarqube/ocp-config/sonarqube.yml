@@ -1,15 +1,11 @@
 apiVersion: v1
 kind: Template
 metadata:
-  annotations: {}
-  creationTimestamp: null
   name: sonarqube
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -38,6 +34,8 @@ objects:
             value: ${SONAR_VERSION}
           - name: SONAR_DISTRIBUTION_URL
             value: ${SONAR_DISTRIBUTION_URL}
+          - name: IDP_DNS
+            value: ${IDP_DNS}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
@@ -46,7 +44,6 @@ objects:
   metadata:
     annotations:
       template.alpha.openshift.io/wait-for-ready: "true"
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -63,8 +60,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           name: sonarqube-postgresql
       spec:
@@ -147,8 +142,6 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -165,8 +158,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           app: sonarqube
           deploymentconfig: sonarqube
@@ -205,6 +196,8 @@ objects:
               secretKeyRef:
                 key: crowd-password
                 name: sonarqube-app
+          - name: SONAR_AUTH_CROWD
+            value: ${SONAR_AUTH_CROWD}
           imagePullPolicy: Always
           ports:
           - containerPort: 9000
@@ -244,7 +237,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -257,7 +249,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -274,7 +265,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-data
@@ -290,7 +280,6 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-extensions
@@ -304,8 +293,6 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -328,16 +315,12 @@ objects:
     crowd-password: ${CROWD_PASSWORD}
   kind: Secret
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube-app
   type: Opaque
 - kind: ConfigMap
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -358,7 +341,6 @@ objects:
       template.openshift.io/expose-database_name: '{.data[''database-name'']}'
       template.openshift.io/expose-password: '{.data[''database-password'']}'
       template.openshift.io/expose-username: '{.data[''database-user'']}'
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -369,7 +351,6 @@ objects:
   metadata:
     annotations:
       template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
-    creationTimestamp: null
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -387,8 +368,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: sonarqube
     name: sonarqube
@@ -422,15 +401,12 @@ parameters:
 - displayName: Crowd Application
   name: CROWD_APPLICATION
   description: application name as setup in crowd for authn/z
-  required: true
 - displayName: Crowd Password
   name: CROWD_PASSWORD
   description: base64 encoded application password as setup in crowd for authn/z
-  required: true
 - displayName: Crowd URL
   name: CROWD_URL
   description: url under which crowd is reachable from sonaruqbe
-  required: true
 # e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
   name: DATABASE_JDBC_URL
@@ -466,3 +442,7 @@ parameters:
   description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
 - name: SONAR_VERSION
   description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+- name: SONAR_AUTH_CROWD
+  description: "Set to true, if you want to use crowd as identity provider"
+- name: IDP_DNS
+  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
