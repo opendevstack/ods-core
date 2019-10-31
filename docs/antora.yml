@@ -7,3 +7,4 @@ nav:
 - modules/jenkins/nav.adoc
 - modules/shared-images/nav.adoc
 - modules/sonarqube/nav.adoc
+- modules/keycloak/nav.adoc

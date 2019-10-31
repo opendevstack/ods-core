@@ -27,6 +27,11 @@
           roles:
             - user
             - admin
+        - name: "rundeck.admin"
+          password: "admin"
+          roles:
+            - user
+            - admin
         - name: "opendevstack.user"
           password: "user"
           roles:
