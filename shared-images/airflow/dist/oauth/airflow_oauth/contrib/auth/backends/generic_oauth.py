@@ -29,6 +29,12 @@ from flask_oauthlib.client import OAuth
 from airflow import models, configuration
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
+import os, ssl
+
+if (os.environ.get('PYTHONHTTPSVERIFY', '') is '0' and
+    getattr(ssl, '_create_unverified_context', None)):
+    ssl._create_default_https_context = ssl._create_unverified_context
+
 
 log = LoggingMixin().log
 
