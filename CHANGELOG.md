@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Removal of Crowd HTTP basic auth proxy related shared images ([#215](https://github.com/opendevstack/ods-core/issues/215))
+
 ## [1.2.0] - 2019-10-10
 
 ### Added
