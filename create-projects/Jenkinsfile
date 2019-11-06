@@ -1,0 +1,63 @@
+
+
+
+
+def PROJECT_ID = env.project_id;
+def NEXUS_HOST = "https://nexus-cd.192.168.56.101.nip.io/";
+def PROJECT_ADMINS = env.project_admin;
+def PROJECT_GROUPS = "";
+def PIPELINE_TRIGGER_SECRET = env.PIPELINE_TRIGGER_SECRET;
+def sharedLibraryRepository
+def dockerRegistry
+
+
+node {
+  sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
+  dockerRegistry = env.DOCKER_REGISTRY
+}
+def conts = containerTemplate( 
+            name: 'jnlp',
+            image: "${dockerRegistry}/cd/jenkins-slave-base",
+            workingDir: '/tmp',
+            alwaysPullImage: true,
+            args: ''
+        )
+
+def pod_label = "hanswurst";
+
+
+podTemplate(
+      label: pod_label,
+      cloud: 'openshift',
+      containers: [conts],
+      volumes: [],
+      serviceAccount: 'jenkins'
+    ) {
+        node(pod_label) {
+          stage('checkout'){
+            checkout scm
+          }
+          stage('checkout ods-config'){
+             checkout([
+                $class: 'GitSCM',    
+                branches: [[name: '*/production']],
+                doGenerateSubmoduleConfigurations: false, 
+                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'ods-config']],
+                submoduleCfg: [], 
+                userRemoteConfigs: [[credentialsId: 'prov-cd-cd-user-with-password', url: 'http://192.168.56.31:7990/scm/opendevstack/ods-configuration.git']] 
+            ])
+          }
+
+
+
+        stage('Creating Openshift Projects') {
+            sh "sh ./create-projects/create-projects.sh -p ${PROJECT_ID} -n ${NEXUS_HOST} -a ${PROJECT_ADMINS} -e ${PROJECT_GROUPS}";
+        }
+        stage('Creating Jenkins') {
+          sh "env";
+           withEnv(["PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET}"]) {
+              sh "sh ./create-projects/create-cd-jenkins.sh -p ${PROJECT_ID}";
+           }
+        }
+      }
+}

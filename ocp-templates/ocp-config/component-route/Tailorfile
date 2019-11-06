@@ -1,0 +1,2 @@
+param-file  ../../../ods-config/ods-project-quickstarters/ocp-templates/templates/templates.env
+route

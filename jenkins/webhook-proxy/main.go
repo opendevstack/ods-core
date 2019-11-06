@@ -326,12 +326,17 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		}
 
 		if event.Kind == "forward" {
-			gitURI := fmt.Sprintf(
-				"%s/%s/%s.git",
-				s.RepoBase,
-				project,
-				event.Repo,
-			)
+			var gitURI string;
+			if strings.HasPrefix(event.Repo, "http") {
+				gitURI = event.Repo
+			} else {
+				gitURI = fmt.Sprintf(
+					"%s/%s/%s.git",
+					s.RepoBase,
+					project,
+					event.Repo,
+				)
+			}
 			env, err := json.Marshal(event.Env)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
