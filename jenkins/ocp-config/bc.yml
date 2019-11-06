@@ -40,7 +40,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-master:latest'
+        name: 'jenkins-master:2'
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -52,7 +52,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-slave-base:latest'
+        name: 'jenkins-slave-base:2'
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -89,7 +89,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-webhook-proxy:latest'
+        name: 'jenkins-webhook-proxy:2'
     postCommit: {}
     resources: {}
     runPolicy: Serial
