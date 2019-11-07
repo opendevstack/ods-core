@@ -3,6 +3,7 @@ def nexusHost = env.NEXUS_HOST;
 def projectAdmins = env.PROJECT_ADMIN;
 def projectGroups = env.PROJECT_GROUPS;
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET;
+def bitbucketHost = env.BITBUCKET_HOST;
 def dockerRegistry
 
 node {
@@ -35,7 +36,7 @@ podTemplate(
                 doGenerateSubmoduleConfigurations: false, 
                 extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'ods-config']],
                 submoduleCfg: [], 
-                userRemoteConfigs: [[credentialsId: 'prov-cd-cd-user-with-password', url: 'http://192.168.56.31:7990/scm/opendevstack/ods-configuration.git']] 
+                userRemoteConfigs: [[credentialsId: 'prov-cd-cd-user-with-password', url: bitbucketHost + '/scm/opendevstack/ods-configuration.git']] 
             ])
           }
 
