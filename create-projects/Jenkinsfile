@@ -42,10 +42,10 @@ podTemplate(
 
 
 
-        stage('Creating Openshift Projects') {
+        stage('creating openshift projects') {
             sh "sh ./create-projects/create-projects.sh -p ${projectId} -n ${nexusHost} -a ${projectAdmins} -e ${projectGroups}";
         }
-        stage('Creating Jenkins') {
+        stage('creating jenkins') {
           sh "env";
            withEnv(["pipelineTriggerSecret=${pipelineTriggerSecret}"]) {
               sh "sh ./create-projects/create-cd-jenkins.sh -p ${projectId}";
