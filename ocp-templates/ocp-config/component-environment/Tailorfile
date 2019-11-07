@@ -1,3 +1,0 @@
-svc,dc,is,bc
-
-ignore-path bc:/spec/output/to/name,bc:/spec/output/imageLabels
