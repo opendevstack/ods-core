@@ -326,7 +326,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		}
 
 		if event.Kind == "forward" {
-			var gitURI string;
+			var gitURI string
 			if strings.HasPrefix(event.Repo, "http") {
 				gitURI = event.Repo
 			} else {
