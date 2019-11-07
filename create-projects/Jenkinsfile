@@ -1,18 +1,11 @@
-
-
-
-
-def PROJECT_ID = env.project_id;
-def NEXUS_HOST = "https://nexus-cd.192.168.56.101.nip.io/";
-def PROJECT_ADMINS = env.project_admin;
-def PROJECT_GROUPS = "";
-def PIPELINE_TRIGGER_SECRET = env.PIPELINE_TRIGGER_SECRET;
-def sharedLibraryRepository
+def projectId = env.PROJECT_ID;
+def nexusHost = env.NEXUS_HOST;
+def projectAdmins = env.PROJECT_ADMIN;
+def projectGroups = env.PROJECT_GROUPS;
+def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET;
 def dockerRegistry
 
-
 node {
-  sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
   dockerRegistry = env.DOCKER_REGISTRY
 }
 def conts = containerTemplate( 
@@ -23,9 +16,7 @@ def conts = containerTemplate(
             args: ''
         )
 
-def pod_label = "hanswurst";
-
-
+def pod_label = "create-projects-" + projectId;
 podTemplate(
       label: pod_label,
       cloud: 'openshift',
@@ -51,12 +42,12 @@ podTemplate(
 
 
         stage('Creating Openshift Projects') {
-            sh "sh ./create-projects/create-projects.sh -p ${PROJECT_ID} -n ${NEXUS_HOST} -a ${PROJECT_ADMINS} -e ${PROJECT_GROUPS}";
+            sh "sh ./create-projects/create-projects.sh -p ${projectId} -n ${nexusHost} -a ${projectAdmins} -e ${projectGroups}";
         }
         stage('Creating Jenkins') {
           sh "env";
-           withEnv(["PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET}"]) {
-              sh "sh ./create-projects/create-cd-jenkins.sh -p ${PROJECT_ID}";
+           withEnv(["pipelineTriggerSecret=${pipelineTriggerSecret}"]) {
+              sh "sh ./create-projects/create-cd-jenkins.sh -p ${projectId}";
            }
         }
       }
