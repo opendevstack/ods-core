@@ -17,15 +17,15 @@ def conts = containerTemplate(
             args: ''
         )
 
-def pod_label = "create-projects-" + projectId;
+def podLabel = "create-projects-" + projectId;
 podTemplate(
-      label: pod_label,
+      label: podLabel,
       cloud: 'openshift',
       containers: [conts],
       volumes: [],
       serviceAccount: 'jenkins'
     ) {
-        node(pod_label) {
+        node(podLabel) {
           stage('checkout'){
             checkout scm
           }
