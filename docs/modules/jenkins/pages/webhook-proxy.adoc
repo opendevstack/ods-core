@@ -1,34 +1,73 @@
 = Jenkins Webhook Proxy
 
-Provides one endpoint accepting webhooks from BitBucket and forwards them to the
-corresponding Jenkins pipeline (which is determined based on the branch name).
-If there is no corresponding pipeline yet, it will be created on the fly. Once a
-branch is deleted or a pull request declined/merged, the corresponding Jenkins
-pipeline is deleted as well.
+The webhook proxy service allows to trigger Jenkins pipelines. Further, it
+automatically creates pipelines that do not exist yet and can delete pipelines
+that are no longer needed.
 
-Jenkinsfiles, within a project are created when provisioning quickstarters,
-thru the https://github.com/opendevstack/ods-provisioning-app[provision app].
-The https://github.com/opendevstack/ods-project-quickstarters/tree/master/boilerplates[quickstarter boilerplates]
-contain the appropriate skeletons.
+One instance of the webhook proxy runs in every `<project>-cd` namespace next to
+the Jenkins instance.
 
-One instance of the webhook proxy runs in every `project`-cd namespace next to
-the jenkins instance for this `project`.
+== Endpoints
+
+=== `POST /`
+Accepts webhooks from BitBucket and forwards them to the corresponding Jenkins
+pipeline (which is determined based on the component param and the branch name).
+If there is no corresponding pipeline yet, it will be created on the fly (by
+creating a `BuildConfig` in OpenShift which is synced to Jenkins via the
+OpenShift plugin). Once a branch is deleted or a pull request declined/merged,
+the corresponding Jenkins pipeline is deleted.
+
+=== `POST /build`
+Accepts a payload of the following form:
+[source,json]
+----
+{
+    "branch": "foo",
+    "repository": "repository",
+    "env": [
+       {
+          "name": "FOO_BAR",
+          "value": "baz"
+       }
+    ],
+    "project": "bar"
+}
+----
+
+**Important**: In order to avoid conflicts between pipelines created/triggered
+via BitBucket and pipelines created/triggered via `/build`, most likely you'd
+want to pass a component name to `/build`, like so: `/build?component=foo`, see
+the next section.
+
+Also note that the `project` field is optional, and restricted to the project of the webhook proxy and `opendevstack` by default (but can be customized via `ALLOWED_EXTERNAL_PROJECTS`).
+
+
+=== Parameters
+Both `/` and `/build` accept the following query parameters. They are offered
+as query parameters only because otherwise they could not be adjusted for
+BitBucket webhooks.
+
+|===
+| Variable | Description
+
+| jenkinsfile_path
+| The path to the `Jenkinsfile`. By default, the `Jenkinsfile` is assumed to be in the root of the repository, therefore this value defaults to simply `Jenkinsfile`.
+
+| component
+| The component part of the pipeline name. If not given, the pipeline name is created from the repository and the branch.
+|===
 
 == Adding a webhook in BitBucket
 
-Go to "Repository Settings > Webhooks" and click on "Create webhook". Enter
-`Jenkins` as Title and the route URL (see following <<setup,Setup>> section) as
-URL. Under "Repository events", select `Push`. Under "Pull request events",
-select `Merged` and `Declined`. Save your changes and you're done! Any other
-webhooks already setup to trigger Jenkins are not needed anymore and should be
-deactivated or deleted.
+The provisioning app sets up one webhook per repository by default. It is
+possible to create webhooks manually as well, e.g. to add more than one
+webhook (likely differentiated by the `component` param then). To manually
+create a webhook, go to "Repository Settings > Webhooks" and click on
+"Create webhook". Enter e.g. `Jenkins` as title and the route to the webhook
+proxy instance as URL. Under "Repository events", select `Push`. Under
+"Pull request events", select `Merged` and `Declined`. Save your changes.
 
-== Setup the webhook proxy in a `*-cd` namespace
 
-Run `tailor update` in `ocp-config`. This will create `BuildConfig` and
-`ImageStream` in the central `cd` namespace. Next, you will have to create a
-`DeploymentConfig`, `Service` and `Route` in the namespace your Jenkins instance
-runs.
 
 == Customizing the behaviour of the webhook proxy
 
@@ -47,13 +86,11 @@ The following environment variables are read by the proxy:
 | The base URL of the repository (e.g. your BitBucket host). This variable is set by the template and usually does not need to be modified.
 
 | TRIGGER_SECRET
-| The secret which protects the pipeline to be executed from outside. This variable is set by the template and usually does not need to be modified.
-|===
+| The secret which protects the pipeline to be executed from outside. This variable is set by the template and usually does not need to be modified. |
 
-Moreover, one can pass the following query parameters to the proxy:
-| Variable | Description |
-| -- | -- |
-| jenkinsfile_path | The path to the `Jenkinsfile`. By default, the `Jenkinsfile` is assumed to be in the root of the repository, therefore this value defaults to simply `Jenkinsfile`. |
+| ALLOWED_EXTERNAL_PROJECTS
+| Comma-separated list of external projects which the Webhook Proxy can deal with. By default, this is just the `opendevstack` project.
+|===
 
 == Development
 
