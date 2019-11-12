@@ -86,7 +86,7 @@ The following environment variables are read by the proxy:
 | The base URL of the repository (e.g. your BitBucket host). This variable is set by the template and usually does not need to be modified.
 
 | TRIGGER_SECRET
-| The secret which protects the pipeline to be executed from outside. This variable is set by the template and usually does not need to be modified. |
+| The secret which protects the pipeline to be executed from outside. This variable is set by the template and usually does not need to be modified.
 
 | ALLOWED_EXTERNAL_PROJECTS
 | Comma-separated list of external projects which the Webhook Proxy can deal with. By default, this is just the `opendevstack` project.
