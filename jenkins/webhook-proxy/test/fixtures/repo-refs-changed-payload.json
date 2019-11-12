@@ -19,7 +19,7 @@
         "statusMessage": "Available",
         "forkable": true,
         "project": {  
-            "key": "PROJ",
+            "key": "OPENDEVSTACK",
             "id": 84,
             "name": "project",
             "public": false,
