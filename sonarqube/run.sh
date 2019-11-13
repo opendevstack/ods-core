@@ -13,6 +13,11 @@ if [ $SONAR_AUTH_CROWD == true ]; then
   echo "crowd.application=$SONARQUBE_CROWD_APP" >> conf/sonar.properties
   echo "crowd.password=$SONARQUBE_CROWD_PWD" >> conf/sonar.properties
   echo "sonar.security.localUsers=admin" >> conf/sonar.properties
+elif [ $SONAR_OAUTH_PLUGIN_ENABLED == true ]; then
+  echo "sonar.auth.openshift.isEnabled=true" >> conf/sonar.properties
+  echo "sonar.auth.openshift.sar.groups=$SONAR_OAUTH_ADMIN_GROUP=sonar-administrators,$SONAR_OAUTH_USERS_GROUP=sonar-users" >> conf/sonar.properties
+  echo "oauth.cert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" >> conf/sonar.properties
+  echo 'kubernetes.service=https://${env:KUBERNETES_SERVICE_HOST}:${env:KUBERNETES_SERVICE_PORT}/' >> conf/sonar.properties
 fi
 
 # upgrade to 7.3
