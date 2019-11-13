@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: nexus3
+objects:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: nexus3
+    name: nexus-data-extended
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${NEXUS_DATA_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_BACKUP}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: nexus3
+    name: nexus-db-backup
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${NEXUS_BACKUP_CAPACITY}
+parameters:
+- name: STORAGE_PROVISIONER
+  description: storage class provisioner. For AWS this could be kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployments
+- name: STORAGE_CLASS_DATA
+  description: storage class for data. For AWS this could be gp2. Leave empty for local (e.g. vagrant) deployments
+- name: STORAGE_CLASS_BACKUP
+  description: Storage class for data backup. For AWS this could be gp2-encrypted. Leave empty for local (e.g. vagrant) deployments
+- name: NEXUS_DATA_CAPACITY
+  value: 60Gi
+- name: NEXUS_BACKUP_CAPACITY
+  value: 10Gi

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: nexus3
+objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"nexus3"}}'
+  name: nexus-oauth
