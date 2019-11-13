@@ -1,0 +1,482 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: sonarqube
+objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.sonarqube: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"sonarqube"}}'
+    name: sonarqube-oauth
+- apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: sonarqube_view
+  roleRef:
+    name: view
+  subjects:
+  - kind: ServiceAccount
+    name: sonarqube-oauth
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: sonarqube:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: sonarqube
+      git:
+        uri: ${REPO_BASE}/opendevstack/ods-core.git
+        ref: production 
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        env:
+          - name: SONAR_VERSION
+            value: ${SONAR_VERSION}
+          - name: SONAR_DISTRIBUTION_URL
+            value: ${SONAR_DISTRIBUTION_URL}
+          - name: IDP_DNS
+            value: ${IDP_DNS}
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers: []
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    replicas: 1
+    selector:
+      name: sonarqube-postgresql
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: sonarqube-postgresql
+      spec:
+        containers:
+        - env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              configMapKeyRef:
+                key: database-user
+                name: sonarqube
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: sonarqube-postgresql
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                key: database-name
+                name: sonarqube
+          image: registry.access.redhat.com/rhscl/postgresql-95-rhel7@sha256:de66da4812f0de42cee0bef65899d75f8b1a7440858271f133c8f73c80be663d
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 1
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
+                'SELECT 1'
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: sonarqube-postgresql-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: sonarqube-oauth
+        serviceAccountName: sonarqube-oauth
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: sonarqube-postgresql-data
+          persistentVolumeClaim:
+            claimName: sonarqube-postgresql
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.5
+          namespace: openshift
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    replicas: 1
+    selector:
+      app: sonarqube
+      deploymentconfig: sonarqube
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: sonarqube
+          deploymentconfig: sonarqube
+      spec:
+        containers:
+        - name: sonarqube
+          image: cd/sonarqube:latest
+          env:
+          - name: SONARQUBE_JDBC_URL
+            valueFrom:
+              configMapKeyRef:
+                key: database-jdbc-url
+                name: sonarqube
+          - name: SONARQUBE_JDBC_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: database-user
+                name: sonarqube
+          - name: SONARQUBE_JDBC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: sonarqube-postgresql
+          - name: SONARQUBE_CROWD_URL
+            valueFrom:
+              configMapKeyRef:
+                key: crowd-url
+                name: sonarqube
+          - name: SONARQUBE_CROWD_APP
+            valueFrom:
+              configMapKeyRef:
+                key: crowd-application
+                name: sonarqube
+          - name: SONARQUBE_CROWD_PWD
+            valueFrom:
+              secretKeyRef:
+                key: crowd-password
+                name: sonarqube-app
+          - name: SONAR_AUTH_CROWD
+            value: ${SONAR_AUTH_CROWD}
+          - name: SONAR_OAUTH_PLUGIN_ENABLED
+            value: ${SONAR_OAUTH_PLUGIN_ENABLED}
+          - name: SONAR_OAUTH_ADMIN_GROUP
+            value: ${SONAR_OAUTH_ADMIN_GROUP}
+          - name: SONAR_OAUTH_USERS_GROUP
+            value: ${SONAR_OAUTH_USERS_GROUP}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 9000
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/sonarqube/data
+            name: sonarqube-data
+          - mountPath: /opt/sonarqube/extensions
+            name: sonarqube-extensions
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: sonarqube-data
+          persistentVolumeClaim:
+            claimName: sonarqube-data
+        - name: sonarqube-extensions
+          persistentVolumeClaim:
+            claimName: sonarqube-extensions
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - sonarqube
+        from:
+          kind: ImageStreamTag
+          name: sonarqube:latest
+          namespace: ${OC_PROJECT}
+      type: ImageChange
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    dockerImageRepository: sonarqube
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    labels:
+      app: sonarqube
+    name: sonarqube-data
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    labels:
+      app: sonarqube
+    name: sonarqube-extensions
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: ${STORAGE_CLASS_DATA}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    host: ${SONARQUBE_HOST}
+    port:
+      targetPort: 9000-tcp
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: sonarqube
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  data:
+    admin-password: ${ADMIN_PASSWORD}
+    auth-token: ${AUTH_TOKEN}
+    crowd-password: ${CROWD_PASSWORD}
+  kind: Secret
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube-app
+  type: Opaque
+- kind: ConfigMap
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  apiVersion: v1
+  data:
+    crowd-application: ${CROWD_APPLICATION}
+    crowd-url: ${CROWD_URL}
+    database-jdbc-url: ${DATABASE_JDBC_URL}
+    database-name: ${DATABASE_NAME}
+    database-user: ${DATABASE_USER}
+    sonarqube-admin-user: ${ADMIN_USERNAME}
+- apiVersion: v1
+  data:
+    database-password: ${DATABASE_PASSWORD}
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+      template.openshift.io/expose-password: '{.data[''database-password'']}'
+      template.openshift.io/expose-username: '{.data[''database-user'']}'
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  type: Opaque
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    labels:
+      app: sonarqube
+      template: postgresql-persistent-template
+    name: sonarqube-postgresql
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: sonarqube-postgresql
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: sonarqube
+    name: sonarqube
+  spec:
+    ports:
+    - name: 9000-tcp
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      deploymentconfig: sonarqube
+    sessionAffinity: None
+    type: ClusterIP
+parameters:
+- displayName: OC project
+  name: OC_PROJECT
+  description: Name of the ocp project to deploy to. This is normally the "cd" project
+  required: true
+# this must be base64 encoded.
+- displayName: Admin Password
+  name: ADMIN_PASSWORD
+  description: The base64 encoded admin password
+  required: true
+- displayName: Admin Username
+  name: ADMIN_USERNAME
+  description: the sonarqube admin username
+  required: true
+- displayName: Auth Token
+  name: AUTH_TOKEN
+  required: true
+- displayName: Crowd Application
+  name: CROWD_APPLICATION
+  description: application name as setup in crowd for authn/z
+- displayName: Crowd Password
+  name: CROWD_PASSWORD
+  description: base64 encoded application password as setup in crowd for authn/z
+- displayName: Crowd URL
+  name: CROWD_URL
+  description: url under which crowd is reachable from sonaruqbe
+# e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
+- displayName: Database JDBC URL
+  name: DATABASE_JDBC_URL
+  description: database jdbc url
+  required: true
+- displayName: Database Name
+  name: DATABASE_NAME
+  description: database name, e.g. sonarqube
+  required: true
+- displayName: Database Password
+  name: DATABASE_PASSWORD
+  description: base64 encoded database user password
+  required: true
+- displayName: Database User
+  name: DATABASE_USER
+  description: the database user to connect ot the database
+  required: true
+- name: SONARQUBE_HOST
+  description: Host without protocol exposed by the sonarqube route
+  required: true
+- name: REPO_BASE
+  required: true
+  description: Repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+- name: STORAGE_CLASS_DATA
+  # for AWS the default is gp2
+  description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_PROVISIONER
+  description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_CLASS_BACKUP
+  # for AWS the default would be gp2-encrypted
+  description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
+- name: SONAR_DISTRIBUTION_URL
+  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
+- name: SONAR_VERSION
+  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+- name: SONAR_AUTH_CROWD
+  description: "Set to true, if you want to use crowd as identity provider"
+- name: SONAR_OAUTH_PLUGIN_ENABLED
+  description: "Set to true, if you want to use OpenShift Oauth as identity provider. If Crowd is also enabled, CROWD takes precedence."
+  required: false
+- name: SONAR_OAUTH_ADMIN_GROUP
+  description: "OpenShift group mapped to sonar-administrators"
+  required: false
+  value: ocp-admin
+- name: SONAR_OAUTH_USERS_GROUP
+  description: "OpenShift group mapped to sonar-users"
+  required: false
+  value: ocp-users
+- name: IDP_DNS
+  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
