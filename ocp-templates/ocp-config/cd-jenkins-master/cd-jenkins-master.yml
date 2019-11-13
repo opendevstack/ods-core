@@ -206,7 +206,7 @@ objects:
             - jenkins
           from:
             kind: ImageStreamTag
-            name: '${JENKINS_IMAGE_STREAM_TAG}'
+            name: 'jenkins-master:${ODS_VERSION}'
             namespace: '${NAMESPACE}'
           lastTriggeredImage: ''
         type: ImageChange
@@ -273,6 +273,9 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
 - name: PROJECT
   required: true
 - name: OD_OCP_SOURCE_APP_DOMAIN
@@ -293,8 +296,6 @@ parameters:
   value: 5Gi
 - name: NAMESPACE
   value: cd
-- name: JENKINS_IMAGE_STREAM_TAG
-  value: jenkins-master:latest
 - name: CD_USER_ID
   required: true
 - name: CD_USER_PWD

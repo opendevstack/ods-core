@@ -1,5 +1,6 @@
 namespace cd
 selector  app=nexus3
-param-dir ../../../ods-configuration/ods-core/nexus/ocp-config
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
 
 dc,is,pvc,route,svc
