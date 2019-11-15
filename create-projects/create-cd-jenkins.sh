@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+set -eux
 
 # This script sets up the cd/jenkins-master and the associated webhook proxy.
 
