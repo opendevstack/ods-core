@@ -1,5 +1,6 @@
 namespace cd
-selector  app=sonarqube
-param-dir ../../../ods-configuration/ods-core/sonarqube/ocp-config
+selector app=sonarqube
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
 
 bc,dc,is,pvc,route,svc,secret,configmap

@@ -1,4 +1,4 @@
-param-file  ../../../ods-config/ods-project-quickstarters/ocp-templates/templates/templates.env
+param-file  ../../../ods-config/ods-core.env
 
 ignore-unknown-parameters true
 

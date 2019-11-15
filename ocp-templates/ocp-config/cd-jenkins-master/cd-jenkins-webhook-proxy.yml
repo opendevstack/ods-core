@@ -100,7 +100,7 @@ objects:
         - webhook-proxy
         from:
           kind: ImageStreamTag
-          name: jenkins-webhook-proxy:latest
+          name: jenkins-webhook-proxy:${ODS_VERSION}
           namespace: '${NAMESPACE}'
       type: ImageChange
 - apiVersion: v1
@@ -113,6 +113,9 @@ objects:
   data:
     trigger-secret: ${PIPELINE_TRIGGER_SECRET}
 parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
 - name: PROJECT
   required: true
 - name: OD_OCP_SOURCE_APP_DOMAIN
