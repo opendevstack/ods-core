@@ -18,10 +18,6 @@ do
 key="$1"
 
 case $key in
-    -p|--project)
-    PROJECT="$2"
-    shift # past argument
-    ;;
     --status)
     STATUS=true
     ;;
@@ -45,10 +41,10 @@ fi
 
 tailor_verbose+=" --force"
 
-if [ -z ${PROJECT+x} ]; then
-    echo "PROJECT is unset, but required";
+if [ -z ${PROJECT_ID+x} ]; then
+    echo "PROJECT_ID is unset, but required";
     exit 1;
-else echo "PROJECT=${PROJECT}"; fi
+else echo "PROJECT_ID=${PROJECT_ID}"; fi
 
 if $STATUS; then
   echo "NOTE: Invoked with --status:  will use tailor status instead of tailor update."
@@ -73,18 +69,18 @@ tailor_update_in_dir() {
 OCP_CONFIG="${SCRIPT_DIR}/../ocp-templates/ocp-config/"
 
 tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
-    "--namespace=${PROJECT}-cd" \
-    "--param=PROJECT=${PROJECT}" \
+    "--namespace=${PROJECT_ID}-cd" \
+    "--param=PROJECT=${PROJECT_ID}" \
     --selector "template=cd-jenkins-master-template"
 
 tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
-    "--namespace=${PROJECT}-cd" \
+    "--namespace=${PROJECT_ID}-cd" \
     "--param=PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET}" \
-    "--param=PROJECT=${PROJECT}" \
+    "--param=PROJECT=${PROJECT_ID}" \
     --selector "template=cd-jenkins-webhook-proxy-template"
 
 # add secrets for dockerfile build to dev and test
 for devenv in dev test ; do
     tailor_update_in_dir "${OCP_CONFIG}/cd-user" \
-        "--namespace=${PROJECT}-${devenv}"
+        "--namespace=${PROJECT_ID}-${devenv}"
 done
