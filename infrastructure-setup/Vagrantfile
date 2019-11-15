@@ -92,8 +92,8 @@ Vagrant.configure(2) do |config|
     vm_config.vm.provider :virtualbox do |vb|
       vb.name = "idmanager"
       vb.customize ["modifyvm", :id, "--groups", "/opendevstack"]
-      vb.customize ["modifyvm", :id, "--memory", 2048]
-      vb.customize ["modifyvm", :id, "--cpus", 2]
+      vb.customize ["modifyvm", :id, "--memory", 4096]
+      vb.customize ["modifyvm", :id, "--cpus", 1]
       vb.gui = false
     end
 	vm_config.vm.provision "shell", path: "scripts/install-virtualbox-guest-additions.sh"
