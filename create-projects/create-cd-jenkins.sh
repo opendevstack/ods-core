@@ -73,9 +73,10 @@ tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
     "--param=PROJECT=${PROJECT_ID}" \
     --selector "template=cd-jenkins-master-template"
 
+pipelineTriggerSecretBase64=$(echo -n $PIPELINE_TRIGGER_SECRET | base64)
 tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
     "--namespace=${PROJECT_ID}-cd" \
-    "--param=PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET}" \
+    "--param=PIPELINE_TRIGGER_SECRET_B64=${pipelineTriggerSecretBase64}" \
     "--param=PROJECT=${PROJECT_ID}" \
     --selector "template=cd-jenkins-webhook-proxy-template"
 
