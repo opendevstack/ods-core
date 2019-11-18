@@ -26,7 +26,7 @@ objects:
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
-    host: webhook-proxy-${PROJECT}-cd.${OPENSHIFT_APPS_BASEDOMAIN}
+    host: webhook-proxy-${PROJECT}-cd${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge

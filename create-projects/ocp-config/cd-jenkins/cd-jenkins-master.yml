@@ -89,7 +89,7 @@ objects:
       template: cd-jenkins-master
       app: jenkins-master
   spec:
-    host: jenkins-${PROJECT}-cd.${OPENSHIFT_APPS_BASEDOMAIN}
+    host: jenkins-${PROJECT}-cd${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
