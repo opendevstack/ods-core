@@ -7,11 +7,6 @@ if [ -z ${PROJECT_ID+x} ]; then
     exit 1;
 else echo "PROJECT_ID=${PROJECT_ID}"; fi
 
-if [ -z ${NEXUS_HOST+x} ]; then
-    echo "NEXUS_HOST is unset";
-    exit 1;
-else echo "NEXUS_HOST=${NEXUS_HOST}"; fi
-
 oc new-project ${PROJECT_ID}-cd
 oc new-project ${PROJECT_ID}-dev
 oc new-project ${PROJECT_ID}-test

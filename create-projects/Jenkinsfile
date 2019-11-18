@@ -5,13 +5,11 @@ def projectGroups = env.PROJECT_GROUPS
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
 // Jenkins DeploymentConfig environment variables
 def bitbucketHost
-def nexusHost
 def dockerRegistry
 
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   bitbucketHost = env.BITBUCKET_HOST
-  nexusHost = env.NEXUS_HOST
 }
 def conts = containerTemplate(
   name: 'jnlp',
@@ -53,9 +51,7 @@ podTemplate(
     }
 
     stage('creating openshift projects') {
-      withEnv(["NEXUS_HOST=${nexusHost}"]) {
-        sh "sh ./create-projects/create-projects.sh"
-      }
+      sh "sh ./create-projects/create-projects.sh"
     }
 
     stage('creating jenkins') {
