@@ -3,14 +3,15 @@ def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
 def projectGroups = env.PROJECT_GROUPS
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
+
 // Jenkins DeploymentConfig environment variables
 def bitbucketHost
 def dockerRegistry
-
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   bitbucketHost = env.BITBUCKET_HOST
 }
+
 def conts = containerTemplate(
   name: 'jnlp',
   image: "${dockerRegistry}/cd/jenkins-slave-base",
@@ -18,8 +19,8 @@ def conts = containerTemplate(
   alwaysPullImage: true,
   args: ''
 )
-
 def podLabel = "create-projects-${projectId}";
+
 podTemplate(
   label: podLabel,
   cloud: 'openshift',
