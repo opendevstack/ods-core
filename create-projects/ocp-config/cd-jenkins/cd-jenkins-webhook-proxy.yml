@@ -2,6 +2,20 @@ apiVersion: v1
 kind: Template
 labels:
   template: cd-jenkins-template
+parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
+- name: PROJECT
+  required: true
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: NAMESPACE
+  value: cd
+- name: REPO_BASE
+  required: true
+- name: PIPELINE_TRIGGER_SECRET_B64
+  required: true
 objects:
 - apiVersion: v1
   kind: Route
@@ -12,7 +26,7 @@ objects:
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
-    host: webhook-proxy-${PROJECT}-cd.${OD_OCP_SOURCE_APP_DOMAIN}
+    host: webhook-proxy-${PROJECT}-cd.${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -107,18 +121,4 @@ objects:
       app: jenkins-webhook-proxy
   type: opaque
   data:
-    trigger-secret: ${PIPELINE_TRIGGER_SECRET}
-parameters:
-- name: ODS_VERSION
-  description: OpenDevStack version to use.
-  required: true
-- name: PROJECT
-  required: true
-- name: OD_OCP_SOURCE_APP_DOMAIN
-  required: true
-- name: NAMESPACE
-  value: cd
-- name: REPO_BASE
-  required: true
-- name: PIPELINE_TRIGGER_SECRET
-  required: true
+    trigger-secret: ${PIPELINE_TRIGGER_SECRET_B64}
