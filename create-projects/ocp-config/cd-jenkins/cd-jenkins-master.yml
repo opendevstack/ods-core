@@ -12,17 +12,17 @@ parameters:
   required: true
 - name: JENKINS_SERVICE_NAME
   value: jenkins
-- name: JNLP_SERVICE_NAME
+- name: JENKINS_JNLP_SERVICE_NAME
   value: jenkins-jnlp
 - name: STORAGE_CLASS_DATA
   required: false
-- name: ENABLE_OAUTH
+- name: JENKINS_ENABLE_OAUTH
   value: "true"
-- name: MEMORY_LIMIT
+- name: JENKINS_MEMORY_LIMIT
   value: 2Gi
-- name: MEMORY_REQUEST
+- name: JENKINS_MEMORY_REQUEST
   value: 1Gi
-- name: VOLUME_CAPACITY
+- name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: NAMESPACE
   value: cd
@@ -112,7 +112,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-        storage: '${VOLUME_CAPACITY}'
+        storage: '${JENKINS_VOLUME_CAPACITY}'
     storageClassName: '${STORAGE_CLASS_DATA}'
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -157,7 +157,7 @@ objects:
         containers:
         - env:
             - name: OPENSHIFT_ENABLE_OAUTH
-              value: '${ENABLE_OAUTH}'
+              value: '${JENKINS_ENABLE_OAUTH}'
             - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
               value: 'true'
             - name: KUBERNETES_MASTER
@@ -165,7 +165,7 @@ objects:
             - name: KUBERNETES_TRUST_CERTIFICATES
               value: 'true'
             - name: JNLP_SERVICE_NAME
-              value: '${JNLP_SERVICE_NAME}'
+              value: '${JENKINS_JNLP_SERVICE_NAME}'
             - name: NEXUS_HOST
               value: '${NEXUS_URL}'
             - name: NEXUS_USERNAME
@@ -217,9 +217,9 @@ objects:
             timeoutSeconds: 3
           resources:
             limits:
-              memory: '${MEMORY_LIMIT}'
+              memory: '${JENKINS_MEMORY_LIMIT}'
             requests:
-              memory: '${MEMORY_REQUEST}'
+              memory: '${JENKINS_MEMORY_REQUEST}'
           securityContext:
             capabilities: {}
             privileged: false
