@@ -1,11 +1,7 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: cd-jenkins-webhook-proxy-template
-metadata:
-  annotations:
-    description: Jenkins webhook proxy
-  name: cd-jenkins-webhook-proxy
+  template: cd-jenkins-template
 objects:
 - apiVersion: v1
   kind: Route

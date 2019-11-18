@@ -65,23 +65,15 @@ tailor_update_in_dir() {
     fi
 }
 
-# create jenkins in the cd project
-OCP_CONFIG="${SCRIPT_DIR}/../ocp-templates/ocp-config/"
-
-tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
-    "--namespace=${PROJECT_ID}-cd" \
-    "--param=PROJECT=${PROJECT_ID}" \
-    --selector "template=cd-jenkins-master-template"
-
 pipelineTriggerSecretBase64=$(echo -n $PIPELINE_TRIGGER_SECRET | base64)
-tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
+tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--namespace=${PROJECT_ID}-cd" \
     "--param=PIPELINE_TRIGGER_SECRET_B64=${pipelineTriggerSecretBase64}" \
     "--param=PROJECT=${PROJECT_ID}" \
-    --selector "template=cd-jenkins-webhook-proxy-template"
+    --selector "template=cd-jenkins-template"
 
 # add secrets for dockerfile build to dev and test
 for devenv in dev test ; do
-    tailor_update_in_dir "${OCP_CONFIG}/cd-user" \
+    tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-user" \
         "--namespace=${PROJECT_ID}-${devenv}"
 done

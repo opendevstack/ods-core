@@ -1,14 +1,7 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: cd-jenkins-master-template
-metadata:
-  annotations:
-    description: Jenkins master
-    iconClass: icon-jenkins
-    openshift.io/display-name: Jenkins (Persistent)
-    tags: instant-app,jenkins
-  name: cd-jenkins-master
+  template: cd-jenkins-template
 objects:
 - apiVersion: v1
   data:
