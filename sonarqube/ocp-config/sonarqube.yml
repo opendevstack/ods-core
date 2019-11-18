@@ -4,6 +4,21 @@ metadata:
   name: sonarqube
 objects:
 - apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.sonarqube: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"sonarqube"}}'
+    name: sonarqube-oauth
+- apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: sonarqube_view
+  roleRef:
+    name: view
+  subjects:
+  - kind: ServiceAccount
+    name: sonarqube-oauth
+- apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
@@ -122,6 +137,8 @@ objects:
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
+        serviceAccount: sonarqube-oauth
+        serviceAccountName: sonarqube-oauth
         terminationGracePeriodSeconds: 30
         volumes:
         - name: sonarqube-postgresql-data
@@ -198,6 +215,12 @@ objects:
                 name: sonarqube-app
           - name: SONAR_AUTH_CROWD
             value: ${SONAR_AUTH_CROWD}
+          - name: SONAR_OAUTH_PLUGIN_ENABLED
+            value: ${SONAR_OAUTH_PLUGIN_ENABLED}
+          - name: SONAR_OAUTH_ADMIN_GROUP
+            value: ${SONAR_OAUTH_ADMIN_GROUP}
+          - name: SONAR_OAUTH_USERS_GROUP
+            value: ${SONAR_OAUTH_USERS_GROUP}
           imagePullPolicy: Always
           ports:
           - containerPort: 9000
@@ -232,7 +255,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: sonarqube:latest
-          namespace: cd
+          namespace: ${OC_PROJECT}
       type: ImageChange
 - apiVersion: v1
   kind: ImageStream
@@ -310,9 +333,9 @@ objects:
     wildcardPolicy: None
 - apiVersion: v1
   data:
-    admin-password: ${SONAR_ADMIN_PASSWORD_B64}
-    auth-token: ${SONAR_AUTH_TOKEN_B64}
-    crowd-password: ${SONAR_CROWD_PASSWORD_B64}
+    admin-password: ${ADMIN_PASSWORD}
+    auth-token: ${AUTH_TOKEN}
+    crowd-password: ${CROWD_PASSWORD}
   kind: Secret
   metadata:
     labels:
@@ -326,15 +349,15 @@ objects:
     name: sonarqube
   apiVersion: v1
   data:
-    crowd-application: ${SONAR_CROWD_APPLICATION}
+    crowd-application: ${CROWD_APPLICATION}
     crowd-url: ${CROWD_URL}
-    database-jdbc-url: ${SONAR_DATABASE_JDBC_URL}
-    database-name: ${SONAR_DATABASE_NAME}
-    database-user: ${SONAR_DATABASE_USER}
+    database-jdbc-url: ${DATABASE_JDBC_URL}
+    database-name: ${DATABASE_NAME}
+    database-user: ${DATABASE_USER}
     sonarqube-admin-user: ${ADMIN_USERNAME}
 - apiVersion: v1
   data:
-    database-password: ${SONAR_DATABASE_PASSWORD_B64}
+    database-password: ${DATABASE_PASSWORD}
   kind: Secret
   metadata:
     annotations:
@@ -382,40 +405,46 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
+- displayName: OC project
+  name: OC_PROJECT
+  description: Name of the ocp project to deploy to. This is normally the "cd" project
+  required: true
+# this must be base64 encoded.
 - displayName: Admin Password
-  name: SONAR_ADMIN_PASSWORD_B64
+  name: ADMIN_PASSWORD
   description: The base64 encoded admin password
   required: true
 - displayName: Admin Username
-  name: SONAR_ADMIN_USERNAME
+  name: ADMIN_USERNAME
   description: the sonarqube admin username
   required: true
 - displayName: Auth Token
-  name: SONAR_AUTH_TOKEN_B64
+  name: AUTH_TOKEN
   required: true
 - displayName: Crowd Application
-  name: SONAR_CROWD_APPLICATION
+  name: CROWD_APPLICATION
   description: application name as setup in crowd for authn/z
 - displayName: Crowd Password
-  name: SONAR_CROWD_PASSWORD_B64
+  name: CROWD_PASSWORD
   description: base64 encoded application password as setup in crowd for authn/z
 - displayName: Crowd URL
   name: CROWD_URL
   description: url under which crowd is reachable from sonaruqbe
+# e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
-  name: SONAR_DATABASE_JDBC_URL
-  description: database jdbc url, e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
+  name: DATABASE_JDBC_URL
+  description: database jdbc url
   required: true
 - displayName: Database Name
-  name: SONAR_DATABASE_NAME
+  name: DATABASE_NAME
   description: database name, e.g. sonarqube
   required: true
 - displayName: Database Password
-  name: SONAR_DATABASE_PASSWORD_B64
+  name: DATABASE_PASSWORD
   description: base64 encoded database user password
   required: true
 - displayName: Database User
-  name: SONAR_DATABASE_USER
+  name: DATABASE_USER
   description: the database user to connect ot the database
   required: true
 - name: SONARQUBE_HOST
@@ -438,5 +467,16 @@ parameters:
   description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
 - name: SONAR_AUTH_CROWD
   description: "Set to true, if you want to use crowd as identity provider"
+- name: SONAR_OAUTH_PLUGIN_ENABLED
+  description: "Set to true, if you want to use OpenShift Oauth as identity provider. If Crowd is also enabled, CROWD takes precedence."
+  required: false
+- name: SONAR_OAUTH_ADMIN_GROUP
+  description: "OpenShift group mapped to sonar-administrators"
+  required: false
+  value: ocp-admin
+- name: SONAR_OAUTH_USERS_GROUP
+  description: "OpenShift group mapped to sonar-users"
+  required: false
+  value: ocp-users
 - name: IDP_DNS
   description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
