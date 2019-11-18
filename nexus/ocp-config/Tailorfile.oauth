@@ -2,4 +2,4 @@ namespace cd
 selector  app=nexus3
 param-dir ../../../ods-configuration/ods-core/nexus/ocp-config
 
-dc,is,pvc,route,svc,sa
+dc,is,pvc,route,svc
