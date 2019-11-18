@@ -14,7 +14,7 @@ parameters:
   value: cd
 - name: REPO_BASE
   required: true
-- name: PIPELINE_TRIGGER_SECRET_B64
+- name: PROXY_TRIGGER_SECRET_B64
   required: true
 objects:
 - apiVersion: v1
@@ -121,4 +121,4 @@ objects:
       app: jenkins-webhook-proxy
   type: opaque
   data:
-    trigger-secret: ${PIPELINE_TRIGGER_SECRET_B64}
+    trigger-secret: ${PROXY_TRIGGER_SECRET_B64}
