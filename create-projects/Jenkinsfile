@@ -45,9 +45,9 @@ podTemplate(
         ]],
         submoduleCfg: [],
         userRemoteConfigs: [[
-            credentialsId: 'prov-cd-cd-user-with-password',
-            url: "https://cd_user@${bitbucketHost}/scm/opendevstack/ods-configuration.git"
-          ]]
+          credentialsId: 'prov-cd-cd-user-with-password',
+          url: "https://${bitbucketHost}/scm/opendevstack/ods-configuration.git"
+        ]]
       ])
     }
 
