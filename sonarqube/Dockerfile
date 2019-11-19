@@ -55,6 +55,16 @@ VOLUME "$SONARQUBE_HOME/data"
 WORKDIR $SONARQUBE_HOME
 
 COPY run.sh $SONARQUBE_HOME/bin/
-COPY plugins /opt/configuration/sonarqube/plugins
+
+RUN mkdir -p /opt/configuration/sonarqube/plugins
+ADD https://github.com/deepy/sonar-crowd/releases/download/2.1.3/sonar-crowd-plugin-2.1.3.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-java-plugin/sonar-java-plugin-5.14.0.18788.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-go-plugin/sonar-go-plugin-1.6.0.719.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.1.0.11503.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-python-plugin-2.1.0.5269.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala-plugin-1.5.0.315.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v1.1.0/sonar-auth-oidc-plugin-1.1.0.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/dependency-check/dependency-check-sonar-plugin/releases/download/1.2.6/sonar-dependency-check-plugin-1.2.6.jar /opt/configuration/sonarqube/plugins/
 
 ENTRYPOINT ["./bin/run.sh"]
