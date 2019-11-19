@@ -16,22 +16,6 @@ fi
 
 cd $BASE_DIR
 
-echo -e "Clone repositories"
-echo -e "\nPrepare ods-configuration-sample"
-#clone configuration sample repository
-cd ${OPENDEVSTACK_BASE_DIR}
-if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-configuration-sample" ] ; then
-  git clone https://github.com/opendevstack/ods-configuration-sample.git
-  cd ods-configuration-sample
-  git fetch origin
-  git checkout -b production
-else
-  echo "Update configuration sample"
-  cd $OPENDEVSTACK_BASE_DIR/ods-configuration-sample
-  git fetch origin
-  git pull origin
-fi
-
 echo -e "\nPrepare ods-jenkins-shared-library"
 cd ${OPENDEVSTACK_BASE_DIR}
 if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-jenkins-shared-library" ] ; then
