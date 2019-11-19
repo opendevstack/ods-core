@@ -52,6 +52,7 @@ WORKDIR $SONARQUBE_HOME
 
 COPY run.sh $SONARQUBE_HOME/bin/
 
+# Add plugins (mainly from https://docs.sonarqube.org/display/PLUG/Plugin+Library)
 RUN mkdir -p /opt/configuration/sonarqube/plugins
 # General plugins
 ADD https://github.com/deepy/sonar-crowd/releases/download/2.1.3/sonar-crowd-plugin-2.1.3.jar /opt/configuration/sonarqube/plugins/
