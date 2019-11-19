@@ -46,8 +46,6 @@ RUN if [ -z $IDP_DNS ]; then echo 'Skipping custom certificate!'; else \
     keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/cacerts -noprompt -storepass changeit; \
     fi
 
-USER sonarqube
-
 VOLUME "$SONARQUBE_HOME/data"
 
 WORKDIR $SONARQUBE_HOME
@@ -66,5 +64,12 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-
 ADD https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-python-plugin-2.1.0.5269.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala-plugin-1.5.0.315.jar /opt/configuration/sonarqube/plugins/
+
+RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
+    chmod -R g=u /opt/configuration/sonarqube/plugins; \
+    chown -R :0 $SONARQUBE_HOME/bin; \
+    chmod -R g+x $SONARQUBE_HOME/bin/run.sh
+
+USER sonarqube
 
 ENTRYPOINT ["./bin/run.sh"]
