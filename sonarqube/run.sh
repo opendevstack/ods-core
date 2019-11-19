@@ -15,14 +15,9 @@ if [ $SONAR_AUTH_CROWD == true ]; then
   echo "sonar.security.localUsers=admin" >> conf/sonar.properties
 fi
 
-# upgrade to 7.3
-rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
-
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-scala*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-python*.jar || true
-
 # Copy plugins into volume
+rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
+ls -lah /opt/configuration/sonarqube/plugins
 mkdir -p $SONARQUBE_HOME/extensions/plugins
 for FILENAME in /opt/configuration/sonarqube/plugins/*; do
   plugin=$(basename $FILENAME)
