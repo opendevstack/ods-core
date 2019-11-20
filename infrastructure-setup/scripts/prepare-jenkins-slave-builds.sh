@@ -12,16 +12,16 @@ fi
 oc login -u system:admin
 oc project cd
 
-cd ${BASE_DIR}/ods-project-quickstarters/jenkins-slaves/nodejs8-angular/ocp-config
+cd ${BASE_DIR}/ods-quickstarters/common/jenkins-slaves/nodejs8-angular/ocp-config
 yes 'y' | tailor update -v --force
 
-cd ${BASE_DIR}/ods-project-quickstarters/jenkins-slaves/nodejs10-angular/ocp-config
+cd ${BASE_DIR}/ods-quickstarters/common/jenkins-slaves/nodejs10-angular/ocp-config
 yes 'y' | tailor update -v --force
 
-cd ${BASE_DIR}/ods-project-quickstarters/jenkins-slaves/python/ocp-config/
+cd ${BASE_DIR}/ods-quickstarters/common/jenkins-slaves/python/ocp-config/
 yes 'y' | tailor update -v --force
 
-cd ${BASE_DIR}/ods-project-quickstarters/jenkins-slaves/scala/ocp-config/
+cd ${BASE_DIR}/ods-quickstarters/common/jenkins-slaves/scala/ocp-config/
 yes 'y' | tailor update -v --force
 
 oc start-build -n cd jenkins-slave-python --follow
