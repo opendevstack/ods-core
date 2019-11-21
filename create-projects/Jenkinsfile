@@ -12,6 +12,8 @@ node {
   bitbucketHost = env.BITBUCKET_HOST
 }
 
+def gitIsHttps = false
+
 def conts = containerTemplate(
   name: 'jnlp',
   image: "${dockerRegistry}/cd/jenkins-slave-base",
@@ -30,11 +32,17 @@ podTemplate(
 ) {
   node(podLabel) {
 
-    stage('checkout'){
+    stage('checkout') {
       checkout scm
+      gitIsHttps = sh(
+        returnStdout: true,
+        script: 'git config remote.origin.url'
+      ).trim().startsWith("https");
     }
 
-    stage('checkout ods-config'){
+    stage('checkout ods-config') {
+      def bitbucketScheme = gitIsHttps ? "https://" : "http://"
+      def bitbucketUrl = bitbucketScheme + bitbucketHost;
       checkout([
         $class: 'GitSCM',
         branches: [[name: '*/master']],
@@ -46,7 +54,7 @@ podTemplate(
         submoduleCfg: [],
         userRemoteConfigs: [[
           credentialsId: 'prov-cd-cd-user-with-password',
-          url: "https://${bitbucketHost}/scm/opendevstack/ods-configuration.git"
+          url: "${bitbucketUrl}/scm/opendevstack/ods-configuration.git"
         ]]
       ])
     }
