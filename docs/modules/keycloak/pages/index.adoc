@@ -2,7 +2,7 @@
 
 Keycloak is an open source identity and access managment tool.
 
-OpenDevStack uses eigther _Atlassian Crowd_ or  _OpenID Connect / OAuth 2.0_ protokoll for authentication users of provisioning app.
+OpenDevStack uses eigther _Atlassian Crowd_ or  _OpenID Connect / OAuth 2.0_ protocol for authentication users of provisioning app.
 
 IMPORTANT: The usage of Keycloak is optional. Instead of keycloak, _Atlassian Crowd_ can still be used for
 authentication. See documentation under _ODS-Components_ -> _Provisioning App_ -> _Configuration Guide_ regarding
