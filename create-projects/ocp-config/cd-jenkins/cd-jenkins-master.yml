@@ -279,7 +279,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: '${JNLP_SERVICE_NAME}'
+    name: '${JENKINS_JNLP_SERVICE_NAME}'
     labels:
       template: cd-jenkins-master
   spec:
@@ -296,7 +296,7 @@ objects:
   kind: Service
   metadata:
     annotations:
-      service.alpha.openshift.io/dependencies: '[{"name": "${JNLP_SERVICE_NAME}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_JNLP_SERVICE_NAME}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
