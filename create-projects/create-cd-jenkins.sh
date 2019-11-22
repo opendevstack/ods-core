@@ -65,10 +65,9 @@ tailor_update_in_dir() {
     fi
 }
 
-proxyTriggerSecretBase64=$(echo -n $PIPELINE_TRIGGER_SECRET | base64)
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--namespace=${PROJECT_ID}-cd" \
-    "--param=PROXY_TRIGGER_SECRET_B64=${proxyTriggerSecretBase64}" \
+    "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
     "--param=PROJECT=${PROJECT_ID}" \
     --selector "template=cd-jenkins-template"
 
