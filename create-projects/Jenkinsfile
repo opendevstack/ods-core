@@ -1,55 +1,70 @@
-def projectId = env.PROJECT_ID;
-def nexusHost = env.NEXUS_HOST;
-def projectAdmins = env.PROJECT_ADMIN;
-def projectGroups = env.PROJECT_GROUPS;
-def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET;
-def bitbucketHost = env.BITBUCKET_HOST;
-def dockerRegistry
+// BuildConfig environment variables
+def projectId = env.PROJECT_ID
+def projectAdmins = env.PROJECT_ADMIN
+def projectGroups = env.PROJECT_GROUPS
+def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
 
+// Jenkins DeploymentConfig environment variables
+def bitbucketHost
+def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
+  bitbucketHost = env.BITBUCKET_HOST
 }
-def conts = containerTemplate( 
-            name: 'jnlp',
-            image: "${dockerRegistry}/cd/jenkins-slave-base",
-            workingDir: '/tmp',
-            alwaysPullImage: true,
-            args: ''
-        )
 
-def podLabel = "create-projects-" + projectId;
+def gitIsHttps = false
+
+def conts = containerTemplate(
+  name: 'jnlp',
+  image: "${dockerRegistry}/cd/jenkins-slave-base",
+  workingDir: '/tmp',
+  alwaysPullImage: true,
+  args: ''
+)
+def podLabel = "create-projects-${projectId}";
+
 podTemplate(
-      label: podLabel,
-      cloud: 'openshift',
-      containers: [conts],
-      volumes: [],
-      serviceAccount: 'jenkins'
-    ) {
-        node(podLabel) {
-          stage('checkout'){
-            checkout scm
-          }
-          stage('checkout ods-config'){
-             checkout([
-                $class: 'GitSCM',    
-                branches: [[name: '*/production']],
-                doGenerateSubmoduleConfigurations: false, 
-                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'ods-config']],
-                submoduleCfg: [], 
-                userRemoteConfigs: [[credentialsId: 'prov-cd-cd-user-with-password', url: bitbucketHost + '/scm/opendevstack/ods-configuration.git']] 
-            ])
-          }
+  label: podLabel,
+  cloud: 'openshift',
+  containers: [conts],
+  volumes: [],
+  serviceAccount: 'jenkins'
+) {
+  node(podLabel) {
 
+    stage('checkout') {
+      checkout scm
+      gitIsHttps = sh(
+        returnStdout: true,
+        script: 'git config remote.origin.url'
+      ).trim().startsWith("https");
+    }
 
+    stage('checkout ods-config') {
+      def bitbucketScheme = gitIsHttps ? "https://" : "http://"
+      def bitbucketUrl = bitbucketScheme + bitbucketHost;
+      checkout([
+        $class: 'GitSCM',
+        branches: [[name: '*/master']],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [[
+          $class: 'RelativeTargetDirectory',
+          relativeTargetDir: 'ods-config'
+        ]],
+        submoduleCfg: [],
+        userRemoteConfigs: [[
+          credentialsId: 'prov-cd-cd-user-with-password',
+          url: "${bitbucketUrl}/scm/opendevstack/ods-configuration.git"
+        ]]
+      ])
+    }
 
-        stage('creating openshift projects') {
-            sh "sh ./create-projects/create-projects.sh -p ${projectId} -n ${nexusHost} -a ${projectAdmins} -e ${projectGroups}";
-        }
-        stage('creating jenkins') {
-          sh "env";
-           withEnv(["pipelineTriggerSecret=${pipelineTriggerSecret}"]) {
-              sh "sh ./create-projects/create-cd-jenkins.sh -p ${projectId}";
-           }
-        }
-      }
+    stage('creating openshift projects') {
+      sh "sh ./create-projects/create-projects.sh"
+    }
+
+    stage('creating jenkins') {
+      sh "sh ./create-projects/create-cd-jenkins.sh"
+    }
+  }
 }

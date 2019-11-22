@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+set -eux
 
 # This script sets up the cd/jenkins-master and the associated webhook proxy.
 
@@ -18,10 +18,6 @@ do
 key="$1"
 
 case $key in
-    -p|--project)
-    PROJECT="$2"
-    shift # past argument
-    ;;
     --status)
     STATUS=true
     ;;
@@ -45,10 +41,10 @@ fi
 
 tailor_verbose+=" --force"
 
-if [ -z ${PROJECT+x} ]; then
-    echo "PROJECT is unset, but required";
+if [ -z ${PROJECT_ID+x} ]; then
+    echo "PROJECT_ID is unset, but required";
     exit 1;
-else echo "PROJECT=${PROJECT}"; fi
+else echo "PROJECT_ID=${PROJECT_ID}"; fi
 
 if $STATUS; then
   echo "NOTE: Invoked with --status:  will use tailor status instead of tailor update."
@@ -69,22 +65,14 @@ tailor_update_in_dir() {
     fi
 }
 
-# create jenkins in the cd project
-OCP_CONFIG="${SCRIPT_DIR}/../ocp-templates/ocp-config/"
-
-tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
-    "--namespace=${PROJECT}-cd" \
-    "--param=PROJECT=${PROJECT}" \
-    --selector "template=cd-jenkins-master-template"
-
-tailor_update_in_dir "${OCP_CONFIG}/cd-jenkins-master" \
-    "--namespace=${PROJECT}-cd" \
-    "--param=PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET}" \
-    "--param=PROJECT=${PROJECT}" \
-    --selector "template=cd-jenkins-webhook-proxy-template"
+tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
+    "--namespace=${PROJECT_ID}-cd" \
+    "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
+    "--param=PROJECT=${PROJECT_ID}" \
+    --selector "template=cd-jenkins-template"
 
 # add secrets for dockerfile build to dev and test
 for devenv in dev test ; do
-    tailor_update_in_dir "${OCP_CONFIG}/cd-user" \
-        "--namespace=${PROJECT}-${devenv}"
+    tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-user" \
+        "--namespace=${PROJECT_ID}-${devenv}"
 done
