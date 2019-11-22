@@ -21,7 +21,5 @@ oc start-build -n cd jenkins-master --follow
 oc start-build -n cd jenkins-slave-base --follow
 oc start-build -n cd jenkins-webhook-proxy --follow
 
-cd ${BASE_DIR}/ods-quickstarters/common/jenkins-slaves/maven/ocp-config
-yes 'y' | tailor update -v --force
 
-oc start-build -n cd jenkins-slave-maven --follow
+
