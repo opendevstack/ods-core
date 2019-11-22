@@ -2,7 +2,7 @@
 
 == Introduction
 
-The base jenkins slave used by all ODS https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves[builder slaves]
+The base jenkins slave used by all ODS https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-slaves[builder slaves]
 
 == Features / Plugins
 

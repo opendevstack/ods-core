@@ -14,9 +14,9 @@ fi
 # set sufficient max map count for elastic search pods (also used by sonar)
 sysctl -w vm.max_map_count=262144
 
-configuration_location=${BASE_DIR}/ods-configuration/ods-project-quickstarters/ocp-templates/templates/templates.env
-if [[ ! -f $configuration_location ]]; then
-	echo "Cannot find file: ${configuration_location} - please ensure you have copied ods-configuration-sample and created template.env"
+cd_user_config_location=${BASE_DIR}/ods-configuration/ods-core.env
+if [[ ! -f $cd_user_config_location ]]; then
+	echo "Cannot find file: ${cd_user_config_location} - please ensure you have created the ods-configuration repo (through ods-core/configuration-sample/update)"
 	exit 1
 fi
 
@@ -36,9 +36,9 @@ oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:se
 echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
 oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
 
-# create secrets for cd_user
-CD_USER_PWD=$(grep CD_USER_PWD $configuration_location | cut -d '=' -f 2-)
-oc process -f ${BASE_DIR}/ods-project-quickstarters/ocp-templates/ocp-config/cd-user/secret.yml -p CD_USER_PWD=${CD_USER_PWD} |  oc create -n cd -f-
+# create secrets for global cd_user
+CD_USER_PWD_B64=$(grep CD_USER_PWD_B64 $cd_user_config_location | cut -d '=' -f 2-)
+oc process -f ${BASE_DIR}/ods-core/create-projects/ocp-config/cd-user/secret.yml -p CD_USER_PWD_B64=${CD_USER_PWD_B64} |  oc create -n cd -f-
 
 if [[ ! -d "${BASE_DIR}/certs" ]] ; then
   echo "creating certs directory"

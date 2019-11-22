@@ -6,7 +6,7 @@ This provide a containerized [ElasticSearch](https://www.elastic.co/products/ela
 
 ## Templates
 
-There is 4 templates used for creating ElasticSearch instances in [ODS Project QuickStarters Template folder in GitHub](https://github.com/opendevstack/ods-project-quickstarters/tree/master/ocp-templates/templates/elasticsearch)
+There is 4 templates used for creating ElasticSearch instances in [ODS Project QuickStarters Template folder in GitHub](https://github.com/opendevstack/ods-quickstarters/tree/master/common/ocp-templates/templates/elasticsearch)
 
 * `elasticsearch-ephemeral-master-template.yaml` : Ephemeral ElasticSearch master node and Kibana
 * `elasticsearch-persistent-master-template.yaml` : Persistent ElasticSearch master node and Kibana
