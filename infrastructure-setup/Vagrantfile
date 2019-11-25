@@ -15,10 +15,23 @@ Vagrant.configure(2) do |config|
   # VirtualBox Configuration
 
   machines = {
-               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.5', :mem => '8192', :cpu => 2 },
-               :openshift      => {:ip => '192.168.56.101', :box => 'bento/centos-7.6', :mem => '8192', :cpu => 2 }
+               :atlassian     => {:ip => '192.168.56.31', :box => 'bento/centos-7.7', :mem => '8192', :cpu => 4 },
+               :openshift      => {:ip => '192.168.56.101', :box => 'bento/centos-7.7', :mem => '10240', :cpu => 4 }
              }
-
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    ui.info('Disable vagrant-vbguest plugin!')
+    config.vbguest.auto_update = false
+  end
+  
+  if Vagrant.has_plugin?("vagrant-cachier")
+    ui.info('Using vagrant cachier!')
+    config.cache.scope       = :box
+    config.cache.auto_detect = true
+  else
+    ui.warn('Hint:  You have not installed vagrant cachier or disabled it.')
+    ui.warn('       Using it can speed up your machine provisioning.')
+  end
+  
   # Atlassian and rundeck Host
   machines.each do |machine_name, machine_details|
    config.vm.define machine_name do |machine_config|
@@ -33,7 +46,6 @@ Vagrant.configure(2) do |config|
      machine_config.vm.synced_folder "../..", "/ods"
 
      machine_config.vm.provision "shell", inline: "sudo sed -i 's/obsoletes=1/obsoletes=0/' /etc/yum.conf"
-
      machine_config.vm.provider :virtualbox do |vb|
        reserved_mem = machine_details[:mem] || default_mem
        reserved_cpu = machine_details[:cpu] || default_cpu
@@ -47,9 +59,9 @@ Vagrant.configure(2) do |config|
   end # machines
 
   # Ansible controller
-  config.vm.define "atlcon", primary:true, autostart: true do |vm_config|
-    vm_config.vm.box = "bento/centos-7.5"
-    vm_config.vm.box_check_update = false
+  config.vm.define "atlcon", primary:true, autostart: true do |vm_config|    
+    vm_config.vm.box = "bento/centos-7.7"
+	vm_config.vm.box_check_update = false
     vm_config.vm.hostname = "atlcon"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
     vm_config.vm.synced_folder "./.vagrant", "/vagrant/.vagrant", mount_options: ["dmode=700,fmode=600"]
@@ -60,13 +72,16 @@ Vagrant.configure(2) do |config|
       vb.customize ["modifyvm", :id, "--memory", 512]
       vb.customize ["modifyvm", :id, "--cpus", 1]
       vb.gui = false
-    end
+    end	
     vm_config.vm.provision "shell", path: "scripts/ansible.sh"
+	
+    
+  
   end
 
   # Identity Manager
   config.vm.define "idmanager" do |vm_config|
-    vm_config.vm.box = "bento/centos-7.6"
+    vm_config.vm.box = "bento/centos-7.7"
     vm_config.vm.box_check_update = false
     vm_config.vm.hostname = "idmanager"
     vm_config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]

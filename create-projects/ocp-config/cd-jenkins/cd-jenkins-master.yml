@@ -1,0 +1,315 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: cd-jenkins-template
+parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
+- name: PROJECT
+  required: true
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: JENKINS_SERVICE_NAME
+  value: jenkins
+- name: JENKINS_JNLP_SERVICE_NAME
+  value: jenkins-jnlp
+- name: STORAGE_CLASS_DATA
+  required: false
+- name: JENKINS_ENABLE_OAUTH
+  value: "true"
+- name: JENKINS_MEMORY_LIMIT
+  value: 2Gi
+- name: JENKINS_MEMORY_REQUEST
+  value: 1Gi
+- name: JENKINS_VOLUME_CAPACITY
+  value: 5Gi
+- name: NAMESPACE
+  value: cd
+- name: CD_USER_ID_B64
+  required: true
+- name: CD_USER_PWD_B64
+  required: true
+- name: NEXUS_URL
+  required: true
+- name: NEXUS_USERNAME
+  required: true
+- name: NEXUS_PASSWORD
+  required: true
+- name: JENKINS_HOME
+  value: /var/lib/jenkins
+- name: SONARQUBE_URL
+  required: true
+- name: SONAR_AUTH_TOKEN_B64
+  required: true
+- name: SHARED_LIBRARY_REPOSITORY
+  value: opendevstack/ods-jenkins-shared-library.git
+- name: DOCKER_REGISTRY
+  required: true
+- name: BITBUCKET_HOST
+  required: true
+- name: REPO_BASE
+  required: true
+objects:
+- apiVersion: v1
+  data:
+    password: '${CD_USER_PWD_B64}'
+    username: '${CD_USER_ID_B64}'
+  kind: Secret
+  metadata:
+    name: cd-user-with-password
+    labels:
+      template: cd-jenkins-master
+  type: kubernetes.io/basic-auth
+- apiVersion: v1
+  data:
+    auth-token: '${SONAR_AUTH_TOKEN_B64}'
+  kind: Secret
+  metadata:
+    name: sonarqube
+    labels:
+      template: cd-jenkins-master
+  type: opaque
+- apiVersion: v1
+  data:
+    password: '${NEXUS_PASSWORD}'
+  kind: Secret
+  metadata:
+    labels:
+      template: cd-jenkins-master
+      app: jenkins
+    name: nexus
+  type: opaque
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    name: '${JENKINS_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+      app: jenkins-master
+  spec:
+    host: jenkins-${PROJECT}-cd${OPENSHIFT_APPS_BASEDOMAIN}
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: '${JENKINS_SERVICE_NAME}'
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: '${JENKINS_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+      app: jenkins-master
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: '${JENKINS_VOLUME_CAPACITY}'
+    storageClassName: '${STORAGE_CLASS_DATA}'
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: owasp-dependency-check
+    labels:
+      template: cd-jenkins-master
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: '${STORAGE_CLASS_DATA}'
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    name: '${JENKINS_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+      app: jenkins-master
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      name: '${JENKINS_SERVICE_NAME}'
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          name: '${JENKINS_SERVICE_NAME}'
+      spec:
+        containers:
+        - env:
+            - name: OPENSHIFT_ENABLE_OAUTH
+              value: '${JENKINS_ENABLE_OAUTH}'
+            - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+              value: 'true'
+            - name: KUBERNETES_MASTER
+              value: 'https://kubernetes.default:443'
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: 'true'
+            - name: JNLP_SERVICE_NAME
+              value: '${JENKINS_JNLP_SERVICE_NAME}'
+            - name: NEXUS_HOST
+              value: '${NEXUS_URL}'
+            - name: NEXUS_USERNAME
+              value: '${NEXUS_USERNAME}'
+            - name: NEXUS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: nexus
+            - name: JENKINS_HOME
+              value: '${JENKINS_HOME}'
+            - name: COPY_REFERENCE_FILE_LOG
+              value: '${JENKINS_HOME}/copy_reference_file.log'
+            - name: SONAR_SERVER_URL
+              value: '${SONARQUBE_URL}'
+            - name: SONAR_SERVER_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: auth-token
+                  name: sonarqube
+            - name: SHARED_LIBRARY_REPOSITORY
+              value: '${REPO_BASE}/${SHARED_LIBRARY_REPOSITORY}'
+            - name: DOCKER_REGISTRY
+              value: '${DOCKER_REGISTRY}'
+            - name: BITBUCKET_HOST
+              value: '${BITBUCKET_HOST}'
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: '${JENKINS_MEMORY_LIMIT}'
+            requests:
+              memory: '${JENKINS_MEMORY_REQUEST}'
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: '${JENKINS_HOME}'
+              name: '${JENKINS_SERVICE_NAME}-data'
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: '${JENKINS_SERVICE_NAME}'
+        serviceAccountName: '${JENKINS_SERVICE_NAME}'
+        terminationGracePeriodSeconds: 30
+        volumes:
+          - name: '${JENKINS_SERVICE_NAME}-data'
+            persistentVolumeClaim:
+              claimName: '${JENKINS_SERVICE_NAME}'
+    test: false
+    triggers:
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - jenkins
+          from:
+            kind: ImageStreamTag
+            name: 'jenkins-master:${ODS_VERSION}'
+            namespace: '${NAMESPACE}'
+          lastTriggeredImage: ''
+        type: ImageChange
+      - type: ConfigChange
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
+        {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE_NAME}"}}
+    name: '${JENKINS_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    name: '${JENKINS_SERVICE_NAME}_edit'
+    labels:
+      template: cd-jenkins-master
+  roleRef:
+    name: edit
+  subjects:
+    - kind: ServiceAccount
+      name: '${JENKINS_SERVICE_NAME}'
+      namespace: '${PROJECT}-cd'
+  userNames:
+    - system:serviceaccount:${PROJECT}-cd:jenkins
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: '${JENKINS_JNLP_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+  spec:
+    ports:
+      - name: agent
+        port: 50000
+        protocol: TCP
+        targetPort: 50000
+    selector:
+      name: '${JENKINS_SERVICE_NAME}'
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_JNLP_SERVICE_NAME}", "namespace": "", "kind": "Service"}]'
+      service.openshift.io/infrastructure: 'true'
+    creationTimestamp: null
+    name: '${JENKINS_SERVICE_NAME}'
+    labels:
+      template: cd-jenkins-master
+      app: jenkins-master
+  spec:
+    ports:
+      - name: web
+        port: 80
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      name: '${JENKINS_SERVICE_NAME}'
+    sessionAffinity: None
+    type: ClusterIP

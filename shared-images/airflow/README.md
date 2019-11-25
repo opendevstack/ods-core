@@ -104,6 +104,7 @@ openshift_console_url=https://localhost
 
 ## Environemnt Variables
 
+
 A set of Environment Variables where included to allow a easy way of using Config Maps
 and Secrets. They are:
 

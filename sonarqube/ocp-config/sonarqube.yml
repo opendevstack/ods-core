@@ -15,7 +15,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: sonarqube:latest
+        name: sonarqube:${ODS_VERSION}
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -23,7 +23,7 @@ objects:
       contextDir: sonarqube
       git:
         uri: ${REPO_BASE}/opendevstack/ods-core.git
-        ref: production 
+        ref: ${ODS_GIT_REF}
       sourceSecret:
         name: cd-user-token
       type: Git
@@ -164,7 +164,7 @@ objects:
       spec:
         containers:
         - name: sonarqube
-          image: cd/sonarqube:latest
+          image: cd/sonarqube:${ODS_VERSION}
           env:
           - name: SONARQUBE_JDBC_URL
             valueFrom:
@@ -231,8 +231,8 @@ objects:
         - sonarqube
         from:
           kind: ImageStreamTag
-          name: sonarqube:latest
-          namespace: ${OC_PROJECT}
+          name: sonarqube:${ODS_VERSION}
+          namespace: cd
       type: ImageChange
 - apiVersion: v1
   kind: ImageStream
@@ -249,6 +249,8 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+    - kubernetes.io/pvc-protection
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -310,9 +312,9 @@ objects:
     wildcardPolicy: None
 - apiVersion: v1
   data:
-    admin-password: ${ADMIN_PASSWORD}
-    auth-token: ${AUTH_TOKEN}
-    crowd-password: ${CROWD_PASSWORD}
+    admin-password: ${SONAR_ADMIN_PASSWORD_B64}
+    auth-token: ${SONAR_AUTH_TOKEN_B64}
+    crowd-password: ${SONAR_CROWD_PASSWORD_B64}
   kind: Secret
   metadata:
     labels:
@@ -326,15 +328,15 @@ objects:
     name: sonarqube
   apiVersion: v1
   data:
-    crowd-application: ${CROWD_APPLICATION}
+    crowd-application: ${SONAR_CROWD_APPLICATION}
     crowd-url: ${CROWD_URL}
-    database-jdbc-url: ${DATABASE_JDBC_URL}
-    database-name: ${DATABASE_NAME}
-    database-user: ${DATABASE_USER}
-    sonarqube-admin-user: ${ADMIN_USERNAME}
+    database-jdbc-url: ${SONAR_DATABASE_JDBC_URL}
+    database-name: ${SONAR_DATABASE_NAME}
+    database-user: ${SONAR_DATABASE_USER}
+    sonarqube-admin-user: ${SONAR_ADMIN_USERNAME}
 - apiVersion: v1
   data:
-    database-password: ${DATABASE_PASSWORD}
+    database-password: ${SONAR_DATABASE_PASSWORD_B64}
   kind: Secret
   metadata:
     annotations:
@@ -382,46 +384,46 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
-- displayName: OC project
-  name: OC_PROJECT
-  description: Name of the ocp project to deploy to. This is normally the "cd" project
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
   required: true
-# this must be base64 encoded.
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
 - displayName: Admin Password
-  name: ADMIN_PASSWORD
+  name: SONAR_ADMIN_PASSWORD_B64
   description: The base64 encoded admin password
   required: true
 - displayName: Admin Username
-  name: ADMIN_USERNAME
+  name: SONAR_ADMIN_USERNAME
   description: the sonarqube admin username
   required: true
 - displayName: Auth Token
-  name: AUTH_TOKEN
+  name: SONAR_AUTH_TOKEN_B64
   required: true
 - displayName: Crowd Application
-  name: CROWD_APPLICATION
+  name: SONAR_CROWD_APPLICATION
   description: application name as setup in crowd for authn/z
 - displayName: Crowd Password
-  name: CROWD_PASSWORD
+  name: SONAR_CROWD_PASSWORD_B64
   description: base64 encoded application password as setup in crowd for authn/z
 - displayName: Crowd URL
   name: CROWD_URL
   description: url under which crowd is reachable from sonaruqbe
-# e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
-  name: DATABASE_JDBC_URL
-  description: database jdbc url
+  name: SONAR_DATABASE_JDBC_URL
+  description: database jdbc url, e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
   required: true
 - displayName: Database Name
-  name: DATABASE_NAME
+  name: SONAR_DATABASE_NAME
   description: database name, e.g. sonarqube
   required: true
 - displayName: Database Password
-  name: DATABASE_PASSWORD
+  name: SONAR_DATABASE_PASSWORD_B64
   description: base64 encoded database user password
   required: true
 - displayName: Database User
-  name: DATABASE_USER
+  name: SONAR_DATABASE_USER
   description: the database user to connect ot the database
   required: true
 - name: SONARQUBE_HOST

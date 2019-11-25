@@ -14,7 +14,7 @@ objects:
     port:
       targetPort: 8081-tcp
     tls:
-      insecureEdgeTerminationPolicy: Allow
+      insecureEdgeTerminationPolicy: Redirect
       termination: edge
     to:
       kind: Service
