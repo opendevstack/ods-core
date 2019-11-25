@@ -23,6 +23,10 @@ oc new-project cd --description="Base project holding the templates and the Repo
 
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin developer
 
+# Allow system:authenticated group to pull images from CD namespace
+oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n cd
+oc adm policy add-role-to-group view system:authenticated -n cd
+
 oc create sa deployment -n cd
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment
 
