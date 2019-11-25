@@ -1,0 +1,20 @@
+{% extends "airflow/master.html" %}
+{% import 'admin/lib.html' as lib with context %}
+
+{% block title %}Airflow - Airflow Cluster{% endblock %}
+
+{% block head_css %}
+{{ lib.form_css() }}
+{{ super() }}
+<link href="{{ url_for("static", filename="bootstrap-toggle.min.css") }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for("openshift_plugin.static", filename="styles.css") }}" rel="stylesheet" type="text/css">
+
+<script src="{{ url_for("openshift_plugin.static", filename="ng-graph-view.js") }}"></script>
+
+{% endblock %}
+
+{% block body %}
+
+<greet-comp></greet-comp>
+
+{% endblock %}

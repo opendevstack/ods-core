@@ -1,0 +1,17 @@
+{% extends "airflow/master.html" %}
+{% import 'admin/lib.html' as lib with context %}
+
+{% block title %}Airflow - Airflow Cluster{% endblock %}
+
+{% block head_css %}
+  {{ lib.form_css() }}
+  {{ super() }}
+  <link href="{{ url_for("static", filename="bootstrap-toggle.min.css") }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+
+<h1>My cool new view</h1>
+<h2>{{ content }}</h2>
+
+{% endblock %}}

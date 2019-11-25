@@ -1,15 +1,11 @@
 apiVersion: v1
 kind: Template
 metadata:
-  annotations: {}
-  creationTimestamp: null
   name: nexus3
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: nexus3
     name: nexus3
@@ -26,14 +22,12 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           app: nexus3
           deploymentconfig: nexus3
       spec:
         containers:
-        - image: sonatype/nexus3:latest
+        - image: sonatype/nexus3:3.18.1
           imagePullPolicy: Always
           name: nexus3
           ports:

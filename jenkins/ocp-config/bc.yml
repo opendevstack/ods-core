@@ -21,13 +21,18 @@ objects:
       type: Git
       contextDir: jenkins/master
       git:
-        ref: production
+        ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
     strategy:
       type: Docker
       dockerStrategy:
+        env:
+          - name: APP_DNS
+            value: ${APP_DNS}
+          - name: TARGET_HOSTS
+            value: ${TARGET_HOSTS}
         from:
           kind: ImageStreamTag
           name: jenkins:2
@@ -35,7 +40,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-master:latest'
+        name: 'jenkins-master:${ODS_VERSION}'
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -47,27 +52,31 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-slave-base:latest'
+        name: 'jenkins-slave-base:${ODS_VERSION}'
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
       contextDir: jenkins/slave-base
       git:
-        ref: production
+        ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: ${JENKINS_SLAVE_BASE_IMAGE}
+        dockerfilePath: ${JENKINS_AGENT_BASE_IMAGE}
         env:
           - name: APP_DNS
             value: ${APP_DNS}
+          - name: SNYK_DISTRIBUTION_URL
+            value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
+          - name: TARGET_HOSTS
+            value: ${TARGET_HOSTS}
         from:
           kind: DockerImage
-          name: ${JENKINS_SLAVE_BASE_FROM_IMAGE}
+          name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
       type: Docker
     triggers: []
 - apiVersion: v1
@@ -80,14 +89,14 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-webhook-proxy:latest'
+        name: 'jenkins-webhook-proxy:${ODS_VERSION}'
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
       contextDir: jenkins/webhook-proxy
       git:
-        ref: production
+        ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
       sourceSecret:
         name: cd-user-token
@@ -100,12 +109,22 @@ objects:
     nodeSelector: null
     triggers: []
 parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
 - name: REPO_BASE
   description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
   required: true
-- name: JENKINS_SLAVE_BASE_IMAGE
-  description: configuration which slave dockerfile to use, either .centos7 or .rhel7
-- name: JENKINS_SLAVE_BASE_FROM_IMAGE
-  description: configuration which slave base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
+- name: JENKINS_AGENT_BASE_IMAGE
+  description: configuration which agent dockerfile to use, either .centos7 or .rhel7
+- name: JENKINS_AGENT_BASE_FROM_IMAGE
+  description: configuration which agent base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
 - name: APP_DNS
-  description: OpenShift application base dns - used for grabbing the root ca and adding into the slave
+  description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
+- name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
+  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+- name: TARGET_HOSTS
+  description: if you have multiple DNS with different root ca, add them here seperated by ';'. They are added to jenkins master

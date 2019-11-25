@@ -6,21 +6,18 @@ if [ "${1:0:1}" != '-' ]; then
   exec "$@"
 fi
 
-# Update sonar.properties for crowd plugin
-echo "sonar.security.realm=Crowd" >> conf/sonar.properties
-echo "crowd.url=$SONARQUBE_CROWD_URL" >> conf/sonar.properties
-echo "crowd.application=$SONARQUBE_CROWD_APP" >> conf/sonar.properties
-echo "crowd.password=$SONARQUBE_CROWD_PWD" >> conf/sonar.properties
-echo "sonar.security.localUsers=admin" >> conf/sonar.properties
-
-# upgrade to 7.3
-rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
-
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-scala*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-python*.jar || true
+if [ $SONAR_AUTH_CROWD == true ]; then
+  # Update sonar.properties for crowd plugin
+  echo "sonar.security.realm=Crowd" >> conf/sonar.properties
+  echo "crowd.url=$SONARQUBE_CROWD_URL" >> conf/sonar.properties
+  echo "crowd.application=$SONARQUBE_CROWD_APP" >> conf/sonar.properties
+  echo "crowd.password=$SONARQUBE_CROWD_PWD" >> conf/sonar.properties
+  echo "sonar.security.localUsers=admin" >> conf/sonar.properties
+fi
 
 # Copy plugins into volume
+rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
+ls -lah /opt/configuration/sonarqube/plugins
 mkdir -p $SONARQUBE_HOME/extensions/plugins
 for FILENAME in /opt/configuration/sonarqube/plugins/*; do
   plugin=$(basename $FILENAME)

@@ -6,9 +6,9 @@ objects:
   metadata:
     labels:
       app: shared-services
-      component: openresty-nginx
+      component: elasticsearch
       template: bc-docker
-    name: openresty-nginx
+    name: elasticsearch
   spec:
     failedBuildsHistoryLimit: 5
     successfulBuildsHistoryLimit: 5
@@ -16,12 +16,12 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: openresty-nginx:1.0
+        name: elasticsearch:7.0.0
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: shared-images/openresty-nginx
+      contextDir: shared-images/elasticsearch
       git:
         ref: production
         uri: ${REPO_BASE}/opendevstack/ods-core.git
@@ -38,9 +38,9 @@ objects:
   metadata:
     labels:
       app: shared-services
-      component: nginx-authproxy
+      component: airflow
       template: bc-docker
-    name: nginx-authproxy
+    name: airflow
   spec:
     failedBuildsHistoryLimit: 5
     successfulBuildsHistoryLimit: 5
@@ -48,12 +48,12 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: nginx-authproxy:3.0
+        name: airflow:1.10.3
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: shared-images/nginx-authproxy-crowd
+      contextDir: shared-images/airflow
       git:
         ref: production
         uri: ${REPO_BASE}/opendevstack/ods-core.git
@@ -63,9 +63,6 @@ objects:
     strategy:
       dockerStrategy:
         dockerfilePath: Dockerfile
-        from:
-          kind: ImageStreamTag
-          name: openresty-nginx:1.0
       type: Docker
     triggers: []
 parameters:

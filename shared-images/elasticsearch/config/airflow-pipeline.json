@@ -1,0 +1,61 @@
+{
+  "processors": [
+    {
+      "set": {
+        "field": "offset",
+        "value": "{{ log.offset }}"
+      }
+    },
+    {
+      "grok": {
+        "field": "log.file.path",
+        "patterns": [
+          "/opt/app-root/src/airflow/logs/%{DATA:dag_id}/%{DATA:task_id}/%{TIMESTAMP_ISO8601:execution_time}/%{NUMBER:try_number}.log"
+        ],
+        "on_failure": [
+          {
+            "set": {
+              "field": "dag_id",
+              "value": "-"
+            }
+          },
+          {
+            "set": {
+              "field": "task_id",
+              "value": "-"
+            }
+          },
+          {
+            "set": {
+              "field": "execution_time",
+              "value": "{{@timestamp}}"
+            }
+          },
+          {
+            "set": {
+              "field": "try_number",
+              "value": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "append": {
+        "field": "log_id",
+        "value": [
+          "{{dag_id}}",
+          "{{task_id}}",
+          "{{execution_time}}",
+          "{{try_number}}"
+        ]
+      }
+    },
+    {
+      "join": {
+        "field": "log_id",
+        "separator": "|"
+      }
+    }
+  ]
+}

@@ -20,20 +20,22 @@ import (
 )
 
 const (
-	namespaceFile            = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-	tokenFile                = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-	caCert                   = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-	pipelineConfigFilename   = "pipeline.json.tmpl"
-	repoBaseEnvVar           = "REPO_BASE"
-	triggerSecretEnvVar      = "TRIGGER_SECRET"
-	triggerSecretDefault     = "secret101"
-	jenkinsfilePathDefault   = "Jenkinsfile"
-	protectedBranchesEnvVar  = "PROTECTED_BRANCHES"
-	protectedBranchesDefault = "master,develop,production,staging,release/"
-	openShiftAPIHostEnvVar   = "OPENSHIFT_API_HOST"
-	openShiftAPIHostDefault  = "openshift.default.svc.cluster.local"
-	namespaceSuffix          = "-cd"
-	letterBytes              = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	namespaceFile                  = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+	tokenFile                      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	caCert                         = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	pipelineConfigFilename         = "pipeline.json.tmpl"
+	repoBaseEnvVar                 = "REPO_BASE"
+	triggerSecretEnvVar            = "TRIGGER_SECRET"
+	triggerSecretDefault           = "secret101"
+	jenkinsfilePathDefault         = "Jenkinsfile"
+	protectedBranchesEnvVar        = "PROTECTED_BRANCHES"
+	protectedBranchesDefault       = "master,develop,production,staging,release/"
+	openShiftAPIHostEnvVar         = "OPENSHIFT_API_HOST"
+	openShiftAPIHostDefault        = "openshift.default.svc.cluster.local"
+	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
+	allowedExternalProjectsDefault = "opendevstack"
+	namespaceSuffix                = "-cd"
+	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 // EnvPair represents an environment variable
@@ -81,12 +83,13 @@ type ocClient struct {
 
 // Server represents this service, and is a global.
 type Server struct {
-	Client            Client
-	Namespace         string
-	Project           string
-	TriggerSecret     string
-	ProtectedBranches []string
-	RepoBase          string
+	Client                  Client
+	Namespace               string
+	Project                 string
+	TriggerSecret           string
+	ProtectedBranches       []string
+	AllowedExternalProjects []string
+	RepoBase                string
 }
 
 func init() {
@@ -137,6 +140,20 @@ func main() {
 		)
 	}
 
+	var allowedExternalProjects []string
+	envAllowedExternalProjects := strings.ToLower(os.Getenv(allowedExternalProjectsEnvVar))
+	if len(envAllowedExternalProjects) == 0 {
+		allowedExternalProjects = strings.Split(allowedExternalProjectsDefault, ",")
+		log.Println(
+			"INFO:",
+			allowedExternalProjectsEnvVar,
+			"not set, using default value:",
+			allowedExternalProjectsDefault,
+		)
+	} else {
+		allowedExternalProjects = strings.Split(envAllowedExternalProjects, ",")
+	}
+
 	client, err := newClient(openShiftAPIHost, triggerSecret)
 	if err != nil {
 		log.Fatalln(err)
@@ -150,12 +167,13 @@ func main() {
 	project := strings.TrimSuffix(namespace, namespaceSuffix)
 
 	server := &Server{
-		Client:            client,
-		Namespace:         namespace,
-		Project:           project,
-		TriggerSecret:     triggerSecret,
-		ProtectedBranches: protectedBranches,
-		RepoBase:          repoBase,
+		Client:                  client,
+		Namespace:               namespace,
+		Project:                 project,
+		TriggerSecret:           triggerSecret,
+		ProtectedBranches:       protectedBranches,
+		AllowedExternalProjects: allowedExternalProjects,
+		RepoBase:                repoBase,
 	}
 
 	log.Println("Booted")
@@ -168,6 +186,9 @@ func main() {
 // HandleRoot handles all requests to this service.
 func (s *Server) HandleRoot() http.HandlerFunc {
 	type repository struct {
+		Project struct {
+			Key string `json:"key"`
+		} `json:"project"`
 		Slug string `json:"slug"`
 	}
 	type requestBitbucket struct {
@@ -191,6 +212,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		Branch     string    `json:"branch"`
 		Repository string    `json:"repository"`
 		Env        []EnvPair `json:"env"`
+		Project    string    `json:"project"`
 	}
 
 	var (
@@ -230,6 +252,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		componentParam := queryValues.Get("component")
 
+		project := s.Project
+
 		var event *Event
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
@@ -240,11 +264,20 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
+			projectParam := strings.ToLower(req.Project)
+			if len(projectParam) > 0 {
+				if s.Project != projectParam && !includes(s.AllowedExternalProjects, projectParam) {
+					http.Error(w, "Cannot proxy for given project", http.StatusBadRequest)
+					return
+				}
+				project = projectParam
+			}
+
 			component := componentParam
 			if component == "" {
-				component = strings.Replace(req.Repository, s.Project+"-", "", -1)
+				component = strings.Replace(req.Repository, project+"-", "", -1)
 			}
-			pipeline := makePipelineName(s.Project, component, req.Branch)
+			pipeline := makePipelineName(project, component, req.Branch)
 
 			event = &Event{
 				Kind:      "forward",
@@ -271,10 +304,19 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			var branch string
 			component := componentParam
 
+			projectParam := strings.ToLower(req.Repository.Project.Key)
+			if len(projectParam) > 0 {
+				if s.Project != projectParam && !includes(s.AllowedExternalProjects, projectParam) {
+					http.Error(w, "Cannot proxy for given project", http.StatusBadRequest)
+					return
+				}
+				project = projectParam
+			}
+
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, s.Project+"-", "", -1)
+					component = strings.Replace(repo, project+"-", "", -1)
 				}
 				branch = req.Changes[0].Ref.DisplayID
 				if req.Changes[0].Type == "DELETE" {
@@ -285,7 +327,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, s.Project+"-", "", -1)
+					component = strings.Replace(repo, project+"-", "", -1)
 				}
 				branch = req.PullRequest.FromRef.DisplayID
 				kind = "delete"
@@ -293,7 +335,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				log.Println(requestID, "Skipping unknown event", req.EventKey)
 				return
 			}
-			pipeline := makePipelineName(s.Project, component, branch)
+			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
 				Kind:      kind,
@@ -320,7 +362,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			gitURI := fmt.Sprintf(
 				"%s/%s/%s.git",
 				s.RepoBase,
-				s.Project,
+				project,
 				event.Repo,
 			)
 			env, err := json.Marshal(event.Env)
@@ -634,6 +676,16 @@ func isProtectedBranch(protectedBranches []string, branch string) bool {
 			return true
 		}
 		if b == branch {
+			return true
+		}
+	}
+	return false
+}
+
+// includes checks if needle is in haystack
+func includes(haystack []string, needle string) bool {
+	for _, name := range haystack {
+		if name == needle {
 			return true
 		}
 	}

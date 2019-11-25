@@ -1,0 +1,32 @@
+node:
+  name: ${HOSTNAME}
+cluster:
+  name: ${ELASTICSEARCH_CLUSTERNAME}
+  initial_master_nodes: ${DISCOVERY_SEED_HOSTS:${HOSTNAME}}
+network:
+  host: [_eth0_, _local_]
+indices:
+  query:
+    bool:
+      max_clause_count: 16384
+discovery:
+  seed_hosts: ${DISCOVERY_SEED_HOSTS:}
+thread_pool:
+  write:
+    queue_size: 1000
+xpack:
+  security:
+    enabled: true
+    transport:
+      ssl:
+        enabled: true
+        verification_mode: certificate
+        keystore:
+          path: certs/elastic-certificates.p12
+        truststore:
+          path: certs/elastic-certificates.p12
+    authc:
+      realms:
+        file:
+          file1:
+            order: 0

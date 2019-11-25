@@ -4,13 +4,13 @@ objects:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
+    name: elasticsearch
     labels:
       app: shared-services
-      component: openresty-nginx
+      component: elasticsearch
       template: bc-docker
-    name: openresty-nginx
   spec:
-    dockerImageRepository: openresty-nginx
+    dockerImageRepository: elasticsearch
     lookupPolicy:
       local: false
 - apiVersion: image.openshift.io/v1
@@ -18,10 +18,10 @@ objects:
   metadata:
     labels:
       app: shared-services
-      component: nginx-authproxy
+      component: airflow
       template: bc-docker
-    name: nginx-authproxy
+    name: airflow
   spec:
-    dockerImageRepository: authproxy
+    dockerImageRepository: airflow
     lookupPolicy:
       local: false
