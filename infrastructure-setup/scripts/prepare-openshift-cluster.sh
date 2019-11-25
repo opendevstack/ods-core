@@ -11,6 +11,9 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 	exit
 fi
 
+# set sufficient max map count for elastic search pods (also used by sonar)
+sysctl -w vm.max_map_count=262144
+
 configuration_location=${BASE_DIR}/ods-configuration/ods-project-quickstarters/ocp-templates/templates/templates.env
 if [[ ! -f $configuration_location ]]; then
 	echo "Cannot find file: ${configuration_location} - please ensure you have copied ods-configuration-sample and created template.env"
