@@ -11,6 +11,9 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 	exit
 fi
 
+# set sufficient max map count for elastic search pods (also used by sonar)
+sysctl -w vm.max_map_count=262144
+
 configuration_location=${BASE_DIR}/ods-configuration/ods-project-quickstarters/ocp-templates/templates/templates.env
 if [[ ! -f $configuration_location ]]; then
 	echo "Cannot find file: ${configuration_location} - please ensure you have copied ods-configuration-sample and created template.env"
@@ -22,6 +25,10 @@ oc login -u system:admin
 oc new-project cd --description="Base project holding the templates and the Repositoy Manager" --display-name="OpenDevStack Templates"
 
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin developer
+
+# Allow system:authenticated group to pull images from CD namespace
+oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n cd
+oc adm policy add-role-to-group view system:authenticated -n cd
 
 oc create sa deployment -n cd
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment

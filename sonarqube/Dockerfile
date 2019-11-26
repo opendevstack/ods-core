@@ -43,7 +43,7 @@ RUN if [ -z $IDP_DNS ]; then echo 'Skipping custom certificate!'; else \
     gnutls-cli --insecure --print-cert ${IDP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/idp.crt; \
     cat /tmp/idp.crt|awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {print > "/usr/local/share/ca-certificates/mycert" n ".crt"}'; \
     update-ca-certificates; \
-    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/cacerts -noprompt -storepass changeit; \
+    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass changeit; \
     fi
 
 VOLUME "$SONARQUBE_HOME/data"
