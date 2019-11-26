@@ -492,9 +492,8 @@ You will have to create the repositories listed in the table below.
 
 | ods-core
 | ods-configuration
-| ods-configuration-sample
 | ods-jenkins-shared-library
-| ods-project-quickstarters
+| ods-quickstarters
 | ods-provisioning-app
 |===
 

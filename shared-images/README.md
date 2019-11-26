@@ -1,6 +1,6 @@
 # ODS Shared images
 
-Images used in [ods-project-quickstarters](https://github.com/opendevstack/ods-project-quickstarters), e.g. Airflow
+Images used in [ods-quickstarters](https://github.com/opendevstack/ods-quickstarters), e.g. Airflow.
 
 ## Contents
 
