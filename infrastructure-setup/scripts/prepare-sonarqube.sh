@@ -38,9 +38,7 @@ echo ${sonar_admin_password_base64}
 echo ${TOKEN_BASE64}
 
 cd ${BASE_DIR}
-find . -iname "sonarqube.env" -exec sed -i "s|AUTH_TOKEN=$sonar_admin_password_base64|AUTH_TOKEN=$TOKEN_BASE64|g" {} \;
-find . -iname "templates.env" -exec sed -i "s|SONAR_SERVER_AUTH_TOKEN=$sonar_admin_password_base64|SONAR_SERVER_AUTH_TOKEN=$TOKEN_BASE64|g" {} \;
-find . -iname "secret.env" -exec sed -i "s|SONAR_SERVER_AUTH_TOKEN=$sonar_admin_password_base64|SONAR_SERVER_AUTH_TOKEN=$TOKEN_BASE64|g" {} \;
+find . -iname "ods-core.env"    -exec sed -i "s|SONAR_AUTH_TOKEN_B64=$sonar_admin_password_base64|SONAR_AUTH_TOKEN_B64=$TOKEN_BASE64|g" {} \;
 
 oc project cd
 cd /ods/ods-core/sonarqube/ocp-config
