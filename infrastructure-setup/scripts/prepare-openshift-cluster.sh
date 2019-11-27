@@ -12,7 +12,11 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 fi
 
 # set sufficient max map count for elastic search pods (also used by sonar)
-sysctl -w vm.max_map_count=262144
+LINE='vm.max_map_count=262144'
+FILE='/etc/sysctl.conf'
+grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+sysctl -p
+
 
 cd_user_config_location=${BASE_DIR}/ods-configuration/ods-core.env
 if [[ ! -f $cd_user_config_location ]]; then
