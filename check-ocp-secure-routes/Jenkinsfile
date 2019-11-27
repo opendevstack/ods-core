@@ -1,9 +1,3 @@
-def projectId = env.PROJECT_ID;
-def nexusHost = env.NEXUS_HOST;
-def projectAdmins = env.PROJECT_ADMIN;
-def projectGroups = env.PROJECT_GROUPS;
-def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET;
-def bitbucketHost = env.BITBUCKET_HOST;
 def dockerRegistry
 
 node {
@@ -17,7 +11,7 @@ def conts = containerTemplate(
             args: ''
         )
 
-def podLabel = "create-projects-" + projectId;
+def podLabel = "check_ocp_secure_routes"
 podTemplate(
       label: podLabel,
       cloud: 'openshift',
@@ -29,27 +23,8 @@ podTemplate(
           stage('checkout'){
             checkout scm
           }
-          stage('checkout ods-config'){
-             checkout([
-                $class: 'GitSCM',    
-                branches: [[name: '*/production']],
-                doGenerateSubmoduleConfigurations: false, 
-                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'ods-config']],
-                submoduleCfg: [], 
-                userRemoteConfigs: [[credentialsId: 'prov-cd-cd-user-with-password', url: bitbucketHost + '/scm/opendevstack/ods-configuration.git']] 
-            ])
-          }
-
-
-
-        stage('creating openshift projects') {
-            sh "sh ./create-projects/create-projects.sh -p ${projectId} -n ${nexusHost} -a ${projectAdmins} -e ${projectGroups}";
-        }
-        stage('creating jenkins') {
-          sh "env";
-           withEnv(["pipelineTriggerSecret=${pipelineTriggerSecret}"]) {
-              sh "sh ./create-projects/create-cd-jenkins.sh -p ${projectId}";
-           }
+          stage('check_ocp_secure_routes.sh'){
+            sh "sh check-ocp-secure-routes/check_ocp_secure_routes.sh"
         }
       }
 }
