@@ -43,7 +43,7 @@ RUN if [ -z $IDP_DNS ]; then echo 'Skipping custom certificate!'; else \
     gnutls-cli --insecure --print-cert ${IDP_DNS} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/idp.crt; \
     cat /tmp/idp.crt|awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {print > "/usr/local/share/ca-certificates/mycert" n ".crt"}'; \
     update-ca-certificates; \
-    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/cacerts -noprompt -storepass changeit; \
+    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass changeit; \
     fi
 
 VOLUME "$SONARQUBE_HOME/data"
@@ -58,6 +58,7 @@ RUN mkdir -p /opt/configuration/sonarqube/plugins
 ADD https://github.com/deepy/sonar-crowd/releases/download/2.1.3/sonar-crowd-plugin-2.1.3.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v1.1.0/sonar-auth-oidc-plugin-1.1.0.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/dependency-check/dependency-check-sonar-plugin/releases/download/1.2.6/sonar-dependency-check-plugin-1.2.6.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/rht-labs/sonar-auth-openshift/releases/download/v1.1.1/sonar-auth-openshift-plugin.jar /opt/configuration/sonarqube/plugins/
 # Language plugins
 ADD https://binaries.sonarsource.com/Distribution/sonar-java-plugin/sonar-java-plugin-5.14.0.18788.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-go-plugin/sonar-go-plugin-1.6.0.719.jar /opt/configuration/sonarqube/plugins/

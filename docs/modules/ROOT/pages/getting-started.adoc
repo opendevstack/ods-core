@@ -492,9 +492,8 @@ You will have to create the repositories listed in the table below.
 
 | ods-core
 | ods-configuration
-| ods-configuration-sample
 | ods-jenkins-shared-library
-| ods-project-quickstarters
+| ods-quickstarters
 | ods-provisioning-app
 |===
 
@@ -1044,6 +1043,10 @@ image::documentation/sonarqube/sonarqube_my_account.PNG[Generate token]
 
 Copy the token value to the input of the preparation script and follow the instructions.
 The token will be processed and integrated in the templates for future builds.
+
+WARNING: Under "General Settings > Security", you must enable "Force user authentication" to avoid public access to the SonarQube interface.
+
+WARNING: Under "My Account", you must change the default password for the admin user.
 
 ==== Prepare Jenkins slave docker images
 

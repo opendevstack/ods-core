@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# We assume that all ods repositories are placed next to each other
-# By default it is one level up from this script
+# We assume that all ODS repositories are placed next to each other.
+# By default it is one level up from this script.
 
 ODS_DIR="../../.."
 ODS_SAMPLE_DIR=`realpath ${ODS_DIR}/ods-core/configuration-sample`

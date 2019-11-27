@@ -38,22 +38,22 @@ if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-provisioning-app" ] ; then
   git fetch origin
   git checkout -b production
 else
-  echo "Update shared library"
+  echo "Update provisioning app"
   cd $OPENDEVSTACK_BASE_DIR/ods-provisioning-app
   git fetch origin
   git pull origin
 fi
 
-echo -e "\nPrepare ods-project-quickstarters"
+echo -e "\nPrepare ods-quickstarters"
 cd ${OPENDEVSTACK_BASE_DIR}
-if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-project-quickstarters" ] ; then
-  git clone https://github.com/opendevstack/ods-project-quickstarters.git
-  cd ods-project-quickstarters
+if [ ! -d "$OPENDEVSTACK_BASE_DIR/ods-quickstarters" ] ; then
+  git clone https://github.com/opendevstack/ods-quickstarters.git
+  cd ods-quickstarters
   git fetch origin
   git checkout -b production
 else
-  echo "Update shared library"
-  cd $OPENDEVSTACK_BASE_DIR/ods-project-quickstarters
+  echo "Update quickstarters"
+  cd $OPENDEVSTACK_BASE_DIR/ods-quickstarters
   git pull origin
 fi
 

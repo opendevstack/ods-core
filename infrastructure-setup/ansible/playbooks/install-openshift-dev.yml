@@ -9,7 +9,7 @@
   tasks:
   - name: download tailor
     get_url:
-      url: "https://github.com/opendevstack/tailor/releases/download/v{{ tailor_version }}/tailor_linux_amd64"
+      url: "https://github.com/opendevstack/tailor/releases/download/v{{ tailor_version }}/tailor-linux-amd64"
       dest: "/usr/local/bin/tailor"
       owner: root
       group: root

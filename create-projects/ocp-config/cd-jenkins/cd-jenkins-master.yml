@@ -1,19 +1,60 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: cd-jenkins-master-template
-metadata:
-  annotations:
-    description: Jenkins master
-    iconClass: icon-jenkins
-    openshift.io/display-name: Jenkins (Persistent)
-    tags: instant-app,jenkins
-  name: cd-jenkins-master
+  template: cd-jenkins-template
+parameters:
+- name: ODS_VERSION
+  description: OpenDevStack version to use.
+  required: true
+- name: PROJECT
+  required: true
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: JENKINS_SERVICE_NAME
+  value: jenkins
+- name: JENKINS_JNLP_SERVICE_NAME
+  value: jenkins-jnlp
+- name: STORAGE_CLASS_DATA
+  required: false
+- name: JENKINS_ENABLE_OAUTH
+  value: "true"
+- name: JENKINS_MEMORY_LIMIT
+  value: 2Gi
+- name: JENKINS_MEMORY_REQUEST
+  value: 1Gi
+- name: JENKINS_VOLUME_CAPACITY
+  value: 5Gi
+- name: NAMESPACE
+  value: cd
+- name: CD_USER_ID_B64
+  required: true
+- name: CD_USER_PWD_B64
+  required: true
+- name: NEXUS_URL
+  required: true
+- name: NEXUS_USERNAME
+  required: true
+- name: NEXUS_PASSWORD
+  required: true
+- name: JENKINS_HOME
+  value: /var/lib/jenkins
+- name: SONARQUBE_URL
+  required: true
+- name: SONAR_AUTH_TOKEN_B64
+  required: true
+- name: SHARED_LIBRARY_REPOSITORY
+  value: opendevstack/ods-jenkins-shared-library.git
+- name: DOCKER_REGISTRY
+  required: true
+- name: BITBUCKET_HOST
+  required: true
+- name: REPO_BASE
+  required: true
 objects:
 - apiVersion: v1
   data:
-    password: '${CD_USER_PWD}'
-    username: '${CD_USER_ID}'
+    password: '${CD_USER_PWD_B64}'
+    username: '${CD_USER_ID_B64}'
   kind: Secret
   metadata:
     name: cd-user-with-password
@@ -22,7 +63,7 @@ objects:
   type: kubernetes.io/basic-auth
 - apiVersion: v1
   data:
-    auth-token: '${SONAR_SERVER_AUTH_TOKEN}'
+    auth-token: '${SONAR_AUTH_TOKEN_B64}'
   kind: Secret
   metadata:
     name: sonarqube
@@ -48,7 +89,7 @@ objects:
       template: cd-jenkins-master
       app: jenkins-master
   spec:
-    host: jenkins-${PROJECT}-cd.${OD_OCP_SOURCE_APP_DOMAIN}
+    host: jenkins-${PROJECT}-cd${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -71,7 +112,7 @@ objects:
       - ReadWriteOnce
     resources:
       requests:
-        storage: '${VOLUME_CAPACITY}'
+        storage: '${JENKINS_VOLUME_CAPACITY}'
     storageClassName: '${STORAGE_CLASS_DATA}'
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -116,7 +157,7 @@ objects:
         containers:
         - env:
             - name: OPENSHIFT_ENABLE_OAUTH
-              value: '${ENABLE_OAUTH}'
+              value: '${JENKINS_ENABLE_OAUTH}'
             - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
               value: 'true'
             - name: KUBERNETES_MASTER
@@ -124,7 +165,7 @@ objects:
             - name: KUBERNETES_TRUST_CERTIFICATES
               value: 'true'
             - name: JNLP_SERVICE_NAME
-              value: '${JNLP_SERVICE_NAME}'
+              value: '${JENKINS_JNLP_SERVICE_NAME}'
             - name: NEXUS_HOST
               value: '${NEXUS_URL}'
             - name: NEXUS_USERNAME
@@ -176,9 +217,9 @@ objects:
             timeoutSeconds: 3
           resources:
             limits:
-              memory: '${MEMORY_LIMIT}'
+              memory: '${JENKINS_MEMORY_LIMIT}'
             requests:
-              memory: '${MEMORY_REQUEST}'
+              memory: '${JENKINS_MEMORY_REQUEST}'
           securityContext:
             capabilities: {}
             privileged: false
@@ -238,7 +279,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: '${JNLP_SERVICE_NAME}'
+    name: '${JENKINS_JNLP_SERVICE_NAME}'
     labels:
       template: cd-jenkins-master
   spec:
@@ -255,7 +296,7 @@ objects:
   kind: Service
   metadata:
     annotations:
-      service.alpha.openshift.io/dependencies: '[{"name": "${JNLP_SERVICE_NAME}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_JNLP_SERVICE_NAME}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
@@ -272,51 +313,3 @@ objects:
       name: '${JENKINS_SERVICE_NAME}'
     sessionAffinity: None
     type: ClusterIP
-parameters:
-- name: ODS_VERSION
-  description: OpenDevStack version to use.
-  required: true
-- name: PROJECT
-  required: true
-- name: OD_OCP_SOURCE_APP_DOMAIN
-  required: true
-- name: JENKINS_SERVICE_NAME
-  value: jenkins
-- name: JNLP_SERVICE_NAME
-  value: jenkins-jnlp
-- name: STORAGE_CLASS_DATA
-  required: false
-- name: ENABLE_OAUTH
-  value: "true"
-- name: MEMORY_LIMIT
-  value: 2Gi
-- name: MEMORY_REQUEST
-  value: 1Gi
-- name: VOLUME_CAPACITY
-  value: 5Gi
-- name: NAMESPACE
-  value: cd
-- name: CD_USER_ID
-  required: true
-- name: CD_USER_PWD
-  required: true
-- name: NEXUS_URL
-  required: true
-- name: NEXUS_USERNAME
-  required: true
-- name: NEXUS_PASSWORD
-  required: true
-- name: JENKINS_HOME
-  value: /var/lib/jenkins
-- name: SONARQUBE_URL
-  required: true
-- name: SONAR_SERVER_AUTH_TOKEN
-  required: true
-- name: SHARED_LIBRARY_REPOSITORY
-  value: opendevstack/ods-jenkins-shared-library.git
-- name: DOCKER_REGISTRY
-  required: true
-- name: BITBUCKET_HOST
-  required: true
-- name: REPO_BASE
-  required: true

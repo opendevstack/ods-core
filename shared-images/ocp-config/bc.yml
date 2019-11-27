@@ -1,73 +1,6 @@
 apiVersion: v1
 kind: Template
-objects:  
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    labels:
-      app: shared-services
-      component: openresty-nginx
-      template: bc-docker
-    name: openresty-nginx
-  spec:
-    failedBuildsHistoryLimit: 5
-    successfulBuildsHistoryLimit: 5
-    nodeSelector: null
-    output:
-      to:
-        kind: ImageStreamTag
-        name: openresty-nginx:1.0
-    postCommit: {}
-    resources: {}
-    runPolicy: Serial
-    source:
-      contextDir: shared-images/openresty-nginx
-      git:
-        ref: production
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
-      sourceSecret:
-        name: cd-user-token
-      type: Git
-    strategy:
-      dockerStrategy:
-        dockerfilePath: Dockerfile
-      type: Docker
-    triggers: []
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    labels:
-      app: shared-services
-      component: nginx-authproxy
-      template: bc-docker
-    name: nginx-authproxy
-  spec:
-    failedBuildsHistoryLimit: 5
-    successfulBuildsHistoryLimit: 5
-    nodeSelector: null
-    output:
-      to:
-        kind: ImageStreamTag
-        name: nginx-authproxy:3.0
-    postCommit: {}
-    resources: {}
-    runPolicy: Serial
-    source:
-      contextDir: shared-images/nginx-authproxy-crowd
-      git:
-        ref: production
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
-      sourceSecret:
-        name: cd-user-token
-      type: Git
-    strategy:
-      dockerStrategy:
-        dockerfilePath: Dockerfile
-        from:
-          kind: ImageStreamTag
-          name: openresty-nginx:1.0
-      type: Docker
-    triggers: []
+objects:
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
@@ -80,7 +13,7 @@ objects:
     failedBuildsHistoryLimit: 5
     successfulBuildsHistoryLimit: 5
     nodeSelector: null
-    output:   
+    output:
       to:
         kind: ImageStreamTag
         name: elasticsearch:7.0.0
@@ -98,7 +31,7 @@ objects:
     strategy:
       dockerStrategy:
         dockerfilePath: Dockerfile
-      type: Docker  
+      type: Docker
     triggers: []
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
