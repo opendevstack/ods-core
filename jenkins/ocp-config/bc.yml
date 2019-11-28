@@ -40,7 +40,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-master:${ODS_VERSION}'
+        name: 'jenkins-master:${ODS_IMAGE_TAG}'
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -52,7 +52,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-slave-base:${ODS_VERSION}'
+        name: 'jenkins-slave-base:${ODS_IMAGE_TAG}'
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -89,7 +89,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-webhook-proxy:${ODS_VERSION}'
+        name: 'jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -109,8 +109,8 @@ objects:
     nodeSelector: null
     triggers: []
 parameters:
-- name: ODS_VERSION
-  description: OpenDevStack version to use.
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
   required: true
 - name: ODS_GIT_REF
   description: Git ref to use for source code.
