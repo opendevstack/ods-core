@@ -92,9 +92,9 @@ echo "[INFO]: creating workplace: mkdir -p oc_migration_scripts/migration_config
 mkdir -p oc_migration_scripts/migration_config
 cd oc_migration_scripts
 echo $(pwd)
-export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-quickstarters/raw/ocp-scripts/export_project.sh?at=refs%2Fheads%2Fproduction"
+export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2Fproduction"
 curl --fail -s --user $CREDENTIALS -G $export_url -d raw -o export.sh
-import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-quickstarters/raw/ocp-scripts/import_project.sh?at=refs%2Fheads%2Fproduction"
+import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2Fproduction"
 curl --fail -s --user $CREDENTIALS -G $import_url -d raw -o import.sh
 
 cd migration_config
