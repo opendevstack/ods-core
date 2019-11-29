@@ -34,7 +34,7 @@ parameters:
   required: true
 - name: NEXUS_USERNAME
   required: true
-- name: NEXUS_PASSWORD
+- name: NEXUS_PASSWORD_B64
   required: true
 - name: JENKINS_HOME
   value: /var/lib/jenkins
@@ -72,7 +72,7 @@ objects:
   type: opaque
 - apiVersion: v1
   data:
-    password: '${NEXUS_PASSWORD}'
+    password: '${NEXUS_PASSWORD_B64}'
   kind: Secret
   metadata:
     labels:
