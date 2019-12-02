@@ -57,6 +57,10 @@ BitBucket webhooks.
 | The component part of the pipeline name. If not given, the pipeline name is created from the repository and the branch.
 |===
 
+=== Responses
+
+All endpoints return the `BuildConfig` response as-is from OpenShift, see https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
+
 == Adding a webhook in BitBucket
 
 The provisioning app sets up one webhook per repository by default. It is
