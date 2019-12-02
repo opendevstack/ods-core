@@ -98,7 +98,7 @@ RUN chmod 777 /tmp/set_java_proxy.sh
 RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 
 # add skopeo
-RUN yum install -y libostree
+RUN yum install -y ostree
 RUN yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/containers-common-${SKOPEO_VERSION}.el7.centos.x86_64.rpm
 RUN yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/skopeo-${SKOPEO_VERSION}.el7.centos.x86_64.rpm 
 RUN skopeo --version
