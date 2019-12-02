@@ -1,20 +1,12 @@
 // BuildConfig environment variables
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
 def projectId = env.PROJECT_ID
-def projectAdmins = env.PROJECT_ADMIN
-def projectGroups = env.PROJECT_GROUPS
-def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
 
 // Jenkins DeploymentConfig environment variables
-def bitbucketHost
 def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
-  bitbucketHost = env.BITBUCKET_HOST
 }
-
-def gitIsHttps = false
 
 def conts = containerTemplate(
   name: 'jnlp',
