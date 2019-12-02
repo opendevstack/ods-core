@@ -3,8 +3,8 @@ kind: Template
 labels:
   template: cd-jenkins-template
 parameters:
-- name: ODS_VERSION
-  description: OpenDevStack version to use.
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
   required: true
 - name: PROJECT
   required: true
@@ -34,7 +34,7 @@ parameters:
   required: true
 - name: NEXUS_USERNAME
   required: true
-- name: NEXUS_PASSWORD
+- name: NEXUS_PASSWORD_B64
   required: true
 - name: JENKINS_HOME
   value: /var/lib/jenkins
@@ -72,7 +72,7 @@ objects:
   type: opaque
 - apiVersion: v1
   data:
-    password: '${NEXUS_PASSWORD}'
+    password: '${NEXUS_PASSWORD_B64}'
   kind: Secret
   metadata:
     labels:
@@ -247,7 +247,7 @@ objects:
             - jenkins
           from:
             kind: ImageStreamTag
-            name: 'jenkins-master:${ODS_VERSION}'
+            name: 'jenkins-master:${ODS_IMAGE_TAG}'
             namespace: '${NAMESPACE}'
           lastTriggeredImage: ''
         type: ImageChange
