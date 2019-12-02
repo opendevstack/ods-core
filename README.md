@@ -16,9 +16,5 @@ Nexus is used as artifact manager throughout OpenDevStack. Each [`jenkins slave`
 1. [Sonarqube](sonarqube) - Sofware quality management <br>
 The OpenDevStack version of Sonarqube - preconfigured with language plugins used by the [boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master). All generated `Jenkinsfile`s contain a stage `stageScanForSonarQube` for sourcecode review - which connects to this central instance. There is one central instance of SQ in the `CD` project
 
-4. [Shared images](shared-images) - Docker Images for common functionality <br>
-   1. The [Airflow](shared-images/airflow) and [Elasticsearch](shared-images/elasticsearch) images - used for Airflow quickstarter, an [Airflow](https://airflow.apache.org/) OpenDevStack compatible and enhanced implementation.
-   2. The [webhook proxy](jenkins/webhook-proxy) used to connect Bitbucket webhooks to their respective jenkins instances. For example a merged PR will trigger the respective `webook proxy` instance in the right `project`, which in turn creates an `openshift build pipeline`, that triggers jenkins to build.
-
 5. [Atlassian infrastructure](infrastructure-setup) <br>
 Contains all the ansible scripts to setup jira / confluence / bitbucket and atlassian crowd. Optional, if you have your own instances running, you can just configure OpenDevStack to use those.

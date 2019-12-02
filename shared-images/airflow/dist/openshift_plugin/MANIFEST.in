@@ -1,2 +1,0 @@
-graft openshift_plugin/templates
-graft openshift_plugin/static
