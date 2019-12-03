@@ -26,11 +26,13 @@ podTemplate(
   serviceAccount: 'jenkins'
 ) {
   node(podLabel) {
-    stage('Checkout') {
-      checkout scm
-    }
-    stage('delete component') {
-      sh "sh delete-components/delete-component.sh -p ${project_id} -c ${component_id}"
+    stage('delete components') {
+      sh "oc project ${project_id}-dev"
+      sh "oc delete all -l app=${project_id}-${component_id}"
+      sh "oc project ${project_id}-test"
+      sh "oc delete all -l app=${project_id}-${component_id}"
+      sh "oc project ${project_id}-cd"
+      sh "oc delete all -l app=${project_id}-${component_id}"
     }
   }
 }
