@@ -28,6 +28,10 @@ oc policy add-role-to-user edit -z jenkins -n ${PROJECT_ID}-cd
 echo "allow test users to pull dev images"
 oc policy add-role-to-group system:image-puller system:serviceaccounts:${PROJECT_ID}-test -n $PROJECT_ID-dev
 
+echo "allow projectid-env users to pull projectid-cd images"
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${PROJECT_ID}-test -n $PROJECT_ID-cd
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${PROJECT_ID}-dev -n $PROJECT_ID-cd
+
 echo "image-builder for sa default needed to import images from other cluster"
 oc policy add-role-to-user system:image-builder -z default -n ${PROJECT_ID}-dev
 oc policy add-role-to-user system:image-builder -z default -n ${PROJECT_ID}-test

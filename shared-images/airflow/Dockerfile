@@ -64,6 +64,8 @@ RUN buildDeps=' \
        pyOpenSSL \
        ndg-httpsclient \
        pyasn1 \
+       paramiko \
+       sshtunnel \
        requests-oauthlib==1.1.0 \
        apache-airflow[crypto,postgres,hive,jdbc,mysql,ssh,kubernetes,elasticsearch${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     " \

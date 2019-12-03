@@ -1,3 +1,2 @@
 * Shared Images
-** xref:openresty-nginx.adoc[OpenResty Base image + WAF]
-** xref:nginx-authproxy-crowd.adoc[Crowd Authproxy]
+** xref:index.adoc[Airflow for OpenDevStack]

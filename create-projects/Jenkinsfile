@@ -1,8 +1,11 @@
 // BuildConfig environment variables
+def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
+def odsGitRef = env.ODS_GIT_REF ?: 'production'
 def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
 def projectGroups = env.PROJECT_GROUPS
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
+def cdUserIdB64 = env.CD_USER_ID_B64
 
 // Jenkins DeploymentConfig environment variables
 def bitbucketHost
@@ -16,7 +19,7 @@ def gitIsHttps = false
 
 def conts = containerTemplate(
   name: 'jnlp',
-  image: "${dockerRegistry}/cd/jenkins-slave-base",
+  image: "${dockerRegistry}/cd/jenkins-slave-base:${odsImageTag}",
   workingDir: '/tmp',
   alwaysPullImage: true,
   args: ''
@@ -45,7 +48,7 @@ podTemplate(
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
       checkout([
         $class: 'GitSCM',
-        branches: [[name: '*/master']],
+        branches: [[name: "*/${odsGitRef}"]],
         doGenerateSubmoduleConfigurations: false,
         extensions: [[
           $class: 'RelativeTargetDirectory',

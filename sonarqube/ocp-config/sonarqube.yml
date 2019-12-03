@@ -15,7 +15,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: sonarqube:${ODS_VERSION}
+        name: sonarqube:${ODS_IMAGE_TAG}
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -164,7 +164,7 @@ objects:
       spec:
         containers:
         - name: sonarqube
-          image: cd/sonarqube:${ODS_VERSION}
+          image: cd/sonarqube:${ODS_IMAGE_TAG}
           env:
           - name: SONARQUBE_JDBC_URL
             valueFrom:
@@ -231,7 +231,7 @@ objects:
         - sonarqube
         from:
           kind: ImageStreamTag
-          name: sonarqube:${ODS_VERSION}
+          name: sonarqube:${ODS_IMAGE_TAG}
           namespace: cd
       type: ImageChange
 - apiVersion: v1
@@ -384,8 +384,8 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
-- name: ODS_VERSION
-  description: OpenDevStack version to use.
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
   required: true
 - name: ODS_GIT_REF
   description: Git ref to use for source code.
