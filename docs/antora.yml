@@ -6,5 +6,4 @@ nav:
 - modules/ROOT/nav.adoc
 - modules/infrastructure-setup/nav.adoc
 - modules/jenkins/nav.adoc
-- modules/shared-images/nav.adoc
 - modules/sonarqube/nav.adoc

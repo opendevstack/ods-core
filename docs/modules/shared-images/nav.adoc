@@ -1,2 +1,0 @@
-* Shared Images
-** xref:index.adoc[Airflow for OpenDevStack]
