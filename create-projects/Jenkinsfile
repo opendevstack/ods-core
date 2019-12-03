@@ -5,6 +5,7 @@ def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
 def projectGroups = env.PROJECT_GROUPS
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
+def cdUserIdB64 = env.CD_USER_ID_B64
 
 // Jenkins DeploymentConfig environment variables
 def bitbucketHost
