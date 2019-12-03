@@ -237,10 +237,8 @@ git_checkout_expression="git checkout "
 if [[ -z ${OD_GIT_BRANCH// } ]]; then
     # no -> set to default master branch
     OD_GIT_BRANCH=master
-else
-    # yes
-    git_checkout_expression="$git_checkout_expression -b ${OD_GIT_BRANCH}"
 fi
+git_checkout_expression="$git_checkout_expression -b ${OD_GIT_BRANCH}"
 # tag set?
 if [[ ! -z ${OD_GIT_TAG// } ]]; then
     # yes
