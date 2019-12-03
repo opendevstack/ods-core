@@ -30,7 +30,7 @@ podTemplate(
       checkout scm
     }
     stage('delete component') {
-      sh "sh delete-components/delete-component.sh -p ${option.project_id} -c ${option.component_id}"
+      sh "sh delete-components/delete-component.sh -p ${projectId} -c ${componentId}"
     }
   }
 }
