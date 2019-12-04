@@ -35,7 +35,7 @@ yes 'y' | tailor update -f Tailorfile.dev --force
 yes 'y' | tailor update -f Tailorfile.test --force
 
 echo "Set higher Timeout for jenkins"
-oc annotate route jenkins --overwrite haproxy.router.openshift.io/timeout=1200s -n prov-cd
+oc annotate route jenkins --overwrite haproxy.router.openshift.io/timeout=600s -n prov-cd
 
 echo "Start initial application build"
 oc start-build -n prov-cd ods-provisioning-app-production
