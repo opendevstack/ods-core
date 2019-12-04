@@ -35,7 +35,7 @@ objects:
             - '--upstream=http://localhost:8081'
             - '--tls-cert=/etc/tls/private/tls.crt'
             - '--tls-key=/etc/tls/private/tls.key'
-            - '--cookie-secret=SECRET'
+            - '--cookie-secret=${SECRET}'
             - '--pass-basic-auth=false'
             - '--request-logging=false'
             - '--bypass-auth-for=\/service\/rest\/.*'
@@ -88,3 +88,10 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
+parameters:
+  - name: SECRET
+    description: "Encryption secret"
+    generate: expression
+    from: "[A-Z0-9]{12}"
+
+
