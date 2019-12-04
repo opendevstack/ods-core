@@ -10,7 +10,8 @@ objects:
       service.alpha.openshift.io/serving-cert-secret-name: nexus-oauth
     labels:
       app: nexus3
-    name: nexus3
+      auth: oauth
+    name: nexus3-oauth
   spec:
     ports:
     - name: 443-tcp
@@ -18,6 +19,6 @@ objects:
       protocol: TCP
       targetPort: 8443
     selector:
-      deploymentconfig: nexus3
+      deploymentconfig: nexus3-oauth
     sessionAffinity: None
     type: ClusterIP

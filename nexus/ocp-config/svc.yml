@@ -8,6 +8,7 @@ objects:
   metadata:
     labels:
       app: nexus3
+      auth: crowd
     name: nexus3
   spec:
     ports:

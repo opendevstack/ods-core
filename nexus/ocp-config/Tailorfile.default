@@ -1,5 +1,7 @@
 namespace cd
 selector  app=nexus3
+exclude auth=oauth
+
 param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 

@@ -8,7 +8,8 @@ objects:
   metadata:
     labels:
       app: nexus3
-    name: nexus3
+      auth: oauth
+    name: nexus3-oauth
   spec:
     host: ${NEXUS_HOST}
     port:
@@ -17,7 +18,7 @@ objects:
       termination: Reencrypt
     to:
       kind: Service
-      name: nexus3
+      name: nexus3-oauth
       weight: 100
     wildcardPolicy: None
 parameters:

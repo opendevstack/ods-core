@@ -8,7 +8,8 @@ objects:
   metadata:
     labels:
       app: nexus3
-    name: nexus3
+      auth: oauth
+    name: nexus3-oauth
   spec:
     replicas: 1
     selector:

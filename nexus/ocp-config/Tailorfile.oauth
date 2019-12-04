@@ -1,5 +1,8 @@
 namespace cd
 selector  app=nexus3
-param-dir ../../../ods-configuration/ods-core/nexus/ocp-config
+exclude auth=crowd
 
-dc,is,pvc,route,svc
+param-dir ../../../ods-configuration/ods-core/nexus/ocp-config
+ignore-unknown-parameters true
+
+dc,is,pvc,route,svc,serviceaccount
