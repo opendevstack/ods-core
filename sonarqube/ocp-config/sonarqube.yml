@@ -15,7 +15,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: sonarqube:latest
+        name: sonarqube:${ODS_IMAGE_TAG}
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -23,7 +23,7 @@ objects:
       contextDir: sonarqube
       git:
         uri: ${REPO_BASE}/opendevstack/ods-core.git
-        ref: production 
+        ref: ${ODS_GIT_REF}
       sourceSecret:
         name: cd-user-token
       type: Git
@@ -164,7 +164,7 @@ objects:
       spec:
         containers:
         - name: sonarqube
-          image: cd/sonarqube:latest
+          image: cd/sonarqube:${ODS_IMAGE_TAG}
           env:
           - name: SONARQUBE_JDBC_URL
             valueFrom:
@@ -231,7 +231,7 @@ objects:
         - sonarqube
         from:
           kind: ImageStreamTag
-          name: sonarqube:latest
+          name: sonarqube:${ODS_IMAGE_TAG}
           namespace: cd
       type: ImageChange
 - apiVersion: v1
@@ -249,6 +249,8 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+    - kubernetes.io/pvc-protection
     labels:
       app: sonarqube
       template: postgresql-persistent-template
@@ -331,7 +333,7 @@ objects:
     database-jdbc-url: ${SONAR_DATABASE_JDBC_URL}
     database-name: ${SONAR_DATABASE_NAME}
     database-user: ${SONAR_DATABASE_USER}
-    sonarqube-admin-user: ${ADMIN_USERNAME}
+    sonarqube-admin-user: ${SONAR_ADMIN_USERNAME}
 - apiVersion: v1
   data:
     database-password: ${SONAR_DATABASE_PASSWORD_B64}
@@ -382,6 +384,12 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 parameters:
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
+  required: true
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
 - displayName: Admin Password
   name: SONAR_ADMIN_PASSWORD_B64
   description: The base64 encoded admin password
