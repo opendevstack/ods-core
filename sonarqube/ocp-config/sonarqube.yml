@@ -9,10 +9,14 @@ objects:
     annotations:
       serviceaccounts.openshift.io/oauth-redirectreference.sonarqube: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"sonarqube"}}'
     name: sonarqube-oauth
+    labels:
+      app: sonarqube
 - apiVersion: v1
   kind: RoleBinding
   metadata:
     name: sonarqube_view
+    labels:
+      app: sonarqube
   roleRef:
     name: view
   subjects:
