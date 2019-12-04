@@ -6,6 +6,7 @@
 
 - Removal of Crowd HTTP basic auth proxy related shared images ([#215](https://github.com/opendevstack/ods-core/issues/215))
 - Configurable build output (add skopeo to move images ([#253](https://github.com/opendevstack/ods-core/issues/253))
+- Removal of Airflow related shared images ([#289](https://github.com/opendevstack/ods-core/issues/289))
 
 ## [1.2.0] - 2019-10-10
 

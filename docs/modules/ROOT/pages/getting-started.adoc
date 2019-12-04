@@ -1132,6 +1132,8 @@ You can login in with the Crowd admin user you set up earlier.
 
 === Add shared images
 
+NOTE: This section is not required anymore from OpenDevStack 2.0
+
 OpenDevStack provides shared images used accross the stack - like the authproxy based on NGINX and lua for crowd
 
 In order to install, create a new project called `shared-services`
