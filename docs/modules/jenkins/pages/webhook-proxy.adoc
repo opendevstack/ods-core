@@ -57,16 +57,25 @@ BitBucket webhooks.
 | The component part of the pipeline name. If not given, the pipeline name is created from the repository and the branch.
 |===
 
+=== Responses
+
+All endpoints return the `BuildConfig` response as-is from OpenShift, see https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
+
 == Adding a webhook in BitBucket
 
 The provisioning app sets up one webhook per repository by default. It is
 possible to create webhooks manually as well, e.g. to add more than one
-webhook (likely differentiated by the `component` param then). To manually
-create a webhook, go to "Repository Settings > Webhooks" and click on
-"Create webhook". Enter e.g. `Jenkins` as title and the route to the webhook
-proxy instance as URL. Under "Repository events", select `Push`. Under
-"Pull request events", select `Merged` and `Declined`. Save your changes.
+webhook (likely differentiated by the `component` param then).
 
+To manually create a webhook, go to "Repository Settings > Webhooks" and click on
+"Create webhook". Fill in the following:
+
+- Name: `Jenkins` (or similar, value is only serves as a description)
+- URL: route to the webhook proxy instance, followed by the `trigger_secret`, e.g. `https://webhook-proxy-foo-cd.example.com?trigger_secret=s3cr3t`. The secret can be retrieved in the OpenShift console in your `*-cd` namespace (in this example `foo-cd`) under "Resources > Secrets > webhook-proxy".
+- Secret: leave blank
+- Under "Repository events", select `Push`. Under "Pull request events", select `Merged` and `Declined`
+
+Now you can verify by clicking "Test connection". Afterwards, save your changes. The next pushed commit should automatically send a request to the webhook proxy and start a pipeline in Jenkins. 
 
 
 == Customizing the behaviour of the webhook proxy

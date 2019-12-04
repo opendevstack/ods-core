@@ -27,7 +27,7 @@ objects:
           deploymentconfig: nexus3
       spec:
         containers:
-        - image: sonatype/nexus3:3.18.1
+        - image: sonatype/nexus3:3.19.1
           imagePullPolicy: Always
           name: nexus3
           ports:

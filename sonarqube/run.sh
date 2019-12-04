@@ -20,14 +20,9 @@ elif [ $SONAR_OAUTH_PLUGIN_ENABLED == true ]; then
   echo 'kubernetes.service=https://${env:KUBERNETES_SERVICE_HOST}:${env:KUBERNETES_SERVICE_PORT}/' >> conf/sonar.properties
 fi
 
-# upgrade to 7.3
-rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
-
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-crowd*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-scala*.jar || true
-# rm $SONARQUBE_HOME/extensions/plugins/sonar-python*.jar || true
-
 # Copy plugins into volume
+rm $SONARQUBE_HOME/extensions/plugins/*.jar || true
+ls -lah /opt/configuration/sonarqube/plugins
 mkdir -p $SONARQUBE_HOME/extensions/plugins
 for FILENAME in /opt/configuration/sonarqube/plugins/*; do
   plugin=$(basename $FILENAME)

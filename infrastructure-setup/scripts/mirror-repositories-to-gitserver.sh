@@ -1,5 +1,5 @@
 #!/bin/sh
-# This scripts mirros the core ods repos into your own Bitbucket server.
+# This scripts mirrors the ODS repos into your own Bitbucket server.
 # By default, this is the Bitbucket server on your local machine as created by the getting started guide.
 # You can cutomize this by providing an environment variable: "REPO_TARGET_BASE" pointing to your git repo.
 # This includes everything before the project / repo part, this means everything before "/opendevstack/..."
@@ -16,9 +16,6 @@ if [ ! -d "$BASE_DIR" ] ; then
 fi
 
 echo -e "Mirror repositories"
-echo -e "\nMirror ods-configuration-sample"
-cd ${BASE_DIR}
-cd ods-configuration-sample; git remote set-url origin ${TARGET_REPO_BASE}/opendevstack/ods-configuration-sample.git; git config http.postBuffer 524288000; git push --all origin;
 
 echo -e "\nMirror ods-configuration"
 cd ${BASE_DIR}
@@ -36,9 +33,9 @@ echo -e "\nMirror ods-provisioning-app"
 cd ${BASE_DIR}
 cd ods-provisioning-app; git remote set-url origin ${TARGET_REPO_BASE}/opendevstack/ods-provisioning-app.git; git config http.postBuffer 524288000; git push --all origin;
 
-echo -e "\nMirror ods-project-quickstarters"
+echo -e "\nMirror ods-quickstarters"
 cd ${BASE_DIR}
-cd ods-project-quickstarters; git remote set-url origin ${TARGET_REPO_BASE}/opendevstack/ods-project-quickstarters.git; git config http.postBuffer 524288000; git push --all origin;
+cd ods-quickstarters; git remote set-url origin ${TARGET_REPO_BASE}/opendevstack/ods-quickstarters.git; git config http.postBuffer 524288000; git push --all origin;
 
 
 cd ${cwd}

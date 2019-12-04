@@ -1,6 +1,0 @@
-param-file  ../../../ods-config/ods-project-quickstarters/ocp-templates/templates/templates.env
-
-ignore-unknown-parameters true
-
-svc,route,secret,pvc,dc,rolebinding,serviceaccount
-
