@@ -1,5 +1,0 @@
-namespace shared-services
-selector  app=shared-services
-param-dir ../../../ods-configuration/ods-core/shared-images/ocp-config
-
-bc,is,secret
