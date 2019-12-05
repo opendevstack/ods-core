@@ -4,7 +4,7 @@
   import groovy.json.JsonSlurper;
   def selector = new JsonSlurper().parseText(args);
   def selectorManager = container.lookup(SelectorManager.class.name);
-  def selectorConfig = new SelectorConfiguration(name: selector.name,type: selector.type,description: selector.description, attributes: ['expression': 'coordinate.groupId =^ \"'+selector.expression+'\"']);
+  def selectorConfig = new SelectorConfiguration(name: selector.name,type: selector.type,description: selector.description, attributes: ['expression': selector.expression]);
   if (selectorManager.browse().find { it -> it.name == selectorConfig.name } == null) {selectorManager.create(selectorConfig)}",
   "type":"groovy"
 }
