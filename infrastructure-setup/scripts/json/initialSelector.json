@@ -1,0 +1,6 @@
+{
+  "name" : "ods-initial-selector",
+  "type" : "CSEL",
+  "description" : "Description",
+  "expression" : "path =^ \"/org/opendevstack\" "
+}
