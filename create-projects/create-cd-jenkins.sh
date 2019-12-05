@@ -71,10 +71,3 @@ tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--param=PROJECT=${PROJECT_ID}" \
     "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
     --selector "template=cd-jenkins-template"
-
-# add secrets for dockerfile build to dev and test
-for devenv in dev test ; do
-    tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-user" \
-        "--namespace=${PROJECT_ID}-${devenv}" \
-        "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" 
-done
