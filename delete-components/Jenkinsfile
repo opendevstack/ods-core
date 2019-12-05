@@ -1,0 +1,35 @@
+// BuildConfig environment variables
+def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
+def projectId = env.PROJECT_ID
+def componentId = env.COMPONENT_ID.toLowerCase()
+
+// Jenkins DeploymentConfig environment variables
+def dockerRegistry
+node {
+  dockerRegistry = env.DOCKER_REGISTRY
+}
+
+def conts = containerTemplate(
+  name: 'jnlp',
+  image: "${dockerRegistry}/cd/jenkins-slave-base:${odsImageTag}",
+  workingDir: '/tmp',
+  alwaysPullImage: true,
+  args: ''
+)
+def podLabel = "delete-component-${componentId}-from-${projectId}"
+
+podTemplate(
+  label: podLabel,
+  cloud: 'openshift',
+  containers: [conts],
+  volumes: [],
+  serviceAccount: 'jenkins'
+) {
+  node(podLabel) {
+    stage('delete components') {
+      sh "oc delete all -n ${project_id}-dev -l app=${project_id}-${component_id}"
+      sh "oc delete all -n ${project_id}-test -l app=${project_id}-${component_id}"
+      sh "oc delete all -n ${project_id}-cd -l app=${project_id}-${component_id}"
+    }
+  }
+}
