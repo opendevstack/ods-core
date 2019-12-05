@@ -27,12 +27,9 @@ podTemplate(
 ) {
   node(podLabel) {
     stage('delete components') {
-      sh "oc project ${project_id}-dev"
-      sh "oc delete all -l app=${project_id}-${component_id}"
-      sh "oc project ${project_id}-test"
-      sh "oc delete all -l app=${project_id}-${component_id}"
-      sh "oc project ${project_id}-cd"
-      sh "oc delete all -l app=${project_id}-${component_id}"
+      sh "oc delete all -n ${project_id}-dev -l app=${project_id}-${component_id}"
+      sh "oc delete all -n ${project_id}-test -l app=${project_id}-${component_id}"
+      sh "oc delete all -n ${project_id}-cd -l app=${project_id}-${component_id}"
     }
   }
 }
