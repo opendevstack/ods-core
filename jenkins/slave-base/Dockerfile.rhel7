@@ -15,8 +15,9 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
 ARG APP_DNS=192.168.99.100.nip.io
 ARG SNYK_DISTRIBUTION_URL
 
-RUN yum -y install openssl
-RUN yum -y install gnutls-utils
+RUN yum -y install \
+    gnutls-utils \
+    openssl
 
 #set JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/jre
