@@ -63,6 +63,7 @@ podTemplate(
     }
 
     stage('creating openshift projects') {
+      sh "echo env"
       sh "sh ./create-projects/create-projects.sh"
     }
 
