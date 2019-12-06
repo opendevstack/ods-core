@@ -65,9 +65,17 @@ tailor_update_in_dir() {
     fi
 }
 
+cdUserPwdParam=""
+if [ $CD_USER_TYPE != "general" ]; then
+    randomPwd=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')
+    randomBase64Pwd=$(echo $randomPwd | base64)
+    cdUserPwdParam="--param=CD_USER_PWD_B64=${randomBase64Pwd}"
+fi
+
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--namespace=${PROJECT_ID}-cd" \
     "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
     "--param=PROJECT=${PROJECT_ID}" \
     "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
+    $cdUserPwdParam \
     --selector "template=cd-jenkins-template"
