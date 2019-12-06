@@ -11,18 +11,19 @@
    def userName = \"ods-$projectName-nx-user\";
    def password = UUID.randomUUID().toString();
    def infoMail = \"$userName@opendevstack.org\";
+   def selectorExpression = \"path =~ \\\".*/$projectName/.*\\\"\";
    def selectorManager = container.lookup(SelectorManager.class.name);
-   def selectorConfig = new SelectorConfiguration(name: \"ods-$projectName-selector\",type: 'CSEL',description: \"Content selector for project $projectName\",attributes: ['expression': 'path =~ \".*/prov/.*\"']);
+   def selectorConfig = new SelectorConfiguration(name: \"ods-$projectName-selector\",type: 'CSEL',description: \"Content selector for project $projectName\",attributes: ['expression': selectorExpression]);
    if (selectorManager.browse().find { it -> it.name == selectorConfig.name } == null) { selectorManager.create(selectorConfig) };
-   def candidatesRepoName = 'candidates';
-   def releaseRepoName = 'releases';
-   def releaseProperties = ImmutableMap.builder().put('content-selector', selectorConfig.name).put('repository', releaseRepoName).put('actions', 'browse,read,edit').build();
-   def releasePrivilege = new org.sonatype.nexus.security.privilege.Privilege(id: \"ods-$projectName-release-priv\",version: '',name: \"ods-$projectName-release-priv\",description: \"Content Selector $projectName Release privilege\",type: 'repository-content-selector',properties: releaseProperties);
-   authorizationManager.addPrivilege(releasePrivilege);
-   def candidatesProperties = ImmutableMap.builder().put('content-selector', selectorConfig.name).put('repository', candidatesRepoName).put('actions', 'browse,read,edit').build();
-   def candidatesPrivilege = new org.sonatype.nexus.security.privilege.Privilege(id: \"ods-$projectName-candidates-priv\",version: '',name: \"ods-$projectName-candidates-priv\",description: 'Content Selector Candidates privilege',type: 'repository-content-selector', properties: candidatesProperties);
-   authorizationManager.addPrivilege(candidatesPrivilege);
-   def role = new org.sonatype.nexus.security.role.Role(roleId: \"ods-$projectName-access-role\",source: 'Nexus',name: \"ods-$projectName-access-role\",description: \"Role for $projectName\",readOnly: false,privileges: [ candidatesPrivilege.id, releasePrivilege.id ],roles: []);
+   def repos = ['candidates', 'releases'];
+   def privileges = [];
+   for(repo in repos) {;
+   def repoProperties = ImmutableMap.builder().put('content-selector', selectorConfig.name).put('repository', repo).put('actions', 'browse,read,edit').build();
+   def repoPrivilege = new org.sonatype.nexus.security.privilege.Privilege(id: \"ods-$projectName-$repo-priv\",version: '',name: \"ods-$projectName-$repo-priv\",description: \"Content Selector $projectName $repo privilege\",type: 'repository-content-selector',properties: repoProperties);
+   authorizationManager.addPrivilege(repoPrivilege);
+   privileges.add(repoPrivilege.id)
+   };
+   def role = new org.sonatype.nexus.security.role.Role(roleId: \"ods-$projectName-access-role\",source: 'Nexus',name: \"ods-$projectName-access-role\",description: \"Role for $projectName\",readOnly: false,privileges: privileges,roles: ['opendevstack-developer']);
    authorizationManager.addRole(role);
    security.addUser(userName,projectName,'User',infoMail, true,password, [ role.roleId ]);
    return groovy.json.JsonOutput.toJson([user: userName, passb64: password.bytes.encodeBase64().toString()])",
