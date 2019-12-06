@@ -12,12 +12,6 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1
 
-# Hack to fix issues with broken repositories
-# See https://access.redhat.com/support/cases/#/case/02108199
-RUN yum-config-manager --enable rhel-7-server-rpms && \
-    yum-config-manager --disable rhel-7-server-htb-rpms && \
-    yum makecache
-
 ARG APP_DNS=192.168.99.100.nip.io
 ARG SNYK_DISTRIBUTION_URL
 
