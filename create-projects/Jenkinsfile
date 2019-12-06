@@ -69,9 +69,12 @@ podTemplate(
       sh "sh ./create-projects/create-projects.sh"
     }
 
-    def nexusResponse = sh (script: "curl -sf --user $nexusUser:$nexusPass -X POST --header 'Content-Type: text/plain' \"$nexusHost/service/rest/v1/script/createProjectAccess/run\" -d $projectId", returnStdout: true)
+    // read json reult from Nexus curl call
+    def nexusResponse = readJSON text: sh(script: "curl -sf --user $nexusUser:$nexusPass -X POST -H 'Accept: application/json' -H 'Content-Type: text/plain' \"$nexusHost/service/rest/v1/script/createProjectAccess/run\" -d $projectId", returnStdout: true).trim()
 
-	  withEnv(["NEXUS_USERNAME=$nexusUser", "NEXUS_PASSWORD_B64=$nexusPass"]){
+    def specificUser = readJSON text: nexusResponse.result
+
+    withEnv(["NEXUS_USERNAME=${specificUser.user}", "NEXUS_PASSWORD_B64=${specificUser.passb64}"]){
       stage('creating jenkins') {
         sh "sh ./create-projects/create-cd-jenkins.sh"
       }
