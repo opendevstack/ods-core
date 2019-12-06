@@ -1,0 +1,7 @@
+context-dir jenkins/ocp-config
+context-dir nexus/ocp-config
+context-dir sonarqube/ocp-config
+
+# check-ocp-secure-routes cannot be compared easily due to
+# https://github.com/opendevstack/ods-core/issues/302.
+# context-dir check-ocp-secure-routes/ocp-config
