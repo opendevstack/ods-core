@@ -19,7 +19,6 @@ RUN yum -y install \
     gnutls-utils \
     openssl
 
-#set JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/jre
 
 RUN yum -y install java-1.8.0-openjdk-devel.x86_64
