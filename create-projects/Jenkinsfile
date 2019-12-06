@@ -13,6 +13,9 @@ def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   bitbucketHost = env.BITBUCKET_HOST
+  nexusHost = env.NEXUS_HOST
+  nexusUser = env.NEXUS_USERNAME
+  nexusPass = env.NEXUS_PASSWORD
 }
 
 def gitIsHttps = false
@@ -63,11 +66,15 @@ podTemplate(
     }
 
     stage('creating openshift projects') {
-      sh "echo env"
       sh "sh ./create-projects/create-projects.sh"
     }
 
     stage('creating jenkins') {
+      environment {
+        NEXUS_HOST = nexusHost
+        NEXUS_USERNAME = nexusUser
+        NEXUS_PASSWORD = nexusPass
+      }
       sh "sh ./create-projects/create-cd-jenkins.sh"
     }
   }
