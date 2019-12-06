@@ -11,8 +11,6 @@ tailor_version=$(${TAILOR} version)
 
 echo "Using tailor ${tailor_version} from ${tailor_exe}"
 
-echo env
-
 DEBUG=false
 STATUS=false
 while [[ $# -gt 0 ]]
