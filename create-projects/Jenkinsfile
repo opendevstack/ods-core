@@ -69,7 +69,9 @@ podTemplate(
       sh "sh ./create-projects/create-projects.sh"
     }
 
-	  withEnv(["NEXUS_HOST=$nexusHost", "NEXUS_USERNAME=$nexusUser", "NEXUS_PASSWORD=$nexusPass"]){
+    def nexusResponse = sh (script: "curl -sf --user $nexusUser:$nexusPass -X POST --header 'Content-Type: text/plain' \"$nexusHost/service/rest/v1/script/createProjectAccess/run\" -d $projectId", returnStdout: true)
+
+	  withEnv(["NEXUS_USERNAME=$nexusUser", "NEXUS_PASSWORD_B64=$nexusPass"]){
       stage('creating jenkins') {
         sh "sh ./create-projects/create-cd-jenkins.sh"
       }

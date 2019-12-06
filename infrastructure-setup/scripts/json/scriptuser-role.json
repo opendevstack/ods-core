@@ -1,0 +1,7 @@
+{
+  "id": "opendevstack-scriptuser",
+  "name": "OpenDevStack-Scriptuser",
+  "description": "Role for using scripts in OpenDevStack",
+  "privilegeIds": ["nx-script-*-run"],
+  "roleIds": []
+}
