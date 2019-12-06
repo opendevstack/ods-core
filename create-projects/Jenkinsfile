@@ -69,13 +69,10 @@ podTemplate(
       sh "sh ./create-projects/create-projects.sh"
     }
 
-    stage('creating jenkins') {
-      environment {
-        NEXUS_HOST = nexusHost
-        NEXUS_USERNAME = nexusUser
-        NEXUS_PASSWORD = nexusPass
+	  withEnv(["NEXUS_HOST=$nexusHost", "NEXUS_USERNAME=$nexusUser", "NEXUS_PASSWORD=$nexusPass"]){
+      stage('creating jenkins') {
+        sh "sh ./create-projects/create-cd-jenkins.sh"
       }
-      sh "sh ./create-projects/create-cd-jenkins.sh"
     }
   }
 }
