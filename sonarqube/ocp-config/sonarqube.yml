@@ -8,7 +8,7 @@ objects:
   metadata:
     annotations:
       serviceaccounts.openshift.io/oauth-redirectreference.sonarqube: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"sonarqube"}}'
-    name: sonarqube-oauth
+    name: sonarqube
     labels:
       app: sonarqube
 - apiVersion: v1
@@ -21,7 +21,7 @@ objects:
     name: view
   subjects:
   - kind: ServiceAccount
-    name: sonarqube-oauth
+    name: sonarqube
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -141,8 +141,6 @@ objects:
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
-        serviceAccount: sonarqube-oauth
-        serviceAccountName: sonarqube-oauth
         terminationGracePeriodSeconds: 30
         volumes:
         - name: sonarqube-postgresql-data
@@ -241,6 +239,8 @@ objects:
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
+        serviceAccount: sonarqube
+        serviceAccountName: sonarqube
         terminationGracePeriodSeconds: 30
         volumes:
         - name: sonarqube-data
