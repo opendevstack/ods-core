@@ -217,8 +217,8 @@ objects:
                 name: sonarqube-app
           - name: SONAR_AUTH_CROWD
             value: ${SONAR_AUTH_CROWD}
-          - name: SONAR_OAUTH_PLUGIN_ENABLED
-            value: ${SONAR_OAUTH_PLUGIN_ENABLED}
+          - name: SONAR_AUTH_OAUTH
+            value: ${SONAR_AUTH_OAUTH}
           - name: SONAR_OAUTH_ADMIN_GROUP
             value: ${SONAR_OAUTH_ADMIN_GROUP}
           - name: SONAR_OAUTH_USERS_GROUP
@@ -474,7 +474,7 @@ parameters:
   description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
 - name: SONAR_AUTH_CROWD
   description: "Set to true, if you want to use crowd as identity provider"
-- name: SONAR_OAUTH_PLUGIN_ENABLED
+- name: SONAR_AUTH_OAUTH
   description: "Set to true, if you want to use OpenShift Oauth as identity provider. If Crowd is also enabled, CROWD takes precedence."
   required: false
 - name: SONAR_OAUTH_ADMIN_GROUP
