@@ -253,6 +253,9 @@ echo " -- check out git for $git_checkout_expression"
 eval ${git_checkout_expression}
 echo
 
+# start the export from scratch so it reflects openshift
+rm -rf -- *
+
 # create config file with source API OCP hostname ...
 echo "export_source_host=${OD_OCP_SOURCE_HOST}" >ocp_config
 
