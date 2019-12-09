@@ -3,6 +3,7 @@ export PATH=$PATH:/usr/local/bin/
 
 
 BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
+NEXUS_ADMIN_USER="admin"
 cwd=${pwd}
 
 if [ "$HOSTNAME" != "openshift" ] ; then
@@ -10,11 +11,23 @@ if [ "$HOSTNAME" != "openshift" ] ; then
 	exit
 fi
 
+# Source the core configuration to get nexus informations
+. $BASE_DIR/ods-configuration/ods-core.env
+
+# Source local env informations to get nexus admin user
+if [ ! -f "${BASE_DIR}/local.config" ] ; then
+  echo "Local config file not found, will use default values"
+else
+  echo "Source local env default values"
+  . $BASE_DIR/local.env.config
+fi
+
+
 oc login -u system:admin
 oc project cd
 
 cd /ods/ods-core/nexus/ocp-config
-yes 'y' | tailor update -v --force
+# yes 'y' | tailor update -v --force
 
 cd ${cwd}
 
@@ -40,7 +53,9 @@ else
   NEXUS_PW=admin123
 fi
 
-./create-nexus-resources.sh $NEXUS_PW
+
+#create nexus resources
+./create-nexus-resources.sh $NEXUS_HOST $NEXUS_ADMIN_USER $NEXUS_PW
 
 cd ${BASE_DIR}
 
