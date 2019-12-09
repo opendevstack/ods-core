@@ -65,6 +65,13 @@ tailor_update_in_dir() {
     fi
 }
 
+cdUserPwdParam=""
+if [ $CD_USER_TYPE != "general" ]; then
+    randomPwd=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')
+    randomBase64Pwd=$(echo $randomPwd | base64)
+    cdUserPwdParam="--param=CD_USER_PWD_B64=${randomBase64Pwd}"
+fi
+
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--namespace=${PROJECT_ID}-cd" \
     "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
@@ -72,11 +79,5 @@ tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
     "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
     "--param=NEXUS_USERNAME=${NEXUS_USERNAME}" \
     "--param=NEXUS_PASSWORD_B64=${NEXUS_PASSWORD_B64}" \
+    $cdUserPwdParam \
     --selector "template=cd-jenkins-template"
-
-# add secrets for dockerfile build to dev and test
-for devenv in dev test ; do
-    tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-user" \
-        "--namespace=${PROJECT_ID}-${devenv}" \
-        "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" 
-done

@@ -36,6 +36,8 @@ parameters:
   required: true
 - name: NEXUS_PASSWORD_B64
   required: true
+- name: JIRA_URL
+  required: true
 - name: JENKINS_HOME
   value: /var/lib/jenkins
 - name: SONARQUBE_URL
@@ -168,6 +170,8 @@ objects:
               value: '${JENKINS_JNLP_SERVICE_NAME}'
             - name: NEXUS_HOST
               value: '${NEXUS_URL}'
+            - name: NEXUS_URL
+              value: '${NEXUS_URL}'
             - name: NEXUS_USERNAME
               value: '${NEXUS_USERNAME}'
             - name: NEXUS_PASSWORD
@@ -175,6 +179,8 @@ objects:
                 secretKeyRef:
                   key: password
                   name: nexus
+            - name: JIRA_URL
+              value: '${JIRA_URL}'
             - name: JENKINS_HOME
               value: '${JENKINS_HOME}'
             - name: COPY_REFERENCE_FILE_LOG
