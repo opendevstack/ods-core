@@ -15,6 +15,8 @@
 - Centralise configuration ([#219](https://github.com/opendevstack/ods-core/issues/219))
 - Tag Jenkins images with ODS version ([#211](https://github.com/opendevstack/ods-core/issues/211))
 - Backup script for SonarQube ([#265](https://github.com/opendevstack/ods-core/issues/265))
+- Move jenkins templates to ods-core ([#323](https://github.com/opendevstack/ods-core/issues/323))
+- Replace Rundeck secure route checking with OpenShift job / Jenkins job ([#324](https://github.com/opendevstack/ods-core/issues/324))
 
 ### Fixed
 - Export script test if remote branch exists before during checkout ([#300](https://github.com/opendevstack/ods-core/pull/300))
