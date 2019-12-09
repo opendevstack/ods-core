@@ -2,10 +2,26 @@
 
 ## Unreleased
 
-### Changed
+### Added
+- Add skopeo into Jenkins slave to move images ([#253](https://github.com/opendevstack/ods-core/issues/253))
+- Single Tailor comparison script ([#207](https://github.com/opendevstack/ods-core/issues/207))
+- Allow to specify project in build endpoint of webhook proxy ([#229](https://github.com/opendevstack/ods-core/issues/229))
+- Make ODS image tag and Git Ref configurable ([#225](https://github.com/opendevstack/ods-core/issues/225))
+- Grant image-puller rights on project-cd for project envs service accounts ([#293](https://github.com/opendevstack/ods-core/issues/293))
 
+### Changed
+- Update Nexus to 3.19.1 ([#263](https://github.com/opendevstack/ods-core/issues/263))
+- Update SonarQube to 7.9 and plugins to latest ([#249](https://github.com/opendevstack/ods-core/issues/249))
+- Centralise configuration ([#219](https://github.com/opendevstack/ods-core/issues/219))
+- Tag Jenkins images with ODS version ([#211](https://github.com/opendevstack/ods-core/issues/211))
+- Backup script for SonarQube ([#265](https://github.com/opendevstack/ods-core/issues/265))
+
+### Fixed
+- Export script test if remote branch exists before during checkout ([#300](https://github.com/opendevstack/ods-core/pull/300))
+- Airflow quickstarter TLS verification can fail ([#222](https://github.com/opendevstack/ods-core/issues/222))
+
+### Removed
 - Removal of Crowd HTTP basic auth proxy related shared images ([#215](https://github.com/opendevstack/ods-core/issues/215))
-- Configurable build output (add skopeo to move images ([#253](https://github.com/opendevstack/ods-core/issues/253))
 - Removal of Airflow related shared images ([#289](https://github.com/opendevstack/ods-core/issues/289))
 
 ## [1.2.0] - 2019-10-10
