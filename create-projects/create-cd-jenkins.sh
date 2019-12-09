@@ -67,9 +67,8 @@ tailor_update_in_dir() {
 
 cdUserPwdParam=""
 if [ $CD_USER_TYPE != "general" ]; then
-    randomPwd=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')
-    randomBase64Pwd=$(echo $randomPwd | base64)
-    cdUserPwdParam="--param=CD_USER_PWD_B64=${randomBase64Pwd}"
+    base64Pwd=$(echo -n "changeme" | base64)
+    cdUserPwdParam="--param=CD_USER_PWD_B64=${base64Pwd}"
 fi
 
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
