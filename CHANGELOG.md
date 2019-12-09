@@ -21,6 +21,7 @@
 ### Fixed
 - Export script test if remote branch exists before during checkout ([#300](https://github.com/opendevstack/ods-core/pull/300))
 - Airflow quickstarter TLS verification can fail ([#222](https://github.com/opendevstack/ods-core/issues/222))
+- Secure route check should also look for reencrypt termination type ([#325](https://github.com/opendevstack/ods-core/issues/325))
 
 ### Removed
 - Removal of Crowd HTTP basic auth proxy related shared images ([#215](https://github.com/opendevstack/ods-core/issues/215))
