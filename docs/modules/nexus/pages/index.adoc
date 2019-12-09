@@ -35,6 +35,6 @@ General help how to administer a Nexus 3 can be found at the https://help.sonaty
 . Developer user password changed and amended in `ods-configuration` env files.
 . Adjusted the needed proxy repositories and adjusted the OpenDevStack-Developer role, so the role has read rights to all needed repositories.
 . Created an user for the provisioning app with script execution rights and adjusted the Nexus credentials used in the provisioning app.
-. Ensured that the `createProjectSpecificAccess.json` haf been uploaded to Nexus 3
+. Ensured that the `createProjectSpecificAccess.json` has been uploaded to Nexus 3
 
 
