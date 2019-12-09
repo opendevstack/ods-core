@@ -90,7 +90,7 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
     && echo 'Snyk CLI version:' \
     && snyk --version \
     && echo 'Snyk installation completed!'; \
-    && fi
+    fi
 
 # Set java proxy var.
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
