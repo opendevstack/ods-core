@@ -1,0 +1,36 @@
+= Keycloak
+
+Keycloak is an open source identity and access managment tool.
+
+OpenDevStack uses eigther _Atlassian Crowd_ or  _OpenID Connect / OAuth 2.0_ protocol for authentication users of provisioning app.
+
+IMPORTANT: The usage of Keycloak is optional. Instead of keycloak, _Atlassian Crowd_ can still be used for
+authentication. See documentation under _ODS-Components_ -> _Provisioning App_ -> _Configuration Guide_ regarding
+the configuration of provisioning app.
+
+
+
+== Default Configuration
+Setup of keycloak for local-installation is all done without further manual setup actions
+by starting the vagrant-box _idmanager_.
+
+=== Realm _master_
+==== Users
+|===
+| User | Password | Roles
+|admin | admin | keycloak admin
+|===
+
+=== Realm _opendevstack_
+There is (beside the master realm) one single OpenDevStack-specific realm: _opendevstack_.
+
+==== Client
+There is one OpenDevStack-specific client inside the _opendevstack_ realm: _ods-provisioning-app_.
+
+==== Users
+|===
+| User | Password | Roles
+a|admin1 | admin1| opendevstack-administrators,
+opendevstack-users
+|user1 | user1| opendevstack-users
+|===

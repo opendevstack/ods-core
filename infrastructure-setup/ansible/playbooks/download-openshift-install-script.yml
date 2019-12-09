@@ -1,0 +1,30 @@
+- hosts: openshift
+  tasks:
+    - name: "install additional packages"
+      package:
+        name: ['git']
+      become: True
+    - name: download tailor
+      get_url:
+        url: "https://github.com/opendevstack/tailor/releases/download/v{{ tailor_version }}/tailor_linux_amd64"
+        dest: "/usr/local/bin/tailor"
+        owner: root
+        group: root
+        mode: 0755
+        validate_certs: no
+        force: no
+      become: True
+    - name: download openshift install script
+      get_url:
+        url: "https://raw.githubusercontent.com/gshipley/installcentos/master/install-openshift.sh"
+        dest: "/tmp/install-openshift.sh"
+        owner: root
+        group: root
+        mode: 0754
+        validate_certs: no
+        force: no
+      become: true
+
+
+    
+

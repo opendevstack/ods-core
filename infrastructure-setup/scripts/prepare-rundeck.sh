@@ -10,7 +10,7 @@ BASE_DIR=${OPENDEVSTACK_DIR:-"/ods"}
 cwd=${pwd}
 CURLOPTS="-s -S -L -c ${BASE_DIR}/.cookies -b ${BASE_DIR}/.cookies"
 
-echo ${CURLOPTS}
+echo "CURLOPTS: ${CURLOPTS}"
 #curl command to use with opts
 CURL="curl $CURLOPTS"
 
@@ -24,18 +24,24 @@ cd /ods/ods-core/infrastructure-setup/scripts/
 echo "Login to rundeck"
 $CURL -d j_username=$RUNDECK_USER -d j_password=$RUNDECK_PW "$RUNDECK_URL/j_security_check" > /dev/null
 
-echo "Create openshift-api-token"
+echo "\nCreate openshift-api-token"
 $CURL --header 'Content-Type: application/x-rundeck-data-password' "${RUNDECK_URL}/api/23/storage/keys/openshift-api-token" -d @/ods/openshift-api-token
 
-echo "Create project"
+echo "\nCreate project"
+
 $CURL --header 'Content-Type: application/json' "${RUNDECK_URL}/api/23/projects" -d @json/create-rundeck-project.json
-echo "Add SSH to bitbucket host on bitbucket port"
+
+echo "\nAdd SSH to bitbucket host on bitbucket port"
+
 if [[ ! -d "~/.ssh" ]] ; then
   mkdir ~/.ssh
 fi
+
 ssh-keyscan -p 7999 -t rsa localhost > ~/.ssh/known_hosts
 ssh-keyscan -p 7999 -t rsa localhost > /var/lib/rundeck/.ssh/known_hosts
+
 chown rundeck:rundeck /var/lib/rundeck/.ssh/known_hosts
+
 echo -e "\nGet SCM information"
 $CURL "${RUNDECK_URL}/api/23/project/Quickstarters/scm/import/config"
 echo -e "\nSetup SCM information"

@@ -98,15 +98,29 @@ else
   read -e -n1 -p "Install Rundeck? [y,n] (default: y):" input
   input=${input:-"y"}
   if [[ $input == "Y" || $input == "y" ]]; then
-     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/rundeck.yml"
-  fi
-  echo "OKD installation"
-  read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
-  input=${input:-"y"}
-  if [[ $input == "Y" || $input == "y" ]]; then
-     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/install-openshift-dev.yml"
+     read -e -n1 -p "Use Crowd Authentication for rundeck? (Otherwise, local users will be configured for rundeck)? [y,n] (default: y):" input
+     input=${input:-"y"}
+     if [[ $input == "Y" || $input == "y" ]]; then
+       crowd="true"
+       echo "ok: using crowd for authentication"
+     else
+       crowd="false"
+       echo "ok: using local users for authentication"
+     fi
+     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev --extra-vars 'rundeck_crowd=$crowd' playbooks/rundeck.yml"
   fi
 fi
+
+echo "OKD installation"
+read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
+input=${input:-"y"}
+if [[ $input == "Y" || $input == "y" ]]; then
+   echo "Download Openshift installation script"
+   vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/download-openshift-install-script.yml"
+   echo "Run install-openshift.sh"
+   vagrant ssh openshift -c "cd /tmp/ && sudo DOMAIN='192.168.56.101.nip.io' USERNAME='admin' PASSWORD='admin' INTERACTIVE=false VERSION=3.11 ./install-openshift.sh"
+fi
+
 
 cd ${cwd}
 
@@ -116,3 +130,4 @@ echo "Crowd: http://192.168.56.31:8095/"
 echo "Jira: http://192.168.56.31:8080/"
 echo "Confluence: http://192.168.56.31:8090/"
 echo "Bitbucket: http://192.168.56.31:7990/"
+echo "Keycloak: http://192.168.56.32:8080/auth/admin/"

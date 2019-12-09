@@ -55,6 +55,35 @@ echo "Starting Keycloak ..."
 
 /sbin/service keycloak restart
 
+cd /opt/keycloak/bin
+echo "Login to keycloak via admin user"
+./kcadm.sh config credentials --server http://localhost:8080/auth --realm master --user admin --password admin
+
+echo "create realm opendevstack..."
+REALM=opendevstack
+./kcadm.sh create realms -s realm=$REALM -s enabled=true
+
+echo "create roles 'opendevstack-administrators' and 'opendevstack-user'"
+./kcadm.sh create roles -r $REALM -s name=opendevstack-administrators -s 'description=OpenDevStack administrators are allowed to create project initiatives and add quickstarters to to existing initiatives.'
+./kcadm.sh create roles -r $REALM -s name=opendevstack-users -s 'description=OpenDevStack Users are allowed to add quickstarters to existing project initiatives.'
+
+echo "create user 'user1'"
+./kcadm.sh create users -r  $REALM -s username=user1 -s enabled=true
+./kcadm.sh set-password -r $REALM --username user1 --new-password user1
+./kcadm.sh add-roles --uusername user1 --rolename opendevstack-users -r $REALM
+
+echo "create user 'admin1'"
+./kcadm.sh create users -r  $REALM -s username=admin1 -s enabled=true
+./kcadm.sh set-password -r $REALM --username admin1 --new-password admin1
+./kcadm.sh add-roles --uusername admin1 --rolename opendevstack-users --rolename opendevstack-administrators -r $REALM
+
+echo "create client 'ods-provisioning-app'"
+./kcadm.sh create clients -r $REALM -s clientId=ods-provisioning-app -s 'redirectUris=["*"]'
+
+echo "create 'User Realm Role' mapper in client"
+#TODO Stefan Lack
+# ./kcadm.sh create components -r $REALM -s name=hardcoded-ldap-role-mapper -s providerId=hardcoded-ldap-role-mapper -s providerType=org.keycloak.protocol.oidc.mappers.UserRealmRoleMappingMapper -s parentId=b7c63d02-b62a-4fc1-977c-947d6a09e1ea -s 'config.role=["realm-management.create-client"]'
+
 echo "Opening port 8080 on iptables ..."
 iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables

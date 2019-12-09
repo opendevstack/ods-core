@@ -1,9 +1,13 @@
 FROM adoptopenjdk/openjdk11:alpine-jre
 
-ENV SONARQUBE_HOME=/opt/sonarqube \
+ENV SONAR_VERSION=7.3 \
+    SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-7.3.zip \
+    SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
     SONARQUBE_JDBC_PASSWORD=sonar \
     SONARQUBE_JDBC_URL=
+
+ARG IDP_DNS=example.org
 
 # Http port
 EXPOSE 9000

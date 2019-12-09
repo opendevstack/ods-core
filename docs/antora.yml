@@ -1,9 +1,9 @@
 name: ods-core
 title: ODS Core
 version: latest
-start_page: infrastructure-setup:index.adoc
+start_page: ROOT:infrastructure_setup.adoc
 nav:
 - modules/ROOT/nav.adoc
-- modules/infrastructure-setup/nav.adoc
 - modules/jenkins/nav.adoc
 - modules/sonarqube/nav.adoc
+- modules/keycloak/nav.adoc
