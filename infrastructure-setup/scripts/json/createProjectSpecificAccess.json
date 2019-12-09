@@ -11,7 +11,7 @@
    def userName = \"ods-$projectName-nx-user\";
    def password = UUID.randomUUID().toString();
    def infoMail = \"$userName@opendevstack.org\";
-   def selectorExpression = \"path =~ \\\".*/.*$projectName.*/.*\\\"\";
+   def selectorExpression = \"path =~ \\\".*/$projectName.*/.*\\\"\";
    def selectorManager = container.lookup(SelectorManager.class.name);
    def selectorConfig = new SelectorConfiguration(name: \"ods-$projectName-selector\",type: 'CSEL',description: \"Content selector for project $projectName\",attributes: ['expression': selectorExpression]);
    selectorManager.create(selectorConfig);

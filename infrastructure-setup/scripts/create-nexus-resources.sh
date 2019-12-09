@@ -30,3 +30,6 @@ echo -e "\nSetup developer user\n"
 curl -u admin:${ADMIN_PW} --insecure -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script" -d @json/createUser.json
 curl -u admin:${ADMIN_PW} --insecure -X POST --header 'Content-Type: text/plain' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script/createUser/run" -d @json/developer-user.json
 sleep .5s
+echo -e "\nSetup specific access script\n"
+curl -u admin:${ADMIN_PW} --insecure -X POST --header 'Content-Type: application/json' "https://nexus-cd.192.168.56.101.nip.io/service/rest/v1/script" -d @json/createProjectSpecificAccess.json
+
