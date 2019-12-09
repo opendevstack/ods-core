@@ -475,7 +475,7 @@ parameters:
 - name: SONAR_AUTH_CROWD
   description: "Set to true, if you want to use crowd as identity provider"
 - name: SONAR_AUTH_OAUTH
-  description: "Set to true, if you want to use OpenShift Oauth as identity provider. If Crowd is also enabled, CROWD takes precedence."
+  description: "Set to true, if you want to use OpenShift OAuth as identity provider. If Crowd is also enabled, CROWD takes precedence."
   required: false
 - name: SONAR_OAUTH_ADMIN_GROUP
   description: "OpenShift group mapped to sonar-administrators"
