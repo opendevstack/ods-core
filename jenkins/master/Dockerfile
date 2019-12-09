@@ -6,7 +6,7 @@ ARG APP_DNS=192.168.99.100.nip.io
 USER root
 RUN yum -y install openssl gnutls-utils \
     && $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
-    && yum clean cache
+    && yum clean all
 
 # fetch certificates and store them in tmp directory
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
