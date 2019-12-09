@@ -14,7 +14,7 @@ You will have to customize the script to match your target environment.
 If you have a running Nexus 3 instance and you only want to add scripted resources, take a look at the `create-nexus-resources.sh` script. +
 Inside this script you will find curl calls, that are used to run scripts in the Nexus 3 scripting API. +
 The called scripts are located in the `json` subfolder and can be customized by your need. +
-*Please keep in mind, that the user, who is provided in the curl calls has to have script execution rights in NExus 3!*
+*Please keep in mind, that the user, who is provided in the curl calls has to have script execution rights in Nexus 3!*
 
 The `createProjectSpecificAccess.json` contains the logic to create a project specific nexus user to isolate project artifacts from each other. +
 The logic uses content selectors with an expression that uses the `path` to identify repos, that belong to one project, so you will have to specify a naming convention, if you use private repositories and isolated projects.
