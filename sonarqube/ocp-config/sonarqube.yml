@@ -436,7 +436,7 @@ parameters:
   description: base64 encoded application password as setup in crowd for authn/z
 - displayName: Crowd URL
   name: CROWD_URL
-  description: url under which crowd is reachable from sonaruqbe
+  description: url under which crowd is reachable from sonarqube
 # e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
 - displayName: Database JDBC URL
   name: SONAR_DATABASE_JDBC_URL
