@@ -4,4 +4,3 @@
   "description" : "Description",
   "expression" : "path =~ \".*/prov/.*\""
 }
-path =~ ".*/team/.*"
