@@ -11,10 +11,10 @@ objects:
     name: nexus3
   spec:
     ports:
-    - name: 8081-tcp
-      port: 8081
+    - name: 8082-tcp
+      port: 8082
       protocol: TCP
-      targetPort: 8081
+      targetPort: 8082
     selector:
       deploymentconfig: nexus3
     sessionAffinity: None

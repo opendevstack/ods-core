@@ -12,7 +12,7 @@ objects:
   spec:
     host: ${NEXUS_HOST}
     port:
-      targetPort: 8081-tcp
+      targetPort: 8082-tcp
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
