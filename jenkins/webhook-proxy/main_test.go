@@ -192,12 +192,13 @@ func (c *mockClient) DeletePipeline(e *Event) error {
 func testServer() (*httptest.Server, *mockClient) {
 	mc := &mockClient{}
 	server := &Server{
-		Client:            mc,
-		Namespace:         "bar-cd",
-		Project:           "bar",
-		TriggerSecret:     "s3cr3t",
-		ProtectedBranches: []string{"baz"},
-		RepoBase:          "https://domain.com",
+		Client:                  mc,
+		Namespace:               "bar-cd",
+		Project:                 "bar",
+		TriggerSecret:           "s3cr3t",
+		ProtectedBranches:       []string{"baz"},
+		AllowedExternalProjects: []string{"opendevstack"},
+		RepoBase:                "https://domain.com",
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
@@ -317,27 +318,37 @@ func TestHandleRootReadsRequests(t *testing.T) {
 
 func TestNamespaceRestriction(t *testing.T) {
 	tests := map[string]struct {
-		payloadFile      string
-		project          string
-		expectedPipeline string
+		payloadFile             string
+		project                 string
+		allowedExternalProjects []string
+		expectedPipeline        string
+		expectedStatusCode      int
 	}{
 		"Prov App": {
-			payloadFile:      "prov-app-changed-payload.json",
-			project:          "prov",
-			expectedPipeline: "prov-app-pipeline.json",
+			payloadFile:             "prov-app-changed-payload.json",
+			project:                 "prov",
+			allowedExternalProjects: []string{"opendevstack"},
+			expectedPipeline:        "prov-app-pipeline.json",
+			expectedStatusCode:      200,
 		},
 		"Other": {
-			payloadFile:      "prov-app-changed-payload.json",
-			project:          "foo",
-			expectedPipeline: "foo-cd-pipeline.json",
+			payloadFile:             "prov-app-changed-payload.json",
+			project:                 "foo",
+			allowedExternalProjects: []string{"baz"},
+			expectedPipeline:        "",
+			expectedStatusCode:      400,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			expectedOpenshiftPayload, err := ioutil.ReadFile("test/golden/" + tc.expectedPipeline)
-			if err != nil {
-				t.Fatal(err)
+			var expectedOpenshiftPayload []byte
+			var err error
+			if len(tc.expectedPipeline) > 0 {
+				expectedOpenshiftPayload, err = ioutil.ReadFile("test/golden/" + tc.expectedPipeline)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			var actualOpenshiftPayload []byte
@@ -368,12 +379,13 @@ func TestNamespaceRestriction(t *testing.T) {
 			// Server using the special client
 			fakeSecret := "s3cr3t"
 			s := &Server{
-				Client:            c,
-				Namespace:         tc.project + "-cd",
-				Project:           tc.project,
-				TriggerSecret:     fakeSecret,
-				ProtectedBranches: []string{"baz"},
-				RepoBase:          "https://domain.com",
+				Client:                  c,
+				Namespace:               tc.project + "-cd",
+				Project:                 tc.project,
+				TriggerSecret:           fakeSecret,
+				ProtectedBranches:       []string{"baz"},
+				AllowedExternalProjects: tc.allowedExternalProjects,
+				RepoBase:                "https://domain.com",
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
@@ -390,6 +402,9 @@ func TestNamespaceRestriction(t *testing.T) {
 			res.Body.Close()
 			if err != nil {
 				t.Fatal(err)
+			}
+			if res.StatusCode != tc.expectedStatusCode {
+				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.expectedStatusCode)
 			}
 
 			if len(expectedOpenshiftPayload) > 0 && string(actualOpenshiftPayload) != string(expectedOpenshiftPayload) {
@@ -554,12 +569,13 @@ func TestBuildEndpoint(t *testing.T) {
 			}
 			// Server using the special client
 			s := &Server{
-				Client:            c,
-				Namespace:         "bar-cd",
-				Project:           "bar",
-				TriggerSecret:     "s3cr3t",
-				ProtectedBranches: []string{"baz"},
-				RepoBase:          "https://domain.com",
+				Client:                  c,
+				Namespace:               "bar-cd",
+				Project:                 "bar",
+				TriggerSecret:           "s3cr3t",
+				ProtectedBranches:       []string{"baz"},
+				AllowedExternalProjects: []string{"opendevstack"},
+				RepoBase:                "https://domain.com",
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
@@ -595,12 +611,13 @@ func TestBuildEndpoint(t *testing.T) {
 func TestNotFound(t *testing.T) {
 	// Server using a mocked client
 	s := &Server{
-		Client:            &mockClient{},
-		Namespace:         "bar-cd",
-		Project:           "bar",
-		TriggerSecret:     "s3cr3t",
-		ProtectedBranches: []string{"baz"},
-		RepoBase:          "https://domain.com",
+		Client:                  &mockClient{},
+		Namespace:               "bar-cd",
+		Project:                 "bar",
+		TriggerSecret:           "s3cr3t",
+		ProtectedBranches:       []string{"baz"},
+		AllowedExternalProjects: []string{"opendevstack"},
+		RepoBase:                "https://domain.com",
 	}
 	server := httptest.NewServer(s.HandleRoot())
 

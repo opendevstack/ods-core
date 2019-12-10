@@ -1,7 +1,7 @@
 # ODS Jenkins Slave base
 
 ## Introduction
-The base jenkins slave used by all ODS [builder slaves](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves)
+The base jenkins slave used by all ODS [builder slaves](https://github.com/opendevstack/ods-quickstarters/tree/master/jenkins-slaves)
 
 ## Features / Plugins
 1. Creates trust relationship with applications in the openshift cluster (thru certificate management)

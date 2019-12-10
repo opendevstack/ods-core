@@ -2,11 +2,15 @@ FROM registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
 
 LABEL maintainer="Michael Sauter <michael.sauter@boehringer-ingelheim.com>"
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
     CNES_REPORT_VERSION=2.0.0 \
-    TAILOR_VERSION=0.10.2 \
-    GIT_LFS_VERSION=2.6.1
+    TAILOR_VERSION=0.11.0 \
+    GIT_LFS_VERSION=2.6.1 \
+    SKOPEO_VERSION=0.1.37-3 \
+    OSTREE_VERSION=2018.5-1
 
 # Hack to fix issues with broken repositories
 # See https://access.redhat.com/support/cases/#/case/02108199
@@ -91,8 +95,13 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
   && snyk --version \
   && echo 'Snyk installation completed!'; fi
 
-
 # set java proxy var
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN chmod 777 /tmp/set_java_proxy.sh
 RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
+
+# add skopeo
+RUN yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/ostree-${OSTREE_VERSION}.el7.x86_64.rpm
+RUN yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/containers-common-${SKOPEO_VERSION}.el7.centos.x86_64.rpm
+RUN yum install -y http://mirror.centos.org/centos/7/extras/x86_64/Packages/skopeo-${SKOPEO_VERSION}.el7.centos.x86_64.rpm 
+RUN skopeo --version

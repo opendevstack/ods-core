@@ -1,5 +1,6 @@
 namespace cd
-selector  app=jenkins
-param-dir ../../../ods-configuration/ods-core/jenkins/ocp-config
+selector app=jenkins
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
 
 bc,is
