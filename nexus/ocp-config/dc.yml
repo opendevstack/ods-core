@@ -7,21 +7,21 @@ objects:
   kind: ServiceAccount
   metadata:
     annotations:
-      serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"nexus3-proxy"}}'
-    name: nexus3-proxy
+      serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"nexus3"}}'
+    name: nexus3
     labels:
       app: nexus3
 - apiVersion: v1
   kind: RoleBinding
   metadata:
-    name: nexus3-proxy_view
+    name: nexus3_view
     labels:
       app: nexus3
   roleRef:
     name: view
   subjects:
   - kind: ServiceAccount
-    name: nexus3-proxy
+    name: nexus3
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -45,8 +45,8 @@ objects:
           app: nexus3
           deploymentconfig: nexus3
       spec:
-        serviceAccount: nexus3-proxy
-        serviceAccountName: nexus3-proxy
+        serviceAccount: nexus3
+        serviceAccountName: nexus3
         containers:
         - name: oauth-proxy
           image: openshift/oauth-proxy:latest
@@ -58,7 +58,7 @@ objects:
           - --https-address=
           - --http-address=:8082
           - --provider=openshift
-          - --openshift-service-account=nexus3-proxy
+          - --openshift-service-account=nexus3
           - --upstream=http://localhost:8081
           - --cookie-secret=SECRET
         - image: sonatype/nexus3:3.19.1
