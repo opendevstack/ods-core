@@ -27,7 +27,7 @@ oc login -u system:admin
 oc project cd
 
 cd /ods/ods-core/nexus/ocp-config
-# yes 'y' | tailor update -v --force
+yes 'y' | tailor update -v --force
 
 cd ${cwd}
 
