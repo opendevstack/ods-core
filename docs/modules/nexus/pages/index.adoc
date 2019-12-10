@@ -19,6 +19,30 @@ The called scripts are located in the `json` subfolder and can be customized by 
 The `createProjectSpecificAccess.json` contains the logic to create a project specific nexus user to isolate project artifacts from each other. +
 The logic uses content selectors with an expression that uses the `path` to identify repos, that belong to one project, so you will have to specify a naming convention, if you use private repositories and isolated projects.
 
+```
+[...]
+
+def selectorExpression = \"path =~ \\\".*/$projectName.*/.*\\\"\";
+
+[...]
+```
+The expression matches a path containing the project name within repositories.
+
+Given a Maven repository, the path is structured based on the group and artifact id. +
+In OpenDevStack the projectname is part of the identifier, for example `org.opendevstack.project.artifact`. +
+The path structure for the maven repository resolves to `/org/opendevstack/project/artifact`.
+The content selector would match the maven repository, because of the projectname in the path.
+
+Given a NPM registry (also named repository in Nexus 3) you will have a flat directory structure for the persisted modules.
+```
+|
+|- module1
+|- module2
+|- projectname-module
+|- projectname-module2
+```
+In this example the given conten selector will match the modules prefixed with the `projectname`.
+
 You can modify the used expression in the `createProjectSpecificAccess.json` script if it doesn't match your requirements and upload it to Nexus 3 with the related curl call.
 
 ODS uses local Nexus 3 users out-of-the-box. If you want to use your internal authorization and authentication system, you will have to modify the scripts, so no user is created and the created privilege as added to your desired role.
