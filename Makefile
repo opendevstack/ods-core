@@ -2,7 +2,7 @@
 
 build: download tests/create-projects/testsuite
 
-test: tests/create-projects/create-projects_test.go tests/create-projects/create-projects_test.go go.mod imports
+test: tests/create-projects/create-projects_test.go tests/create-projects/create-projects_test.go go.mod go.sum
 	@(go test -v -cover github.com/opendevstack/ods-core/tests/create-projects)
 
 download:
@@ -13,6 +13,6 @@ lint:
 	@(echo "Checking code ...")
 	@(golangci-lint run)
 
-imports:
-	@(echo "Fixing go imports ...")
-	@(goimports -w .)
+#imports:
+#	@(echo "Fixing go imports ...")
+#	@(goimports -w .)
