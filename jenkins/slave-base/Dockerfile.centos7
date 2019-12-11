@@ -1,3 +1,4 @@
+# BuildConfig (../ocp-config/bc.yml) overrides FROM instruction
 FROM openshift/jenkins-slave-base-centos7
 
 LABEL maintainer="Richard Attermeyer <richard.attermeyer@opitz-consulting.com>"

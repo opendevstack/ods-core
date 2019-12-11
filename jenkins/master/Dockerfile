@@ -1,3 +1,4 @@
+# BuildConfig (../ocp-config/bc.yml) overrides FROM instruction
 FROM openshift/jenkins-2-centos7
 
 ENV JAVA_HOME /usr/lib/jvm/jre
