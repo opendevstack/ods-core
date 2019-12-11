@@ -1,5 +1,5 @@
 # BuildConfig (../ocp-config/bc.yml) overrides FROM instruction
-FROM openshift/jenkins-2-centos7
+FROM openshift/jenkins-2-centos7:v3.11
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 ARG APP_DNS=192.168.99.100.nip.io
