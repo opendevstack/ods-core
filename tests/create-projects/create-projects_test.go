@@ -11,7 +11,7 @@ import (
 )
 
 func TestCreateProjectWithoutProjectId(t *testing.T) {
-	stdout, stderr, err := utils.RunCommandFromBaseDir("create-projects/create-projects.sh")
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh")
 	if err == nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
@@ -21,7 +21,7 @@ func TestCreateProjectWithoutProjectId(t *testing.T) {
 }
 
 func TestCreateProject(t *testing.T) {
-	stdout, stderr, err := utils.RunCommandFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
