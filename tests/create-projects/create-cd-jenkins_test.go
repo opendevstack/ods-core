@@ -29,7 +29,7 @@ func TestCreateJenkinsWithOutCDUserType(t *testing.T) {
 
 func TestCreateJenkins(t *testing.T) {
 	RemoveAllOCProjects(t)
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR, "CD_USER_TYPE=general")
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
@@ -37,7 +37,7 @@ func TestCreateJenkins(t *testing.T) {
 			stderr)
 	}
 
-	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", utils.PROJECT_ENV_VAR)
+	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", utils.PROJECT_ENV_VAR, "CD_USER_TYPE=general")
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-cd-jenkins.sh` failed: \nStdOut: %s\nStdErr: %s",
