@@ -1,6 +1,6 @@
-module github.com/opendevstack/ods-core
+module github.com/opendevstack/ods-core/tests
 
-go 1.13
+go 1.12
 
 require (
 	github.com/gogo/protobuf v1.3.1 // indirect
@@ -17,7 +17,6 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
-	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.0.0-20190222213804-5cb15d344471
 	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
 	k8s.io/client-go v0.0.0-20190228174230-b40b2a5939e4

@@ -2,7 +2,7 @@
 
 build: download tests/create-projects/testsuite
 
-test: tests/create-projects/create-projects_test.go tests/create-projects/create-projects_test.go go.mod go.sum
+test: create-projects/create-projects_test.go create-projects/create-projects_test.go go.mod go.sum
 	@(go test -v -cover github.com/opendevstack/ods-core/tests/create-projects)
 
 download:
