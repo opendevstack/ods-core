@@ -66,7 +66,7 @@ tailor_update_in_dir() {
 }
 
 cdUserPwdParam=""
-if [ $CD_USER_TYPE != "general" ]; then
+if [ "${CD_USER_TYPE}" != "general" ]; then
     base64Pwd=$(echo -n "changeme" | base64)
     cdUserPwdParam="--param=CD_USER_PWD_B64=${base64Pwd}"
 fi
