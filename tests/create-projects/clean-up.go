@@ -29,4 +29,10 @@ func RemoveAllOCProjects(t *testing.T) {
 	_ = client.Projects().Delete(utils.PROJECT_NAME_TEST, &metav1.DeleteOptions{})
 	_ = client.Projects().Delete(utils.PROJECT_NAME_DEV, &metav1.DeleteOptions{})
 
+	for {
+		project, err := client.Projects().Get(utils.PROJECT_NAME_DEV, metav1.GetOptions{})
+		if err != nil || project == nil {
+			break
+		}
+	}
 }
