@@ -7,9 +7,9 @@ import (
 
 func TestCreateJenkinsWithOutProjectId(t *testing.T) {
 	stdout, stderr, err := utils.RunCommandFromBaseDir("create-projects/create-cd-jenkins.sh")
-	if err != nil {
+	if err == nil {
 		t.Fatalf(
-			"Execution of `create-project.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
+			"Execution of `create-cd-jenkins.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
 			stdout,
 			stderr)
 	}
@@ -31,4 +31,6 @@ func TestCreateJenkins(t *testing.T) {
 			stdout,
 			stderr)
 	}
+
+	RemoveAllOCProjects(t)
 }

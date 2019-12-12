@@ -6,10 +6,10 @@ set -eux
 # support pointing to patched tailor using TAILOR environment variable
 : ${TAILOR:=tailor}
 
-tailor_exe=$(type -P ${TAILOR})
-tailor_version=$(${TAILOR} version)
-
-echo "Using tailor ${tailor_version} from ${tailor_exe}"
+#tailor_exe=$(type -P ${TAILOR})
+#tailor_version=$(${TAILOR} version)
+#
+#echo "Using tailor ${tailor_version} from ${tailor_exe}"
 
 DEBUG=false
 STATUS=false

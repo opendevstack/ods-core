@@ -65,15 +65,13 @@ func TestCreateProject(t *testing.T) {
 
 	if !foundCd {
 		t.Error("CD Project not found")
-	} else {
-		_ = client.Projects().Delete(utils.PROJECT_NAME_CD, &metav1.DeleteOptions{})
 	}
 	if !foundTest {
 		t.Error("Test Project not found")
-		_ = client.Projects().Delete(utils.PROJECT_NAME_TEST, &metav1.DeleteOptions{})
 	}
 	if !foundDev {
 		t.Error("Dev Project not found")
-		_ = client.Projects().Delete(utils.PROJECT_NAME_DEV, &metav1.DeleteOptions{})
 	}
+
+	RemoveAllOCProjects(t)
 }
