@@ -428,11 +428,18 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
-	req, _ := http.NewRequest(
-		"POST",
-		url,
-		new(bytes.Buffer),
-	)
+	p := struct {
+		Env []EnvPair `json:"env"`
+	}{
+		Env: e.Env,
+	}
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(p)
+	if err != nil {
+		return nil, fmt.Errorf("Could not encode payload: %s", err)
+	}
+
+	req, _ := http.NewRequest("POST", url, b)
 	res, err := c.do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Got error %s", err)

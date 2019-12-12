@@ -415,43 +415,89 @@ func TestNamespaceRestriction(t *testing.T) {
 }
 
 func TestForward(t *testing.T) {
-	// Sample response from OpenShift
-	expected, err := ioutil.ReadFile("test/fixtures/webhook-triggered-payload.json")
-	if err != nil {
-		t.Error(err)
+	tests := map[string]struct {
+		expectedPayload   string // payload that OpenShift expects
+		openshiftResponse string // payload that OpenShift returns
+		event             *Event
+	}{
+		"event without env": {
+			expectedPayload:   "test/golden/forward-payload-without-env.json",
+			openshiftResponse: "test/fixtures/webhook-triggered-payload.json",
+			event: &Event{
+				Kind:      "forward",
+				Namespace: "bar-cd",
+				Repo:      "repository",
+				Component: "repository",
+				Branch:    "master",
+				Pipeline:  "repository-master",
+				Env:       []EnvPair{},
+			},
+		},
+		"event with env": {
+			expectedPayload:   "test/golden/forward-payload-with-env.json",
+			openshiftResponse: "test/fixtures/webhook-triggered-payload.json",
+			event: &Event{
+				Kind:      "forward",
+				Namespace: "bar-cd",
+				Repo:      "repository",
+				Component: "repository",
+				Branch:    "master",
+				Pipeline:  "repository-master",
+				Env: []EnvPair{
+					EnvPair{
+						Name:  "PROJECT_ID",
+						Value: "foo",
+					},
+					EnvPair{
+						Name:  "COMPONENT_ID",
+						Value: "bar",
+					},
+				},
+			},
+		},
 	}
 
-	// Create a stub that returns the fixed response
-	apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write(expected)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}))
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			var actualForwardPayload []byte
+			expectedPayload, err := ioutil.ReadFile(tc.expectedPayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Sample response from OpenShift
+			expectedOpenshiftResponse, err := ioutil.ReadFile(tc.openshiftResponse)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	// Client pointing to the API stub created above
-	c := &ocClient{
-		HTTPClient:          &http.Client{},
-		OpenShiftAPIBaseURL: apiStub.URL,
-		Token:               "foo",
-	}
+			// Create a stub that returns the fixed response
+			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				actualForwardPayload, _ = ioutil.ReadAll(r.Body)
+				_, err := w.Write(expectedOpenshiftResponse)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}))
 
-	event := &Event{
-		Kind:      "forward",
-		Namespace: "bar-cd",
-		Repo:      "repository",
-		Component: "repository",
-		Branch:    "master",
-		Pipeline:  "repository-master",
-	}
+			// Client pointing to the API stub created above
+			c := &ocClient{
+				HTTPClient:          &http.Client{},
+				OpenShiftAPIBaseURL: apiStub.URL,
+				Token:               "foo",
+			}
 
-	// Ensure the response from OpenShift is forwarded as-is to the client
-	actual, err := c.Forward(event, "s3cr3t")
-	if err != nil {
-		t.Error(err)
-	}
-	if string(actual) != string(expected) {
-		t.Errorf("Got response: %s, want: %s", actual, expected)
+			// Ensure the response from OpenShift is forwarded as-is to the client
+			actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(actualForwardPayload) != string(expectedPayload) {
+				t.Fatalf("Got payload: %s, want: %s", actualForwardPayload, expectedPayload)
+			}
+			if string(actualOpenshiftResponse) != string(expectedOpenshiftResponse) {
+				t.Fatalf("Got response: %s, want: %s", actualOpenshiftResponse, expectedOpenshiftResponse)
+			}
+		})
 	}
 }
 
