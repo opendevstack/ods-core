@@ -80,6 +80,7 @@ func TestCreateProject(t *testing.T) {
 
 		}
 	}
+
 	if !foundCd {
 		t.Error("CD Project not found")
 	}
