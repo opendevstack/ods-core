@@ -12,7 +12,7 @@ import (
 func RunScriptFromBaseDir(command string, envVars ...string) (string, string, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..")
-	return RunCommand("sh", []string{fmt.Sprintf("%s/%s", dir, command)}, envVars...)
+	return RunCommand("bash", []string{fmt.Sprintf("%s/%s", dir, command)}, envVars...)
 }
 
 func RunCommand(command string, args []string, envVars ...string) (string, string, error) {

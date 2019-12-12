@@ -21,6 +21,7 @@ func TestCreateProjectWithoutProjectId(t *testing.T) {
 }
 
 func TestCreateProject(t *testing.T) {
+	RemoveAllOCProjects(t)
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
 	if err != nil {
 		t.Fatalf(
@@ -73,5 +74,4 @@ func TestCreateProject(t *testing.T) {
 		t.Error("Dev Project not found")
 	}
 
-	RemoveAllOCProjects(t)
 }

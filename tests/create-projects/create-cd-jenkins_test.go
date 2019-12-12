@@ -18,6 +18,7 @@ func TestCreateJenkinsWithOutProjectId(t *testing.T) {
 }
 
 func TestCreateJenkins(t *testing.T) {
+	RemoveAllOCProjects(t)
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
 	if err != nil {
 		t.Fatalf(
@@ -42,6 +43,4 @@ func TestCreateJenkins(t *testing.T) {
 			stdout,
 			stderr)
 	}
-
-	RemoveAllOCProjects(t)
 }
