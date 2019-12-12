@@ -1,50 +1,32 @@
 package create_projects
 
 import (
-	"bytes"
-	"fmt"
+	"github.com/opendevstack/ods-core/tests/utils"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
-	"os/exec"
-	"path"
 	"path/filepath"
-	"runtime"
 	"testing"
 )
 
 func TestCreateProjectWithoutProjectId(t *testing.T) {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "..", "..")
-
-	cmd := exec.Command("sh", fmt.Sprintf("%s/create-projects/create-projects.sh", dir))
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	stdout, stderr, err := utils.RunCommandFromBaseDir("create-projects/create-projects.sh")
 	if err == nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
-			string(stdout.Bytes()),
-			string(stderr.Bytes()))
+			stdout,
+			stderr)
 	}
 }
 
 func TestCreateProject(t *testing.T) {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "..", "..")
-	cmd := exec.Command("sh", fmt.Sprintf("%s/create-projects/create-projects.sh", dir))
-	cmd.Env = append(os.Environ(), "PROJECT_ID=unitt")
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	stdout, stderr, err := utils.RunCommandFromBaseDir("create-projects/create-projects.sh", utils.PROJECT_ENV_VAR)
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
-			string(stdout.Bytes()),
-			string(stderr.Bytes()))
+			stdout,
+			stderr)
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -70,11 +52,11 @@ func TestCreateProject(t *testing.T) {
 
 	for _, project := range projects.Items {
 		switch project.Name {
-		case "unitt-cd":
+		case utils.PROJECT_NAME_CD:
 			foundCd = true
-		case "unitt-test":
+		case utils.PROJECT_NAME_TEST:
 			foundTest = true
-		case "unitt-dev":
+		case utils.PROJECT_NAME_DEV:
 			foundDev = true
 		default:
 
@@ -83,11 +65,15 @@ func TestCreateProject(t *testing.T) {
 
 	if !foundCd {
 		t.Error("CD Project not found")
+	} else {
+		_ = client.Projects().Delete(utils.PROJECT_NAME_CD, &metav1.DeleteOptions{})
 	}
 	if !foundTest {
 		t.Error("Test Project not found")
+		_ = client.Projects().Delete(utils.PROJECT_NAME_TEST, &metav1.DeleteOptions{})
 	}
 	if !foundDev {
 		t.Error("Dev Project not found")
+		_ = client.Projects().Delete(utils.PROJECT_NAME_DEV, &metav1.DeleteOptions{})
 	}
 }
