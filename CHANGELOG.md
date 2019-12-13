@@ -8,20 +8,25 @@
 - Allow to specify project in build endpoint of webhook proxy ([#229](https://github.com/opendevstack/ods-core/issues/229))
 - Make ODS image tag and Git Ref configurable ([#225](https://github.com/opendevstack/ods-core/issues/225))
 - Grant image-puller rights on project-cd for project envs service accounts ([#293](https://github.com/opendevstack/ods-core/issues/293))
+- Backup script for SonarQube ([#265](https://github.com/opendevstack/ods-core/issues/265))
 
 ### Changed
 - Update Nexus to 3.19.1 ([#263](https://github.com/opendevstack/ods-core/issues/263))
 - Update SonarQube to 7.9 and plugins to latest ([#249](https://github.com/opendevstack/ods-core/issues/249))
 - Centralise configuration ([#219](https://github.com/opendevstack/ods-core/issues/219))
 - Tag Jenkins images with ODS version ([#211](https://github.com/opendevstack/ods-core/issues/211))
-- Backup script for SonarQube ([#265](https://github.com/opendevstack/ods-core/issues/265))
 - Move jenkins templates to ods-core ([#323](https://github.com/opendevstack/ods-core/issues/323))
 - Replace Rundeck secure route checking with OpenShift job / Jenkins job ([#324](https://github.com/opendevstack/ods-core/issues/324))
+- Improve Jenkins Dockerfiles ([#312](https://github.com/opendevstack/ods-core/issues/312))
+- Update Tailor to 0.11.0 ([#290](https://github.com/opendevstack/ods-core/issues/290))
 
 ### Fixed
 - Export script test if remote branch exists before during checkout ([#300](https://github.com/opendevstack/ods-core/pull/300))
 - Airflow quickstarter TLS verification can fail ([#222](https://github.com/opendevstack/ods-core/issues/222))
 - Secure route check should also look for reencrypt termination type ([#325](https://github.com/opendevstack/ods-core/issues/325))
+- Invalid APP_DNS doesn't stop build at given step ([#298](https://github.com/opendevstack/ods-core/issues/298))
+- Build endpoint does not update env params ([#237](https://github.com/opendevstack/ods-core/issues/237))
+- Components previously deleted reappear in cloned environment ([#318](https://github.com/opendevstack/ods-core/issues/318))
 
 ### Removed
 - Removal of Crowd HTTP basic auth proxy related shared images ([#215](https://github.com/opendevstack/ods-core/issues/215))
