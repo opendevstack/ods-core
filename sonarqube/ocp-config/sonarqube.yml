@@ -224,7 +224,6 @@ objects:
             claimName: sonarqube-extensions
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
@@ -234,6 +233,7 @@ objects:
           name: sonarqube:${ODS_IMAGE_TAG}
           namespace: cd
       type: ImageChange
+    - type: ConfigChange
 - apiVersion: v1
   kind: ImageStream
   metadata:
