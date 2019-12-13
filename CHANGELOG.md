@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [2.0] - 2019-12-13
+
 ### Added
 - Add skopeo into Jenkins slave to move images ([#253](https://github.com/opendevstack/ods-core/issues/253))
 - Single Tailor comparison script ([#207](https://github.com/opendevstack/ods-core/issues/207))
