@@ -13,6 +13,7 @@ set -eux
 
 DEBUG=false
 STATUS=false
+FORCE=""
 while [[ $# -gt 0 ]]; do
   key="$1"
 
@@ -70,6 +71,8 @@ if [ "${CD_USER_TYPE}" != "general" ]; then
   base64Pwd=$(echo -n "changeme" | base64)
   cdUserPwdParam="--param=CD_USER_PWD_B64=${base64Pwd}"
 fi
+
+
 
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
   "--namespace=${PROJECT_ID}-cd" \
