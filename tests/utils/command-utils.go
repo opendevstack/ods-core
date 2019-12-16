@@ -9,10 +9,10 @@ import (
 	"runtime"
 )
 
-func RunScriptFromBaseDir(command string, envVars ...string) (string, string, error) {
+func RunScriptFromBaseDir(command string, args []string, envVars ...string) (string, string, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..")
-	return RunCommand("bash", []string{fmt.Sprintf("%s/%s", dir, command)}, envVars...)
+	return RunCommand("bash", append([]string{fmt.Sprintf("%s/%s", dir, command)}, args...), envVars...)
 }
 
 func RunCommand(command string, args []string, envVars ...string) (string, string, error) {
