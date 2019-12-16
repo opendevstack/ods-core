@@ -1,9 +1,11 @@
 package create_projects
 
 import (
+	"fmt"
 	"github.com/opendevstack/ods-core/tests/utils"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	rbacv1client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
@@ -65,13 +67,58 @@ func TestCreateProject(t *testing.T) {
 	}
 
 	if !foundCd {
-		t.Error("CD Project not found")
+		t.Fatal("CD Project not found")
 	}
 	if !foundTest {
-		t.Error("Test Project not found")
+		t.Fatal("Test Project not found")
 	}
 	if !foundDev {
-		t.Error("Dev Project not found")
+		t.Fatal("Dev Project not found")
 	}
+
+	rbacV1Client, err := rbacv1client.NewForConfig(config)
+	if err != nil {
+		t.Fatalf("Cannot initialize RBAC Client: %s", err)
+	}
+	roleBindings, _ := rbacV1Client.RoleBindings(utils.PROJECT_NAME_CD).List(metav1.ListOptions{})
+
+	if !utils.FindRoleBinding(roleBindings, "jenkins", "ServiceAccount", utils.PROJECT_NAME_CD, "edit") {
+		t.Fatal("Service Account 'jenkins' does not have the role 'edit' in CD project")
+	}
+	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_CD, "edit") {
+		t.Fatal("Service Account 'default' does not have the role 'edit' in CD project")
+	}
+
+	if !utils.FindRoleBinding(roleBindings, fmt.Sprintf("system:serviceaccounts:%s", utils.PROJECT_NAME_DEV), "Group", "", "system:image-puller") {
+		t.Fatal("Service Account 'default' does not have the role 'edit' in CD project")
+	}
+
+	if !utils.FindRoleBinding(roleBindings, fmt.Sprintf("system:serviceaccounts:%s", utils.PROJECT_NAME_TEST), "Group", "", "system:image-puller") {
+		t.Fatal("Service Account 'default' does not have the role 'edit' in CD project")
+	}
+
+	roleBindings, _ = rbacV1Client.RoleBindings(utils.PROJECT_NAME_DEV).List(metav1.ListOptions{})
+	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_CD, "system:image-builder") {
+		t.Fatal("Service Account 'default' does not have the role 'system:image-builder' in DEV project")
+	}
+
+	if !utils.FindRoleBinding(roleBindings, fmt.Sprintf("system:serviceaccounts:%s", utils.PROJECT_NAME_TEST), "Group", "", "system:image-puller") {
+		t.Fatal("Service Account 'default' does not have the role 'edit' in CD project")
+	}
+
+	if !utils.FindRoleBinding(roleBindings, "jenkins", "ServiceAccount", utils.PROJECT_NAME_CD, "admin") {
+		t.Fatal("Service Account 'jenkins' does not have the role 'edit' in CD project")
+	}
+
+	roleBindings, _ = rbacV1Client.RoleBindings(utils.PROJECT_NAME_TEST).List(metav1.ListOptions{})
+	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_CD, "system:image-builder") {
+		t.Fatal("Service Account 'default' does not have the role 'system:image-builder' in TEST project")
+	}
+
+	if !utils.FindRoleBinding(roleBindings, "jenkins", "ServiceAccount", utils.PROJECT_NAME_CD, "admin") {
+		t.Fatal("Service Account 'jenkins' does not have the role 'edit' in CD project")
+	}
+
+	t.Log("WARNING: Seeding special and default permission groups is not tested yet!")
 
 }
