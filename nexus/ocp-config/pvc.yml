@@ -12,7 +12,7 @@ objects:
     finalizers:
     - kubernetes.io/pvc-protection
     labels:
-      app: nexus3
+      app: nexus3-oauth
     name: nexus-data-extended
   spec:
     accessModes:
@@ -29,7 +29,7 @@ objects:
     finalizers:
     - kubernetes.io/pvc-protection
     labels:
-      app: nexus3
+      app: nexus3-oauth
     name: nexus-db-backup
   spec:
     accessModes:

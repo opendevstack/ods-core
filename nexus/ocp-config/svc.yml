@@ -7,7 +7,7 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: nexus3
+      app: nexus3-oauth
     name: nexus3
   spec:
     ports:

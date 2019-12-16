@@ -10,13 +10,13 @@ objects:
       serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"nexus3"}}'
     name: nexus3
     labels:
-      app: nexus3
+      app: nexus3-oauth
 - apiVersion: v1
   kind: RoleBinding
   metadata:
     name: nexus3_view
     labels:
-      app: nexus3
+      app: nexus3-oauth
   roleRef:
     name: view
   subjects:
@@ -26,12 +26,12 @@ objects:
   kind: DeploymentConfig
   metadata:
     labels:
-      app: nexus3
+      app: nexus3-oauth
     name: nexus3
   spec:
     replicas: 1
     selector:
-      app: nexus3
+      app: nexus3-oauth
       deploymentconfig: nexus3
     strategy:
       activeDeadlineSeconds: 21600
@@ -42,7 +42,7 @@ objects:
     template:
       metadata:
         labels:
-          app: nexus3
+          app: nexus3-oauth
           deploymentconfig: nexus3
       spec:
         serviceAccount: nexus3
