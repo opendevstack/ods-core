@@ -35,22 +35,6 @@ func TestCreateJenkinsWithOutCDUserType(t *testing.T) {
 	}
 }
 
-func TestCreateJenkinsWithOutCDUserId(t *testing.T) {
-	// user := base64.StdEncoding.EncodeToString([]byte("myuser"))
-	secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"},
-		utils.PROJECT_ENV_VAR,
-		"CD_USER_TYPE=general",
-		//fmt.Sprintf("CD_USER_ID_B64=%s",user),
-		fmt.Sprintf("PIPELINE_TRIGGER_SECRET=%s", secret))
-	if err == nil {
-		t.Fatalf(
-			"Execution of `create-cd-jenkins.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
-			stdout,
-			stderr)
-	}
-}
-
 func TestCreateJenkinsWithOutSecret(t *testing.T) {
 	user := base64.StdEncoding.EncodeToString([]byte("myuser"))
 	//secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
@@ -76,12 +60,12 @@ func TestCreateJenkins(t *testing.T) {
 			stdout,
 			stderr)
 	}
-	user := base64.StdEncoding.EncodeToString([]byte("myuser"))
+	// user := base64.StdEncoding.EncodeToString([]byte("myuser"))
 	secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
 	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"},
 		utils.PROJECT_ENV_VAR,
 		"CD_USER_TYPE=general",
-		fmt.Sprintf("CD_USER_ID_B64=%s", user),
+		// fmt.Sprintf("CD_USER_ID_B64=%s", user),
 		fmt.Sprintf("PIPELINE_TRIGGER_SECRET=%s", secret))
 	if err != nil {
 		t.Fatalf(
@@ -91,7 +75,11 @@ func TestCreateJenkins(t *testing.T) {
 	}
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "create-projects", "ocp-config", "cd-jenkins")
-	stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", fmt.Sprintf("--param=PROJECT=%s", utils.PROJECT_NAME)}, dir)
+
+	stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", "--reveal-secrets",
+        	fmt.Sprintf("--param=PROJECT=%s", utils.PROJECT_NAME),
+        	"--selector", "template=cd-jenkins-template",
+        	fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir)
 
 	if err != nil {
 		t.Fatalf(
