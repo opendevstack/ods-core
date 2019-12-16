@@ -98,7 +98,7 @@ func TestCreateProject(t *testing.T) {
 	}
 
 	roleBindings, _ = rbacV1Client.RoleBindings(utils.PROJECT_NAME_DEV).List(metav1.ListOptions{})
-	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_CD, "system:image-builder") {
+	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_DEV, "system:image-builder") {
 		t.Fatal("Service Account 'default' does not have the role 'system:image-builder' in DEV project")
 	}
 
@@ -111,7 +111,7 @@ func TestCreateProject(t *testing.T) {
 	}
 
 	roleBindings, _ = rbacV1Client.RoleBindings(utils.PROJECT_NAME_TEST).List(metav1.ListOptions{})
-	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_CD, "system:image-builder") {
+	if !utils.FindRoleBinding(roleBindings, "default", "ServiceAccount", utils.PROJECT_NAME_TEST, "system:image-builder") {
 		t.Fatal("Service Account 'default' does not have the role 'system:image-builder' in TEST project")
 	}
 

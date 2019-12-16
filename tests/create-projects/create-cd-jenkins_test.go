@@ -91,7 +91,7 @@ func TestCreateJenkins(t *testing.T) {
 	}
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "create-projects", "ocp-config", "cd-jenkins")
-	stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force"}, dir, utils.PROJECT_ENV_VAR)
+	stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", fmt.Sprintf("--param=PROJECT=%s", utils.PROJECT_NAME)}, dir)
 
 	if err != nil {
 		t.Fatalf(
