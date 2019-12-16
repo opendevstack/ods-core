@@ -27,13 +27,14 @@ matrix:
                 - "sudo cat /etc/docker/daemon.json | jq '. + {\"insecure-registries\": [\"172.30.0.0/16\"]}' | sudo tee /etc/docker/daemon.json"
                 - sudo cat /etc/docker/daemon.json
                 - sudo service docker restart
-                - oc cluster up
+                - oc cluster up --base-dir=${HOME}/openshift.local.clusterup
+                - oc cluster status
                 - curl -LO "https://github.com/opendevstack/tailor/releases/download/v0.11.0/tailor-linux-amd64"
                 - chmod +x tailor-linux-amd64
                 - sudo mv tailor-linux-amd64 /usr/local/bin/tailor
                 - tailor
                 - mkdir -p ods-config
-                - bash ./tests/create-env-from-local-cluster.sh -o ods-config/ods-core.env
+                - bash ./tests/create-env-from-local-cluster.sh --base-oc-dir=${HOME}/openshift.local.clusterup --output ods-config/ods-core.env
                 - export GO111MODULE=on
             before_script:
                 - cd tests
