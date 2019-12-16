@@ -32,6 +32,8 @@ matrix:
                 - chmod +x tailor-linux-amd64
                 - sudo mv tailor-linux-amd64 /usr/local/bin/tailor
                 - tailor
+                - mkdir -p ods-config
+                - bash ./tests/create-env-from-local-cluster.sh -o ods-config/ods-core.env
                 - export GO111MODULE=on
             before_script:
                 - cd tests
