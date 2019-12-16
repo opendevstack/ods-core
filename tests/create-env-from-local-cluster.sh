@@ -7,27 +7,19 @@ function usage() {
   exit
 }
 
-while [ "$1" != "" ]; do
-  case $1 in
-  -b | --base-oc-dir)
-    shift
-    BASE_OC_DIR=$1
-    ;;
-  -o | --output)
-    shift
-    OUTPUT=$1
-    ;;
-  -h | --help)
-    usage
-    exit
-    ;;
-  *)
-    usage
-    exit 1
-    ;;
-  esac
-  shift
-done
+while [[ "$#" -gt 0 ]]; do case $1 in
+  -b=*|--base-oc-dir=*) BASE_OC_DIR="${1#*=}";;
+  -b|--base-oc-dir) BASE_OC_DIR="$2"; shift;;
+
+  -o=*|--output=*) OUTPUT="${1#*=}";;
+  -o|--output) OUTPUT="$2"; shift;;
+
+  -h|--help) usage; exit 0;;
+
+  *) echo "Unknown parameter passed: $1"; usage; exit 1;;
+esac; shift; done
+
+
 
 if [[ -z "${BASE_OC_DIR}" && ! -d "${BASE_OC_DIR}" ]]; then
   echo "--base-oc-dir must be provided and pointing to the oc cluster base diretory."
