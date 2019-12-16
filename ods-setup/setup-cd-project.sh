@@ -11,10 +11,6 @@ echo "${BASH_SOURCE%/*}/"
 
 while [ "$1" != "" ]; do
   case $1 in
-  -e | --ods-core-env)
-    shift
-    ODS_CORE_ENV=$1
-    ;;
   -t | --tailor)
     shift
     TAILOR=$1
@@ -23,6 +19,9 @@ while [ "$1" != "" ]; do
     usage
     exit
     ;;
+  --force)
+    FORCE="--force"
+    ;;
   *)
     usage
     exit 1
@@ -30,16 +29,6 @@ while [ "$1" != "" ]; do
   esac
   shift
 done
-
-if [[ -z "${ODS_CORE_ENV}" && ! -f "${ODS_CORE_ENV}" ]]; then
-  echo "--ods-core-env must be provided and pointing to a existing file"
-  usage
-fi
-
-if [[ ! -f "${SECRET_TEMPLATE}" ]]; then
-  echo "--secret-template must pointing to a existing file"
-  usage
-fi
 
 
 if ! oc whoami; then
@@ -63,4 +52,5 @@ oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:cd:de
 
 # create secrets for global cd_user
 cd "${TAILOR_FOLDER}"
-${TAILOR}
+${TAILOR} update ${FORCE} --non-interactive
+cd -

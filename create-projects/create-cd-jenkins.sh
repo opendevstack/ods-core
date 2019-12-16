@@ -11,6 +11,7 @@ set -eux
 #
 #echo "Using tailor ${tailor_version} from ${tailor_exe}"
 
+FORCE="--force"
 DEBUG=false
 STATUS=false
 while [[ $# -gt 0 ]]
@@ -23,7 +24,9 @@ case $key in
     ;;
     -d|--debug)
     DEBUG=true;
-    shift
+    ;;
+  --force)
+    FORCE="--force"
     ;;
     *)
         echo "Unknown option: $1. Exiting."
@@ -39,7 +42,6 @@ else
   tailor_verbose=""
 fi
 
-tailor_verbose+=" --force"
 
 if [ -z ${PROJECT_ID+x} ]; then
     echo "PROJECT_ID is unset, but required";
@@ -57,11 +59,11 @@ tailor_update_in_dir() {
     if [ ${STATUS} = "true" ]; then
         $DEBUG && echo 'exec:' cd  "$dir" '&&'
         $DEBUG && echo 'exec:'     ${TAILOR} $tailor_verbose status "$@"
-        cd "$dir" && ${TAILOR} $tailor_verbose status "$@"
+        cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} status "$@"
     else
         $DEBUG && echo 'exec:' cd "$dir" '&&'
         $DEBUG && echo 'exec:    ' ${TAILOR} $tailor_verbose --non-interactive update "$@"
-        cd "$dir" && ${TAILOR} $tailor_verbose --non-interactive update "$@"
+        cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} --non-interactive update "$@"
     fi
 }
 
