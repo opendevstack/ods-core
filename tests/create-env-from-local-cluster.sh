@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -uex
 
 BASE_OC_DIR="${HOME}/openshift.local.clusterup"
 
