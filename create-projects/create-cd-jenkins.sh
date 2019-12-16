@@ -56,11 +56,11 @@ tailor_update_in_dir() {
   shift
   if [ ${STATUS} = "true" ]; then
     $DEBUG && echo 'exec:' cd "$dir" '&&'
-    $DEBUG && echo 'exec:' ${TAILOR} $tailor_verbose status "$@"
+    $DEBUG && echo 'exec:' ${TAILOR} ${FORCE} $tailor_verbose status "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} status "$@"
   else
     $DEBUG && echo 'exec:' cd "$dir" '&&'
-    $DEBUG && echo 'exec:    ' ${TAILOR} $tailor_verbose --non-interactive update "$@"
+    $DEBUG && echo 'exec:    ' ${TAILOR} ${FORCE} $tailor_verbose --non-interactive update "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} --non-interactive update "$@"
   fi
 }
