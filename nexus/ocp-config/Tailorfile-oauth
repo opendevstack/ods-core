@@ -1,6 +1,6 @@
 namespace cd
-selector  app=nexus3
+selector  app=nexus3-oauth
 param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 
-dc,is,pvc,route,svc
+dc,is,pvc,route,svc,rolebinding,serviceaccount
