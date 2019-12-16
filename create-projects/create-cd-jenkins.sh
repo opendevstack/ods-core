@@ -78,5 +78,6 @@ tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
   "--namespace=${PROJECT_ID}-cd" \
   "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
   "--param=PROJECT=${PROJECT_ID}" \
+  "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   $cdUserPwdParam \
   --selector "template=cd-jenkins-template"
