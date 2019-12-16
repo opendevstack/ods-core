@@ -43,15 +43,15 @@ echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "#####       NEXUS       #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
-NEXUS_URL="nexus-cd.${SUBDOMAIN}"
-NEXUS_HOST="https://${NEXUS_URL}"
+NEXUS_HOST="nexus-cd.${SUBDOMAIN}"
+NEXUS_URL="https://${NEXUS_HOST}"
 NEXUS_USERNAME=developer
 NEXUS_PASSWORD=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64  | rev | cut -b 2- | rev | tr -cd '[:alnum:]')
 NEXUS_PASSWORD_B64=$(echo -n "${NEXUS_PASSWORD}" | base64)
 NEXUS_AUTH="${NEXUS_USERNAME}:${NEXUS_PASSWORD}"
 
-echo "NEXUS_HOST=${NEXUS_HOST}" >> ${OUTPUT}
 echo "NEXUS_URL=${NEXUS_URL}" >> ${OUTPUT}
+echo "NEXUS_HOST=${NEXUS_HOST}" >> ${OUTPUT}
 echo "NEXUS_USERNAME=${NEXUS_USERNAME}" >> ${OUTPUT}
 echo "NEXUS_PASSWORD=${NEXUS_PASSWORD}" >> ${OUTPUT}
 echo "NEXUS_PASSWORD_B64=${NEXUS_PASSWORD_B64}" >> ${OUTPUT}
