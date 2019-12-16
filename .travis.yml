@@ -35,9 +35,9 @@ matrix:
                 - tailor
                 - mkdir -p ods-config
                 - bash ./tests/create-env-from-local-cluster.sh --base-oc-dir=${HOME}/openshift.local.clusterup --output ods-config/ods-core.env
-		- cat ods-config/ods-core.env
-		- pwd
-		- ls -la 
+		        - cat ods-config/ods-core.env
+		        - pwd
+		        - ls -la
                 - export GO111MODULE=on
             before_script:
                 - cd tests
