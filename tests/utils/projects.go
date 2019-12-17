@@ -1,12 +1,15 @@
 package utils
 
-import v1 "github.com/openshift/api/project/v1"
+import (
+    "fmt"
+    v1 "github.com/openshift/api/project/v1"
+)
 
-func FindProject(projects *v1.ProjectList, projectName string) bool {
+func FindProject(projects *v1.ProjectList, projectName string) error {
 	for _, project := range projects.Items {
 		if project.Name == projectName {
-			return true
+			return nil
 		}
 	}
-	return false
+	return fmt.Errorf("Project '%s' not found", projectName)
 }
