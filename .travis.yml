@@ -2,16 +2,40 @@
 # https://stackoverflow.com/questions/27644586/how-to-set-up-travis-ci-with-multiple-languages
 
 matrix:
-  include:
-    - language: go
-      go:
-        - "1.11.x"
-      before_install:
-        - go get golang.org/x/tools/cmd/goimports
-        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
-
-      before_script:
-        - cd jenkins/webhook-proxy
-      script:
-        - env GO111MODULE=on make lint
-        - env GO111MODULE=on make test
+    include:
+        -   language: go
+            go:
+                - "1.11.x"
+            before_install:
+                - go get golang.org/x/tools/cmd/goimports
+                - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+                - export GO111MODULE=on
+            before_script:
+                - cd jenkins/webhook-proxy
+            script:
+                - env GO111MODULE=on make lint
+                - env GO111MODULE=on make test
+        -   language: go
+            go:
+                - "1.13.x"
+            before_install:
+                - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+                - go get golang.org/x/tools/cmd/goimports
+                - wget https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+                - tar -xzvf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+                - export PATH=$PATH:$PWD/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit
+                - "sudo cat /etc/docker/daemon.json | jq '. + {\"insecure-registries\": [\"172.30.0.0/16\"]}' | sudo tee /etc/docker/daemon.json"
+                - sudo cat /etc/docker/daemon.json
+                - sudo service docker restart
+                - curl -LO "https://github.com/opendevstack/tailor/releases/download/v0.11.0/tailor-linux-amd64"
+                - chmod +x tailor-linux-amd64
+                - sudo mv tailor-linux-amd64 /usr/local/bin/tailor
+                - oc cluster up --base-dir=${HOME}/openshift.local.clusterup
+                - oc cluster status
+                - mkdir -p ods-config
+                - bash ./tests/create-env-from-local-cluster.sh --base-oc-dir=${HOME}/openshift.local.clusterup --output ods-config/ods-core.env
+                - export GO111MODULE=on
+            before_script:
+                - cd tests
+            script:
+                - env GO111MODULE=on make test
