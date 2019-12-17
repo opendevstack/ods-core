@@ -18,7 +18,7 @@ func TestCreateOdsProject(t *testing.T) {
 		"--namespace",
 		namespace,
 	})
-	if err == nil {
+	if err != nil {
 		t.Fatalf(
 			"Execution of `setup-ods-project.sh` failed: \nStdOut: %s\nStdErr: %s",
 			stdout,
@@ -73,7 +73,7 @@ func TestCreateDefaultOdsProject(t *testing.T) {
 		"--force",
 		"--verbose",
 	})
-	if err == nil {
+	if err != nil {
 		t.Fatalf(
 			"Execution of `setup-ods-project.sh` failed: \nStdOut: %s\nStdErr: %s",
 			stdout,

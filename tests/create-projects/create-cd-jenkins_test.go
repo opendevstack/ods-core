@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateJenkinsWithOutProjectId(t *testing.T) {
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"})
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose"})
 	if err == nil {
 		t.Fatalf(
 			"Execution of `create-cd-jenkins.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
@@ -22,7 +22,7 @@ func TestCreateJenkinsWithOutProjectId(t *testing.T) {
 func TestCreateJenkinsWithOutCDUserType(t *testing.T) {
 	user := base64.StdEncoding.EncodeToString([]byte("myuser"))
 	secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"},
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose"},
 		utils.PROJECT_ENV_VAR,
 		// "CD_USER_TYPE=general",
 		fmt.Sprintf("CD_USER_ID_B64=%s", user),
@@ -38,7 +38,7 @@ func TestCreateJenkinsWithOutCDUserType(t *testing.T) {
 func TestCreateJenkinsWithOutSecret(t *testing.T) {
 	user := base64.StdEncoding.EncodeToString([]byte("myuser"))
 	//secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"},
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose"},
 		utils.PROJECT_ENV_VAR,
 		"CD_USER_TYPE=general",
 		fmt.Sprintf("CD_USER_ID_B64=%s", user))
@@ -62,7 +62,7 @@ func TestCreateJenkins(t *testing.T) {
 	}
 	user := base64.StdEncoding.EncodeToString([]byte("myuser"))
 	secret := base64.StdEncoding.EncodeToString([]byte("mysecret"))
-	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--debug"},
+	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose"},
 		utils.PROJECT_ENV_VAR,
 		"CD_USER_TYPE=general",
 		fmt.Sprintf("CD_USER_ID_B64=%s", user),
