@@ -13,7 +13,7 @@ func FindRoleBinding(roleBindings *v1.RoleBindingList, subjectName string, subje
 			}
 		}
 	}
-	return fmt.Errorf("Subject '%s' of kind '%d' in namespace '%s' does not have the role '%s'", subjectName, subjectType, subjectNamespace, roleName)
+	return fmt.Errorf("Subject '%s' of kind '%s' in namespace '%s' does not have the role '%s'", subjectName, subjectType, subjectNamespace, roleName)
 }
 
 func FindClusterRoleBinding(roleBindings *v1.ClusterRoleBindingList, subjectName string, subjectType string, subjectNamespace string, roleName string) error {
@@ -24,5 +24,5 @@ func FindClusterRoleBinding(roleBindings *v1.ClusterRoleBindingList, subjectName
 			}
 		}
 	}
-    return fmt.Errorf("Subject '%s' of kind '%d' in namespace '%s' does not have the cluster role '%s'", subjectName, subjectType, subjectNamespace, roleName)
+    return fmt.Errorf("Subject '%s' of kind '%s' in namespace '%s' does not have the cluster role '%s'", subjectName, subjectType, subjectNamespace, roleName)
 }
