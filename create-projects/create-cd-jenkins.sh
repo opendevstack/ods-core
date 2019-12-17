@@ -37,7 +37,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
  esac; shift; done
 
 echo "Current tailor version is: $(${TAILOR} version)"
-exit 1
+
 if $VERBOSE; then
   tailor_verbose="-v"
 else
