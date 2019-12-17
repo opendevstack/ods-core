@@ -1,5 +1,5 @@
 # BuildConfig (../ocp-config/bc.yml) overrides FROM instruction
-ARG ORIGIN_IMAGE_SOURCE=openshift/jenkins-2-centos7
+ARG ORIGIN_IMAGE_SOURCE_MASTER=openshift/jenkins-2-centos7
 ARG ORIGIN_IMAGE_TAG=v3.11
 FROM ${ORIGIN_IMAGE_SOURCE}:${ORIGIN_IMAGE_TAG}
 
