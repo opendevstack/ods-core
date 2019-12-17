@@ -68,7 +68,7 @@ podTemplate(
     }
 
     stage('creating jenkins') {
-      sh "sh ./create-projects/create-cd-jenkins.sh --force"
+      sh "sh ./create-projects/create-cd-jenkins.sh --force --verbose"
     }
   }
 }

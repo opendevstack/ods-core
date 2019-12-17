@@ -6,7 +6,7 @@ set -eu
 # support pointing to patched tailor using TAILOR environment variable
 
 TAILOR="tailor"
-DEBUG=false
+VERBOSE=false
 STATUS=false
 FORCE=""
 
@@ -15,7 +15,7 @@ function usage {
    printf "\t--status\tExecutes tailor status\n"
    printf "\t--force\tIgnores warnings and error with tailor --force\n"
    printf "\t-h|--help\tPrints the usage\n"
-   printf "\t-d|--debug\tEnabled debug\n"
+   printf "\t-v|--verbose\tVerbose output\n"
    printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
 
 }
@@ -23,9 +23,13 @@ function usage {
 
 while [[ "$#" -gt 0 ]]; do case $1 in
    --status) STATUS=true;;
-   -d|--debug) DEBUG=true; set -x;;
+
+   -v|--verbose) VERBOSE=true; set -x;;
+
    --force) FORCE="--force"; ;;
+
    -h|--help) usage; exit 0;;
+
    -t=*|--tailor=*) TAILOR="${1#*=}";;
    -t|--tailor) TAILOR="$2"; shift;;
 
@@ -34,7 +38,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
 echo "Current tailor version is: $(${TAILOR} version)"
 exit 1
-if $DEBUG; then
+if $VERBOSE; then
   tailor_verbose="-v"
 else
   tailor_verbose=""
@@ -55,12 +59,12 @@ tailor_update_in_dir() {
   local dir="$1"
   shift
   if [ ${STATUS} = "true" ]; then
-    $DEBUG && echo 'exec:' cd "$dir" '&&'
-    $DEBUG && echo 'exec:' ${TAILOR} ${FORCE} $tailor_verbose status "$@"
+    $VERBOSE && echo 'exec:' cd "$dir" '&&'
+    $VERBOSE && echo 'exec:' ${TAILOR} ${FORCE} $tailor_verbose status "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} status "$@"
   else
-    $DEBUG && echo 'exec:' cd "$dir" '&&'
-    $DEBUG && echo 'exec:    ' ${TAILOR} ${FORCE} $tailor_verbose --non-interactive update "$@"
+    $VERBOSE && echo 'exec:' cd "$dir" '&&'
+    $VERBOSE && echo 'exec:    ' ${TAILOR} ${FORCE} $tailor_verbose --non-interactive update "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} --non-interactive update "$@"
   fi
 }
