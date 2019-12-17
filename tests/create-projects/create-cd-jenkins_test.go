@@ -76,7 +76,9 @@ func TestCreateJenkins(t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "create-projects", "ocp-config", "cd-jenkins")
 
-	stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", "--reveal-secrets",
+	_, _, _ = utils.RunCommand("oc", []string{"project", utils.PROJECT_NAME_CD})
+
+    stdout, stderr, err = utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", "--reveal-secrets", "-n", utils.PROJECT_NAME_CD,
 		fmt.Sprintf("--param=PROJECT=%s", utils.PROJECT_NAME),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=cd-jenkins-template",
