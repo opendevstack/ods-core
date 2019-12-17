@@ -267,7 +267,7 @@ objects:
     name: '${JENKINS_SERVICE_NAME}'
     labels:
       template: cd-jenkins-master
-- apiVersion: v1
+- apiVersion: rbac.authorization.k8s.io/v1
   groupNames: null
   kind: RoleBinding
   metadata:
@@ -276,6 +276,8 @@ objects:
       template: cd-jenkins-master
   roleRef:
     name: edit
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
   subjects:
     - kind: ServiceAccount
       name: '${JENKINS_SERVICE_NAME}'
