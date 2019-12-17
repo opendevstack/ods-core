@@ -1,5 +1,7 @@
 # BuildConfig (../ocp-config/bc.yml) overrides FROM instruction
-FROM openshift/jenkins-2-centos7:v3.11
+ARG ORIGIN_IMAGE_SOURCE=openshift/jenkins-2-centos7
+ARG ORIGIN_IMAGE_TAG=v3.11
+FROM ${ORIGIN_IMAGE_SOURCE}:${ORIGIN_IMAGE_TAG}
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 ARG APP_DNS=192.168.99.100.nip.io
