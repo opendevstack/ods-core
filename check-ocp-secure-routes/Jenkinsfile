@@ -7,7 +7,7 @@ def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
 }
-def conts = containerTemplate( 
+def conts = containerTemplate(
   name: 'jnlp',
   image: "${dockerRegistry}/cd/jenkins-slave-base:${odsImageTag}",
   workingDir: '/tmp',
@@ -27,8 +27,8 @@ podTemplate(
     stage('checkout') {
       checkout scm
     }
-    stage('check for insecure routes') {
-      sh "sh check-ocp-secure-routes/check_ocp_secure_routes.sh"
+    stage('check for unsecured routes') {
+      sh "sh ocp-scripts/check-unsecured-routes.sh"
     }
   }
 }
