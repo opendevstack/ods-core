@@ -4,7 +4,7 @@
   blobStore.createFileBlobStore('candidates', '/nexus-data/blobs/candidates');
   blobStore.createFileBlobStore('releases', '/nexus-data/blobs/releases');
   blobStore.createFileBlobStore('atlassian_public', '/nexus-data/blobs/atlassian_public');
-  blobStore.createFileBlobStore('npm-private', '/nexus-data/blobs/npmjs-private');
+  blobStore.createFileBlobStore('npm-private', '/nexus-data/blobs/npm-private');
   blobStore.createFileBlobStore('pypi-private', '/nexus-data/blobs/pypi-private');
   blobStore.createFileBlobStore('leva-documentation', '/nexus-data/blobs/leva-documentation')",
   "type":"groovy"
