@@ -14,9 +14,7 @@ objects:
     postCommit: {}
     resources: {}
     runPolicy: Serial
-    triggers:
-      - imageChange: {}
-        type: ImageChange
+    triggers: []
     source:
       type: Git
       contextDir: jenkins/master
