@@ -79,13 +79,13 @@ ODS_ADM_GROUP=$(./kcadm.sh get groups -r $REALM --fields 'id,name' | jq -r '.[] 
 ODS_USER_GROUP=$(./kcadm.sh get groups -r $REALM --fields 'id,name' | jq -r '.[] |select(.name =="opendevstack-users").id')
 
 echo "create user 'user1'"
-./kcadm.sh create users -r  $REALM -s username=user1 -s enabled=true
+./kcadm.sh create users -r  $REALM -s username=user1 -s enabled=true -s email=user1@idmanager.int
 ./kcadm.sh set-password -r $REALM --username user1 --new-password user1
 USER_ID=$(./kcadm.sh get users -r $REALM -q username=user1 | jq -r '.[0].id')
 ./kcadm.sh update users/$USER_ID/groups/$ODS_USER_GROUP  -r $REALM -s realm=$REALM -s userId=$USER_ID -s groupId=$ODS_USER_GROUP -n
 
 echo "create user 'admin1'"
-./kcadm.sh create users -r  $REALM -s username=admin1 -s enabled=true
+./kcadm.sh create users -r  $REALM -s username=admin1 -s enabled=true -s email=admin1@idmanager.int
 ./kcadm.sh set-password -r $REALM --username admin1 --new-password admin1
 USER_ID=$(./kcadm.sh get users -r $REALM -q username=admin1 | jq -r '.[0].id')
 ./kcadm.sh update users/$USER_ID/groups/$ODS_ADM_GROUP  -r $REALM -s realm=$REALM -s userId=$USER_ID -s groupId=$ODS_ADM_GROUP -n
