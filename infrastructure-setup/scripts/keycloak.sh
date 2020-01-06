@@ -7,9 +7,15 @@ VERSION=4.8.3.Final
 
 DOWNLOAD_URL=http://downloads.jboss.org/keycloak/${VERSION}/keycloak-${VERSION}.tar.gz
 
-# Install Java
+
 echo "Installing Java 8 JDK ..."
 yum -y -q install java-1.8.0-openjdk-devel
+
+echo "Installing epel-release repository ..."
+yum -y install epel-release
+
+echo "Installing jq..."
+yum -y install jq
 
 # Install Keycloak
 if [ -f "/vagrant/downloads/keycloak-${VERSION}.tar.gz" ];
@@ -59,8 +65,10 @@ cd /opt/keycloak/bin
 echo "Login to keycloak via admin user"
 ./kcadm.sh config credentials --server http://localhost:8080/auth --realm master --user admin --password admin
 
-echo "create realm opendevstack..."
 REALM=opendevstack
+
+echo "create realm $REALM..."
+
 ./kcadm.sh create realms -s realm=$REALM -s enabled=true
 
 echo "create roles 'opendevstack-administrators' and 'opendevstack-user'"
@@ -77,12 +85,29 @@ echo "create user 'admin1'"
 ./kcadm.sh set-password -r $REALM --username admin1 --new-password admin1
 ./kcadm.sh add-roles --uusername admin1 --rolename opendevstack-users --rolename opendevstack-administrators -r $REALM
 
-echo "create client 'ods-provisioning-app'"
-./kcadm.sh create clients -r $REALM -s clientId=ods-provisioning-app -s 'redirectUris=["*"]'
+CLIENT_NAME=ods-provisioning-app
 
-echo "create 'User Realm Role' mapper in client"
-#TODO Stefan Lack
-# ./kcadm.sh create components -r $REALM -s name=hardcoded-ldap-role-mapper -s providerId=hardcoded-ldap-role-mapper -s providerType=org.keycloak.protocol.oidc.mappers.UserRealmRoleMappingMapper -s parentId=b7c63d02-b62a-4fc1-977c-947d6a09e1ea -s 'config.role=["realm-management.create-client"]'
+echo "create client '$CLIENT_NAME'"
+./kcadm.sh create clients -r $REALM -s clientId=$CLIENT_NAME -s 'redirectUris=["*"]'
+
+echo "create 'User Realm Role' mapper in client $CLIENT_NAME"
+CLIENT_ID=$(./kcadm.sh get clients -r $REALM -q clientId=ods-provisioning-app --fields id | jq -r '.[0].id')
+
+./kcadm.sh create -r $REALM clients/$CLIENT_ID/protocol-mappers/models -f - << 'EOF'
+{
+  "name": "Group Mapper",
+  "protocol": "openid-connect",
+  "protocolMapper": "oidc-group-membership-mapper",
+  "consentRequired": false,
+  "config": {
+    "full.path": "false",
+    "id.token.claim": "true",
+    "access.token.claim": "true",
+    "claim.name": "roles",
+    "userinfo.token.claim": "true"
+  }
+}
+EOF
 
 echo "Opening port 8080 on iptables ..."
 iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
