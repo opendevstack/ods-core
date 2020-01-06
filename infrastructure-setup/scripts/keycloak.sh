@@ -71,26 +71,31 @@ echo "create realm $REALM..."
 
 ./kcadm.sh create realms -s realm=$REALM -s enabled=true
 
-echo "create roles 'opendevstack-administrators' and 'opendevstack-user'"
-./kcadm.sh create roles -r $REALM -s name=opendevstack-administrators -s 'description=OpenDevStack administrators are allowed to create project initiatives and add quickstarters to to existing initiatives.'
-./kcadm.sh create roles -r $REALM -s name=opendevstack-users -s 'description=OpenDevStack Users are allowed to add quickstarters to existing project initiatives.'
+echo "create group 'opendevstack-administrators' and 'opendevstack-user'"
+./kcadm.sh create groups -r $REALM -s name=opendevstack-administrators 
+./kcadm.sh create groups -r $REALM -s name=opendevstack-users 
+
+ODS_ADM_GROUP=$(./kcadm.sh get groups -r $REALM --fields 'id,name' | jq -r '.[] |select(.name =="opendevstack-administrators").id')
+ODS_USER_GROUP=$(./kcadm.sh get groups -r $REALM --fields 'id,name' | jq -r '.[] |select(.name =="opendevstack-users").id')
 
 echo "create user 'user1'"
 ./kcadm.sh create users -r  $REALM -s username=user1 -s enabled=true
 ./kcadm.sh set-password -r $REALM --username user1 --new-password user1
-./kcadm.sh add-roles --uusername user1 --rolename opendevstack-users -r $REALM
+USER_ID=$(./kcadm.sh get users -r $REALM -q username=user1 | jq -r '.[0].id')
+./kcadm.sh update users/$USER_ID/groups/$ODS_USER_GROUP  -r $REALM -s realm=$REALM -s userId=$USER_ID -s groupId=$ODS_USER_GROUP -n
 
 echo "create user 'admin1'"
 ./kcadm.sh create users -r  $REALM -s username=admin1 -s enabled=true
 ./kcadm.sh set-password -r $REALM --username admin1 --new-password admin1
-./kcadm.sh add-roles --uusername admin1 --rolename opendevstack-users --rolename opendevstack-administrators -r $REALM
+USER_ID=$(./kcadm.sh get users -r $REALM -q username=admin1 | jq -r '.[0].id')
+./kcadm.sh update users/$USER_ID/groups/$ODS_ADM_GROUP  -r $REALM -s realm=$REALM -s userId=$USER_ID -s groupId=$ODS_ADM_GROUP -n
 
 CLIENT_NAME=ods-provisioning-app
 
 echo "create client '$CLIENT_NAME'"
 ./kcadm.sh create clients -r $REALM -s clientId=$CLIENT_NAME -s 'redirectUris=["*"]'
 
-echo "create 'User Realm Role' mapper in client $CLIENT_NAME"
+echo "create 'Group Membership' mapper in client $CLIENT_NAME"
 CLIENT_ID=$(./kcadm.sh get clients -r $REALM -q clientId=ods-provisioning-app --fields id | jq -r '.[0].id')
 
 ./kcadm.sh create -r $REALM clients/$CLIENT_ID/protocol-mappers/models -f - << 'EOF'

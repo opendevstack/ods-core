@@ -1,4 +1,7 @@
 = Keycloak
+:experimental:
+:page-layout: documentation
+:toc:
 
 Keycloak is an open source identity and access managment tool.
 
@@ -27,13 +30,17 @@ by starting the vagrant-box _idmanager_.
 == Realm _opendevstack_
 There is (beside the master realm) one single OpenDevStack-specific realm: _opendevstack_.
 
-=== Client
-There is one OpenDevStack-specific client inside the _opendevstack_ realm: _ods-provisioning-app_.
+=== Groups
+There are two OpenDevStack-specific groups inside the _opendevstack_ realm:
+
+- opendevstack-administrators
+- opendevstack-users
+
 
 === Users
 
 |===
-| User | Password | Roles
+| User | Password | Groups
 
 |admin1 
 |admin1
@@ -45,3 +52,8 @@ a|- opendevstack-administrators
 a|- opendevstack-users
 
 |===
+
+=== Client _ods-provisioning-app_
+There is one OpenDevStack-specific client inside the _opendevstack_ realm: _ods-provisioning-app_.
+
+There is a protocoll mapper called _Group Mapper_ that maps the user's group membership to a token claim with name _roles_.
