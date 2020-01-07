@@ -88,14 +88,28 @@ echo "Provided params: \
 SOURCE_PROJECT="$PROJECT_ID-$SOURCE_ENV"
 TARGET_PROJECT="$PROJECT_ID-$TARGET_ENV"
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "[INFO]: creating workplace: mkdir -p oc_migration_scripts/migration_config"
 mkdir -p oc_migration_scripts/migration_config
 cd oc_migration_scripts
 echo $(pwd)
-export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2Fproduction"
-curl --fail -s --user $CREDENTIALS -G $export_url -d raw -o export.sh
-import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2Fproduction"
-curl --fail -s --user $CREDENTIALS -G $import_url -d raw -o import.sh
+# The curling of the export/import scripts is for backwards
+# compatibility with older shared jenkins library
+cleanup=()
+if [ ! -f "$SCRIPT_DIR/export-project.sh" ]; then
+  export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2Fproduction"
+  echo "Retrieving missing export-project.sh from $export_url"
+  file="$SCRIPT_DIR/export-project.sh"
+  curl --fail -s --user $CREDENTIALS -G $export_url -d raw -o "$file"
+  cleanup+=( "$file" )
+fi
+if [ ! -f "$SCRIPT_DIR/import-project.sh" ]; then
+  import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2Fproduction"
+  echo "Retrieving missing import-project.sh from $import_url"
+  file="$SCRIPT_DIR/import-project.sh"
+  curl --fail -s --user $CREDENTIALS -G $import_url -d raw -o "$file"
+  cleanup+=( "$file" )
+fi
 
 cd migration_config
 echo $(pwd)
@@ -120,13 +134,16 @@ else
 fi
 
 echo "[INFO]: export resources from $SOURCE_ENV"
-sh export.sh -p $PROJECT_ID -h $OPENSHIFT_HOST -e $SOURCE_ENV -g $git_url -gb $GIT_BRANCH -cpj $verbose
+sh "$SCRIPT_DIR/export-project.sh" -p $PROJECT_ID -h $OPENSHIFT_HOST -e $SOURCE_ENV -g $git_url -gb $GIT_BRANCH -cpj $verbose
 echo "[INFO]: import resources into $TARGET_ENV"
-sh import.sh -h $OPENSHIFT_HOST -p $PROJECT_ID -e $SOURCE_ENV -g $git_url -gb $GIT_BRANCH -n $TARGET_PROJECT $verbose --apply true
+sh "$SCRIPT_DIR/import-project.sh" -h $OPENSHIFT_HOST -p $PROJECT_ID -e $SOURCE_ENV -g $git_url -gb $GIT_BRANCH -n $TARGET_PROJECT $verbose --apply true
 
 echo "[INFO]: cleanup workplace"
 cd ..
 rm -rf oc_migration_scripts
+for file in "${cleanup[@]}"; do
+  rm "$file"
+done
 
 if [[ ! -z "$SKIP_TAGS" ]]; then
   echo "[INFO] Skipping imagestream tagging"
