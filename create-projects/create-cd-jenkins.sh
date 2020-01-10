@@ -17,9 +17,11 @@ function usage {
    printf "\t-h|--help\tPrints the usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
    printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
+   printf "\tods-namespace\tThe namespace where all ODS resources reside. Default: cd\n"
 
 }
 
+ODS_NAMESPACE="cd"
 
 while [[ "$#" -gt 0 ]]; do case $1 in
    --status) STATUS=true;;
@@ -32,6 +34,9 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
    -t=*|--tailor=*) TAILOR="${1#*=}";;
    -t|--tailor) TAILOR="$2"; shift;;
+
+   --ods-namespace=*) ODS_NAMESPACE="${1#*=}";;
+   --ods-namespace)   ODS_NAMESPACE="$2"; shift;;
 
    *) echo "Unknown parameter passed: $1"; usage; exit 1;;
  esac; shift; done
@@ -82,5 +87,6 @@ tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
   "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
   "--param=PROJECT=${PROJECT_ID}" \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
+  "--param=NAMESPACE=${ODS_NAMESPACE}" \
   $cdUserPwdParam \
   --selector "template=cd-jenkins-template"
