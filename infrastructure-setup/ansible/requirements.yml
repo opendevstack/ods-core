@@ -6,7 +6,7 @@
 - src: geerlingguy.docker
   version: 2.0.4
 - src: geerlingguy.git
-  version: 2.0.4
+  version: 2.1.0
 
 # modified -> modified neel.rundeck
 #- src: neel.rundeck

@@ -1,4 +1,4 @@
-#!/bin/#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -ex
 
 # check required parameters
