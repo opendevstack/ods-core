@@ -3,11 +3,11 @@
 #
 
 # if projects is set - just return those
-if [ -z "${OD_OCP_PROJECTS+x}" ]; then
+if [ -z "${PROJECT_GREP+x}" ]; then
 	oc get project --no-headers > oc_projects
 else
-	echo "Project filter set: ${OD_OCP_PROJECTS}"
-	oc get project --no-headers | grep ${OD_OCP_PROJECTS} > oc_projects
+	echo "Project filter set: ${PROJECT_GREP}"
+	oc get project --no-headers | grep ${PROJECT_GREP} > oc_projects
 fi
 
 numberProjects=$(cat oc_projects | wc -l)
