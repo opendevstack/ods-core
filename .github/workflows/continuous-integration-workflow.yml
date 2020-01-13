@@ -1,8 +1,5 @@
 name: Continous Integration Tests
-on:
-  pull_request:
-    branches:
-      - master
+on: [push, pull_request]
 jobs:
   test:
     name: ODS resources setup and provisioning tests
