@@ -1,11 +1,38 @@
 name: Continous Integration Tests
-on:
-  pull_request:
-    branches:
-      - master
+on: [push, pull_request]
 jobs:
-  test:
-    name: ODS resources setup and provisioning tests
+  webhook-proxy:
+    name: Webhook Proxy tests
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+        name: Setup Go 1.12
+        uses: actions/setup-go@v1.0.0
+        with:
+          version: 1.12
+      -
+        name: Download goimports
+        run: |
+          go get golang.org/x/tools/cmd/goimports
+      -
+        name: Download golangci-lint
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+      -
+        name: Run linter
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          make -C jenkins/webhook-proxy lint
+      -
+        name: Run tests
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          make -C jenkins/webhook-proxy test
+  cluster:
+    name: Setup and project provisioning tests
     runs-on: ubuntu-16.04
     steps:
       -
