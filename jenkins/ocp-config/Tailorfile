@@ -1,3 +1,4 @@
+namespace cd
 selector app=jenkins
 param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
