@@ -15,6 +15,10 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
 ARG APP_DNS=192.168.99.100.nip.io
 ARG APP_DNS_PORT=443
 ARG SNYK_DISTRIBUTION_URL
+ARG ODS_GIT_REF
+ARG ODS_IMAGE_TAG
+ARG SONAR_EDITION
+ARG SONAR_VERSION
 
 RUN yum -y install \
     gnutls-utils \
@@ -67,6 +71,15 @@ RUN cd /tmp \
     && mkdir /usr/local/cnes \
     && mv cnesreport.jar /usr/local/cnes/ \
     && chmod 777 /usr/local/cnes/cnesreport.jar
+
+# Add ODS configuration file.
+RUN mkdir -p /etc/opendevstack \
+    && echo "{" > /etc/opendevstack/config.json \
+    && echo "  \"odsGitRef\": \"$ODS_GIT_REF\"," >> /etc/opendevstack/config.json \
+    && echo "  \"odsImageTag\": \"$ODS_IMAGE_TAG\"," >> /etc/opendevstack/config.json \
+    && echo "  \"sonarqubeEdition\": \"$SONAR_EDITION\"," >> /etc/opendevstack/config.json \
+    && echo "  \"sonarqubeVersion\": \"$SONAR_VERSION\"" >> /etc/opendevstack/config.json \
+    && echo "}" >> /etc/opendevstack/config.json
 
 # Install Tailor.
 RUN cd /tmp \
