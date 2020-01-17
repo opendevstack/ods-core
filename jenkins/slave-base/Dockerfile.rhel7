@@ -47,7 +47,8 @@ RUN cd /tmp \
     && curl -LOv https://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
     && unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
     && mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/local/sonar-scanner-cli \
-    && rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip
+    && rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
+    && /usr/local/sonar-scanner-cli/bin/sonar-scanner --version
 ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
 
 # Install OWASP Dependency Check CLI.
