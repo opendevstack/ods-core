@@ -66,5 +66,20 @@ ${TAILOR} update ${FORCE} --context-dir=${BASH_SOURCE%/*}/../jenkins/ocp-config 
 
 echo "Start Jenkins Builds"
 oc start-build -n ${NAMESPACE} jenkins-master --follow
+STATUS=$(oc get build jenkins-master-1 -o jsonpath='{.status.phase}')
+if [ "${STATUS}" != "Complete" ]; then
+  echo "'oc start-build -n ${NAMESPACE}' jenkins-master did not complete successfully (${STATUS})"
+  exit 1
+fi
 oc start-build -n ${NAMESPACE} jenkins-slave-base --follow
+STATUS=$(oc get build jenkins-slave-base-1 -o jsonpath='{.status.phase}')
+if [ "${STATUS}" != "Complete" ]; then
+  echo "'oc start-build -n ${NAMESPACE}' jenkins-slave-base did not complete successfully (${STATUS})"
+  exit 1
+fi
 oc start-build -n ${NAMESPACE} jenkins-webhook-proxy --follow
+STATUS=$(oc get build jenkins-webhook-proxy-1 -o jsonpath='{.status.phase}')
+if [ "${STATUS}" != "Complete" ]; then
+  echo "'oc start-build -n ${NAMESPACE}' jenkins-webhook-proxy did not complete successfully (${STATUS})"
+  exit 1
+fi
