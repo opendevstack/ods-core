@@ -41,7 +41,7 @@ jenkins-start-build-webhook-proxy:
 
 # SONARQUBE
 ## Install or update SonarQube.
-sonarqube: sonarqube-backup sonarqube-apply-build sonarqube-start-build sonarqube-apply-run
+sonarqube: sonarqube-apply-build sonarqube-start-build sonarqube-apply-run
 .PHONY: sonarqube
 
 ## Update OpenShift resources related to the SonarQube image.
@@ -53,11 +53,6 @@ sonarqube-apply-build:
 sonarqube-apply-run:
 	cd sonarqube/ocp-config && tailor update --exclude bc,is
 .PHONY: sonarqube-apply-run
-
-## Create a backup of the SonarQube database in the current directory.
-sonarqube-backup:
-	cd sonarqube && sh backup.sh .
-.PHONY: sonarqube-backup
 
 ## Start build of BuildConfig "sonarqube".
 sonarqube-start-build:
@@ -74,13 +69,28 @@ nexus-apply:
 	cd nexus/ocp-config && tailor update
 .PHONY: nexus-apply
 
-# Secure Route Checking
+# SECURE ROUTE CHECKING
 secure-routes: secure-routes-apply
 .PHONY: secure-routes
 
 secure-routes-apply:
 	cd check-ocp-secure-routes/ocp-config && tailor update
 .PHONY: secure-routes-apply
+
+# BACKUP
+## Create a backup of the current state.
+backup: backup-sonarqube backup-ocp-config
+.PHONY: backup
+
+## Create a backup of OpenShift resources in "cd" namespace.
+backup-ocp-config:
+	tailor export -n cd > backup_cd.yml
+.PHONY: backup-ocp-config
+
+## Create a backup of the SonarQube database in the current directory.
+backup-sonarqube:
+	cd sonarqube && sh backup.sh .
+.PHONY: backup-sonarqube
 
 # HELP
 # Based on https://gist.github.com/prwhite/8168133#gistcomment-2278355.
