@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use HTTPS in curl command in jenkins-slave-base ([#388](https://github.com/opendevstack/ods-core/pull/388))
+- Add missing `PROV_APP_CROWD_URI` param to sample config ([#385](https://github.com/opendevstack/ods-core/pull/385))
+- Add missing `SONAR_ADMIN_PASSWORD_B64` param sample config ([#383](https://github.com/opendevstack/ods-core/pull/383))
+
 ## [2.0] - 2019-12-13
 
 ### Added
