@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -e
 
 # This script downloads and installs Keycloak.
 # Use the VERSION environment variable below to define the version to be used.

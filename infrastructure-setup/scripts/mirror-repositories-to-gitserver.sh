@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -e
+
 # This scripts mirrors the ODS repos into your own Bitbucket server.
 # By default, this is the Bitbucket server on your local machine as created by the getting started guide.
 # You can cutomize this by providing an environment variable: "REPO_TARGET_BASE" pointing to your git repo.

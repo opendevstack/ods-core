@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -e
 
 # check if ansible is already installed by using hash function
 if hash ansible-playbook 2> /dev/null; then
