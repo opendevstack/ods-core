@@ -21,7 +21,7 @@ Sets up Atlassian Crowd as an Identity and SSO provider
 bitbucket.yml::
 Sets up Atlassian Bitbucket
 jira.yml::
-Sets up Atlassian Jira 
+Sets up Atlassian Jira
 jira_enable_sso.yml::
 After basic setup of Crowd and Jira setup, enable SSO functionality.
 confluence.yml::
@@ -37,5 +37,39 @@ crowd_post_setup.yml::
 Takes care that login to crowd is possible by inserting the AWS LB IP addresses into the database tables.
 
 
+== How to update ansible roles
+The ansible role definitions are located in the _ods-core_ repository at https://github.com/opendevstack/ods-core/tree/master/infrastructure-setup/ansible/roles[infrastructure-setup/ansible/roles]
 
+Note that there are two different types of roles:
+
+- roles starting with _modified_ or _local_; these roles are modified by the OpenDevStack members and are maintained by them
+- all other roles, e.g _geerlingguy.git_, which are copied roles from ansible galaxy.
+
+The roles from ansible galaxy are specified in the https://github.com/opendevstack/ods-core/blob/master/infrastructure-setup/ansible/requirements.yml[requirements.yml] file.
+In order to migrate to a new version of the role, you need to
+
+1. specify the version in the _requirements.yml_ file
+2. run _ansible-galaxy install_
+
+*Example: update _geerlingguy.git_ to version 2.1.0*
+
+.Update requirements.yml:
+[source,sh]
+----
+- src: geerlingguy.git
+  version: 2.1.0
+----
+
+.Call _ansible-galaxy install_:
+[source,sh]
+----
+export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-galaxy install -r requirements.yml -p roles
+- andrewrothstein.openshift-origin-client-tools (v1.0.9) is already installed, skipping.
+- geerlingguy.nginx (2.6.2) is already installed, skipping.
+- geerlingguy.docker (2.0.4) is already installed, skipping.
+- downloading role 'git', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-git/archive/2.1.0.tar.gz
+- extracting geerlingguy.git to /vagrant/ansible/roles/geerlingguy.git
+- geerlingguy.git (2.1.0) was installed successfully
+----
 
