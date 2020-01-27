@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -654,6 +655,15 @@ func randStringBytes(n int) string {
 	return string(b)
 }
 
+// makePipelineName generates the name of the pipeline based on given project,
+// component and branch. It basically concatenates component and branch, but
+// if the branch contains a ticket ID (KEY-123), then only this ID is appended
+// to the component.
+// According to the Kubernetes label rules, a maximum of 63 characters is
+// allowed, see https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set.
+// Therefore, the name might be truncated. As this could cause potential clashes
+// between similar named branches, we put a short part of the branch hash value
+// into the name name to make this very unlikely.
 func makePipelineName(project string, component string, branch string) string {
 	pipeline := strings.ToLower(component) + "-"
 	// Extract ticket ID from branch name if present
@@ -670,6 +680,19 @@ func makePipelineName(project string, component string, branch string) string {
 			strings.Replace(lowercaseBranch, "/", "-", -1),
 			"",
 		)
+	}
+	// Enforce maximum length - and if truncation needs to happen,
+	// ensure uniqueness of pipeline name as much as possible.
+	if len(pipeline) > 63 {
+		shortenedPipeline := pipeline[0:55]
+		h := sha1.New()
+		_, err := h.Write([]byte(pipeline))
+		if err != nil {
+			return shortenedPipeline
+		}
+		bs := h.Sum(nil)
+		s := fmt.Sprintf("%x", bs)
+		pipeline = fmt.Sprintf("%s-%s", shortenedPipeline, s[0:7])
 	}
 	return pipeline
 }
