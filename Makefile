@@ -41,7 +41,7 @@ jenkins-start-build-webhook-proxy:
 
 # SONARQUBE
 ## Install or update SonarQube.
-sonarqube: sonarqube-apply-build sonarqube-start-build sonarqube-apply-run
+sonarqube: sonarqube-apply-build sonarqube-start-build sonarqube-apply-deploy
 .PHONY: sonarqube
 
 ## Update OpenShift resources related to the SonarQube image.
@@ -50,9 +50,10 @@ sonarqube-apply-build:
 .PHONY: sonarqube-build-resources
 
 ## Update OpenShift resources related to the SonarQube service.
-sonarqube-apply-run:
+sonarqube-apply-deploy:
 	cd sonarqube/ocp-config && tailor update --exclude bc,is
-.PHONY: sonarqube-apply-run
+	route=$(oc get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
+.PHONY: sonarqube-apply-deploy
 
 ## Start build of BuildConfig "sonarqube".
 sonarqube-start-build:
