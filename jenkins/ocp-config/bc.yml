@@ -84,14 +84,6 @@ objects:
             value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
           - name: TARGET_HOSTS
             value: ${TARGET_HOSTS}
-          - name: ODS_GIT_REF
-            value: ${ODS_GIT_REF}
-          - name: ODS_IMAGE_TAG
-            value: ${ODS_IMAGE_TAG}
-          - name: SONAR_EDITION
-            value: ${SONAR_EDITION}
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
         from:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
