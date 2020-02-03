@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+set -e
 
 sudo yum install -y wget gcc kernel-devel-$(uname -r) kernel-headers-$(uname -r) dkms make bzip2 perl
 sudo rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm

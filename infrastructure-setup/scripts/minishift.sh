@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 minishift profile set opendevstack
 minishift --profile opendevstack config set memory 8192

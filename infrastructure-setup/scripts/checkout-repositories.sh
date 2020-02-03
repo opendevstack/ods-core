@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -e
+
 # This scripts updates and checks out the core ods repos, used to setup the OpenDevStack.
 # By default, this is the Bitbucket server on your local machine as created by the getting started guide.
 # You can cutomize this by providing an environment variable: "REPO_TARGET_BASE" pointing to your git repo.
