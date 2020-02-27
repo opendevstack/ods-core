@@ -4,6 +4,11 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+# ODS SETUP
+## Setup central "cd" project.
+cd-project:
+	cd ods-setup && ./setup-ods-project.sh
+
 # CONFIG
 ## Update configuration based on sample config.
 config:
