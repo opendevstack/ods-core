@@ -20,3 +20,4 @@ The OpenDevStack version of Sonarqube - preconfigured with language plugins used
 
 5. [Atlassian infrastructure](infrastructure-setup) <br>
 Contains all the ansible scripts to setup jira / confluence / bitbucket and atlassian crowd. Optional, if you have your own instances running, you can just configure OpenDevStack to use those.
+
