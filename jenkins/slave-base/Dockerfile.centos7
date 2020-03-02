@@ -63,7 +63,7 @@ ENV PATH=/usr/local/dependency-check-cli/bin:$PATH
 
 # Add sq cnes report jar.
 RUN cd /tmp \
-    && curl -LOv https://github.com/lequal/sonar-cnes-report/releases/download/${CNES_REPORT_VERSION}/sonar-cnes-report-${CNES_REPORT_VERSION}.jar
+    && curl -LOv https://github.com/lequal/sonar-cnes-report/releases/download/${CNES_REPORT_VERSION}/sonar-cnes-report-${CNES_REPORT_VERSION}.jar \
     && mkdir /usr/local/cnes \
     && mv sonar-cnes-report-${CNES_REPORT_VERSION}.jar /usr/local/cnes/cnesreport.jar \
     && chmod 777 /usr/local/cnes/cnesreport.jar
