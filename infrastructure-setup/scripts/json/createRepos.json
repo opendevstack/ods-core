@@ -8,6 +8,7 @@
   repository.createMavenHosted('releases', 'releases', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
   repository.createMavenProxy('atlassian_public', 'https://maven.atlassian.com/content/repositories/atlassian-public/','atlassian_public', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
   repository.createMavenProxy('jcenter', 'https://jcenter.bintray.com', 'default', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
+  repository.createMavenProxy('jenkins-ci-releases', 'https://repo.jenkins-ci.org/releases/', 'default', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
   repository.createMavenProxy('sbt-plugins', 'http://dl.bintray.com/sbt/sbt-plugin-releases/', 'default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
   repository.createMavenProxy('sbt-releases', 'https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases', 'default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
   repository.createMavenProxy('typesafe-ivy-releases', 'https://dl.bintray.com/typesafe/ivy-releases', 'default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
