@@ -8,4 +8,4 @@ workflow-cps-global-lib:2.13
 junit:1.28
 blueocean:1.18.0
 workflow-durable-task-step:2.28
-openshift-sync:1.0.33
+openshift-sync:1.0.34
