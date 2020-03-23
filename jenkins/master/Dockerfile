@@ -19,7 +19,6 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && rm -r /opt/openshift/configuration/jobs/OpenShift* \
     && touch /var/lib/jenkins/configured
 COPY configuration/ /opt/openshift/configuration/
-COPY openshift-sync.jar /opt/openshift/
 COPY ods-run /usr/libexec/s2i/ods-run
 
 USER jenkins
