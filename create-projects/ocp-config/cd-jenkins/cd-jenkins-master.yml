@@ -29,7 +29,7 @@ parameters:
 - name: JENKINS_JAVA_MAX_HEAP_PARAM
   value: -Xmx4g
 - name: JENKINS_CONTAINER_HEAP_PERCENT
-  value: 0.95
+  value: 1
 - name: NAMESPACE
   value: cd
 - name: CD_USER_ID_B64
