@@ -19,11 +19,17 @@ parameters:
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
-  value: 2Gi
+  value: 4Gi
 - name: JENKINS_MEMORY_REQUEST
-  value: 1Gi
+  value: 2Gi
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
+- name: JENKINS_JAVA_GC_OPTS
+  value: "-server -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=20 -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1"
+- name: JENKINS_JAVA_MAX_HEAP_PARAM
+  value: "-Xmx4g"
+- name: JENKINS_CONTAINER_HEAP_PERCENT
+  value: "1"
 - name: NAMESPACE
   value: cd
 - name: CD_USER_ID_B64
@@ -168,6 +174,12 @@ objects:
               value: 'true'
             - name: JNLP_SERVICE_NAME
               value: '${JENKINS_JNLP_SERVICE_NAME}'
+            - name: JAVA_GC_OPTS
+              value: '${JENKINS_JAVA_GC_OPTS}'
+            - name: JAVA_MAX_HEAP_PARAM
+              value: '${JENKINS_JAVA_MAX_HEAP_PARAM}'
+            - name: CONTAINER_HEAP_PERCENT
+              value: '${JENKINS_CONTAINER_HEAP_PERCENT}'
             - name: NEXUS_HOST
               value: '${NEXUS_URL}'
             - name: NEXUS_URL
