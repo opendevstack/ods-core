@@ -19,9 +19,9 @@ parameters:
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
-  value: 2Gi
+  value: 5Gi
 - name: JENKINS_MEMORY_REQUEST
-  value: 1Gi
+  value: 2560Mi
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: NAMESPACE
