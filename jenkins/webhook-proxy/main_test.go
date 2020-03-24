@@ -547,7 +547,7 @@ func TestBuildEndpoint(t *testing.T) {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-broken-payload.txt",
 			whpExpectedResponseStatus: 400,
-			whpExpectedResponseBody:   "Cannot parse JSON\n",
+			whpExpectedResponseBody:   "Cannot parse JSON: invalid character '\"' after object key:value pair\n",
 			openshiftExpectedPayload:  "",
 			openshiftResponseBody:     "",
 			openshiftResponseStatus:   0,
