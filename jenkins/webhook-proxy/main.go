@@ -153,6 +153,9 @@ func main() {
 		)
 	} else {
 		allowedExternalProjects = strings.Split(envAllowedExternalProjects, ",")
+		for i := range allowedExternalProjects {
+			allowedExternalProjects[i] = strings.TrimSpace(allowedExternalProjects[i])
+		}
 	}
 
 	client, err := newClient(openShiftAPIHost, triggerSecret)
