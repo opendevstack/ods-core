@@ -70,14 +70,6 @@ nexus-apply:
 	cd nexus/ocp-config && tailor update
 .PHONY: nexus-apply
 
-# SECURE ROUTE CHECKING
-secure-routes: secure-routes-apply
-.PHONY: secure-routes
-
-secure-routes-apply:
-	cd check-ocp-secure-routes/ocp-config && tailor update
-.PHONY: secure-routes-apply
-
 # BACKUP
 ## Create a backup of the current state.
 backup: backup-sonarqube backup-ocp-config
