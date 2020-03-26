@@ -153,6 +153,9 @@ func main() {
 		)
 	} else {
 		allowedExternalProjects = strings.Split(envAllowedExternalProjects, ",")
+		for i := range allowedExternalProjects {
+			allowedExternalProjects[i] = strings.TrimSpace(allowedExternalProjects[i])
+		}
 	}
 
 	client, err := newClient(openShiftAPIHost, triggerSecret)
@@ -237,10 +240,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		queryValues := r.URL.Query()
 		triggerSecretParam := queryValues.Get("trigger_secret")
 		if triggerSecretParam != s.TriggerSecret {
-			log.Println(
-				requestID,
-				"trigger_secret param not given / not matching",
-			)
+			log.Println(requestID, "trigger_secret param not given / not matching")
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
 		}
@@ -253,25 +253,23 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		componentParam := queryValues.Get("component")
 
-		project := s.Project
-
+		var project string
 		var event *Event
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
 			req := &requestBuild{}
 			err := json.NewDecoder(r.Body).Decode(req)
 			if err != nil {
-				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
+				log.Println(requestID, msg)
+				http.Error(w, msg, http.StatusBadRequest)
 				return
 			}
 
-			projectParam := strings.ToLower(req.Project)
-			if len(projectParam) > 0 {
-				if s.Project != projectParam && !includes(s.AllowedExternalProjects, projectParam) {
-					http.Error(w, "Cannot proxy for given project", http.StatusBadRequest)
-					return
-				}
-				project = projectParam
+			project, err = s.readProjectParam(req.Project, requestID)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 
 			component := componentParam
@@ -296,7 +294,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			req := &requestBitbucket{}
 			err := json.NewDecoder(r.Body).Decode(req)
 			if err != nil {
-				http.Error(w, "Cannot parse JSON", http.StatusBadRequest)
+				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
+				log.Println(requestID, msg)
+				http.Error(w, msg, http.StatusBadRequest)
 				return
 			}
 
@@ -305,13 +305,10 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			var branch string
 			component := componentParam
 
-			projectParam := strings.ToLower(req.Repository.Project.Key)
-			if len(projectParam) > 0 {
-				if s.Project != projectParam && !includes(s.AllowedExternalProjects, projectParam) {
-					http.Error(w, "Cannot proxy for given project", http.StatusBadRequest)
-					return
-				}
-				project = projectParam
+			project, err = s.readProjectParam(req.Repository.Project.Key, requestID)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 
 			if req.EventKey == "repo:refs_changed" {
@@ -355,7 +352,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		log.Println(requestID, event)
 
 		if !event.IsValid() {
-			http.Error(w, "Invalid input", http.StatusBadRequest)
+			msg := "Invalid input"
+			log.Println(requestID, msg)
+			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
 
@@ -368,6 +367,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			)
 			env, err := json.Marshal(event.Env)
 			if err != nil {
+				log.Println(requestID, fmt.Sprintf("Cannot convert envs to JSON: %s", err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
@@ -382,8 +382,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			}
 			statusCode, err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
 			if err != nil {
-				log.Println(requestID, err)
-				http.Error(w, "Could not create pipeline", statusCode)
+				msg := "Could not create pipeline"
+				log.Println(requestID, fmt.Sprintf("%s: %s", msg, err))
+				http.Error(w, msg, statusCode)
 				return
 			}
 			res, err := s.Client.Forward(event, s.TriggerSecret)
@@ -393,6 +394,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			}
 			_, err = w.Write(res)
 			if err != nil {
+				log.Println(requestID, fmt.Sprintf("Could not write response: %s", err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
@@ -416,6 +418,19 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			log.Println(requestID, "Unrecognized event")
 		}
 	}
+}
+
+func (s *Server) readProjectParam(projectParam string, requestID string) (string, error) {
+	projectParam = strings.ToLower(projectParam)
+	if len(projectParam) > 0 {
+		if s.Project != projectParam && !includes(s.AllowedExternalProjects, projectParam) {
+			err := errors.New("Cannot proxy for given project")
+			log.Println(requestID, fmt.Sprintf("%s: %s is not in %s=%s", err, projectParam, allowedExternalProjectsEnvVar, s.AllowedExternalProjects))
+			return "", err
+		}
+		return projectParam, nil
+	}
+	return strings.ToLower(s.Project), nil
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
