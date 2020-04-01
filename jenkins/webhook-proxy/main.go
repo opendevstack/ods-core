@@ -101,7 +101,7 @@ func init() {
 }
 
 func main() {
-	log.Println("Initialised")
+	log.Println("Booting")
 
 	repoBase := os.Getenv(repoBaseEnvVar)
 	if len(repoBase) == 0 {
@@ -201,7 +201,7 @@ func main() {
 		RepoBase:                repoBase,
 	}
 
-	log.Println("Booted")
+	log.Println("Ready to accept requests")
 
 	mux := http.NewServeMux()
 	mux.Handle("/", server.HandleRoot())
