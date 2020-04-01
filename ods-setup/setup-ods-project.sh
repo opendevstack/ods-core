@@ -10,7 +10,6 @@ function usage {
    printf "\t-h|--help\tPrints the usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
    printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
-   printf "\t-n|--namespace\tChanges the default OpenDevStack namespace where all resources will be created. Default: cd\n"
 
 }
 TAILOR="tailor"
@@ -26,9 +25,6 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
    -t=*|--tailor=*) TAILOR="${1#*=}";;
    -t|--tailor) TAILOR="$2"; shift;;
-
-   -n=*|--namespace=*) NAMESPACE="${1#*=}";;
-   -n|--namespace) NAMESPACE="$2"; shift;;
 
    *) echo "Unknown parameter passed: $1"; usage; exit 1;;
  esac; shift; done

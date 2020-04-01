@@ -9,13 +9,11 @@ import (
 )
 
 func TestCreateOdsProject(t *testing.T) {
-	namespace := "ods"
+	namespace := "cd"
 	_ = utils.RemoveProject(namespace)
 	stdout, stderr, err := utils.RunScriptFromBaseDir("ods-setup/setup-ods-project.sh", []string{
 		"--force",
 		"--verbose",
-		"--namespace",
-		namespace,
 	}, []string{})
 	if err != nil {
 		t.Fatalf(
@@ -47,7 +45,6 @@ func TestCreateOdsProject(t *testing.T) {
 		"--verbose",
 		"--force",
 		"--ods-ref", gitReference,
-		"--namespace", namespace,
 	}, []string{})
 	if err != nil {
 		t.Fatalf(
