@@ -2,5 +2,6 @@ namespace cd
 selector app=sonarqube
 param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
+preserve-immutable-fields true
 
 bc,dc,is,pvc,route,svc,secret,configmap
