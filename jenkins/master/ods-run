@@ -5,14 +5,18 @@
 
 echo "Booting Jenkins ..."
 
-echo "Copy init.groovy.d files ..."
-source_init_groovy_dir="/opt/openshift/configuration/init.groovy.d"
 target_init_groovy_dir="${JENKINS_HOME}/init.groovy.d"
-for f in ${source_init_groovy_dir}/*.groovy; do
-    fileName=${f#${source_init_groovy_dir}'/'}
-    echo "---> Copying ${source_init_groovy_dir}/${fileName} to ${target_init_groovy_dir}/${fileName} ..."
-    cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
-done
+if [ -d "$target_init_groovy_dir" ] ; then
+    # If the target dir does not exist yet, files under
+    # /opt/openshift/configuration will be copied later by /usr/libexec/s2i/run.
+    echo "Copy init.groovy.d files ..."
+    source_init_groovy_dir="/opt/openshift/configuration/init.groovy.d"
+    for f in ${source_init_groovy_dir}/*.groovy; do
+        fileName=${f#${source_init_groovy_dir}'/'}
+        echo "---> Copying ${source_init_groovy_dir}/${fileName} to ${target_init_groovy_dir}/${fileName} ..."
+        cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
+    done
+fi
 
 NEXUS_SHORT=$(echo $NEXUS_HOST | sed -e "s|https://||g" | sed -e "s|http://||g") 
 
