@@ -2,8 +2,21 @@
 
 ## Unreleased
 
+### Added
+
+- Add SCM Git plugin to SonarQube ([#448](https://github.com/opendevstack/ods-core/pull/448))
+
+### Changed
+
+- Increase memory available to Jenkins ([#437](https://github.com/opendevstack/ods-core/pull/437), [#442](https://github.com/opendevstack/ods-core/pull/442) and [e5448c8](https://github.com/opendevstack/ods-core/commit/e5448c87a890f8cbc4bec02496e33a2864e31205))
+- Use official `openshift-sync` plugin (1.0.34) instead of patched one ([#439](https://github.com/opendevstack/ods-core/pull/439) and [81e1ed1](https://github.com/opendevstack/ods-core/commit/81e1ed1915874c9f904396b9b1db2722e823457e))
+- Update Tailor to 0.13.1 ([#436](https://github.com/opendevstack/ods-core/pull/436))
+- Update CNES report tool to 3.1.0 ([#433](https://github.com/opendevstack/ods-core/pull/433))
+- Update SonarQube Java plugin to 6.2.0 ([#428](https://github.com/opendevstack/ods-core/pull/428))
+
 ### Fixed
 
+- Webhook Proxy: Ensure that pipeline name is not more than 63 characters ([#406](https://github.com/opendevstack/ods-core/pull/406))
 - Use HTTPS in curl command in jenkins-slave-base ([#388](https://github.com/opendevstack/ods-core/pull/388))
 - Add missing `PROV_APP_CROWD_URI` param to sample config ([#385](https://github.com/opendevstack/ods-core/pull/385))
 - Add missing `SONAR_ADMIN_PASSWORD_B64` param sample config ([#383](https://github.com/opendevstack/ods-core/pull/383))
