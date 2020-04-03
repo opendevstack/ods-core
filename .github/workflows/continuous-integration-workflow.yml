@@ -13,6 +13,25 @@ jobs:
         working-directory: jenkins/webhook-proxy
         run: |
           docker build -t webhook-proxy .
+      -
+        name: docker build jenkins-master-centos7 with dummy parameters
+        # the images is not useful except for testing here as the certificate
+        # store is not correct for openshift.
+        working-directory: jenkins/master
+        env:
+          APP_DNS: github.com
+          ODS_GIT_REF: ${{ github.sha }}
+          ODS_IMAGE_TAG: 2.x
+          SONAR_EDITION: developer
+          SONAR_VERSION: 7.9
+        run: |
+          docker build -t jenkins-master-proxy \
+            --build-arg APP_DNS="$APP_DNS" \
+            --build-arg ODS_GIT_REF="$ODS_GIT_REF" \
+            --build-arg ODS_IMAGE_TAG="$ODS_IMAGE_TAG" \
+            --build-arg SONAR_EDITION="$SONAR_EDITION" \
+            --build-arg SONAR_VERSION="$SONAR_VERSION" \
+            .
   webhook-proxy:
     name: Webhook Proxy tests
     runs-on: ubuntu-18.04
