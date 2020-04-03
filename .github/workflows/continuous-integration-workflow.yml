@@ -12,12 +12,6 @@ jobs:
         name: docker build webhook-proxy
         working-directory: jenkins/webhook-proxy
         run: |
-          echo GITHUB_ACTOR=$GITHUB_ACTOR
-          echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
-          echo GITHUB_SHA=$GITHUB_SHA
-          echo GITHUB_REF=$GITHUB_REF
-          echo GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH
-          cat /github/workflow/event.json
           docker build -t webhook-proxy .
   webhook-proxy:
     name: Webhook Proxy tests
