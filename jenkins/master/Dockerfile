@@ -1,4 +1,5 @@
-FROM openshift/jenkins-2-centos7
+FROM registry.access.redhat.com/openshift3/jenkins-2-rhel7:v3.11
+# FROM openshift/jenkins-2-centos7
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 
