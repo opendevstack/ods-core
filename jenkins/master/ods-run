@@ -2,6 +2,7 @@
 #
 # This script copies any init.groovy.d files under the control of OpenDevStack,
 # then delegates to the original run script of the base image.
+set -ue
 
 echo "Booting Jenkins ..."
 
