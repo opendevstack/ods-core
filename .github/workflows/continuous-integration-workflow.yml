@@ -1,6 +1,18 @@
 name: Continous Integration Tests
 on: [push, pull_request]
 jobs:
+  build-jenkins-images:
+    name: Build Jenkins docker images
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+        name: docker build webhook-proxy
+        run: |
+          cd jenkins/webhook-proxy
+          docker build -t webhook-proxy .
   webhook-proxy:
     name: Webhook Proxy tests
     runs-on: ubuntu-18.04
