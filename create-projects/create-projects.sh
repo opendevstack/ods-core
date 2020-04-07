@@ -19,9 +19,6 @@ echo "allow jenkins from CD project to admin the environment projects"
 oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT_ID}-cd:jenkins -n ${PROJECT_ID}-dev
 oc policy add-role-to-user ${JENKINS_ROLE} system:serviceaccount:${PROJECT_ID}-cd:jenkins -n ${PROJECT_ID}-test
 
-echo "allow webhook proxy to create a pipeline BC in the +cd project"
-oc policy add-role-to-user edit -z default -n ${PROJECT_ID}-cd
-
 echo "seed jenkins SA with edit roles in CD project / to even run jenkins"
 oc policy add-role-to-user edit -z jenkins -n ${PROJECT_ID}-cd
 
