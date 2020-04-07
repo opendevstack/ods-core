@@ -2,17 +2,22 @@
 #
 # This script copies any init.groovy.d files under the control of OpenDevStack,
 # then delegates to the original run script of the base image.
+set -ue
 
 echo "Booting Jenkins ..."
 
-echo "Copy init.groovy.d files ..."
-source_init_groovy_dir="/opt/openshift/configuration/init.groovy.d"
 target_init_groovy_dir="${JENKINS_HOME}/init.groovy.d"
-for f in ${source_init_groovy_dir}/*.groovy; do
-    fileName=${f#${source_init_groovy_dir}'/'}
-    echo "---> Copying ${source_init_groovy_dir}/${fileName} to ${target_init_groovy_dir}/${fileName} ..."
-    cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
-done
+if [ -d "$target_init_groovy_dir" ] ; then
+    # If the target dir does not exist yet, files under
+    # /opt/openshift/configuration will be copied later by /usr/libexec/s2i/run.
+    echo "Copy init.groovy.d files ..."
+    source_init_groovy_dir="/opt/openshift/configuration/init.groovy.d"
+    for f in ${source_init_groovy_dir}/*.groovy; do
+        fileName=${f#${source_init_groovy_dir}'/'}
+        echo "---> Copying ${source_init_groovy_dir}/${fileName} to ${target_init_groovy_dir}/${fileName} ..."
+        cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
+    done
+fi
 
 NEXUS_SHORT=$(echo $NEXUS_HOST | sed -e "s|https://||g" | sed -e "s|http://||g") 
 
@@ -24,7 +29,5 @@ sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.x
 sed -i.bak -e "s|__NEXUS_HOST|$NEXUS_HOST|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
-
-cat $HOME/.groovy/grapeConfig.xml
 
 /usr/libexec/s2i/run
