@@ -35,6 +35,8 @@ const (
 	openShiftAPIHostDefault        = "openshift.default.svc.cluster.local"
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
 	allowedExternalProjectsDefault = "opendevstack"
+	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
+	allowedChangeRefTypesDefault   = "BRANCH"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
@@ -90,6 +92,7 @@ type Server struct {
 	TriggerSecret           string
 	ProtectedBranches       []string
 	AllowedExternalProjects []string
+	AllowedChangeRefTypes   []string
 	RepoBase                string
 }
 
@@ -98,7 +101,7 @@ func init() {
 }
 
 func main() {
-	log.Println("Initialised")
+	log.Println("Booting")
 
 	repoBase := os.Getenv(repoBaseEnvVar)
 	if len(repoBase) == 0 {
@@ -158,6 +161,23 @@ func main() {
 		}
 	}
 
+	var allowedChangeRefTypes []string
+	envAllowedChangeRefTypes := strings.ToLower(os.Getenv(allowedChangeRefTypesEnvVar))
+	if len(allowedChangeRefTypes) == 0 {
+		allowedChangeRefTypes = strings.Split(allowedChangeRefTypesDefault, ",")
+		log.Println(
+			"INFO:",
+			allowedChangeRefTypesEnvVar,
+			"not set, using default value:",
+			allowedChangeRefTypesDefault,
+		)
+	} else {
+		allowedChangeRefTypes = strings.Split(envAllowedChangeRefTypes, ",")
+		for i := range allowedChangeRefTypes {
+			allowedChangeRefTypes[i] = strings.TrimSpace(allowedChangeRefTypes[i])
+		}
+	}
+
 	client, err := newClient(openShiftAPIHost, triggerSecret)
 	if err != nil {
 		log.Fatalln(err)
@@ -177,10 +197,11 @@ func main() {
 		TriggerSecret:           triggerSecret,
 		ProtectedBranches:       protectedBranches,
 		AllowedExternalProjects: allowedExternalProjects,
+		AllowedChangeRefTypes:   allowedChangeRefTypes,
 		RepoBase:                repoBase,
 	}
 
-	log.Println("Booted")
+	log.Println("Ready to accept requests")
 
 	mux := http.NewServeMux()
 	mux.Handle("/", server.HandleRoot())
@@ -202,6 +223,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			Type string `json:"type"`
 			Ref  struct {
 				DisplayID string `json:"displayId"`
+				Type      string `json:"type"`
 			} `json:"ref"`
 		} `json:"changes"`
 		PullRequest *struct {
@@ -321,6 +343,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					kind = "delete"
 				} else {
 					kind = "forward"
+				}
+				if !includes(s.AllowedChangeRefTypes, req.Changes[0].Ref.Type) {
+					log.Println(requestID, fmt.Sprintf(
+						"Skipping change ref type %s as %s does not include it",
+						req.Changes[0].Ref.Type,
+						allowedChangeRefTypesEnvVar,
+					))
+					return
 				}
 			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
 				repo = req.PullRequest.FromRef.Repository.Slug

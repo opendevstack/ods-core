@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -203,6 +204,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AllowedExternalProjects: []string{"opendevstack"},
+		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
@@ -313,9 +315,67 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			}
 
 			// RequestID cannot be known in advance, so set it now from actual value.
+			if mc.Event == nil {
+				t.Fatal("Event of mock client is not set")
+			}
 			tc.expectedEvent.RequestID = mc.Event.RequestID
 			if !reflect.DeepEqual(tc.expectedEvent, mc.Event) {
 				t.Fatalf("Got event: %v, want: %v", mc.Event, tc.expectedEvent)
+			}
+		})
+	}
+}
+
+func TestSkipsPayloads(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	// The expected events depend on the values in the payload files.
+	tests := map[string]struct {
+		payloadFile string
+		expectedLog string
+	}{
+		"Tag pushed": {
+			payloadFile: "repo-refs-changed-tag-payload.json",
+			expectedLog: "Skipping change ref type TAG as ALLOWED_CHANGE_REF_TYPES does not include it",
+		},
+		"Unknown event": {
+			payloadFile: "unknown-event-payload.json",
+			expectedLog: "Skipping unknown event",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var buf bytes.Buffer
+			log.SetOutput(&buf)
+			defer func() {
+				log.SetOutput(os.Stderr)
+			}()
+			// Use secret defined in fake server.
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			want := http.StatusOK
+			got := res.StatusCode
+			if want != got {
+				t.Fatalf("Got status: %d, want: %d", got, want)
+			}
+
+			gotLog := buf.String()
+			if !strings.Contains(gotLog, tc.expectedLog) {
+				t.Fatalf("Got log:\n%s\nwant:\n%s", gotLog, tc.expectedLog)
 			}
 		})
 	}
@@ -390,6 +450,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				TriggerSecret:           fakeSecret,
 				ProtectedBranches:       []string{"baz"},
 				AllowedExternalProjects: tc.allowedExternalProjects,
+				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 			}
 			ts := httptest.NewServer(s.HandleRoot())
@@ -626,6 +687,7 @@ func TestBuildEndpoint(t *testing.T) {
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
 				AllowedExternalProjects: []string{"opendevstack"},
+				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 			}
 			server := httptest.NewServer(s.HandleRoot())
@@ -668,6 +730,7 @@ func TestNotFound(t *testing.T) {
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AllowedExternalProjects: []string{"opendevstack"},
+		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 	}
 	server := httptest.NewServer(s.HandleRoot())
