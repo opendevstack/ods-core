@@ -14,6 +14,7 @@ def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   bitbucketHost = env.GIT_SERVER_URL ?: env.BITBUCKET_HOST
+  echo ("Resolved variable 'bitbucketHost' to '${bitbucketHost}'! [defaultHost=${env.BITBUCKET_HOST}, customHost=${env.GIT_SERVER_URL}]")
 }
 
 def gitIsHttps = false
