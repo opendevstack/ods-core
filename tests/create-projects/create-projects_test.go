@@ -68,12 +68,6 @@ func CheckProjectSetup(t *testing.T) {
 			RoleName:    "edit",
 		},
 		{
-			SubjectName: "default",
-			SubjectType: "ServiceAccount",
-			Namespace:   utils.PROJECT_NAME_CD,
-			RoleName:    "edit",
-		},
-		{
 			SubjectName: fmt.Sprintf("system:serviceaccounts:%s", utils.PROJECT_NAME_DEV),
 			SubjectType: "Group",
 			Namespace:   "",
