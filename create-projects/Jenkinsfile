@@ -13,7 +13,7 @@ def bitbucketHost
 def dockerRegistry
 node {
   dockerRegistry = env.DOCKER_REGISTRY
-  bitbucketHost = env.BITBUCKET_HOST
+  bitbucketHost = env.GIT_SERVER_URL ?: env.BITBUCKET_HOST
 }
 
 def gitIsHttps = false
@@ -47,6 +47,7 @@ podTemplate(
     stage('checkout ods-config') {
       def bitbucketScheme = gitIsHttps ? "https://" : "http://"
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
+      echo ("Getting ods configuration from (${bitbucketHost})")
       checkout([
         $class: 'GitSCM',
         branches: [[name: "*/${odsGitRef}"]],
