@@ -37,9 +37,9 @@ fi
 ${BASH_SOURCE%/*}/deploy-mocks.sh  --verbose --wait
 ${BASH_SOURCE%/*}/setup-mocked-ods-repo.sh --ods-ref ${REF} --verbose
 
-${BASH_SOURCE%/*}/../../ods-setup/setup-ods-project.sh --verbose --force
+${BASH_SOURCE%/*}/../../ods-setup/setup-ods-project.sh --verbose
 
-${BASH_SOURCE%/*}/../../ods-setup/setup-jenkins-images.sh --namespace ${NAMSPACE} --force --verbose --ods-ref ${REF}
+${BASH_SOURCE%/*}/../../ods-setup/setup-jenkins-images.sh --verbose --ods-ref ${REF}
 
 source ${BASH_SOURCE%/*}/../../ods-config/ods-core.env
 PROJECT_ID=prov
