@@ -60,25 +60,8 @@ cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
 ${TAILOR} update --non-interactive -n ${NAMESPACE} ${REF_PARAM} ${REPOSITORY_PARAM}
 cd -
 
-echo "Start Jenkins Builds"
-oc start-build -n ${NAMESPACE} jenkins-master --follow
-sleep 3
-STATUS=$(oc get build jenkins-master-1 -o jsonpath='{.status.phase}')
-if [ "${STATUS}" != "Complete" ]; then
-  echo "'oc start-build -n ${NAMESPACE}' jenkins-master did not complete successfully (${STATUS})"
-  exit 1
-fi
-oc start-build -n ${NAMESPACE} jenkins-slave-base --follow
-sleep 3
-STATUS=$(oc get build jenkins-slave-base-1 -o jsonpath='{.status.phase}')
-if [ "${STATUS}" != "Complete" ]; then
-  echo "'oc start-build -n ${NAMESPACE}' jenkins-slave-base did not complete successfully (${STATUS})"
-  exit 1
-fi
-oc start-build -n ${NAMESPACE} jenkins-webhook-proxy --follow
-sleep 3
-STATUS=$(oc get build jenkins-webhook-proxy-1 -o jsonpath='{.status.phase}')
-if [ "${STATUS}" != "Complete" ]; then
-  echo "'oc start-build -n ${NAMESPACE}' jenkins-webhook-proxy did not complete successfully (${STATUS})"
-  exit 1
-fi
+${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-master
+
+${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-slave-base
+
+${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-webhook-proxy
