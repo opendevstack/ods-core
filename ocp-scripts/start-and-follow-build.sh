@@ -34,7 +34,7 @@ if [ -z ${BUILD_CONFIG} ]; then
 fi
 
 if ! oc whoami > /dev/null; then
-  echo "You must be logged into OpenShift to start builds"
+  echo "You must be logged into OpenShift to run this script"
   exit 1
 fi
 
