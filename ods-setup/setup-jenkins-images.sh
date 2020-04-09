@@ -6,23 +6,27 @@ set -ue
 
 function usage {
    printf "usage: %s [options]\n" $0
-   printf "\t--force\tIgnores warnings and error with tailor --force\n"
-   printf "\t-h|--help\tPrints the usage\n"
+   printf "\t--non-interactive\tDon't ask for user confirmation\n"
+   printf "\t-h|--help\tPrint usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
-   printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
+   printf "\t-t|--tailor\tChange executable of tailor. Default: tailor\n"
    printf "\t-r|--ods-base-repository\tODS base repository. Overrides default in settings file\n"
    printf "\t-b|--ods-ref\tODS reference in repository. Overrides default in settings file\n"
-
 }
+
 TAILOR="tailor"
 NAMESPACE="cd"
 REPOSITORY=""
 REF=""
+NON_INTERACTIVE=""
+
 while [[ "$#" -gt 0 ]]; do case $1 in
 
    -v|--verbose) set -x;;
 
    -h|--help) usage; exit 0;;
+
+   --non-interactive) NON_INTERACTIVE="--non-interactive"; ;;
 
    -t=*|--tailor=*) TAILOR="${1#*=}";;
    -t|--tailor) TAILOR="$2"; shift;;
@@ -57,7 +61,7 @@ REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
 fi
 
 cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
-${TAILOR} update --non-interactive -n ${NAMESPACE} ${REF_PARAM} ${REPOSITORY_PARAM}
+${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE} ${REF_PARAM} ${REPOSITORY_PARAM}
 cd -
 
 ${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-master
