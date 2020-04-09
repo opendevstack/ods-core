@@ -36,8 +36,8 @@ while [[ "$#" -gt 0 ]]; do case $1 in
    *) echo "Unknown parameter passed: $1"; usage; exit 1;;
  esac; shift; done
 
-if ! oc whoami; then
-  echo "You should be logged into OpenShift to run the script"
+if ! oc whoami > /dev/null; then
+  echo "You must be logged into OpenShift to start builds"
   exit 1
 fi
 
