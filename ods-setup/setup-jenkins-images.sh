@@ -22,8 +22,6 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
    -v|--verbose) set -x;;
 
-   --force) FORCE="--force"; ;;
-
    -h|--help) usage; exit 0;;
 
    -t=*|--tailor=*) TAILOR="${1#*=}";;
@@ -51,14 +49,16 @@ fi
 echo "Applying Tailorfile to project '${NAMESPACE}'"
 
 if [ ! -z "${REF}" ]; then
-REF="--param=ODS_GIT_REF=${REF}"
+REF_PARAM="--param=ODS_GIT_REF=${REF}"
 fi
 
 if [ ! -z "${REPOSITORY}" ]; then
-REPOSITORY="--param=REPO_BASE=${REPOSITORY}"
+REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
 fi
 
-${TAILOR} update ${FORCE} --context-dir=${BASH_SOURCE%/*}/../jenkins/ocp-config --non-interactive -n ${NAMESPACE} ${REF} ${REPOSITORY}
+cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
+${TAILOR} update --non-interactive -n ${NAMESPACE} ${REF_PARAM} ${REPOSITORY_PARAM}
+cd -
 
 echo "Start Jenkins Builds"
 oc start-build -n ${NAMESPACE} jenkins-master --follow

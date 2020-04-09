@@ -6,7 +6,6 @@ set -ue
 
 function usage {
    printf "usage: %s [options]\n" $0
-   printf "\t--force\tIgnores warnings and error with tailor --force\n"
    printf "\t-h|--help\tPrints the usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
    printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
@@ -18,8 +17,6 @@ NAMESPACE="cd"
 while [[ "$#" -gt 0 ]]; do case $1 in
 
    -v|--verbose) set -x;;
-
-   --force) FORCE="--force"; ;;
 
    -h|--help) usage; exit 0;;
 
@@ -47,4 +44,6 @@ oc adm policy add-cluster-role-to-group system:image-puller system:authenticated
 oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
 
 # Create  global cd_user secret
-${TAILOR} update ${FORCE} --context-dir=${BASH_SOURCE%/*}/ocp-config/cd-user --non-interactive
+cd ${BASH_SOURCE%/*}/ocp-config/cd-user
+${TAILOR} update --non-interactive
+cd -
