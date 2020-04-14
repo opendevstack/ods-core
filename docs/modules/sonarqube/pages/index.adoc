@@ -2,25 +2,75 @@
 
 SonarQube is an open source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
 
-This repo contains the build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this readme describes how that setup is done.
-If you are looking for instructions how to analyse your repositories, please see https://github.com/opendevstack/ods-core/blob/master/USAGE.md[USAGE.md].
+The `ods-core` repository contains a build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this document describes how that setup is done.
 
 == Setup
 
-The OpenShift templates are located in `ocp-config` and can be compared with the OC cluster using https://github.com/opendevstack/tailor[tailor]. For example, run `cd ocp-config && tailor status` to see if there is any drift between current and desired state.
+Run `make install-sonarqube`. 
 
-== Administration
+Afterwards, perform the following manual steps:
 
-There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OC project `cd`, under the `sonarqube-app` secrets.
+. Change admin password
+. Lock SonarQube to logged-in users (Administation > Configuration > Security > Force User Authentication).
+. Log in as `cd_user` and created an auth token (My Account > Security > Generate New Token).
+. As the auth token and the admin password have changed, update your OpenShift configuration repository and the `sonarqube-app` secret.
 
 == Building a new image
 
-Push to this repository, then go to the build config in OC and start a new build.
+Run `make start-sonarqube-build`.
 
-== Manual steps performed after booting the instance
+== Administration
 
-. Admin password changed (see OC secrets `sonarqube-app`).
-. Locked Sonarqube to logged-in users (Administation > Configuration > Security > Force User Authentication).
-. Logged in as cd_user and created a auth token (My Account > Security > Generate New Token).
-. As the auth token and the admin password has changed, you will need to update the OCP configuration again.
-. Installed further plugins (Administation > Marketplace), e.g. SonarJava, SonarJS, Git.
+There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OpenShift project `cd`, inside the `sonarqube-app` secret.
+
+== Usage
+
+=== Add `sonar-project.properties` file
+
+This file needs to be located in the root of the repository you want to have analysed. For example:
+
+```
+# Project Key (required)
+sonar.projectKey=test-spring-boot
+
+# Project Name (optional, this is what is shown in the main list)
+sonar.projectName=test-spring-boot
+
+# Comma-separated paths to directories with sources (required)
+sonar.sources=src
+
+# Forced Language (optional)
+sonar.language=java
+
+# Encoding of the source files (optional but recommended as default is ASCII)
+sonar.sourceEncoding=UTF-8
+
+# Plugin-specific settings
+sonar.java.binaries=build/classes
+sonar.java.libraries=build/libs
+sonar.junit.reportPaths=build/test-results/test
+```
+
+The general settings are documented at https://docs.sonarqube.org/display/SONAR/Analysis+Parameters. Plugin-specific parameters can be found in the docs for each plugin, e.g. https://docs.sonarqube.org/display/PLUG/Java+Plugin+and+Bytecode.
+
+=== Scanning in Jenkins pipelines
+
+There's a prebuilt stage (`odsComponentStageScanWithSonar`) that you can use, see https://www.opendevstack.org/ods-documentation/ods-jenkins-shared-library/latest/index.html for details.
+
+=== Scanning locally: SonarLint IDE Plugin
+
+The team behind SonarQube also published SonarLint, a plugin currently available for IntelliJ, Eclipse, Visual Studio, VS Code and Atom that lets you scan while coding in your IDE. It also integrates with a SonarQube Server, so that you can scan with the servers rule settings.
+For further information please see https://www.sonarlint.org/intellij/howto.html. For the server connected mode, the SonarQube URL has to be set to your SonarQube deployment.
+
+
+=== Scanning locally: SonarQube Docker Container
+
+Be aware that this does not connect you with the SonarQube Server in OpenShift, therefore you might have other rule settings locally than the ones set on server. That said, here's what you need to do on your host to have a local SonarQube instance:
+
+```
+docker pull sonarqube
+docker run -d --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube
+./gradlew sonarqube
+```
+
+Running these commands will let you see at http://localhost:9000 your project reports, for any branch. Please, note that you are not running with an embedded database in this case, so it is only for temporary testing, do not expect historic report.
