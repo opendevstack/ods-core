@@ -22,7 +22,7 @@ INIT=n
 CONFIRM=
 BITBUCKET_URL=
 GIT_REF=
-PUSH=
+SYNC=n
 
 function usage {
   printf "Initialise, update and sync OpenDevStack repositories.\n\n"
@@ -32,7 +32,7 @@ function usage {
   printf "\t-v|--verbose\t\tEnable verbose mode\n"
   printf "\t--confirm\t\tDon't ask for confirmation\n"
   printf "\t--init\t\t\tDo not assume an existing Bitbucket server\n"
-  printf "\t--push\t\t\tPush Git Ref to Bitbucket\n"
+  printf "\t--sync\t\t\tPull refs from GitHub and push refs to Bitbucket\n"
   printf "\t-b|--bitbucket\t\tBitbucket URL, e.g. 'https://bitbucket.example.com'\n"
   printf "\t-g|--git-ref\t\tGit ref, e.g. '2.x' or 'master'\n"
 }
@@ -46,11 +46,9 @@ while [[ "$#" -gt 0 ]]; do
 
   --confirm) CONFIRM="y";;
 
-  --push) PUSH="y";;
+  --sync) SYNC="y";;
 
-  --no-push) PUSH="n";;
-
-  --init) INIT="y"; PUSH="n";;
+  --init) INIT="y";;
 
   -b|--bitbucket) BITBUCKET_URL="$2"; shift;;
   -b=*|--bitbucket=*) BITBUCKET_URL="${1#*=}";;
@@ -94,11 +92,11 @@ else
   echo_info "Repos will be checked out @ ods/${GIT_REF}."
 fi
 
-if [ -z ${PUSH} ]; then
+if [ -z ${SYNC} ]; then
   read -e -p "Do you want to push ods/${GIT_REF} to your Bitbucket server? [y/n] " input
-  PUSH=${input:-""}
+  SYNC=${input:-""}
 fi
-if [ "$PUSH" == "y" ]; then
+if [ "$SYNC" == "y" ]; then
   echo_info "ods/${GIT_REF} will be pushed to Bitbucket.";
 else
   echo_info "No refs will be pushed to Bitbucket.";
@@ -109,7 +107,6 @@ GITHUB_URL="https://github.com"
 
 for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkins-shared-library ods-provisioning-app; do
   echo_info "Preparing ${REPO}."
-  BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
   GITHUB_REPO="${GITHUB_URL}/${OPENDEVSTACK_ORG}/${REPO}.git"
 
   if [ -d "${REPO}" ] ; then
@@ -117,15 +114,15 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkin
   else
     echo_info "Directory ${REPO} does not exist yet."
     if [ "$INIT" == "y" ]; then
-      echo_info "Cloning from ${REPO} GitHub."
+      echo_info "Cloning ${REPO} from GitHub."
       git clone --origin ods ${GITHUB_REPO}
     else
       if [ -z ${BITBUCKET_URL} ]; then
         echo_info "Bitbucket URL is required to set it up."
         read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
         BITBUCKET_URL=${input:-""}
-        BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
       fi
+      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
       if git ls-remote ${BITBUCKET_REPO} &> /dev/null; then
         echo_info "${REPO} is reachable on Bitbucket, cloning from there."
         git clone ${BITBUCKET_REPO}
@@ -153,11 +150,11 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkin
         echo_warn "Remote 'origin' is missing.\n"
         read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
         BITBUCKET_URL=${input:-""}
-        BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
       fi
+      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
       echo_info "Adding remote 'origin' (${BITBUCKET_REPO})."
       git remote add origin ${BITBUCKET_REPO}
-      echo_info "Fetching from 'origin'."
+      echo_info "Fetching from remote 'origin'."
       git fetch origin
     fi
   else
@@ -175,17 +172,29 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkin
   if git rev-parse ${GIT_REF} &> /dev/null; then
     echo_info "Checking out existing local ref '${GIT_REF}'."
     if ! git checkout ${GIT_REF}; then
-      echo_error "ods/${GIT_REF} cannot be checked out, which means that it has modifications. Please clean your local state."
+      echo_error "ods/${GIT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
       exit 1
     fi
-    echo_info "Merging 'ods/${GIT_REF}' into local ref."
-    if ! git merge ods/${GIT_REF}; then
-      echo_error "ods/${GIT_REF} cannot be merged, which means the ref on Bitbucket has been modified. Please reset your local ref to ods/${GIT_REF}."
-      exit 1
-    fi
-    if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse ods/${GIT_REF}) ]; then
-      echo_error "${GIT_REF} differs from ods/${GIT_REF}. Please reset your local ref to ods/${GIT_REF}."
-      exit 1
+    if [ "$SYNC" == "y" ]; then
+      echo_info "Merging changes from GitHub (ods/${GIT_REF}) into local ref."
+      if ! git merge ods/${GIT_REF}; then
+        echo_error "ods/${GIT_REF} cannot be merged, which means the ref on Bitbucket has been modified. Please reset your local ref to ods/${GIT_REF}."
+        exit 1
+      fi
+      if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse ods/${GIT_REF}) ]; then
+        echo_error "${GIT_REF} differs from ods/${GIT_REF}. Please reset your local ref to ods/${GIT_REF}."
+        exit 1
+      fi
+    else
+      echo_info "Merging changes from Bitbucket (origin/${GIT_REF}) into local ref."
+      if ! git merge origin/${GIT_REF}; then
+        echo_error "origin/${GIT_REF} cannot be merged. Please reset your local ref to origin/${GIT_REF}."
+        exit 1
+      fi
+      if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse origin/${GIT_REF}) ]; then
+        echo_error "${GIT_REF} differs from origin/${GIT_REF}. Please reset your local ref to origin/${GIT_REF}."
+        exit 1
+      fi
     fi
   else
     echo_info "Creating local ref '${GIT_REF}'."
@@ -195,7 +204,7 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkin
   echo_done "Prepared ${REPO}."
 
   # Push to Bitbucket
-  if [ "$PUSH" == "y" ]; then
+  if [ "$SYNC" == "y" ]; then
     echo_info "Pushing '${GIT_REF}' to Bitbucket."
     git push origin ${GIT_REF}
     echo_done "Pushed '${GIT_REF}' to Bitbucket."

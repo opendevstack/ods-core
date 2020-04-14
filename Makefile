@@ -5,14 +5,14 @@ MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
 # REPOSITORIES
-## Prepare local repos by fetching changes from GitHub.
+## Prepare local repos (fetch changes from Bitbucket).
 prepare-repos:
-	cd ods-setup && ./repos.sh --no-push --confirm
+	cd ods-setup && ./repos.sh --confirm
 .PHONY: prepare-repos
 
-## Prepare local repos by fetching changes from GitHub, and synchronize with Bitbucket repos.
+## Sync repos (fetch changes from GitHub, and synchronize with Bitbucket).
 sync-repos:
-	cd ods-setup && ./repos.sh --push --confirm
+	cd ods-setup && ./repos.sh --sync --confirm
 .PHONY: sync-repos
 
 
