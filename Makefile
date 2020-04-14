@@ -4,6 +4,18 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+# REPOSITORIES
+## Prepare local repos by fetching changes from GitHub.
+prepare-repos:
+	cd ods-setup && ./repos.sh --no-push --confirm
+.PHONY: prepare-repos
+
+## Prepare local repos by fetching changes from GitHub, and synchronize with Bitbucket repos.
+sync-repos:
+	cd ods-setup && ./repos.sh --push --confirm
+.PHONY: sync-repos
+
+
 # ODS SETUP
 ## Setup central "cd" project.
 cd-project:
