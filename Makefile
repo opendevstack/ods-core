@@ -34,7 +34,7 @@ install-jenkins: apply-jenkins-build start-jenkins-build
 
 ## Update OpenShift resources related to Jenkins images.
 apply-jenkins-build:
-	cd jenkins/ocp-config && tailor update
+	cd jenkins/ocp-config && tailor apply
 .PHONY: apply-jenkins-build
 
 ## Start build of all Jenkins BuildConfig resources.
@@ -63,12 +63,12 @@ install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-d
 
 ## Update OpenShift resources related to the SonarQube image.
 apply-sonarqube-build:
-	cd sonarqube/ocp-config && tailor update bc,is
+	cd sonarqube/ocp-config && tailor apply bc,is
 .PHONY: apply-sonarqube-build
 
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
-	cd sonarqube/ocp-config && tailor update --exclude bc,is
+	cd sonarqube/ocp-config && tailor apply --exclude bc,is
 	route=$(oc get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
@@ -84,7 +84,7 @@ install-nexus: apply-nexus
 
 ## Update OpenShift resources related to the Nexus service.
 apply-nexus:
-	cd nexus/ocp-config && tailor update
+	cd nexus/ocp-config && tailor apply
 .PHONY: apply-nexus
 
 # SECURE ROUTE CHECKING
