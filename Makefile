@@ -22,10 +22,10 @@ cd-project:
 	cd ods-setup && ./setup-ods-project.sh
 
 # CONFIG
-## Update configuration based on sample config.
-config:
-	cd configuration-sample && ./update
-.PHONY: config
+## Update local sample config sample and run check against local actual config.
+prepare-config:
+	cd ods-setup && ./config.sh
+.PHONY: prepare-config
 
 # JENKINS
 ## Install or update Jenkins resources.
