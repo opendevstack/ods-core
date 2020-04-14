@@ -78,7 +78,3 @@ ansible-playbook -v -i inventories/dev playbooks/jira.yml --ask-vault
 ```
 ansible-playbook -v -i inventories/dev playbooks/confluence.yml --ask-vault
 ```
-### Rundeck Setup
-```
-ansible-playbook -v -i inventories/dev playbooks/rundeck.yml --ask-vault
-```

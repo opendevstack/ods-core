@@ -82,10 +82,5 @@ if [[ $input == "Y" || $input == "y" ]]; then
 fi
 
 
-echo "Step 11/11: Prepare Rundeck"
-read -e -n1 -p "Prepare Rundeck? [y,n] (default: y):" input
-input=${input:-"y"}
-if [[ $input == "Y" || $input == "y" ]]; then
-  vagrant ssh atlassian -c "sudo /ods/ods-core/infrastructure-setup/scripts/prepare-rundeck.sh"
-fi
+echo "Step 11/11: Obsolete"
 

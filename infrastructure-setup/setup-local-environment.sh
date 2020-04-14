@@ -94,12 +94,6 @@ else
   if [[ $input == "Y" || $input == "y" ]]; then
      vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/bitbucket.yml"
   fi
-  echo "Rundeck Installation"
-  read -e -n1 -p "Install Rundeck? [y,n] (default: y):" input
-  input=${input:-"y"}
-  if [[ $input == "Y" || $input == "y" ]]; then
-     vagrant ssh atlcon -c "cd /vagrant/ansible/ && export ANSIBLE_VAULT_PASSWORD_FILE=/vagrant/ansible/.vault_pass.txt && ansible-playbook -v -i inventories/dev playbooks/rundeck.yml"
-  fi
   echo "OKD installation"
   read -e -n1 -p "Install OpenShift? [y,n] (default: y):" input
   input=${input:-"y"}

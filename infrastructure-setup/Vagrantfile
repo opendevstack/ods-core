@@ -32,7 +32,7 @@ Vagrant.configure(2) do |config|
     ui.warn('       Using it can speed up your machine provisioning.')
   end
   
-  # Atlassian and rundeck Host
+  # Atlassian Host
   machines.each do |machine_name, machine_details|
    config.vm.define machine_name do |machine_config|
      machine_ip = machine_details[:ip]

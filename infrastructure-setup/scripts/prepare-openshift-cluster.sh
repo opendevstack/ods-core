@@ -37,9 +37,6 @@ oc adm policy add-role-to-group view system:authenticated -n cd
 oc create sa deployment -n cd
 oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:serviceaccount:cd:deployment
 
-echo -e "Save token to use in rundeck for deployment in ${BASE_DIR}/openshift-api-token\n"
-oc sa get-token deployment -n cd > ${BASE_DIR}/openshift-api-token
-
 # create secrets for global cd_user
 CD_USER_PWD_B64=$(grep CD_USER_PWD_B64 $cd_user_config_location | cut -d '=' -f 2-)
 oc process -f ${BASE_DIR}/ods-core/infrastructure-setup/ocp-config/cd-user/secret.yml -p CD_USER_PWD_B64=${CD_USER_PWD_B64} |  oc create -n cd -f-
