@@ -107,7 +107,7 @@ fi
 OPENDEVSTACK_ORG="opendevstack"
 GITHUB_URL="https://github.com"
 
-for REPO in ods-quickstarters ods-jenkins-shared-library ods-mro-jenkins-shared-library ods-provisioning-app; do
+for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-mro-jenkins-shared-library ods-provisioning-app; do
   echo_info "Preparing ${REPO}."
   BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
   GITHUB_REPO="${GITHUB_URL}/${OPENDEVSTACK_ORG}/${REPO}.git"
