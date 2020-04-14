@@ -51,4 +51,5 @@ for i in 1 2 3; do
   fi
   sleep 3
 done
+echo "Please, check build ${BUILD_ID} since it seems failed/not completed."
 exit 1
