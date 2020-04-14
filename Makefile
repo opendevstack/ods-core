@@ -18,7 +18,7 @@ sync-repos:
 
 # ODS SETUP
 ## Setup central "cd" project.
-cd-project:
+install-cd-project:
 	cd ods-setup && ./setup-ods-project.sh
 
 # CONFIG
@@ -29,63 +29,63 @@ prepare-config:
 
 # JENKINS
 ## Install or update Jenkins resources.
-jenkins: jenkins-apply-build jenkins-start-build
-.PHONY: jenkins
+install-jenkins: apply-jenkins-build start-jenkins-build
+.PHONY: install-jenkins
 
 ## Update OpenShift resources related to Jenkins images.
-jenkins-apply-build:
+apply-jenkins-build:
 	cd jenkins/ocp-config && tailor update
-.PHONY: jenkins-apply-build
+.PHONY: apply-jenkins-build
 
 ## Start build of all Jenkins BuildConfig resources.
-jenkins-start-build: jenkins-start-build-master jenkins-start-build-slave-base jenkins-start-build-webhook-proxy
-.PHONY: jenkins-start-build
+start-jenkins-build: start-jenkins-build-master start-jenkins-build-slave-base start-jenkins-build-webhook-proxy
+.PHONY: jenkins-build
 
 ## Start build of BuildConfig "jenkins-master".
-jenkins-start-build-master:
+start-jenkins-build-master:
 	ocp-scripts/start-and-follow-build.sh --build-config jenkins-master
-.PHONY: jenkins-start-build-master
+.PHONY: start-jenkins-build-master
 
 ## Start build of BuildConfig "jenkins-slave-base".
-jenkins-start-build-slave-base:
+start-jenkins-build-slave-base:
 	ocp-scripts/start-and-follow-build.sh --build-config jenkins-slave-base
-.PHONY: jenkins-start-build-slave-base
+.PHONY: start-jenkins-build-slave-base
 
 ## Start build of BuildConfig "jenkins-webhook-proxy".
-jenkins-start-build-webhook-proxy:
+start-jenkins-build-webhook-proxy:
 	ocp-scripts/start-and-follow-build.sh --build-config jenkins-webhook-proxy
-.PHONY: jenkins-start-build-webhook-proxy
+.PHONY: start-jenkins-build-webhook-proxy
 
 # SONARQUBE
 ## Install or update SonarQube.
-sonarqube: sonarqube-apply-build sonarqube-start-build sonarqube-apply-deploy
-.PHONY: sonarqube
+install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-deploy
+.PHONY: install-sonarqube
 
 ## Update OpenShift resources related to the SonarQube image.
-sonarqube-apply-build:
+apply-sonarqube-build:
 	cd sonarqube/ocp-config && tailor update bc,is
-.PHONY: sonarqube-build-resources
+.PHONY: apply-sonarqube-build
 
 ## Update OpenShift resources related to the SonarQube service.
-sonarqube-apply-deploy:
+apply-sonarqube-deploy:
 	cd sonarqube/ocp-config && tailor update --exclude bc,is
 	route=$(oc get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
-.PHONY: sonarqube-apply-deploy
+.PHONY: apply-sonarqube-deploy
 
 ## Start build of BuildConfig "sonarqube".
-sonarqube-start-build:
+start-sonarqube-build:
 	ocp-scripts/start-and-follow-build.sh --build-config sonarqube
-.PHONY: sonarqube-start-build
+.PHONY: start-sonarqube-build
 
 # NEXUS
 ## Install or update Nexus.
-nexus: nexus-apply
+install-nexus: apply-nexus
 .PHONY: nexus
 
 ## Update OpenShift resources related to the Nexus service.
-nexus-apply:
+apply-nexus:
 	cd nexus/ocp-config && tailor update
-.PHONY: nexus-apply
+.PHONY: apply-nexus
 
 # SECURE ROUTE CHECKING
 secure-routes: secure-routes-apply
