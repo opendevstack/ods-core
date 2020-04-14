@@ -14,7 +14,6 @@
         - { name: "jira", password: "{{atlassian_jira_jdbc_password}}"}
         - { name: "bitbucket", password: "{{bitbucket_database_user_password}}"}
         - { name: "confluence", password: "{{atlassian_confluence_jdbc_password}}"}
-        - { name: "rundeck", password: "{{ rundeck_database_pass }}"}
       register: user_results
       ignore_errors: true
 
@@ -36,7 +35,6 @@
       - jira
       - bitbucket
       - confluence
-      - rundeck
 
     - name: create databases
       delegate_to: 127.0.0.1
@@ -60,7 +58,6 @@
       - crowdid
       - bitbucket
       - confluence
-      - rundeck
 
     - name: debug
       debug:

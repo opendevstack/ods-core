@@ -2,4 +2,3 @@
 - import_playbook: jira.yml
 - import_playbook: confluence.yml
 - import_playbook: bitbucket.yml
-- import_playbook: rundeck.yml

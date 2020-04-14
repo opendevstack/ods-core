@@ -1,14 +1,14 @@
 = Infrastructure Setup
 
 The infrastructure setup part contains the scripts to setup OpenDevstack.
-It uses https://www.ansible.com[Ansible] for installing the Atlassian tools and the provisioning app (including https://www.rundeck.com/open-source[Rundeck].
+It uses https://www.ansible.com[Ansible] for installing the Atlassian tools and the provisioning app.
 Setting up an https://docs.ansible.com/ansible/latest/network/getting_started/basic_concepts.html#id2[Ansible control host] is beyond the scope of this document.
 
 Each individual component is set-up using a seperate playbook. So you can decide which playbooks to run, depending on your current environment.
 
 == The different playbooks
 
-We have different playbooks depending on the environment in which you install the Atlassian tools and Rundeck.
+We have different playbooks depending on the environment in which you install the Atlassian tools.
 The playbooks depend on roles. The roles provide variables for customization. The different variables can be looked up under each role at `default/main.yml`.
 
 .General Playbooks
