@@ -6,22 +6,23 @@ set -ue
 
 function usage {
    printf "usage: %s [options]\n" $0
-   printf "\t--force\tIgnores warnings and error with tailor --force\n"
-   printf "\t-h|--help\tPrints the usage\n"
+   printf "\t--non-interactive\tDon't ask for user confirmation\n"
+   printf "\t-h|--help\tPrint usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
-   printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
+   printf "\t-t|--tailor\tChange executable of tailor. Default: tailor\n"
 
 }
 TAILOR="tailor"
 NAMESPACE="cd"
+NON_INTERACTIVE=""
 
 while [[ "$#" -gt 0 ]]; do case $1 in
 
    -v|--verbose) set -x;;
 
-   --force) FORCE="--force"; ;;
-
    -h|--help) usage; exit 0;;
+
+   --non-interactive) NON_INTERACTIVE="--non-interactive"; ;;
 
    -t=*|--tailor=*) TAILOR="${1#*=}";;
    -t|--tailor) TAILOR="$2"; shift;;
@@ -29,8 +30,8 @@ while [[ "$#" -gt 0 ]]; do case $1 in
    *) echo "Unknown parameter passed: $1"; usage; exit 1;;
  esac; shift; done
 
-if ! oc whoami; then
-  echo "You should be logged to run the script"
+if ! oc whoami > /dev/null; then
+  echo "You must be logged into OpenShift to run this script"
   exit 1
 fi
 
@@ -47,4 +48,6 @@ oc adm policy add-cluster-role-to-group system:image-puller system:authenticated
 oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
 
 # Create  global cd_user secret
-${TAILOR} update ${FORCE} --context-dir=${BASH_SOURCE%/*}/ocp-config/cd-user --non-interactive
+cd ${BASH_SOURCE%/*}/ocp-config/cd-user
+${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE}
+cd -

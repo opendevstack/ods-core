@@ -31,17 +31,17 @@ jenkins-start-build: jenkins-start-build-master jenkins-start-build-slave-base j
 
 ## Start build of BuildConfig "jenkins-master".
 jenkins-start-build-master:
-	oc -n cd start-build jenkins-master --follow
+	ocp-scripts/start-and-follow-build.sh --build-config jenkins-master
 .PHONY: jenkins-start-build-master
 
 ## Start build of BuildConfig "jenkins-slave-base".
 jenkins-start-build-slave-base:
-	oc -n cd start-build jenkins-slave-base --follow
+	ocp-scripts/start-and-follow-build.sh --build-config jenkins-slave-base
 .PHONY: jenkins-start-build-slave-base
 
 ## Start build of BuildConfig "jenkins-webhook-proxy".
 jenkins-start-build-webhook-proxy:
-	oc -n cd start-build jenkins-webhook-proxy --follow
+	ocp-scripts/start-and-follow-build.sh --build-config jenkins-webhook-proxy
 .PHONY: jenkins-start-build-webhook-proxy
 
 # SONARQUBE
@@ -62,7 +62,7 @@ sonarqube-apply-deploy:
 
 ## Start build of BuildConfig "sonarqube".
 sonarqube-start-build:
-	oc -n cd start-build sonarqube --follow
+	ocp-scripts/start-and-follow-build.sh --build-config sonarqube
 .PHONY: sonarqube-start-build
 
 # NEXUS
