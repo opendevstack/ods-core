@@ -57,7 +57,9 @@ REF_PARAM="--param=ODS_GIT_REF=${REF}"
 fi
 
 if [ ! -z "${REPOSITORY}" ]; then
-REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
+  REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
+else
+  REPOSITORY_PARAM=
 fi
 
 cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
