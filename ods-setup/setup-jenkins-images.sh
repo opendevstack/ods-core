@@ -17,7 +17,9 @@ function usage {
 TAILOR="tailor"
 NAMESPACE="cd"
 REPOSITORY=""
+REPOSITORY_PARAM=""
 REF=""
+REF_PARAM=""
 NON_INTERACTIVE=""
 
 while [[ "$#" -gt 0 ]]; do case $1 in
@@ -53,11 +55,11 @@ fi
 echo "Applying Tailorfile to project '${NAMESPACE}'"
 
 if [ ! -z "${REF}" ]; then
-REF_PARAM="--param=ODS_GIT_REF=${REF}"
+  REF_PARAM="--param=ODS_GIT_REF=${REF}"
 fi
 
 if [ ! -z "${REPOSITORY}" ]; then
-REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
+  REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
 fi
 
 cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
