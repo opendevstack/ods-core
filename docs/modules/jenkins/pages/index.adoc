@@ -1,7 +1,6 @@
 = Jenkins
 
-OpenDevStack provides several customized Jenkins Docker Images based on the official OpenShift images.
-The idea is, that you do not need to configure anything on Jenkings before you can start using it.
+OpenDevStack provides several customized Jenkins container images based on the official OpenShift images.
 
 In `ods-core/jenkins`, you find the following directory structure:
 
@@ -38,23 +37,25 @@ include::{examplesdir}/plugins.txt[]
 
 === Init groovy scripts
 
-Jira offers to deploy https://wiki.jenkins.io/display/JENKINS/Post-initialization+script[ post-initialization ] scripts.
+Jenkins offers to deploy https://wiki.jenkins.io/display/JENKINS/Post-initialization+script[ post-initialization ] scripts.
 
 .Table Post-Initialization Scripts
 |===
 |Script | Description
 
-|url.groovy | Sets the Jenkins Location based on the OpenShift route
-|sonarqube.groovy | Sets the sonarserver url and auth token based on the configured secrets and config maps
+|url.groovy | Sets the Jenkins location based on the OpenShift route
+|sonarqube.groovy | Sets the SonarQube server URL and auth token based on the exposed environment variables
+|ods-jenkins-shared-library.groovy | Registers `ods-jenkins-shared-library` as a global library
+|ods-mro-jenkins-shared-library.groovy | Registers `ods-mro-jenkins-shared-library` as a global library
 
 |===
 
 The following environment variables must be available to Jenkins:
 
 SONAR_SERVER_URL::
-specifies the location of the sonarqube server.
+specifies the location of the SonarQube server.
 SONAR_AUTH_TOKEN::
-this is the sonarqube auth token that is generated when deploying and configuring sonarqube
+this is the SonarQube auth token that is generated when deploying and configuring sonarqube
 
 === Mail Sending
 
@@ -66,13 +67,12 @@ We have a base image for different jenkins slaves.
 The concrete slave images are then configured as part of the quickstarters.
 The base image contains the following customizations
 
-* Sonarqube Scanner
-* Sonarqube CNES Report Plugin
-* OWASP Dependency Checker
+* SonarQube Scanner
+* SonarQube CNES Report Plugin
 * Tailor
 * Setting of Enterprise Proxy
 
-When the docker image is built, it fetches automatically the OpenShift root CA certificate and stores it, so that the `oc`-cli tool
+When the container image is built, it fetches automatically the OpenShift root CA certificate and stores it, so that the `oc`-cli tool
 can pick it up later and also adds the base domain wildcard certificate to the Java certificate store.
 
 The setting of the enterprise proxy takes care that Jenkins slave works also on OpenShift clusters in enterprises that use a web proxy.
