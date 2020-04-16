@@ -109,3 +109,6 @@ RUN yum install -y \
     && yum clean all \
     && rm -rf /var/cache/yum/* \
     && skopeo --version
+
+# Fix permissions.
+RUN mkdir -p /home/jenkins/.config && chmod g+w /home/jenkins/.config
