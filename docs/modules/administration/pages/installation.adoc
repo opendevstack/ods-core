@@ -1,0 +1,155 @@
+= OpenDevStack Setup
+
+This document will guide you through installing / maintaining an OpenDevStack installation.
+
+NOTE: From now on we assume, you work from a Bash (Cygwin / Linux).
+
+== Local Setup
+
+Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the sources available on your local machine.
+
+=== Repositories
+
+If you do not have the ODS repositories setup yet, go to your Terminal and run:
+[source,sh]
+----
+mkdir -p opendevstack
+cd opendevstack
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+chmod +x repos.sh
+----
+
+If you are installing OpenDevStack for the first time, run:
+[source,sh]
+----
+./repos.sh --init
+----
+
+If there is already an existing installation of OpenDevStack, run:
+[source,sh]
+----
+./repos.sh
+----
+
+The script will prompt you which Git ref you want to use. Select either `master` for bleeding edge or a more stable "version" such as `2.x`. Afterwards running this script, all required repositories should be available locally.
+
+=== Configuration
+
+Go to `ods-core` and run:
+[source,sh]
+----
+make prepare-config
+----
+
+If you want to install OpenDevStack for the first time, leave the BitBucket URL empty.
+
+After the configuration is prepared, fill out all the parameters for your installation and commit the result.
+
+=== Tailor
+
+We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templates and keep OpenDevStack resources in sync. Please see its https://github.com/opendevstack/tailor#installation[installation instructions] for your platform. The following lists the version requirements:
+
+|===
+| OpenDevStack version | Tailor version
+
+| 2.x
+| >= 0.13.1
+
+| 1.2.x
+| = 0.9.3
+
+| 1.1.x
+| = 0.9.3
+
+| 1.0.x
+| = 0.9.1
+
+| 0.1.x
+| = 0.8
+|===
+
+== Infrastructure
+
+If you are want to install on your local machine, please review xref:administration:local-install-requirements.adoc[local installation requirements].
+
+=== Atlassian Tools
+At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed. Documentation for this is not complete / up-to-date but may be found at:
+
+
+
+After Bitbucket is running, create the `OPENDEVSTACK` project and create bare repositories for each OpenDevStack repository that you have setup locally.
+
+=== OpenShift cluster
+At this stage you can setup the OpenShift cluster if it does not exist yet. Documentation for this is missing right now. Locally, some version of `oc cluster up` will do the trick.
+
+== Bitbucket Repoisitories
+
+It is important that all repositories in BitBucket are up-to-date and ready to be used e.g. from `BuildConfig` resources in OpenShift.
+
+In `ods-core` run:
+[source,sh]
+----
+make sync-repos
+----
+
+Next, in `ods-configuration` run:
+[source,sh]
+----
+git push origin master
+----
+
+== OpenDevStack environment in OpenShift
+
+=== Central CD project
+
+OpenDevStack needs one central `cd` project in OpenShift, which will hold all shared resources such as images or deployments.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-cd-project
+----
+
+
+=== Nexus
+
+A central Nexus deployment is used to proxy packages and to store artifacts.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-nexus
+----
+
+=== SonarQube
+
+A central SonarQube deployment is used to analyze source code.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-sonarqube
+----
+
+Afterwards, perform the following manual steps:
+
+. Change admin password
+. Lock SonarQube to logged-in users (Administation > Configuration > Security > Force User Authentication).
+. Log in as `cd_user` and created an auth token (My Account > Security > Generate New Token).
+. As the auth token and the admin password have changed, update your OpenShift configuration repository and the `sonarqube-app` secret.
+
+=== Jenkins
+
+Central Jenkins images (master, agent, webhook proxy) are used by every ODS project.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-jenkins
+----
+
+=== Provisioning Application
+At this stage you can setup or modify the provisioning application. Installation of this will change in the next version of OpenDevStack. Instructions will be added here then.
+
+
+Congratulations! At this point you should have a complete ODS installation. Try it out by provisioning a new project with the provisioning application.

@@ -1,16 +1,19 @@
 = ODS Jenkins Slave base
 
-== Introduction
+We have a base image for different jenkins slaves.
+The concrete slave images are then configured as part of the quickstarters.
+The base image contains the following customizations
+
+* SonarQube Scanner
+* SonarQube CNES Report Plugin
+* https://github.com/opendevstack/tailor[Tailor]
+* Skopeo
+* https://snyk.io[Snyk] - used to scan and monitor projects vulnerable third-party dependencies
+* Setting of Enterprise Proxy
+
+When the container image is built, it fetches automatically the OpenShift root CA certificate and stores it, so that the `oc`-cli tool
+can pick it up later and also adds the base domain wildcard certificate to the Java certificate store.
+
+The setting of the enterprise proxy takes care that Jenkins slave works also on OpenShift clusters in enterprises that use a web proxy.
 
 The base jenkins slave used by all ODS https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-slaves[builder slaves]
-
-== Features / Plugins
-
-. Creates trust relationship with applications in the openshift cluster (thru certificate management)
-. http://repo1.maven.org/maven2/org/sonarsource/scanner[Sonarqube scanner plugin] binding to the central link:../sonarqube[SQ instance]
-. https://github.com/lequal/sonar-cnes-report[Sonarqube report plugin] used to download the scan results within the
-https://github.com/opendevstack/ods-jenkins-shared-library[jenkins shared library]'s stage `stageScanForSonarQube`
-. https://dl.bintray.com/jeremy-long/owasp/[OWASP scan plugin]
-. Creates proxy awareness when `HTTP_PROXY` is injected during build pahse
-. https://github.com/opendevstack/tailor[Tailor] - on top of `openshift CLI` to provide infrastrucure as code
-. https://snyk.io[Snyk] - used to scan and monitor projects vulnerable third-party dependencies

@@ -2,30 +2,7 @@
 
 SonarQube is an open source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
 
-The `ods-core` repository contains a build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this document describes how that setup is done.
-
-== Setup
-
-Run `make install-sonarqube`. 
-
-Afterwards, perform the following manual steps:
-
-. Change admin password
-. Lock SonarQube to logged-in users (Administation > Configuration > Security > Force User Authentication).
-. Log in as `cd_user` and created an auth token (My Account > Security > Generate New Token).
-. As the auth token and the admin password have changed, update your OpenShift configuration repository and the `sonarqube-app` secret.
-
-== Building a new image
-
-Run `make start-sonarqube-build`.
-
-== Administration
-
-There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OpenShift project `cd`, inside the `sonarqube-app` secret.
-
-== Usage
-
-=== Add `sonar-project.properties` file
+== `sonar-project.properties` file
 
 This file needs to be located in the root of the repository you want to have analysed. For example:
 
@@ -53,17 +30,17 @@ sonar.junit.reportPaths=build/test-results/test
 
 The general settings are documented at https://docs.sonarqube.org/display/SONAR/Analysis+Parameters. Plugin-specific parameters can be found in the docs for each plugin, e.g. https://docs.sonarqube.org/display/PLUG/Java+Plugin+and+Bytecode.
 
-=== Scanning in Jenkins pipelines
+== Scanning in Jenkins pipelines
 
 There's a prebuilt stage (`odsComponentStageScanWithSonar`) that you can use, see https://www.opendevstack.org/ods-documentation/ods-jenkins-shared-library/latest/index.html for details.
 
-=== Scanning locally: SonarLint IDE Plugin
+== Scanning locally: SonarLint IDE Plugin
 
 The team behind SonarQube also published SonarLint, a plugin currently available for IntelliJ, Eclipse, Visual Studio, VS Code and Atom that lets you scan while coding in your IDE. It also integrates with a SonarQube Server, so that you can scan with the servers rule settings.
 For further information please see https://www.sonarlint.org/intellij/howto.html. For the server connected mode, the SonarQube URL has to be set to your SonarQube deployment.
 
 
-=== Scanning locally: SonarQube Docker Container
+== Scanning locally: SonarQube Docker Container
 
 Be aware that this does not connect you with the SonarQube Server in OpenShift, therefore you might have other rule settings locally than the ones set on server. That said, here's what you need to do on your host to have a local SonarQube instance:
 

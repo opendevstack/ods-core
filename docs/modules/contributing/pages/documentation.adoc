@@ -1,0 +1,35 @@
+= The OpenDevStack documentation
+
+OpenDevStack documentation is build with https://antora.org[Antora].
+
+== Why we chose Antora
+
+As we release new versions of OpenDevStack with new or changed functionality and configuration, it should always be clear which documentation applies to which release.
+Thus we follow the philosophy: manage documetation as code. This means:
+
+* Storing content in a version control system alongside with the code.
+* Separating content, configuration, and presentation
+* Reusing shared materials (Don't repeat yourself)
+
+Antora is a static site generator by the folks behind the https://asciidoctor.org[AsciiDoctor] project that follows this practices.
+The engine converts a collection of version controlled documentation written in AsciiDoc into an HTML site.
+
+== How is the documentation organized?
+
+Documentation is spread across multiple repositories. In each repository, there is a `docs` folder containing the documentation. We use one "distributed" component named `opendevstack` (see https://docs.antora.org/antora/2.2/component-structure/[Component structure documentation]), and each `docs` folder adds one or more named modules into that component. The navigation for the component is located in the `ods-core` repository.
+
+Additionally, we have the `ods-documentation` repository which contains the https://docs.antora.org/antora/2.2/playbook/[Playbook] and the `ods-docs-ui` repository containing UI customization.
+
+
+== How to build the site locally?
+A guide for building the documentation locally is provided in the https://github.com/opendevstack/ods-documentation/blob/master/README.adoc[ods-documentation README].
+
+
+== How to contribute documentation
+
+Issue a pull request against the repository containing the documentation you add / modify. Once this is merged, the documentation website will get updated automatically (via a daily cronjob). 
+
+== How is the documentation built on Github?
+
+The documentation will be build on Travis and pushed back to the ods-documentation repository.
+The https://github.com/opendevstack/ods-documentation/blob/master/.travis.yml[.travis.yml] file is located in the `ods-documentation` project.
