@@ -106,6 +106,8 @@ update notes below which apply to your version change.
 
 ==== Setup secure route checking
 
+NOTE: Secure route checking has been removed for version 3.x as this is an optional step. The code now is available at https://github.com/BIX-Digital/ods-contrib.
+
 Go to `ods-core/check-ocp-secure-routes/ocp-config` and run `tailor update` to setup a cron job that will check exposed routes once a day (see https://github.com/opendevstack/ods-core/pull/280).
 
 ==== Project specific CD users
