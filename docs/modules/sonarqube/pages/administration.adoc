@@ -1,0 +1,12 @@
+= SonarQube Administration
+
+The `ods-core` repository contains a build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this document describes how that setup is done.
+
+== Building a new SonarQube image
+
+Run `make start-sonarqube-build`.
+
+== Administration
+
+There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OpenShift project `cd`, inside the `sonarqube-app` secret.
+

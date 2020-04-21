@@ -1,0 +1,11 @@
+* Administration
+** xref:administration:installation.adoc[Installation]
+*** xref:administration:local-install-requirements.adoc[Local Installation Requirements]
+*** xref:administration:install-guide.adoc[Local Installation (outdated)]
+*** xref:administration:infrastructure-setup.adoc[Infrastructure Setup (outdated)]
+** xref:administration:update.adoc[Upgrade]
+** xref:administration:keycloak.adoc[Keycloak]
+** xref:sonarqube:administration.adoc[SonarQube]
+** xref:jenkins:administration.adoc[Jenkins]
+
+

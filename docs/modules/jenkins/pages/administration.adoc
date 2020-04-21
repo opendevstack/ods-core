@@ -1,0 +1,19 @@
+= Jenkins Administration
+
+The `ods-core` repository contains a `Makefile` with several targets to maintain Jenkins images.
+
+== Managing Jenkins build resources
+
+Run `make apply-jenkins-build`.
+
+== Building a new Jenkins Master image
+
+Run `make start-jenkins-build-master`.
+
+== Building a new Jenkins Slave Base image
+
+Run `make start-jenkins-build-slave-base`.
+
+== Building a new Jenkins Webhook Proxy image
+
+Run `make start-jenkins-build-webhook-proxy`.

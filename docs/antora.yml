@@ -1,10 +1,14 @@
-name: ods-core
-title: ODS Core
+name: opendevstack
+title: OpenDevStack
 version: latest
-start_page: infrastructure-setup:index.adoc
+start_page: getting-started:index.adoc
 nav:
-- modules/ROOT/nav.adoc
-- modules/infrastructure-setup/nav.adoc
-- modules/jenkins/nav.adoc
-- modules/sonarqube/nav.adoc
-- modules/keycloak/nav.adoc
+- modules/jenkins-shared-library/nav.adoc # Located in ods-jenkins-shared-library.git
+- modules/quickstarters/nav.adoc # Located in ods-quickstarters.git
+- modules/provisioning-app/nav.adoc # Located in ods-provisioning-app.git
+- modules/jenkins/nav.adoc  # Located in ods-core.git
+- modules/sonarqube/nav.adoc  # Located in ods-core.git
+- modules/update-guides/nav.adoc  # Located in ods-core.git
+- modules/administration/nav.adoc  # Located in ods-core.git
+- modules/contributing/nav.adoc  # Located in ods-core.git
+

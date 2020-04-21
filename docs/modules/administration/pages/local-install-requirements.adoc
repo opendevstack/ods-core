@@ -1,0 +1,57 @@
+= Local Installation Guide: Requirements
+:experimental:
+:page-layout: documentation
+:toc:
+
+
+The following requirements have to be met to setup a local environment. You should have a computer with at least 32 GB of RAM, because we are going to install
+several Atlassian tools and a local OpenShift environment.
+
+== Vagrant
+
+The OpenDevStack uses Vagrant to provide a sample infrastructure for the Atlassian tools, Rundeck and a so called Ansible controller, a VM, where you can run Ansible scripts against the Atlassian VM. It is recommended to use the latest Vagrant version available from the https://www.vagrantup.com[HashiCorp Vagrant page].
+
+== Virtualbox
+
+Vagrant uses Virtualbox for running the provisioned VMs. Therefore you must have https://www.virtualbox.org/[Virtualbox] installed.
+
+== Atlassian tools licenses
+
+To use the Atlassian tools you need a license to run them. For testing and evaluation Atlassian provides evalutation licenses, which you can get on the https://my.atlassian.com/products/index[My Atlassian license page].
+Here you have to keep in mind, that you have to register, if you don't have an Atlassian account. The registration is for free.
+You need licenses for the following products:
+
+* Bitbucket
+* Jira
+* Confluence
+* Crowd
+
+The evaluation licenses are valid for 30 days from the date of purchase. If you need a server id, this will be provided by the tools within the installation,
+so you are able to inlcude the licenses within theinstallation wizards of the tools, after the base setup provided by the Ansible scripts.
+
+The base setup uses the following versions:
+
+|===
+| Software | Version
+
+| Bitbucket
+| 5.16.3
+
+| Jira
+| 7.13.3
+
+| Confluence
+| 6.14.3
+
+| Crowd
+| 3.4.4
+|===
+
+== Cygwin / Linux
+
+You must have the possibility to run bash scripts to install the OpenDevStack. On Linux systems you can use these scripts out-of-the box, on Windows systems you will have to install either a bash port for Windows like https://www.cygwin.com/[Cygwin].
+For Windows, our recommendation is to use Cygwin for configuration. Make sure to select the curl package under the "net" category when installing cygwin.
+
+== Ansible
+
+The OpenDevStack uses https://www.ansible.com/[Ansible] to install and configure the necessary software for the enabling stack, so it's recommended to get familiar with its core concepts and usage. Credentials are stored within an Ansible vault, so even if you commit them in a public repository they are not available unless you know the vault password. Nevertheless, it is recommended to take care with handling credentials, even if they are encrypted.

@@ -1,0 +1,113 @@
+= Update Guide to version 2.x for OpenDevStack users
+:experimental:
+:page-layout: documentation
+:toc:
+
+Learn all about how to update your OpenDevStack based project to ODS 2.x.
+
+NOTE: It is assumed that you are updating from ODS 1.2.x.
+
+== Required steps
+
+=== Update image tags of Jenkins deployments
+
+Go into your `*-cd` namespace and edit the deployments (`jenkins` and
+`webhook-proxy`) to point to the new tags (via "Actions" > "Edit"), and trigger a deployment.
+
+=== Update Jenkinsfiles in Git repositories
+
+Edit every `Jenkinsfile`. The shared library should point to `2.x`, e.g.:
+
+[source,groovy]
+----
+library identifier: 'ods-library@2.x', retriever: modernSCM(
+  [$class: 'GitSCMSource',
+   remote: sharedLibraryRepository,
+   credentialsId: credentialsId])
+----
+
+Also, the image used to run the pipeline in should point to `2.x`, e.g.:
+[source,groovy]
+----
+odsPipeline(
+  image: "${dockerRegistry}/cd/jenkins-slave-maven:2.x",
+  ...
+)
+----
+
+=== Grant image-puller rights to your `*-cd` namespace
+
+This step is not strictly necessary, but recommended as projects created with
+version `2.x` will have those rights by default. Having this setup will enable
+you to use the `*-cd` namespace for common base images to reduce build times.
+
+Run the following, replacing `$PROJECT_ID` with your project ID:
+
+[source,sh]
+----
+oc policy add-role-to-group system:image-puller system:serviceaccounts:$PROJECT_ID-test -n $PROJECT_ID-cd
+oc policy add-role-to-group system:image-puller system:serviceaccounts:$PROJECT_ID-dev -n $PROJECT_ID-cd
+----
+
+Note that you need to be an admin on your project in order to run those commands. For more information, see https://github.com/opendevstack/ods-core/issues/293[ods-core#293].
+
+=== Component resource constraints
+
+Newly created components now have memory quotas
+(https://github.com/opendevstack/ods-quickstarters/issues/12[ods-quickstarters#12])
+and CPU quotas (https://github.com/opendevstack/ods-quickstarters/issues/74[ods-quickstarters#74])
+configured.
+
+It is recommended (though not required) to configure resource constraints for
+existing components as well. If you are unsure which values to set, refer to the
+new defaults and check the current usage in the "Metrics" section in OpenShift.
+
+== Notable changes
+
+=== Component deployment behaviour
+
+In the shared library, rollouts will be triggered manually now when no config/image trigger exists on the DeploymentConfig.
+
+=== Jenkins slave NodeJS 8
+
+The `cd/jenkins-slave-nodejs8-angular` image has been discontinued. Please update to
+`cd/jenkins-slave-nodejs10-angular`. For more information, see https://github.com/opendevstack/ods-quickstarters/issues/71[ods-quickstarters#71].
+
+=== New Tailor version
+
+Tailor has been updated to 0.11.0 in the Jenkins slaves, see https://github.com/opendevstack/ods-core/issues/290[ods-core#290].
+
+=== Deprecation of `shared-services` namespace
+
+The `shared-images` namespace (containing common base images) has been
+removed from new ODS 2.0 installation. For existing installations, it is likely
+being kept for some time by the cluster administrator to enable users to react
+to this change.
+
+If you use a component based on the `ds-jupyter-notebook` or `ds-rshiny`
+quickstarters, you should switch to using the new authentication approach, which
+is uing an OpenShift OAuth proxy instead of a Nginx service. See
+https://github.com/opendevstack/ods-quickstarters/issues/46[ods-quickstarters#46].
+
+If you use the Airflow Quickstarter, its base images should now be built in your
+`*-cd` namespace See
+https://github.com/opendevstack/ods-quickstarters/issues/60[ods-quickstarters#60].
+
+== New features
+
+=== SonarQube quality gates
+
+It is now possible to opt-in to failing the build if the SonarQube scan fails
+the quality gate defined in SonarQube. To enable this, change the call of
+`stageScanForSonarqube(context)` to `stageScanForSonarqube(context, true)`.
+For more information, see https://github.com/opendevstack/ods-jenkins-shared-library/issues/22[ods-jenkins-shared-library#22].
+
+=== Skopeo
+When working with images, you may make use of Skopeo, which is now part of the Jenkins slaves. See https://github.com/opendevstack/ods-core/issues/253[ods-core#253].
+
+== Common / Known Issues
+
+When provisioning new components, you must use a name that differs from the
+component type, otherwise some quickstarters fail. E.g. when creating a new
+component of type `fe-react`, you cannot name it `fe-react` but must choose
+another name like `my-app`. For more information, see https://github.com/opendevstack/ods-provisioning-app/issues/336.
