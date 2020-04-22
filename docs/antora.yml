@@ -4,7 +4,7 @@ title: OpenDevStack
 start_page: getting-started:index.adoc
 nav:
 - modules/jenkins-shared-library/nav.adoc # Located in ods-jenkins-shared-library.git
-- modules/quickstarters/nav.adoc # Located in ods-quickstarters.git
+- modules/quickstarters/nav.adoc # Located in ods-project-quickstarters.git
 - modules/provisioning-app/nav.adoc # Located in ods-provisioning-app.git
 - modules/ROOT/nav.adoc
 - modules/jenkins/nav.adoc
