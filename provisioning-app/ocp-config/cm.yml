@@ -5,7 +5,7 @@ parameters:
   required: true
 - name: ODS_GIT_REF
   required: true
-- name: PROV_APP_JIRA_URI
+- name: JIRA_URL
   required: true
   description: the URI of JIRA used to create new jira projects
 - name: PROV_APP_CONFLUENCE_URI
@@ -102,7 +102,7 @@ objects:
       project.template.key.names=${project.template.default.key},kanban
 
       # JIRA properties
-      jira.uri=${PROV_APP_JIRA_URI}
+      jira.uri=${JIRA_URL}
       jira.api.path=/rest/api/latest
       jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
 
