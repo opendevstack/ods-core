@@ -1,6 +1,7 @@
 name: opendevstack
 title: OpenDevStack
-version: latest
+version: 3.x
+prerelease: Preview
 start_page: getting-started:index.adoc
 nav:
 - modules/jenkins-shared-library/nav.adoc # Located in ods-jenkins-shared-library.git
