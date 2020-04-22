@@ -1,4 +1,3 @@
-* Jenkins
-** xref:index.adoc[Jenkins Overview]
+* xref:index.adoc[Jenkins]
 ** xref:webhook-proxy.adoc[Webhook Proxy]
 ** xref:slave-base.adoc[Jenkins Slave Base Image]
