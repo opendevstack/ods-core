@@ -58,7 +58,7 @@ start-jenkins-build-webhook-proxy:
 
 # SONARQUBE
 ## Install or update SonarQube.
-install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-deploy
+install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-deploy configure-sonarqube
 .PHONY: install-sonarqube
 
 ## Update OpenShift resources related to the SonarQube image.
@@ -66,16 +66,22 @@ apply-sonarqube-build:
 	cd sonarqube/ocp-config && tailor apply bc,is
 .PHONY: apply-sonarqube-build
 
+## Start build of BuildConfig "sonarqube".
+start-sonarqube-build:
+	ocp-scripts/start-and-follow-build.sh --build-config sonarqube
+.PHONY: start-sonarqube-build
+
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
 	cd sonarqube/ocp-config && tailor apply --exclude bc,is
 	route=$(oc get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
-## Start build of BuildConfig "sonarqube".
-start-sonarqube-build:
-	ocp-scripts/start-and-follow-build.sh --build-config sonarqube
-.PHONY: start-sonarqube-build
+## Configure SonarQube service.
+configure-sonarqube:
+	route=$(oc get route sonarqube -ojsonpath={.spec.host})
+	cd sonarqube && ./configure.sh --sonarqube=${route}
+.PHONY: configure-sonarqube
 
 # NEXUS
 ## Install or update Nexus.
