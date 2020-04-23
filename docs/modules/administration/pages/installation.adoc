@@ -73,14 +73,18 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 If you are want to install on your local machine, please review xref:administration:local-install-requirements.adoc[local installation requirements].
 
 === Atlassian Tools
-At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed. Documentation for this is not complete / up-to-date but may be found at:
+At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed.
 
-
+WARNING: Documentation for this is missing.
 
 After Bitbucket is running, create the `OPENDEVSTACK` project and create bare repositories for each OpenDevStack repository that you have setup locally.
 
 === OpenShift cluster
-At this stage you can setup the OpenShift cluster if it does not exist yet. Documentation for this is missing right now. Locally, some version of `oc cluster up` will do the trick.
+At this stage you can setup the OpenShift cluster if it does not exist yet.
+
+WARNING: Documentation for this is missing.
+
+TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repoisitories
 
@@ -120,6 +124,8 @@ In `ods-core` run:
 ----
 make install-nexus
 ----
+
+WARNING: Documentation for configuration is missing.
 
 === SonarQube
 
