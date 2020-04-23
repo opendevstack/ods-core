@@ -10,7 +10,7 @@ objects:
       app: prov-app
     name: prov-app
   spec:
-    host: prov-app-${PROV_APP_ENVIRONMENT}${OPENSHIFT_APPS_BASEDOMAIN}
+    host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -22,5 +22,5 @@ objects:
 parameters:
 - name: OPENSHIFT_APPS_BASEDOMAIN
   required: true
-- name: PROV_APP_ENVIRONMENT
+- name: TAILOR_NAMESPACE
   required: true

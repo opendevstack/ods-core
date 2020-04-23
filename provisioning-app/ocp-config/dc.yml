@@ -5,6 +5,8 @@ parameters:
   required: true
 - name: PROV_APP_IMAGE
   required: true
+- name: PROV_APP_IMAGE_PULL_POLICY
+  required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig

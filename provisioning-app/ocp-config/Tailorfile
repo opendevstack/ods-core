@@ -1,8 +1,6 @@
 namespace cd
 selector app=prov-app
 param-file ../../../ods-configuration/ods-core.env
-ignore-path bc:/spec/output/to/name
-ignore-path bc:/spec/output/imageLabels
 ignore-unknown-parameters true
 
-bc,cm,dc,pvc,route,secret,svc
+cm,dc,pvc,route,secret,svc

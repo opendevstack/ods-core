@@ -8,13 +8,13 @@ parameters:
 - name: JIRA_URL
   required: true
   description: the URI of JIRA used to create new jira projects
-- name: PROV_APP_CONFLUENCE_URI
+- name: CONFLUENCE_URL
   required: true
   description: the URI of confluence used to create new confluence spaces
-- name: PROV_APP_BITBUCKET_URI
+- name: BITBUCKET_URL
   required: true
   description: the URI of bitbucket used to create new project and repositories
-- name: PROV_APP_CROWD_URI
+- name: CROWD_URL
   required: true
   description: the URI of crowd used to authenticate users from the app against
 - name: OPENSHIFT_CONSOLE_HOST
@@ -115,13 +115,13 @@ objects:
       jira.project.template.type.kanban=software
 
       # Confluence properties
-      confluence.uri=${PROV_APP_CONFLUENCE_URI}
+      confluence.uri=${CONFLUENCE_URL}
       confluence.api.path=/rest
       confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
       confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
 
       # Bitbucket properties
-      bitbucket.uri=${PROV_APP_BITBUCKET_URI}
+      bitbucket.uri=${BITBUCKET_URL}
       bitbucket.api.path=/rest/api/1.0
       bitbucket.repository.pattern=%s-%s
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
@@ -248,7 +248,7 @@ objects:
       crowd.local.directory=LocalDirectory
       crowd.application.name=provision
       crowd.application.password=${PROV_APP_CROWD_PASSWORD}
-      crowd.server.url=${PROV_APP_CROWD_URI}/services/
+      crowd.server.url=${CROWD_URL}/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
 
       # crowd sso cookie keyname

@@ -20,5 +20,8 @@ objects:
         storage: 10Mi
 parameters:
 - name: STORAGE_PROVISIONER
+  required: true
 - name: STORAGE_CLASS_DATA
+  required: true
 - name: STORAGE_CLASS_BACKUP
+  required: true
