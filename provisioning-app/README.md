@@ -1,6 +1,6 @@
 # Provisioning App
 
-Nexus is a repository manager. It allows you to proxy, collect, and manage your dependencies so that you are not constantly juggling a collection of artifacts. In essence. it makes it easy to distribute your software.
+The [Provisioning App](https://github.com/opendevstack/ods-provisioning-app) creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on quickstarters.
 
 # Setup
 
