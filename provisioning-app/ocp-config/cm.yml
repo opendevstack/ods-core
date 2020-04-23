@@ -1,0 +1,279 @@
+apiVersion: v1
+kind: Template
+parameters:
+- name: ODS_IMAGE_TAG
+  required: true
+- name: ODS_GIT_REF
+  required: true
+- name: JIRA_URL
+  required: true
+  description: the URI of JIRA used to create new jira projects
+- name: CONFLUENCE_URL
+  required: true
+  description: the URI of confluence used to create new confluence spaces
+- name: BITBUCKET_URL
+  required: true
+  description: the URI of bitbucket used to create new project and repositories
+- name: CROWD_URL
+  required: true
+  description: the URI of crowd used to authenticate users from the app against
+- name: OPENSHIFT_CONSOLE_HOST
+  required: true
+  description: the console host of the OCP cluster
+- name: PROV_APP_CROWD_USER_GROUP
+  required: true
+  description: crowd user group
+- name: CD_USER_ID
+  required: true
+  description: the username of the CD user
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+  description: the domain of routes exposed on OCP
+- name: PROV_APP_PACKAGE_PREFIX
+  required: true
+  description: the default package prefix
+- name: PROV_APP_ATLASSIAN_DOMAIN
+  required: true
+  description: the domain of the atlassian toolsuite needed for single signon cookies
+- name: PROV_APP_CROWD_PASSWORD
+  required: true
+  description: password of the crowd app to authenticate the provision app against
+- name: PROV_APP_JASYPT_PASSWORD
+  required: true
+- name: PROV_APP_MAIL_HOST
+  required: true
+  description: The hostname of the mailserver
+- name: PROV_APP_MAIL_PASSWORD
+  required: true
+  description: The password to authenticate against the mail server
+- name: PROV_APP_MAIL_USERNAME
+  required: true
+  description: The username to authenticate against the mail server
+- name: PROV_APP_CROWD_ADMIN_GROUP
+  required: true
+  description: The crowd admin group name
+- name: PROV_APP_PIPELINE_TRIGGER_SECRET
+  required: true
+  description: The trigger secret to pass to the webhook proxy
+- name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
+  required: true
+  description: Log level of Atlassian crowd package
+- name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
+  required: true
+  description: Log level of OpenDevStack package
+- name: LOGGING_FILE_PATH
+  required: true
+  description: File system location for the log files
+objects:
+- kind: ConfigMap
+  metadata:
+    labels:
+      app: prov-app
+    name: application.properties
+  apiVersion: v1
+  data:
+    properties: |
+      # log level
+      logging.level.root=WARN
+      logging.level.org.springframework=INFO
+      logging.level.org.springframework.security=DEBUG
+      logging.level.com.atlassian=INFO
+      logging.level.com.atlassian.crowd=${PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD}
+      logging.level.org.opendevstack=${PROV_APP_LOG_LEVEL_OPENDEVSTACK}
+
+      # log file
+      logging.file.path=${LOGGING_FILE_PATH}
+
+      # atlassian API calls take sooo long
+      server.servlet.session.timeout=240
+      server.connection-timeout=90000
+      spring.session.timeout=240
+      spring.mvc.async.request-timeout=90000
+      
+      # server port
+      server.port=8080
+      server.use-forward-headers=true
+
+      global.keyuser.role.name=${idmanager.group.opendevstack-administrators}
+
+      project.template.default.key=default
+
+      # project types, these two are configured in the src/main/resources/application.properties
+      project.template.key.names=${project.template.default.key},kanban
+
+      # JIRA properties
+      jira.uri=${JIRA_URL}
+      jira.api.path=/rest/api/latest
+      jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
+
+      # JIRA default project templates
+      jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+      jira.project.template.type=software
+
+      # kanban project type
+      jira.project.template.key.kanban=com.pyxis.greenhopper.jira:gh-kanban-template
+      jira.project.template.type.kanban=software
+
+      # Confluence properties
+      confluence.uri=${CONFLUENCE_URL}
+      confluence.api.path=/rest
+      confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
+      confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
+
+      # Bitbucket properties
+      bitbucket.uri=${BITBUCKET_URL}
+      bitbucket.api.path=/rest/api/1.0
+      bitbucket.repository.pattern=%s-%s
+      bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
+      bitbucket.technical.user=${CD_USER_ID}
+      bitbucket.opendevstack.project=opendevstack
+
+      scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
+      scm.global.readablerepos.opendevstack[1]=ods-quickstarters
+      scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
+
+      # ODS properties
+      ods.image-tag=${ODS_IMAGE_TAG}
+      ods.git-ref=${ODS_GIT_REF}
+
+      #############
+      # Job configurations can have the following properties:
+      #
+      # Mandatory:
+      # jenkinspipeline.[some-job-name].desc -> description of the Job
+      # jenkinspipeline.[some-job-name].repo -> repo name of the Job
+      #
+      # Optional:
+      # jenkinspipeline.[some-job-name].create-webhook -> whether a default webhook should be created for this repo or not (true by default)
+      # jenkinspipeline.[some-job-name].branch -> a branch differing from ods.git-ref
+      # jenkinspipeline.[some-job-name].jenkinsfile -> a path to the jenkinsfile differing from [some-job-name]/Jenkinsfile
+      #############
+      # adminjobs configuration: create projects, delete-projects and delete-components
+      jenkinspipeline.adminjobs.create-projects.desc=Create Project
+      jenkinspipeline.adminjobs.create-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-projects.desc=Delete openshift project
+      jenkinspipeline.adminjobs.delete-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
+      jenkinspipeline.adminjobs.delete-components.repo=ods-core
+
+      # Backend quickstarters
+      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
+      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
+      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
+      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
+      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
+      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
+
+      # Data Science quickstarters
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
+      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
+      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
+
+      # Frontend quickstarters
+      jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
+      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
+      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
+      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
+      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
+
+      #Other quickstarters
+      jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
+      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
+      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
+      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
+      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.release-manager.create-webhook=false
+
+      jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
+      jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
+
+      # openshift properties
+      openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
+      openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
+
+      # allow /or disallow a jira only project to be upgraded to a full OCP project
+      openshift.project.upgrade=false
+
+      # openshift project name patterns
+      openshift.test.project.name.pattern=%s%s-test
+      openshift.dev.project.name.pattern=%s%s-dev
+      openshift.cd.project.name.pattern=%s%s-cd
+      openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
+      openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
+      openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
+
+      artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
+
+
+      # Cookie Domain
+      atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}
+
+      # Data for confluence space creation
+      confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+
+      # idmanager
+      provision.auth.provider=crowd
+      spring.profiles.active=crowd
+      idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
+      idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
+
+      # crowd properties
+      crowd.local.directory=LocalDirectory
+      crowd.application.name=provision
+      crowd.application.password=${PROV_APP_CROWD_PASSWORD}
+      crowd.server.url=${CROWD_URL}/services/
+      crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
+
+      # crowd sso cookie keyname
+      crowd.sso.cookie.name=crowd.token_key
+
+      # local storage
+      project.storage.local=/opt/provision/history/
+
+      jasypt.encryptor.password=${PROV_APP_JASYPT_PASSWORD}
+
+      # mail properties
+      # enable mail sendout with project details
+      mail.enabled=true
+      
+      spring.mail.host=${PROV_APP_MAIL_HOST}
+      spring.mail.port=587
+      spring.mail.protocol=smtp
+      spring.mail.debug=true
+      spring.mail.defaultEncoding=UTF-8
+      spring.mail.smtp.timeout=1000
+      spring.mail.smtp.connectiontimeout=1000
+      spring.mail.smtps.connectiontimeout=1000
+      spring.mail.properties.mail.smtp.ssl.enable=true
+      spring.mail.properties.mail.smtp.auth=true
+      spring.mail.username=${PROV_APP_MAIL_USERNAME}
+      spring.mail.password=${PROV_APP_MAIL_PASSWORD}
+      provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
+      spring.main.allow-bean-definition-overriding=true

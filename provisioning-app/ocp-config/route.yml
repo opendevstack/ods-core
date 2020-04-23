@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Template
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      haproxy.router.openshift.io/timeout: 2m
+    labels:
+      app: prov-app
+    name: prov-app
+  spec:
+    host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: prov-app
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: TAILOR_NAMESPACE
+  required: true

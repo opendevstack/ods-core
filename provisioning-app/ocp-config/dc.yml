@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Template
+parameters:
+- name: TAILOR_NAMESPACE
+  required: true
+- name: PROV_APP_IMAGE
+  required: true
+- name: PROV_APP_IMAGE_PULL_POLICY
+  required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: prov-app
+    name: prov-app
+  spec:
+    replicas: 1
+    selector:
+      app: prov-app
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: prov-app
+      spec:
+        containers:
+        - image: ${PROV_APP_IMAGE}
+          imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
+          name: prov-app
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/provision/history
+            name: volume-history
+          - mountPath: /config
+            name: volume-ikfik
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: volume-history
+          persistentVolumeClaim:
+            claimName: prov-history
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: application.properties
+            name: application.properties
+          name: volume-ikfik
+    test: false
+    triggers:
+    - type: ConfigChange

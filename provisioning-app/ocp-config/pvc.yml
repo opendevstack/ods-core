@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Template
+objects:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: prov-app
+    name: prov-history
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Mi
+parameters:
+- name: STORAGE_PROVISIONER
+  required: true
+- name: STORAGE_CLASS_DATA
+  required: true
+- name: STORAGE_CLASS_BACKUP
+  required: true

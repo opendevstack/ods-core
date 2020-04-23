@@ -1,0 +1,6 @@
+namespace cd
+selector app=prov-app
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
+
+cm,dc,pvc,route,secret,svc
