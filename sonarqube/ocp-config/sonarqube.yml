@@ -277,6 +277,8 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+      - kubernetes.io/pvc-protection
     labels:
       app: sonarqube
     name: sonarqube-data
@@ -292,6 +294,8 @@ objects:
   metadata:
     annotations:
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
+    finalizers:
+      - kubernetes.io/pvc-protection
     labels:
       app: sonarqube
     name: sonarqube-extensions
