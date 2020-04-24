@@ -2,8 +2,29 @@
 #!/usr/bin/env bash
 set -ue
 
-SONAR_VERSION=7.9
-SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-7.9.zip
+SONAR_VERSION=8.2.0.32929
+
+function usage {
+    printf "Test SonarQube setup.\n\n"
+    printf "\t-h|--help\t\tPrint usage\n"
+    printf "\t-v|--verbose\t\tEnable verbose mode\n"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' (defaults to ${SONAR_VERSION})\n"
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+
+    -v|--verbose) set -x;;
+
+    -h|--help) usage; exit 0;;
+
+    -s|--sq-version) SONAR_VERSION="$2"; shift;;
+    -s=*|--sq-version=*) SONAR_VERSION="${1#*=}";;
+
+    *) echo_error "Unknown parameter passed: $1"; exit 1;;
+esac; shift; done
+
+SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip
 
 echo "Build image"
 docker build \
