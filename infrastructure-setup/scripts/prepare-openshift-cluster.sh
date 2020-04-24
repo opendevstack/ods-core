@@ -39,7 +39,7 @@ oc adm policy --as system:admin add-cluster-role-to-user cluster-admin system:se
 
 # create secrets for global cd_user
 CD_USER_PWD_B64=$(grep CD_USER_PWD_B64 $cd_user_config_location | cut -d '=' -f 2-)
-oc process -f ${BASE_DIR}/ods-core/infrastructure-setup/ocp-config/cd-user/secret.yml -p CD_USER_PWD_B64=${CD_USER_PWD_B64} |  oc create -n cd -f-
+oc process -f ${BASE_DIR}/ods-core/ods-setup/ocp-config/cd-user/secret.yml -p CD_USER_ID_B64=Y2RfdXNlcg== -p CD_USER_PWD_B64=${CD_USER_PWD_B64} |  oc create -n cd -f-
 
 if [[ ! -d "${BASE_DIR}/certs" ]] ; then
   echo "creating certs directory"

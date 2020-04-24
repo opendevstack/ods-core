@@ -5,16 +5,17 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/opendevstack/ods-core/tests/utils"
-	v1 "github.com/openshift/api/build/v1"
-	buildClientV1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"path"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/opendevstack/ods-core/tests/utils"
+	v1 "github.com/openshift/api/build/v1"
+	buildClientV1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestJenkinsFile(t *testing.T) {
@@ -154,7 +155,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 
-	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", "--reveal-secrets", "-n", projectNameCd,
+	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{"status", "--reveal-secrets", "-n", projectNameCd,
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",

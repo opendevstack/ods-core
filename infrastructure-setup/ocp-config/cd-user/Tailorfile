@@ -1,5 +1,0 @@
-param-file  ../../../ods-config/ods-core.env
-
-ignore-unknown-parameters true
-
-secret

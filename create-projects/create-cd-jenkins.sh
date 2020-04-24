@@ -3,17 +3,13 @@ set -eu
 
 # This script sets up a ${PROJECT_ID}-cd/jenkins-master and the associated webhook proxy for the project you are creating.
 
-# support pointing to patched tailor using TAILOR environment variable
-
 TAILOR="tailor"
 VERBOSE=false
 STATUS=false
-FORCE=""
 
 function usage {
    printf "usage: %s [options]\n", $0
    printf "\t--status\tExecutes tailor status\n"
-   printf "\t--force\tIgnores warnings and error with tailor --force\n"
    printf "\t-h|--help\tPrints the usage\n"
    printf "\t-v|--verbose\tVerbose output\n"
    printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
@@ -27,8 +23,6 @@ while [[ "$#" -gt 0 ]]; do case $1 in
    --status) STATUS=true;;
 
    -v|--verbose) VERBOSE=true; set -x;;
-
-   --force) FORCE="--force"; ;;
 
    -h|--help) usage; exit 0;;
 
@@ -65,12 +59,12 @@ tailor_update_in_dir() {
   shift
   if [ ${STATUS} = "true" ]; then
     $VERBOSE && echo 'exec:' cd "$dir" '&&'
-    $VERBOSE && echo 'exec:' ${TAILOR} ${FORCE} $tailor_verbose status "$@"
-    cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} status "$@"
+    $VERBOSE && echo 'exec:' ${TAILOR} $tailor_verbose status "$@"
+    cd "$dir" && ${TAILOR} $tailor_verbose status "$@"
   else
     $VERBOSE && echo 'exec:' cd "$dir" '&&'
-    $VERBOSE && echo 'exec:    ' ${TAILOR} ${FORCE} $tailor_verbose --non-interactive update "$@"
-    cd "$dir" && ${TAILOR} $tailor_verbose ${FORCE} --non-interactive update "$@"
+    $VERBOSE && echo 'exec:    ' ${TAILOR} $tailor_verbose --non-interactive update "$@"
+    cd "$dir" && ${TAILOR} $tailor_verbose --non-interactive update "$@"
   fi
 }
 

@@ -2,8 +2,9 @@ package create_projects
 
 import (
 	"fmt"
-	"github.com/opendevstack/ods-core/tests/utils"
 	"testing"
+
+	"github.com/opendevstack/ods-core/tests/utils"
 )
 
 func TestCreateJenkinsWithMissingEnvVars(t *testing.T) {
@@ -52,7 +53,7 @@ func TestCreateJenkinsWithMissingEnvVars(t *testing.T) {
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
-			stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose"}, testCase.envVars)
+			stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--verbose"}, testCase.envVars)
 			if err == nil {
 				t.Fatalf(
 					"Execution of `create-cd-jenkins.sh` must fail if no %s is set: \nStdOut: %s\nStdErr: %s",
@@ -88,7 +89,7 @@ func TestCreateJenkinsSuccessfully(t *testing.T) {
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 
-	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--force", "--verbose", "--ods-namespace", odsNamespace},
+	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--verbose", "--ods-namespace", odsNamespace},
 		[]string{
 			utils.PROJECT_ENV_VAR,
 			"CD_USER_TYPE=general",

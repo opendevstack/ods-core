@@ -54,7 +54,7 @@ if [ -z "${REF}" ]; then
     exit 1
 fi
 
-source ${BASH_SOURCE%/*}/../../ods-config/ods-core.env
+source ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env
 
 docker ps | grep mockbucket
 
@@ -69,7 +69,7 @@ git -c http.sslVerify=false push mockbucket --set-upstream "${HEAD}:${REF}"
 git remote remove mockbucket
 
 mkdir -p "${BASH_SOURCE%/*}/../../../ods-configuration"
-cp ${BASH_SOURCE%/*}/../../ods-config/ods-core.env ${BASH_SOURCE%/*}/../../../ods-configuration
+cp ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env ${BASH_SOURCE%/*}/../../../ods-configuration
 
 cd "${BASH_SOURCE%/*}/../../../ods-configuration"
 git init

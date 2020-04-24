@@ -37,16 +37,27 @@ podTemplate(
 ) {
   node(podLabel) {
 
-    stage('checkout') {
-      checkout scm
-      gitIsHttps = sh(
-        returnStdout: true,
-        script: 'git config remote.origin.url'
-      ).trim().startsWith("https");
+    stage('Checkout ods-core') {
+      checkout([
+        $class: 'GitSCM',
+        branches: scm.branches,
+        doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+        extensions: scm.extensions + [[
+          $class: 'RelativeTargetDirectory',
+          relativeTargetDir: 'ods-core'
+        ]],
+        userRemoteConfigs: scm.userRemoteConfigs
+      ])
+      dir('ods-core') {
+        gitIsHttps = sh(
+          returnStdout: true,
+          script: 'git config remote.origin.url'
+        ).trim().startsWith("https")
+      }
     }
 
-    stage('checkout ods-config') {
-      def bitbucketScheme = gitIsHttps ? "https://" : "http://"
+    stage('Checkout ods-configuration') {
+      def bitbucketScheme = gitIsHttps ? 'https://' : 'http://'
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
       echo ("Getting ods configuration from (${bitbucketHost})")
       checkout([
@@ -55,7 +66,7 @@ podTemplate(
         doGenerateSubmoduleConfigurations: false,
         extensions: [[
           $class: 'RelativeTargetDirectory',
-          relativeTargetDir: 'ods-config'
+          relativeTargetDir: 'ods-configuration'
         ]],
         submoduleCfg: [],
         userRemoteConfigs: [[
@@ -65,12 +76,16 @@ podTemplate(
       ])
     }
 
-    stage('creating openshift projects') {
-      sh "sh ./create-projects/create-projects.sh"
+    stage('Create OpenShift projects') {
+      dir('ods-core') {
+        sh './create-projects/create-projects.sh'
+      }
     }
 
-    stage('creating jenkins') {
-      sh "sh ./create-projects/create-cd-jenkins.sh --force --verbose"
+    stage('Setup Jenkins in CD project') {
+      dir('ods-core') {
+        sh './create-projects/create-cd-jenkins.sh --verbose'
+      }
     }
   }
 }

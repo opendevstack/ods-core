@@ -31,7 +31,7 @@ if docker ps -a --format "{{.Names}}" | grep mockbucket; then
     docker rm mockbucket --force
 fi
 
-source ${BASH_SOURCE%/*}/../../ods-config/ods-core.env
+source ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env
 docker run -d -p "8080:8080" \
            --env="BASIC_USERNAME=${CD_USER_ID}" \
            --env="BASIC_PASSWORD=${CD_USER_PWD}" \
