@@ -137,12 +137,9 @@ In `ods-core` run:
 make install-sonarqube
 ----
 
-Afterwards, perform the following manual steps:
-
-. Change admin password
-. Lock SonarQube to logged-in users (Administation > Configuration > Security > Force User Authentication).
-. Log in as `cd_user` and created an auth token (My Account > Security > Generate New Token).
-. As the auth token and the admin password have changed, update your OpenShift configuration repository and the `sonarqube-app` secret.
+This will launch an instance of SonarQube.
+The script will prompt for a new admin password, set it and create an auth token to be used by the Jenkins pipelines.
+At the end, the script will ask you to adjust `ods-configuration/ods-core.env`, which you need to commit and push before continuing.
 
 === Jenkins
 

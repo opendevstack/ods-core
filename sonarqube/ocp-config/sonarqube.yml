@@ -29,12 +29,12 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        env:
-          - name: SONAR_VERSION
+        buildArgs:
+          - name: sonarVersion
             value: ${SONAR_VERSION}
-          - name: SONAR_DISTRIBUTION_URL
+          - name: sonarDistributionUrl
             value: ${SONAR_DISTRIBUTION_URL}
-          - name: IDP_DNS
+          - name: idpDns
             value: ${IDP_DNS}
       type: Docker
     successfulBuildsHistoryLimit: 5
