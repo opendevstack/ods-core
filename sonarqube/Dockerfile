@@ -1,7 +1,7 @@
 FROM adoptopenjdk/openjdk11:alpine-jre
 
-ARG sonarDistributionUrl
-ARG sonarVersion
+ARG sonarDistributionUrl=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.2.0.32929.zip
+ARG sonarVersion=8.2.0.32929
 ARG idpDns
 
 ENV SONARQUBE_HOME=/opt/sonarqube \
