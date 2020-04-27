@@ -93,6 +93,13 @@ apply-nexus:
 	cd nexus/ocp-config && tailor apply
 .PHONY: apply-nexus
 
+## Configure Nexus service.
+### Not part of install-nexus because it is not idempotent yet.
+configure-nexus:
+	route=$(oc get route nexus3 -ojsonpath={.spec.host})
+	cd nexus && ./configure.sh --nexus=${route}
+.PHONY: configure-nexus
+
 # BACKUP
 ## Create a backup of the current state.
 backup: backup-sonarqube backup-ocp-config

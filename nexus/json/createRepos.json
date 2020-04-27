@@ -6,7 +6,7 @@
   import org.sonatype.nexus.repository.maven.LayoutPolicy;
   repository.createMavenHosted('candidates', 'candidates', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
   repository.createMavenHosted('releases', 'releases', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
-  repository.createMavenProxy('atlassian_public', 'https://maven.atlassian.com/content/repositories/atlassian-public/','atlassian_public', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
+  repository.createMavenProxy('atlassian_public', 'https://maven.atlassian.com/content/repositories/atlassian-public/', 'atlassian_public', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
   repository.createMavenProxy('jcenter', 'https://jcenter.bintray.com', 'default', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
   repository.createMavenProxy('jenkins-ci-releases', 'https://repo.jenkins-ci.org/releases/', 'default', true, VersionPolicy.RELEASE, LayoutPolicy.STRICT);
   repository.createMavenProxy('sbt-plugins', 'http://dl.bintray.com/sbt/sbt-plugin-releases/', 'default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
@@ -14,10 +14,10 @@
   repository.createMavenProxy('typesafe-ivy-releases', 'https://dl.bintray.com/typesafe/ivy-releases', 'default', false, VersionPolicy.RELEASE, LayoutPolicy.PERMISSIVE);
   repository.createMavenGroup('ivy-releases', ['sbt-plugins', 'sbt-releases', 'typesafe-ivy-releases'], 'default');
   repository.createNpmProxy('npm-registry', 'https://registry.npmjs.org', 'default', true);
-  repository.createNpmHosted('npm-private', 'npm-private', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
+  repository.createNpmHosted('npm-private', 'npm-private', true, WritePolicy.ALLOW_ONCE);
   repository.createNpmGroup('npm-all', ['npm-registry', 'npm-private'], 'default');
   repository.createPyPiProxy('pypi-registry', 'https://pypi.org/', 'default', false);
-  repository.createPyPiHosted('pypi-private', 'pypi-private', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);
+  repository.createPyPiHosted('pypi-private', 'pypi-private', true, WritePolicy.ALLOW_ONCE);
   repository.createPyPiGroup('pypi-all', ['pypi-registry', 'pypi-private'], 'default');
   repository.createRawHosted('leva-documentation', 'leva-documentation', false, WritePolicy.ALLOW);
   repositoryManager = repository.repositoryManager;
