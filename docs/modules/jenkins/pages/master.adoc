@@ -20,7 +20,6 @@ Jenkins offers to deploy https://wiki.jenkins.io/display/JENKINS/Post-initializa
 |url.groovy | Sets the Jenkins location based on the OpenShift route
 |sonarqube.groovy | Sets the SonarQube server URL and auth token based on the exposed environment variables
 |ods-jenkins-shared-library.groovy | Registers `ods-jenkins-shared-library` as a global library
-|ods-mro-jenkins-shared-library.groovy | Registers `ods-mro-jenkins-shared-library` as a global library
 
 |===
 

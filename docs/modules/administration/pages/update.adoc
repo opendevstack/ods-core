@@ -147,7 +147,7 @@ Review the `ConfigMap` of the provisioning app in `prov-dev` and `prov-test`. De
 === 1.1.x to 1.2.x
 1.2.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v0.10.2[0.10.2].
 
-==== Prepare installation for MRO/DocGen quickstarter
+==== Prepare installation for release manager quickstarter
 The new functionality to create documents via Jenkins requires the presence of an image for the DocGen service. In an upcoming release, this will be integrated nicely. For `1.2.x`, the image needs to be built once during the update procedure. The recommended way to do this is to build the image in the `prov` namespaces and then move the image tag into the `cd` namespace. The first step is to create a pipeline `oc -n prov-cd process -f pipeline.yml --param REPO_BASE=<YOUR-REPO-BASE-HERE> --param TRIGGER_SECRET=<YOUR-SECERET-HERE> | oc -n prov-cd create -f -`, where `pipeline.yml` looks like this:
 
 [source,yml]

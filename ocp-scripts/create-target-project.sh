@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script can be used to create a new project, setup with serviceaccount
-# an image-puller secret so that the MRO can use it as a deploy target.
-# This script would typically be run by a cluster admin.
+# an image-puller secret so that the orchestration pipeline can use it as a
+# deploy target. This script would typically be run by a cluster admin.
 set -eu
 
 usage() {
