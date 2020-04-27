@@ -130,7 +130,6 @@ objects:
 
       scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
       scm.global.readablerepos.opendevstack[1]=ods-quickstarters
-      scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
 
       # ODS properties
       ods.image-tag=${ODS_IMAGE_TAG}
