@@ -35,7 +35,7 @@ docker build \
     .
 
 echo "Run container"
-containerId=$(docker run -d --stop-timeout 3600 -d -p 9001:9000 -p 9093:9092 sqtest)
+containerId=$(docker run -d --stop-timeout 3600 -p 9001:9000 -p 9093:9092 sqtest)
 
 function cleanup {
     echo "Cleanup"

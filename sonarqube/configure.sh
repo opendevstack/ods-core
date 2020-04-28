@@ -31,7 +31,7 @@ function usage {
     printf "However, you can also pass them directly. Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sonarqube\t\tSonarQube URL, e.g. 'https://bitbucket.sonarqube.com'\n"
+    printf "\t-s|--sonarqube\t\tSonarQube URL, e.g. 'https://sonarqube.example.com'\n"
     printf "\t-a|--admin-password\t\tAdmin password\n"
     printf "\t-p|--pipeline-user\tName of Jenkins pipeline user (defaults to 'cd_user')\n"
     printf "\t-t|--token-name\t\tName of SonarQube user token (defaults to 'ods-jenkins-shared-library')\n"
