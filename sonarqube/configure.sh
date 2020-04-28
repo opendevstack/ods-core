@@ -78,6 +78,22 @@ if [ -z ${ADMIN_USER_PASSWORD} ]; then
     ADMIN_USER_PASSWORD=${input:-""}
 fi
 
+echo_info "Wait for SonarQube to become responsive"
+set +e
+n=0
+until [ $n -ge 20 ]; do
+    httpOk=$(curl --silent -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
+    if [ "${httpOk}" == "200" ]; then
+        echo_info "SonarQube is up"
+        break
+    else
+        echo_info "SonarQube is not up yet, waiting 10s ..."
+        sleep 10s
+        n=$[$n+1]
+    fi
+done
+set -e
+
 echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_DEFAULT_PASSWORD}'"
 if curl -X POST --fail --silent \
     "${SONARQUBE_URL}/api/authentication/login?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
