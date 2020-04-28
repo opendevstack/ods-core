@@ -2,13 +2,13 @@
 #!/usr/bin/env bash
 set -ue
 
-SONAR_VERSION=8.2.0.32929
+SONAR_VERSION=
 
 function usage {
     printf "Test SonarQube setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' (defaults to ${SONAR_VERSION})\n"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' or '8.2.0.32929'\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -23,6 +23,10 @@ while [[ "$#" -gt 0 ]]; do
 
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
+
+if [ -z ${SONAR_VERSION} ]; then
+  echo "ERROR: Param --sq-version is missing!"; usage; exit 1;
+fi
 
 SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip
 
