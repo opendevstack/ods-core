@@ -85,6 +85,9 @@ if curl -X POST --silent --fail \
 fi
 
 echo "Check if unauthenticated access is possible"
+# Ideally we'd check a page that needs privileged access, but that always
+# returns a loading page with status code 200. Therefore, we have to check for
+# the value of the setting.
 forceAuthentication=$(curl \
     --silent \
     --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
