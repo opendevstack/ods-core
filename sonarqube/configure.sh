@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -ue
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ODS_CORE_DIR=${SCRIPT_DIR%/*}
+
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
 }
@@ -31,7 +34,7 @@ function usage {
     printf "However, you can also pass them directly. Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sonarqube\t\tSonarQube URL, e.g. 'https://bitbucket.sonarqube.com'\n"
+    printf "\t-s|--sonarqube\t\tSonarQube URL, e.g. 'https://sonarqube.example.com'\n"
     printf "\t-a|--admin-password\t\tAdmin password\n"
     printf "\t-p|--pipeline-user\tName of Jenkins pipeline user (defaults to 'cd_user')\n"
     printf "\t-t|--token-name\t\tName of SonarQube user token (defaults to 'ods-jenkins-shared-library')\n"
@@ -68,15 +71,53 @@ if ! which jq >/dev/null; then
 fi
 
 if [ -z ${SONARQUBE_URL} ]; then
-    read -e -p "Enter SonarQube URL (e.g. https://example.sonarqube.com): " input
-    SONARQUBE_URL=${input:-""}
+    configuredUrl="https://example.sonarqube.com"
+    if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
+        echo_info "Configuration located"
+        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep SONARQUBE_URL | awk -F= '{print $2}')
+    fi
+    read -e -p "Enter SonarQube URL [${configuredUrl}]: " input
+    if [ -z ${input} ]; then
+        SONARQUBE_URL=${configuredUrl}
+    else
+        SONARQUBE_URL=${input:-""}
+    fi
 fi
 
 if [ -z ${ADMIN_USER_PASSWORD} ]; then
-    echo "Please enter SonarQube admin password:"
-    read -e -s input
-    ADMIN_USER_PASSWORD=${input:-""}
+    if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
+        echo_info "Configuration located, checking if password is changed from sample value"
+        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep SONAR_ADMIN_PASSWORD_B64 | awk -F= '{print $2}')
+        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep SONAR_ADMIN_PASSWORD_B64 | awk -F= '{print $2}' | base64 --decode)
+        if [ "${configuredPassword}" == "${samplePassword}" ]; then
+            echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
+        else
+            echo_info "Setting admin password from ods-configuration/ods-core.env"
+            ADMIN_USER_PASSWORD=${configuredPassword}
+        fi
+    fi
+    if [ -z ${ADMIN_USER_PASSWORD} ]; then
+        echo "Please enter SonarQube admin password:"
+        read -e -s input
+        ADMIN_USER_PASSWORD=${input:-""}
+    fi
 fi
+
+echo_info "Wait for SonarQube to become responsive"
+set +e
+n=0
+until [ $n -ge 20 ]; do
+    httpOk=$(curl --silent -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
+    if [ "${httpOk}" == "200" ]; then
+        echo_info "SonarQube is up"
+        break
+    else
+        echo_info "SonarQube is not up yet, waiting 10s ..."
+        sleep 10s
+        n=$[$n+1]
+    fi
+done
+set -e
 
 echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_DEFAULT_PASSWORD}'"
 if curl -X POST --fail --silent \

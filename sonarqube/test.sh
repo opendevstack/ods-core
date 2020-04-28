@@ -2,13 +2,13 @@
 #!/usr/bin/env bash
 set -ue
 
-SONAR_VERSION=8.2.0.32929
+SONAR_VERSION=
 
 function usage {
     printf "Test SonarQube setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' (defaults to ${SONAR_VERSION})\n"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' or '8.2.0.32929'\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -24,6 +24,10 @@ while [[ "$#" -gt 0 ]]; do
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
+if [ -z ${SONAR_VERSION} ]; then
+  echo "ERROR: Param --sq-version is missing!"; usage; exit 1;
+fi
+
 SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip
 
 echo "Build image"
@@ -35,7 +39,7 @@ docker build \
     .
 
 echo "Run container"
-containerId=$(docker run -d --stop-timeout 3600 -d -p 9001:9000 -p 9093:9092 sqtest)
+containerId=$(docker run -d --stop-timeout 3600 -p 9001:9000 -p 9093:9092 sqtest)
 
 function cleanup {
     echo "Cleanup"
@@ -85,6 +89,9 @@ if curl -X POST --silent --fail \
 fi
 
 echo "Check if unauthenticated access is possible"
+# Ideally we'd check a page that needs privileged access, but that always
+# returns a loading page with status code 200. Therefore, we have to check for
+# the value of the setting.
 forceAuthentication=$(curl \
     --silent \
     --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
