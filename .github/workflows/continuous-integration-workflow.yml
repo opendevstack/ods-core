@@ -29,6 +29,18 @@ jobs:
         run: |
           cd sonarqube && ./test.sh --sq-version=${{ matrix.version }}
 
+  nexus:
+    name: Nexus tests
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+        name: Run tests
+        run: |
+          cd nexus && ./test.sh
+
   webhook-proxy:
     name: Webhook Proxy tests
     runs-on: ubuntu-18.04
