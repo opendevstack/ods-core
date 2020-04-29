@@ -125,7 +125,13 @@ In `ods-core` run:
 make install-nexus
 ----
 
-WARNING: Documentation for configuration is missing.
+Afterwards, run the initial configuration:
+[source,sh]
+----
+make configure-nexus
+----
+
+WARNING: The `configure-nexus` target is not idempotent yet, so it cannot be used for upgrading!
 
 === SonarQube
 

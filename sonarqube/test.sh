@@ -29,17 +29,19 @@ if [ -z ${SONAR_VERSION} ]; then
 fi
 
 SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip
+HOST_PORT="9000"
+CONTAINER_IMAGE="sqtest"
 
 echo "Build image"
 docker build \
-    -t sqtest \
+    -t ${CONTAINER_IMAGE} \
     --build-arg sonarDistributionUrl=${SONAR_DISTRIBUTION_URL} \
     --build-arg sonarVersion=${SONAR_VERSION} \
     --build-arg idpDns="" \
     .
 
-echo "Run container"
-containerId=$(docker run -d --stop-timeout 3600 -p 9001:9000 -p 9093:9092 sqtest)
+echo "Run container using image ${CONTAINER_IMAGE}"
+containerId=$(docker run -d --stop-timeout 3600 -p ${HOST_PORT}:9000 -p 9092:9092 ${CONTAINER_IMAGE})
 
 function cleanup {
     echo "Cleanup"
@@ -47,7 +49,7 @@ function cleanup {
 }
 trap cleanup EXIT
 
-SONARQUBE_URL="http://localhost:9001"
+SONARQUBE_URL="http://localhost:${HOST_PORT}"
 ADMIN_USER_NAME=admin
 ADMIN_USER_DEFAULT_PASSWORD=admin
 ADMIN_USER_PWD=s3cr3t

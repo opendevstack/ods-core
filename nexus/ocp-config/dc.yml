@@ -2,6 +2,10 @@ apiVersion: v1
 kind: Template
 metadata:
   name: nexus3
+parameters:
+- name: NEXUS_IMAGE
+  description: Image to use for Nexus
+  value: sonatype/nexus3:3.22.0
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -27,7 +31,7 @@ objects:
           deploymentconfig: nexus3
       spec:
         containers:
-        - image: sonatype/nexus3:3.19.1
+        - image: ${NEXUS_IMAGE}
           imagePullPolicy: Always
           name: nexus3
           ports:

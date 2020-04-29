@@ -3,6 +3,6 @@
   "firstName": "OpenDevStack",
   "lastName": "Developer",
   "email": "developer@opendevstack.org",
-  "password": "developer",
+  "password": "@developer_password@",
   "roleIds": ["opendevstack-developer"]
 }
