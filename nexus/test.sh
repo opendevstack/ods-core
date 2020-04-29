@@ -28,14 +28,11 @@ CONTAINER_IMAGE="sonatype/nexus3:${NEXUS_VERSION}"
 HOST_PORT="8081"
 
 echo "Run container using image ${CONTAINER_IMAGE}"
-mkdir -p nexus-data
-dir="$(pwd)/nexus-data"
-containerId=$(docker run -d -p ${HOST_PORT}:8081 -v ${dir}:/nexus-data ${CONTAINER_IMAGE})
+containerId=$(docker run -d -p ${HOST_PORT}:8081 ${CONTAINER_IMAGE})
 
 function cleanup {
     echo "Cleanup"
     docker rm -f ${containerId}
-    rm -rf nexus-data
 }
 trap cleanup EXIT
 
