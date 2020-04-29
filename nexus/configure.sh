@@ -113,7 +113,7 @@ function waitForReady {
     echo_info "Wait for Nexus to become responsive"
     set +e
     n=0
-    until [ $n -ge 20 ]; do
+    until [ $n -ge 40 ]; do
         httpOk=$(curl --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
         if [ "${httpOk}" == "200" ]; then
             echo_info "Nexus is up"
