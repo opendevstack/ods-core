@@ -218,7 +218,7 @@ echo_info "Setup developer role"
 runJsonScript "createRole" "-d @json/developer-role.json"
 
 echo_info "Setup developer user"
-sed "s|@developer_password@|${DEVELOPER_PASWORD}|g" json/developer-user.json > json/developer-user-with-password.json
+sed "s|@developer_password@|${DEVELOPER_PASSWORD}|g" json/developer-user.json > json/developer-user-with-password.json
 runJsonScript "createUser" "-d @json/developer-user-with-password.json"
 rm json/developer-user-with-password.json
 
