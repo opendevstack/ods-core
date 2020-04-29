@@ -113,7 +113,7 @@ function waitForReady {
     echo_info "Wait for Nexus to become responsive"
     set +e
     n=0
-    until [ $n -ge 40 ]; do
+    until [ $n -ge 20 ]; do
         httpOk=$(curl --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
         if [ "${httpOk}" == "200" ]; then
             echo_info "Nexus is up"
@@ -154,7 +154,11 @@ function changeScriptSetting {
         oc -n ${OCP_NAMESPACE} rollout latest dc/${NEXUS_DC}
         oc -n ${OCP_NAMESPACE} rollout status dc/${NEXUS_DC} --watch=true
     else
-        docker exec -t ${LOCAL_CONTAINER_ID} sh -c "${cmd}"
+        if ! docker exec -t ${LOCAL_CONTAINER_ID} sh -c "${cmd}"; then
+            echo_error "Cannot exec in local container"
+            docker logs ${LOCAL_CONTAINER_ID}
+            exit 1
+        fi
         echo_info "Restart local container to apply changes"
         docker stop ${LOCAL_CONTAINER_ID} &> /dev/null
         docker start ${LOCAL_CONTAINER_ID} &> /dev/null
