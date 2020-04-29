@@ -115,7 +115,7 @@ done
 
 echo "Check if anonymous access is still possible"
 if curl --fail --silent \
-    ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length > 0"; then
+    ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length > 0" > /dev/null; then
     echo "Anonymous access still possible"
     exit 1
 else
@@ -125,7 +125,7 @@ fi
 echo "Check developer access"
 if curl --fail --silent \
     -u ${DEV_USER_NAME}:${DEV_USER_PWD} \
-    ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0"; then
+    ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0" > /dev/null; then
     echo "Developer access not possible"
     exit 1
 else
