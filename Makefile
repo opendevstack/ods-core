@@ -29,13 +29,18 @@ prepare-config:
 
 # JENKINS
 ## Install or update Jenkins resources.
-install-jenkins: apply-jenkins-build start-jenkins-build
+install-jenkins: apply-jenkins-build start-jenkins-build install-ods-jenkins
 .PHONY: install-jenkins
 
 ## Update OpenShift resources related to Jenkins images.
 apply-jenkins-build:
-	cd jenkins/ocp-config && tailor apply
+	cd jenkins/build/ocp-config && tailor apply
 .PHONY: apply-jenkins-build
+
+## Install a jenkins instance in the ods namespace (needed by the provisioning app)
+install-ods-jenkins: 
+	cd jenkins/deploy/ocp-config && tailor apply --namespace ods --selector template=ods-jenkins-template
+.PHONY: install-ods-jenkins
 
 ## Start build of all Jenkins BuildConfig resources.
 start-jenkins-build: start-jenkins-build-master start-jenkins-build-slave-base start-jenkins-build-webhook-proxy
@@ -55,6 +60,11 @@ start-jenkins-build-slave-base:
 start-jenkins-build-webhook-proxy:
 	ocp-scripts/start-and-follow-build.sh --build-config jenkins-webhook-proxy
 .PHONY: start-jenkins-build-webhook-proxy
+
+# PROVISIONING APP
+## Install the gloabl provision app for the cluster
+install-provisioning-app:
+	cd provisioning-app/ocp-config && tailor apply --namespace ods --selector app=prov-app
 
 # SONARQUBE
 ## Install or update SonarQube.

@@ -1,6 +1,5 @@
-param-file  ../../../ods-config/ods-core.env
+param-file  ../../../../ods-configuration/ods-core.env
 
 ignore-unknown-parameters true
 
 svc,route,secret,pvc,dc,rolebinding,serviceaccount
-

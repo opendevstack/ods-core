@@ -17,7 +17,7 @@ objects:
     triggers: []
     source:
       type: Git
-      contextDir: jenkins/master
+      contextDir: jenkins/build/master
       git:
         ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
@@ -65,7 +65,7 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: jenkins/slave-base
+      contextDir: jenkins/build/slave-base
       git:
         ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
@@ -104,7 +104,7 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: jenkins/webhook-proxy
+      contextDir: jenkins/build/webhook-proxy
       git:
         ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-core.git
