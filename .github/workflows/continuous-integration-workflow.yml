@@ -1,19 +1,6 @@
 name: Continous Integration Tests
 on: [push, pull_request]
 jobs:
-  build-jenkins-images:
-    name: Build Jenkins docker images
-    runs-on: ubuntu-18.04
-    steps:
-      -
-        name: Checkout repository
-        uses: actions/checkout@v2.0.0
-      -
-        name: docker build webhook-proxy
-        working-directory: jenkins/webhook-proxy
-        run: |
-          docker build -t webhook-proxy .
-
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-18.04
@@ -63,14 +50,21 @@ jobs:
           curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
       -
         name: Run linter
+        working-directory: jenkins/webhook-proxy
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          make -C jenkins/webhook-proxy lint
+          make lint
       -
         name: Run tests
+        working-directory: jenkins/webhook-proxy
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          make -C jenkins/webhook-proxy test
+          make test
+      -
+        name: Build image
+        working-directory: jenkins/webhook-proxy
+        run: |
+          docker build -t webhook-proxy .
 
 # cluster:
 #   name: Setup and project provisioning tests
