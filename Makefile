@@ -4,6 +4,10 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+ODS_NAMESPACE=cd
+NEXUS_URL=
+SONARQUBE_URL=
+
 # REPOSITORIES
 ## Prepare local repos (fetch changes from Bitbucket).
 prepare-repos:
@@ -74,13 +78,14 @@ start-sonarqube-build:
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
 	cd sonarqube/ocp-config && tailor apply --exclude bc,is
-	route=$(oc -n cd get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
+	SONARQUBE_URL=`oc -n ${ODS_NAMESPACE} get route sonarqube -ojsonpath={.spec.host}`
+	echo "Visit ${SONARQUBE_URL}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	route=$(oc -n cd get route sonarqube -ojsonpath={.spec.host})
-	cd sonarqube && ./configure.sh --sonarqube=${route}
+	SONARQUBE_URL=`oc -n ${ODS_NAMESPACE} get route sonarqube -ojsonpath={.spec.host}`
+	cd sonarqube && ./configure.sh --sonarqube=${SONARQUBE_URL}
 .PHONY: configure-sonarqube
 
 # NEXUS
@@ -96,8 +101,8 @@ apply-nexus:
 ## Configure Nexus service.
 ### Not part of install-nexus because it is not idempotent yet.
 configure-nexus:
-	route=$(oc -n cd get route nexus3 -ojsonpath={.spec.host})
-	cd nexus && ./configure.sh --nexus=${route}
+	NEXUS_URL=`oc -n ${ODS_NAMESPACE} get route nexus3 -ojsonpath={.spec.host}`
+	cd nexus && ./configure.sh --nexus=${NEXUS_URL}
 .PHONY: configure-nexus
 
 # BACKUP
