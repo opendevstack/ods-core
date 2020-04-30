@@ -77,7 +77,7 @@ if [ -z ${NEXUS_URL} ]; then
     configuredUrl="https://nexus.example.com"
     if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
         echo_info "Configuration located"
-        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_URL | awk -F= '{print $2}')
+        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_URL | cut -d "=" -f 2- <<< "$s")
     fi
     read -e -p "Enter Nexus URL [${configuredUrl}]: " input
     if [ -z ${input} ]; then
@@ -96,8 +96,8 @@ fi
 if [ -z ${DEVELOPER_PASSWORD} ]; then
     if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
         echo_info "Configuration located, checking if password is changed from sample value"
-        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep NEXUS_PASSWORD_B64 | awk -F= '{print $2}')
-        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_PASSWORD_B64 | awk -F= '{print $2}' | base64 --decode)
+        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep NEXUS_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s")
+        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s" | base64 --decode)
         if [ "${configuredPassword}" == "${samplePassword}" ]; then
             echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
         else
