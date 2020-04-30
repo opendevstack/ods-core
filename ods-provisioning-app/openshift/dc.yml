@@ -12,12 +12,12 @@ objects:
   kind: DeploymentConfig
   metadata:
     labels:
-      app: prov-app
-    name: prov-app
+      app: ods-provisioning-app
+    name: ods-provisioning-app
   spec:
     replicas: 1
     selector:
-      app: prov-app
+      app: ods-provisioning-app
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -27,12 +27,12 @@ objects:
     template:
       metadata:
         labels:
-          app: prov-app
+          app: ods-provisioning-app
       spec:
         containers:
         - image: ${PROV_APP_IMAGE}
           imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
-          name: prov-app
+          name: ods-provisioning-app
           ports:
           - containerPort: 8080
             protocol: TCP

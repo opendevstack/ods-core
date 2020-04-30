@@ -7,16 +7,16 @@ objects:
     annotations:
       haproxy.router.openshift.io/timeout: 2m
     labels:
-      app: prov-app
-    name: prov-app
+      app: ods-provisioning-app
+    name: ods-provisioning-app
   spec:
-    host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
+    host: ods-prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
     to:
       kind: Service
-      name: prov-app
+      name: ods-provisioning-app
       weight: 100
     wildcardPolicy: None
 parameters:
