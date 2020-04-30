@@ -1,9 +1,6 @@
 # ODS Document Generation Service
 
-The ODS document generation service that transforms document templates in a remote Bitbucket repository into PDF documents,
-used from the Release manager quickstarter.
-
-Its code can be found at Github: https://github.com/opendevstack/ods-document-generation-svc 
+The [ODS document generation](https://github.com/opendevstack/ods-document-generation-svc) service that transforms document templates in a remote Bitbucket repository into PDF documents, used from the Release manager quickstarter.
 
 # Setup
 
