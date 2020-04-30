@@ -10,7 +10,7 @@ objects:
     finalizers:
     - kubernetes.io/pvc-protection
     labels:
-      app: prov-app
+      app: ods-provisioning-app
     name: prov-history
   spec:
     accessModes:

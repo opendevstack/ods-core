@@ -5,8 +5,8 @@ objects:
   kind: Service
   metadata:
     labels:
-      app: prov-app
-    name: prov-app
+      app: ods-provisioning-app
+    name: ods-provisioning-app
   spec:
     ports:
     - name: 8080-tcp
@@ -14,6 +14,6 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: prov-app
+      app: ods-provisioning-app
     sessionAffinity: None
     type: ClusterIP

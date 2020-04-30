@@ -68,7 +68,7 @@ objects:
 - kind: ConfigMap
   metadata:
     labels:
-      app: prov-app
+      app: ods-provisioning-app
     name: application.properties
   apiVersion: v1
   data:

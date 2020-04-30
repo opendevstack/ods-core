@@ -1,5 +1,5 @@
 namespace cd
-selector app=prov-app
+selector app=ods-provisioning-app
 param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 
