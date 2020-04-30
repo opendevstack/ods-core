@@ -3,27 +3,14 @@ kind: Template
 labels:
   template: 'ods-document-generation-service'
   app: 'ods-doc-gen-svc'
-parameters:
-- name: PROJECT
-  displayName: Application
-  description: The name of the application project.
-  required: true
-- name: COMPONENT
-  displayName: Component
-  description: The name of the application component.
-  required: true
-- name: ENV
-  displayName: Environment
-  description: The environment stage.
-  required: true  
 objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
     labels:
       app: 'ods-doc-gen-svc'
-    name: ${COMPONENT}
+    name: ods-doc-gen-svc
   spec:
-    dockerImageRepository: ${COMPONENT}
+    dockerImageRepository: ods-doc-gen-svc
     lookupPolicy:
       local: false
