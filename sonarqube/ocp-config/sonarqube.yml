@@ -50,6 +50,7 @@ objects:
     name: sonarqube-postgresql
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       name: sonarqube-postgresql
     strategy:
@@ -147,6 +148,7 @@ objects:
     name: sonarqube
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: sonarqube
       deploymentconfig: sonarqube
