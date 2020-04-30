@@ -74,12 +74,12 @@ start-sonarqube-build:
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
 	cd sonarqube/ocp-config && tailor apply --exclude bc,is
-	route=$(oc get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
+	route=$(oc -n cd get route sonarqube -ojsonpath={.spec.host}) && echo "Visit ${route}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	route=$(oc get route sonarqube -ojsonpath={.spec.host})
+	route=$(oc -n cd get route sonarqube -ojsonpath={.spec.host})
 	cd sonarqube && ./configure.sh --sonarqube=${route}
 .PHONY: configure-sonarqube
 
@@ -96,7 +96,7 @@ apply-nexus:
 ## Configure Nexus service.
 ### Not part of install-nexus because it is not idempotent yet.
 configure-nexus:
-	route=$(oc get route nexus3 -ojsonpath={.spec.host})
+	route=$(oc -n cd get route nexus3 -ojsonpath={.spec.host})
 	cd nexus && ./configure.sh --nexus=${route}
 .PHONY: configure-nexus
 
