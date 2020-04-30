@@ -152,6 +152,7 @@ objects:
     selector:
       app: sonarqube
       deploymentconfig: sonarqube
+      tuned.openshift.io/elasticsearch: ""
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
