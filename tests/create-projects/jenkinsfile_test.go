@@ -149,7 +149,7 @@ func TestJenkinsFile(t *testing.T) {
 
 func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, projectName string, t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "..", "..", "create-projects", "ocp-config", "cd-jenkins")
+	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
@@ -157,7 +157,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{"status", "--force", "--reveal-secrets", "-n", projectNameCd,
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
-		"--selector", "template=cd-jenkins-template",
+		"--selector", "template=ods-jenkins-template",
 		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
 	if err != nil {
 
