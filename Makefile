@@ -44,7 +44,7 @@ apply-jenkins-build:
 ## Install a jenkins instance in the ods namespace (needed by the provisioning app)
 apply-jenkins-deploy:
 	cd jenkins/ocp-config/deploy && tailor apply --namespace ods --selector template=ods-jenkins-template
-.PHONY: install-ods-jenkins
+.PHONY: apply-jenkins-deploy
 
 ## Start build of all Jenkins BuildConfig resources.
 start-jenkins-build: start-jenkins-build-master start-jenkins-build-slave-base start-jenkins-build-webhook-proxy
