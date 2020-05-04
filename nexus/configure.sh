@@ -28,6 +28,7 @@ NEXUS_URL=
 LOCAL_CONTAINER_ID=
 OCP_NAMESPACE="cd"
 NEXUS_DC="nexus3"
+INSECURE=
 
 function usage {
     printf "Setup Nexus.\n\n"
@@ -47,6 +48,8 @@ while [[ "$#" -gt 0 ]]; do
     -v|--verbose) set -x;;
 
     -h|--help) usage; exit 0;;
+
+    -i|--insecure) INSECURE="--insecure";;
 
     -l|--local-container-id) LOCAL_CONTAINER_ID="$2"; shift;;
     -l=*|--local-container-id=*) LOCAL_CONTAINER_ID="${1#*=}";;
@@ -74,7 +77,7 @@ if [ -z ${NEXUS_URL} ]; then
     configuredUrl="https://nexus.example.com"
     if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
         echo_info "Configuration located"
-        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_URL | awk -F= '{print $2}')
+        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_URL | cut -d "=" -f 2- <<< "$s")
     fi
     read -e -p "Enter Nexus URL [${configuredUrl}]: " input
     if [ -z ${input} ]; then
@@ -93,8 +96,8 @@ fi
 if [ -z ${DEVELOPER_PASSWORD} ]; then
     if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
         echo_info "Configuration located, checking if password is changed from sample value"
-        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep NEXUS_PASSWORD_B64 | awk -F= '{print $2}')
-        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_PASSWORD_B64 | awk -F= '{print $2}' | base64 --decode)
+        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep NEXUS_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s")
+        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep NEXUS_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s" | base64 --decode)
         if [ "${configuredPassword}" == "${samplePassword}" ]; then
             echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
         else
@@ -114,7 +117,7 @@ function waitForReady {
     set +e
     n=0
     until [ $n -ge 20 ]; do
-        httpOk=$(curl --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
+        httpOk=$(curl ${INSECURE} --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
         if [ "${httpOk}" == "200" ]; then
             echo_info "Nexus is up"
             break
@@ -131,15 +134,15 @@ function runJsonScript {
     local jsonScriptName=$1
     shift 1
     local runParams="$@"
-    curl -X POST --fail --silent \
+    curl ${INSECURE} -X POST --fail --silent \
         --user ${ADMIN_USER}:${ADMIN_PASSWORD} \
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/${jsonScriptName}.json
-    curl -X POST --fail --silent \
+    curl ${INSECURE} -X POST --fail --silent \
         --user ${ADMIN_USER}:${ADMIN_PASSWORD} \
         --header 'Content-Type: text/plain' \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}/run" ${runParams} > /dev/null
-    curl -X DELETE --fail --silent \
+    curl ${INSECURE} -X DELETE --fail --silent \
         --user ${ADMIN_USER}:${ADMIN_PASSWORD} \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}"
 }
@@ -179,19 +182,19 @@ else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t ${LOCAL_CONTAINER_ID} sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
 fi
 if [ ! -z ${ADMIN_DEFAULT_PASSWORD} ]; then
-    pong=$(curl --silent --user ${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD} \
+    pong=$(curl ${INSECURE} --silent --user ${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD} \
         "${NEXUS_URL}/service/metrics/ping")
     if [ "${pong}" == "pong" ]; then
         echo_info "Change admin password"
-        curl -X POST --fail --silent \
+        curl ${INSECURE} -X POST --fail --silent \
             --user ${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD} \
             --header 'Content-Type: application/json' \
             "${NEXUS_URL}/service/rest/v1/script" -d @json/changeAdminPassword.json
-        curl -X POST --fail --silent \
+        curl ${INSECURE} -X POST --fail --silent \
             --user ${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD} \
             --header 'Content-Type: text/plain' \
             "${NEXUS_URL}/service/rest/v1/script/changeAdminPassword/run" -d "${ADMIN_PASSWORD}" > /dev/null
-        curl -X DELETE --fail --silent \
+        curl ${INSECURE} -X DELETE --fail --silent \
             --user ${ADMIN_USER}:${ADMIN_PASSWORD} \
             "${NEXUS_URL}/service/rest/v1/script/changeAdminPassword"
     fi

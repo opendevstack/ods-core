@@ -15,6 +15,7 @@ objects:
     name: nexus3
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: nexus3
       deploymentconfig: nexus3

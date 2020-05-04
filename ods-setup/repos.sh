@@ -175,25 +175,27 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioni
       echo_error "ods/${GIT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
       exit 1
     fi
-    if [ "$SYNC" == "y" ]; then
-      echo_info "Merging changes from GitHub (ods/${GIT_REF}) into local ref."
-      if ! git merge ods/${GIT_REF}; then
-        echo_error "ods/${GIT_REF} cannot be merged, which means the ref on Bitbucket has been modified. Please reset your local ref to ods/${GIT_REF}."
-        exit 1
-      fi
-      if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse ods/${GIT_REF}) ]; then
-        echo_error "${GIT_REF} differs from ods/${GIT_REF}. Please reset your local ref to ods/${GIT_REF}."
-        exit 1
-      fi
-    else
-      echo_info "Merging changes from Bitbucket (origin/${GIT_REF}) into local ref."
-      if ! git merge origin/${GIT_REF}; then
-        echo_error "origin/${GIT_REF} cannot be merged. Please reset your local ref to origin/${GIT_REF}."
-        exit 1
-      fi
-      if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse origin/${GIT_REF}) ]; then
-        echo_error "${GIT_REF} differs from origin/${GIT_REF}. Please reset your local ref to origin/${GIT_REF}."
-        exit 1
+    if [ "$INIT" == "n" ]; then
+      if [ "$SYNC" == "y" ]; then
+        echo_info "Merging changes from GitHub (ods/${GIT_REF}) into local ref."
+        if ! git merge ods/${GIT_REF}; then
+          echo_error "ods/${GIT_REF} cannot be merged. Please reset your local ref to ods/${GIT_REF}."
+          exit 1
+        fi
+        if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse ods/${GIT_REF}) ]; then
+          echo_error "${GIT_REF} differs from ods/${GIT_REF}. Please reset your local ref to ods/${GIT_REF}."
+          exit 1
+        fi
+      else
+        echo_info "Merging changes from Bitbucket (origin/${GIT_REF}) into local ref."
+        if ! git merge origin/${GIT_REF}; then
+          echo_error "origin/${GIT_REF} cannot be merged. Please reset your local ref to origin/${GIT_REF}."
+          exit 1
+        fi
+        if [ "$(git rev-parse ${GIT_REF})" != $(git rev-parse origin/${GIT_REF}) ]; then
+          echo_error "${GIT_REF} differs from origin/${GIT_REF}. Please reset your local ref to origin/${GIT_REF}."
+          exit 1
+        fi
       fi
     fi
   else

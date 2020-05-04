@@ -50,6 +50,7 @@ objects:
     name: sonarqube-postgresql
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       name: sonarqube-postgresql
     strategy:
@@ -135,7 +136,7 @@ objects:
         - postgresql
         from:
           kind: ImageStreamTag
-          name: postgresql:9.5
+          name: postgresql:9.6
           namespace: openshift
       type: ImageChange
     - type: ConfigChange
@@ -147,9 +148,11 @@ objects:
     name: sonarqube
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: sonarqube
       deploymentconfig: sonarqube
+      tuned.openshift.io/elasticsearch: ""
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
