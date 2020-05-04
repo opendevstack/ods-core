@@ -31,6 +31,8 @@ const (
 	jenkinsfilePathDefault         = "Jenkinsfile"
 	protectedBranchesEnvVar        = "PROTECTED_BRANCHES"
 	protectedBranchesDefault       = "master,develop,production,staging,release/"
+	acceptedEventsEnvVar           = "ACCEPTED_EVENTS"
+	acceptedEventsDefault          = "repo:refs_changed,pr:declined,pr:merged,pr:deleted"
 	openShiftAPIHostEnvVar         = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault        = "openshift.default.svc.cluster.local"
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
@@ -91,6 +93,7 @@ type Server struct {
 	Project                 string
 	TriggerSecret           string
 	ProtectedBranches       []string
+	AcceptedEvents          []string
 	AllowedExternalProjects []string
 	AllowedChangeRefTypes   []string
 	RepoBase                string
@@ -120,6 +123,20 @@ func main() {
 		)
 	} else {
 		protectedBranches = strings.Split(envProtectedBranches, ",")
+	}
+
+	var acceptedEvents []string
+	envAcceptedEvents := os.Getenv(acceptedEventsEnvVar)
+	if len(envAcceptedEvents) == 0 {
+		acceptedEvents = strings.Split(acceptedEventsDefault, ",")
+		log.Println(
+			"INFO:",
+			acceptedEventsEnvVar,
+			"not set, using default value:",
+			acceptedEventsDefault,
+		)
+	} else {
+		acceptedEvents = strings.Split(envAcceptedEvents, ",")
 	}
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
@@ -196,6 +213,7 @@ func main() {
 		Project:                 project,
 		TriggerSecret:           triggerSecret,
 		ProtectedBranches:       protectedBranches,
+		AcceptedEvents:          acceptedEvents,
 		AllowedExternalProjects: allowedExternalProjects,
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
 		RepoBase:                repoBase,
@@ -333,6 +351,22 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
+			// When Bitbucket tests the connection, event is empty, so we skip
+			// the request and return "OK".
+			if len(req.EventKey) == 0 {
+				log.Println(requestID, "Skipping request with unspecified event")
+				return
+			}
+
+			if !includes(s.AcceptedEvents, req.EventKey) {
+				log.Println(requestID, fmt.Sprintf(
+					"Skipping event %s as %s does not include it",
+					req.EventKey,
+					acceptedEventsEnvVar,
+				))
+				return
+			}
+
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {
@@ -352,17 +386,19 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					))
 					return
 				}
-			} else if req.EventKey == "pr:merged" || req.EventKey == "pr:declined" {
+			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
 					component = strings.Replace(repo, project+"-", "", -1)
 				}
 				branch = req.PullRequest.FromRef.DisplayID
-				kind = "delete"
-			} else {
-				log.Println(requestID, "Skipping unknown event", req.EventKey)
-				return
+				if req.EventKey == "pr:opened" {
+					kind = "forward"
+				} else {
+					kind = "delete"
+				}
 			}
+
 			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
