@@ -1,12 +1,10 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: cd-jenkins-template
+  template: ods-jenkins-template
 parameters:
 - name: ODS_IMAGE_TAG
   description: OpenDevStack image tag to use.
-  required: true
-- name: PROJECT
   required: true
 - name: OPENSHIFT_APPS_BASEDOMAIN
   required: true
@@ -32,6 +30,8 @@ parameters:
   value: "1"
 - name: NAMESPACE
   value: cd
+- name: TAILOR_NAMESPACE
+  required: true
 - name: CD_USER_ID_B64
   required: true
 - name: CD_USER_PWD_B64
@@ -67,7 +67,7 @@ objects:
   metadata:
     name: cd-user-with-password
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
   type: kubernetes.io/basic-auth
 - apiVersion: v1
   data:
@@ -76,7 +76,7 @@ objects:
   metadata:
     name: sonarqube
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
   type: opaque
 - apiVersion: v1
   data:
@@ -84,7 +84,7 @@ objects:
   kind: Secret
   metadata:
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
       app: jenkins
     name: nexus
   type: opaque
@@ -94,10 +94,10 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
       app: jenkins-master
   spec:
-    host: jenkins-${PROJECT}-cd${OPENSHIFT_APPS_BASEDOMAIN}
+    host: jenkins-${TAILOR_NAMESPACE}{OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -113,7 +113,7 @@ objects:
     - kubernetes.io/pvc-protection
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
       app: jenkins-master
   spec:
     accessModes:
@@ -129,7 +129,7 @@ objects:
     - kubernetes.io/pvc-protection
     name: owasp-dependency-check
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
   spec:
     accessModes:
       - ReadWriteOnce
@@ -143,7 +143,7 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
       app: jenkins-master
   spec:
     replicas: 1
@@ -278,14 +278,14 @@ objects:
         {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE_NAME}"}}
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
 - apiVersion: rbac.authorization.k8s.io/v1
   groupNames: null
   kind: RoleBinding
   metadata:
     name: '${JENKINS_SERVICE_NAME}_edit'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
   roleRef:
     name: edit
     apiGroup: rbac.authorization.k8s.io
@@ -293,15 +293,15 @@ objects:
   subjects:
     - kind: ServiceAccount
       name: '${JENKINS_SERVICE_NAME}'
-      namespace: '${PROJECT}-cd'
+      namespace: '${TAILOR_NAMESPACE}'
   userNames:
-    - system:serviceaccount:${PROJECT}-cd:jenkins
+    - system:serviceaccount:${TAILOR_NAMESPACE}:jenkins
 - apiVersion: v1
   kind: Service
   metadata:
     name: '${JENKINS_JNLP_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
   spec:
     ports:
       - name: agent
@@ -321,7 +321,7 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: cd-jenkins-master
+      template: ods-jenkins-master
       app: jenkins-master
   spec:
     ports:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-# This script sets up the cd/jenkins-master and the associated webhook proxy.
+# This script sets up a ${PROJECT_ID}-cd/jenkins-master and the associated webhook proxy for the project you are creating.
 
 # support pointing to patched tailor using TAILOR environment variable
 
@@ -84,9 +84,9 @@ fi
 
 tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
   "--namespace=${PROJECT_ID}-cd" \
-  "--param=PROXY_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
+  "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
   "--param=PROJECT=${PROJECT_ID}" \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   "--param=NAMESPACE=${ODS_NAMESPACE}" \
   $cdUserPwdParam \
-  --selector "template=cd-jenkins-template"
+  --selector "template=ods-jenkins-template"
