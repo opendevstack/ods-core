@@ -51,7 +51,7 @@ podTemplate(
       echo ("Getting ods configuration from (${bitbucketHost})")
       checkout([
         $class: 'GitSCM',
-        branches: [[name: "*/${odsGitRef}"]],
+        branches: [[name: "*/master"]],
         doGenerateSubmoduleConfigurations: false,
         extensions: [[
           $class: 'RelativeTargetDirectory',
