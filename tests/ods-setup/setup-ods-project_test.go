@@ -1,18 +1,18 @@
 package ods_setup
 
 import (
+	"testing"
+
 	"github.com/opendevstack/ods-core/tests/utils"
 	imageClientV1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func TestCreateOdsProject(t *testing.T) {
 	namespace := "cd"
 	_ = utils.RemoveProject(namespace)
 	stdout, stderr, err := utils.RunScriptFromBaseDir("ods-setup/setup-ods-project.sh", []string{
-		"--force",
 		"--verbose",
 	}, []string{})
 	if err != nil {
@@ -43,7 +43,6 @@ func TestCreateOdsProject(t *testing.T) {
 
 	stdout, stderr, err = utils.RunScriptFromBaseDir("ods-setup/setup-jenkins-images.sh", []string{
 		"--verbose",
-		"--force",
 		"--ods-ref", gitReference,
 	}, []string{})
 	if err != nil {

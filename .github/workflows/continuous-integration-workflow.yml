@@ -80,6 +80,7 @@ jobs:
 #       uses: actions/checkout@v2.0.0
 #       with:
 #         fetch-depth: 0
+#         path: 'ods-core'
 #     -
 #       name: Setup Go 1.13
 #       uses: actions/setup-go@v1.0.0
@@ -117,7 +118,7 @@ jobs:
 #        run: ifconfig
 #     -
 #        name: Configure docker network and insecure registries
-#        run: ./tests/scripts/apply-docker-settings.sh
+#        run: ./ods-core/tests/scripts/apply-docker-settings.sh
 #     -
 #        name: Start OC cluster
 #        run: oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix 172.17.0.1.nip.io --public-hostname 172.17.0.1 --enable=centos-imagestreams --enable=persistent-volumes --enable=registry --enable=router
@@ -128,7 +129,7 @@ jobs:
 #        name: Create test infrastructure
 #        run: |
 #         mkdir -p ods-config
-#         ./tests/scripts/recreate-test-infrastructure.sh
+#         ./ods-core/tests/scripts/recreate-test-infrastructure.sh
 #     -
 #        name: Run tests
 #        run: make -C tests test

@@ -13,15 +13,11 @@ if ! oc get clusterroles | grep request_role; then
   oc create -f ${BASH_SOURCE%/*}/json/create-cluster-role.json
 fi
 
-if [ ! -d ${BASH_SOURCE%/*}/../../ods-config ]; then
-    mkdir -p ${BASH_SOURCE%/*}/../../ods-config
+if [ ! -d ${BASH_SOURCE%/*}/../../../ods-configuration ]; then
+    mkdir -p ${BASH_SOURCE%/*}/../../../ods-configuration
 fi
 
-${BASH_SOURCE%/*}/create-env-from-local-cluster.sh --base-oc-dir=${HOME}/openshift.local.clusterup --output ${BASH_SOURCE%/*}/../../ods-config/ods-core.env
-
-if [ -d "${BASH_SOURCE%/*}/../../../ods-configuration" ]; then
-    rm -rf "${BASH_SOURCE%/*}/../../../ods-configuration"
-fi
+${BASH_SOURCE%/*}/create-env-from-local-cluster.sh --base-oc-dir=${HOME}/openshift.local.clusterup --output ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env
 
 NAMSPACE="cd"
 REF="cicdtests"
@@ -41,7 +37,7 @@ ${BASH_SOURCE%/*}/../../ods-setup/setup-ods-project.sh --verbose --non-interacti
 
 ${BASH_SOURCE%/*}/../../ods-setup/setup-jenkins-images.sh --verbose --non-interactive --ods-ref ${REF}
 
-source ${BASH_SOURCE%/*}/../../ods-config/ods-core.env
+source ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env
 PROJECT_ID=prov
 if oc project "${PROJECT_ID}-test" > /dev/null; then
     oc delete project "${PROJECT_ID}-test"
@@ -60,6 +56,6 @@ PROJECT_ID=${PROJECT_ID} \
 CD_USER_TYPE=general \
 CD_USER_ID_B64=${CD_USER_ID_B64} \
 PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET_B64} \
-    ${BASH_SOURCE%/*}/../../create-projects/create-cd-jenkins.sh --ods-namespace ${NAMSPACE} --force --verbose
+    ${BASH_SOURCE%/*}/../../create-projects/create-cd-jenkins.sh --ods-namespace ${NAMSPACE} --verbose
 
 oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:prov-cd:jenkins
