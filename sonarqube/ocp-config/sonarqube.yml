@@ -2,6 +2,74 @@ apiVersion: v1
 kind: Template
 metadata:
   name: sonarqube
+parameters:
+- name: ODS_NAMESPACE
+  description: OpenDevStack namespace to use.
+  value: ods
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
+  required: true
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
+- displayName: Admin Password
+  name: SONAR_ADMIN_PASSWORD_B64
+  description: The base64 encoded admin password
+  required: true
+- displayName: Admin Username
+  name: SONAR_ADMIN_USERNAME
+  description: the sonarqube admin username
+  required: true
+- displayName: Auth Token
+  name: SONAR_AUTH_TOKEN_B64
+  required: true
+- displayName: Crowd Application
+  name: SONAR_CROWD_APPLICATION
+  description: application name as setup in crowd for authn/z
+- displayName: Crowd Password
+  name: SONAR_CROWD_PASSWORD_B64
+  description: base64 encoded application password as setup in crowd for authn/z
+- displayName: Crowd URL
+  name: CROWD_URL
+  description: url under which crowd is reachable from sonaruqbe
+- displayName: Database JDBC URL
+  name: SONAR_DATABASE_JDBC_URL
+  description: database jdbc url, e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
+  required: true
+- displayName: Database Name
+  name: SONAR_DATABASE_NAME
+  description: database name, e.g. sonarqube
+  required: true
+- displayName: Database Password
+  name: SONAR_DATABASE_PASSWORD_B64
+  description: base64 encoded database user password
+  required: true
+- displayName: Database User
+  name: SONAR_DATABASE_USER
+  description: the database user to connect ot the database
+  required: true
+- name: SONARQUBE_HOST
+  description: Host without protocol exposed by the sonarqube route
+  required: true
+- name: REPO_BASE
+  required: true
+  description: Repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+- name: STORAGE_CLASS_DATA
+  # for AWS the default is gp2
+  description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_PROVISIONER
+  description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
+- name: STORAGE_CLASS_BACKUP
+  # for AWS the default would be gp2-encrypted
+  description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
+- name: SONAR_DISTRIBUTION_URL
+  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
+- name: SONAR_VERSION
+  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+- name: SONAR_AUTH_CROWD
+  description: "Set to true, if you want to use crowd as identity provider"
+- name: IDP_DNS
+  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
 objects:
 - apiVersion: v1
   kind: BuildConfig
@@ -167,7 +235,7 @@ objects:
       spec:
         containers:
         - name: sonarqube
-          image: cd/sonarqube:${ODS_IMAGE_TAG}
+          image: ${ODS_NAMESPACE}/sonarqube:${ODS_IMAGE_TAG}
           env:
           - name: SONARQUBE_JDBC_URL
             valueFrom:
@@ -244,7 +312,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: sonarqube:${ODS_IMAGE_TAG}
-          namespace: cd
+          namespace: ${ODS_NAMESPACE}
       type: ImageChange
     - type: ConfigChange
 - apiVersion: v1
@@ -400,68 +468,3 @@ objects:
       deploymentconfig: sonarqube
     sessionAffinity: None
     type: ClusterIP
-parameters:
-- name: ODS_IMAGE_TAG
-  description: OpenDevStack image tag to use.
-  required: true
-- name: ODS_GIT_REF
-  description: Git ref to use for source code.
-  required: true
-- displayName: Admin Password
-  name: SONAR_ADMIN_PASSWORD_B64
-  description: The base64 encoded admin password
-  required: true
-- displayName: Admin Username
-  name: SONAR_ADMIN_USERNAME
-  description: the sonarqube admin username
-  required: true
-- displayName: Auth Token
-  name: SONAR_AUTH_TOKEN_B64
-  required: true
-- displayName: Crowd Application
-  name: SONAR_CROWD_APPLICATION
-  description: application name as setup in crowd for authn/z
-- displayName: Crowd Password
-  name: SONAR_CROWD_PASSWORD_B64
-  description: base64 encoded application password as setup in crowd for authn/z
-- displayName: Crowd URL
-  name: CROWD_URL
-  description: url under which crowd is reachable from sonaruqbe
-- displayName: Database JDBC URL
-  name: SONAR_DATABASE_JDBC_URL
-  description: database jdbc url, e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
-  required: true
-- displayName: Database Name
-  name: SONAR_DATABASE_NAME
-  description: database name, e.g. sonarqube
-  required: true
-- displayName: Database Password
-  name: SONAR_DATABASE_PASSWORD_B64
-  description: base64 encoded database user password
-  required: true
-- displayName: Database User
-  name: SONAR_DATABASE_USER
-  description: the database user to connect ot the database
-  required: true
-- name: SONARQUBE_HOST
-  description: Host without protocol exposed by the sonarqube route
-  required: true
-- name: REPO_BASE
-  required: true
-  description: Repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
-- name: STORAGE_CLASS_DATA
-  # for AWS the default is gp2
-  description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
-- name: STORAGE_PROVISIONER
-  description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
-- name: STORAGE_CLASS_BACKUP
-  # for AWS the default would be gp2-encrypted
-  description: Storage class for backup for AWS, e.g. gp2-encrypted. Leave empty for local (e.g. vagrant) deployment
-- name: SONAR_DISTRIBUTION_URL
-  description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
-- name: SONAR_VERSION
-  description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
-- name: SONAR_AUTH_CROWD
-  description: "Set to true, if you want to use crowd as identity provider"
-- name: IDP_DNS
-  description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
