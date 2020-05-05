@@ -1,5 +1,5 @@
 param-file  ../../../../ods-configuration/ods-core.env
-
+selector template=cd-user-template
 ignore-unknown-parameters true
 
 secret
