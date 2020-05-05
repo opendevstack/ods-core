@@ -111,20 +111,4 @@ http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap03.html#tag_03_2
 Next sequence diagram provides a graphical understanding on the steps to follow in order to add a new functionality to the OpenDevStack official repository from ACME's private fork.
 The example is based on the assumption you want to contribute with a new feature from branch _2.x_ or tag _v2.0_
 
-[plantuml]
-----
-participant OpenDevStack as A
-participant "ACME GitHub OpenDevStack fork" as B
-participant "ACME private repo" as C
-A->>C: 2.x/v2.0 checkout
-
-C->>C: new feature branch X
-rnote right of C: develop and test
-
-C-->>C: PR: branch X to production branch
-rnote right of C: test production
-
-C->>B: push branch X
-
-B-->>A: PR: branch X to 2.x/v2.0
-----
+image::contribution-flow.png[Contribution Flow]
