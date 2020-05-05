@@ -10,8 +10,8 @@ parameters:
   required: true
 - name: JENKINS_SERVICE_NAME
   value: jenkins
-- name: NAMESPACE
-  value: cd
+- name: ODS_NAMESPACE
+  value: ods
 - name: TAILOR_NAMESPACE
   required: true
 - name: REPO_BASE
@@ -89,7 +89,7 @@ objects:
               secretKeyRef:
                 key: trigger-secret
                 name: webhook-proxy
-          image: ' '
+          image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
           imagePullPolicy: Always
           name: webhook-proxy
           resources: {}
