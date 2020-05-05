@@ -48,12 +48,22 @@ else
   oc new-project ${NAMESPACE} --description="Central ODS namespace with shared resources" --display-name="OpenDevStack"
 fi
 
-# Allow system:authenticated group to pull images from central namespace
-oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}
+# Allow system:authenticated group to view resources in central namespace
 oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
 
+# Allow system:authenticated group to pull images from central namespace
+if ! oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}; then
+  echo "You might not have enough rights to assign 'system:image-puller' to 'system:authenticated'."
+  echo "This script needs to be run by a cluster admin."
+  exit 1
+fi
+
 # Allow Jenkins serviceaccount to create new projects
-oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:${NAMESPACE}:jenkins
+if ! oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:${NAMESPACE}:jenkins; then
+  echo "You might not have enough rights to assign 'self-provisioner' to 'system:serviceaccount:${NAMESPACE}:jenkins'."
+  echo "This script needs to be run by a cluster admin."
+  exit 1
+fi
 
 # Create cd-user secret
 cd ${SCRIPT_DIR}/ocp-config/cd-user
