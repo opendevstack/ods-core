@@ -1,4 +1,5 @@
 // BuildConfig environment variables
+def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 def projectId = env.PROJECT_ID
 
@@ -10,7 +11,7 @@ node {
 
 def conts = containerTemplate(
   name: 'jnlp',
-  image: "${dockerRegistry}/cd/jenkins-slave-base:${odsImageTag}",
+  image: "${dockerRegistry}/${odsNamespace}/jenkins-slave-base:${odsImageTag}",
   workingDir: '/tmp',
   alwaysPullImage: true,
   args: ''
