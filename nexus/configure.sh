@@ -26,7 +26,7 @@ ADMIN_PASSWORD=
 DEVELOPER_PASSWORD=
 NEXUS_URL=
 LOCAL_CONTAINER_ID=
-OCP_NAMESPACE="cd"
+NAMESPACE="ods"
 NEXUS_DC="nexus3"
 INSECURE=
 
@@ -40,6 +40,7 @@ function usage {
     printf "\t-l|--local-container-id\t\tLocal container ID\n"
     printf "\t-a|--admin-password\t\tAdmin password\n"
     printf "\t-d|--developer-password\t\tDeveloper password\n"
+    printf "\t-n|--namespace\tNamespace (defaults to '${NAMESPACE}')\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -62,6 +63,9 @@ while [[ "$#" -gt 0 ]]; do
 
     -n|--nexus) NEXUS_URL="$2"; shift;;
     -n=*|--nexus=*) NEXUS_URL="${1#*=}";;
+
+    --namespace=*) NAMESPACE="${1#*=}";;
+    --namespace) NAMESPACE="$2"; shift;;
 
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -152,10 +156,10 @@ function changeScriptSetting {
     echo_info "Changing nexus.scripts.allowCreation to '${allowCreation}'"
     local cmd="echo 'nexus.scripts.allowCreation=${allowCreation}' >> /nexus-data/etc/nexus.properties"
     if [ -z ${LOCAL_CONTAINER_ID} ]; then
-        oc -n ${OCP_NAMESPACE} rsh dc/${NEXUS_DC} sh -c "${cmd}"
+        oc -n ${NAMESPACE} rsh dc/${NEXUS_DC} sh -c "${cmd}"
         echo_info "Rollout new Nexus deployment to apply changes"
-        oc -n ${OCP_NAMESPACE} rollout latest dc/${NEXUS_DC}
-        oc -n ${OCP_NAMESPACE} rollout status dc/${NEXUS_DC} --watch=true
+        oc -n ${NAMESPACE} rollout latest dc/${NEXUS_DC}
+        oc -n ${NAMESPACE} rollout status dc/${NEXUS_DC} --watch=true
     else
         if ! docker exec -t ${LOCAL_CONTAINER_ID} sh -c "${cmd}"; then
             echo_error "Cannot exec in local container"
@@ -177,7 +181,7 @@ waitForReady
 # If default password exists and can be used, update it with ADMIN_PASSWORD.
 DEFAULT_ADMIN_PASSWORD_FILE="/nexus-data/admin.password"
 if [ -z ${LOCAL_CONTAINER_ID} ]; then
-    ADMIN_DEFAULT_PASSWORD=$(oc -n ${OCP_NAMESPACE} rsh dc/${NEXUS_DC} sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    ADMIN_DEFAULT_PASSWORD=$(oc -n ${NAMESPACE} rsh dc/${NEXUS_DC} sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t ${LOCAL_CONTAINER_ID} sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
 fi
@@ -200,7 +204,7 @@ if [ ! -z ${ADMIN_DEFAULT_PASSWORD} ]; then
     fi
     echo_info "Delete default admin password file"
     if [ -z ${LOCAL_CONTAINER_ID} ]; then
-        oc -n ${OCP_NAMESPACE} rsh dc/${NEXUS_DC} rm ${DEFAULT_ADMIN_PASSWORD_FILE}
+        oc -n ${NAMESPACE} rsh dc/${NEXUS_DC} rm ${DEFAULT_ADMIN_PASSWORD_FILE}
     else
         docker exec -t ${LOCAL_CONTAINER_ID} rm ${DEFAULT_ADMIN_PASSWORD_FILE}
     fi

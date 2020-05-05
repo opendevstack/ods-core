@@ -506,12 +506,6 @@ do
 			echo
 		fi
 
-		# add pull rights against ocp OD dedicated - for NON CD projects - otherwise we even pull the jenkins image and that we dont want
-		if [[ $ocp_proj_namespace_suffix == "cd" ]]; then
-			echo "--  not creating pull secret to OCP, this is CD - just adding image pull rights"
-			oc policy add-role-to-user system:image-puller system:serviceaccount:${project_name}-cd:jenkins -n cd
-		fi
-
 	else
 		echo "!!! Project ${curr_ocp_namespace} already exists - skipping creation"
     fi

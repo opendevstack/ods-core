@@ -4,6 +4,6 @@ The [Provisioning App](https://github.com/opendevstack/ods-provisioning-app) cre
 
 # Setup
 
-The OpenShift templates are located in `openshift` and can be compared with the OC cluster using [tailor](https://github.com/opendevstack/tailor). For example, run `cd openshift && tailor status -l app=ods-provisioning-app -n cd` to see if there is any drift between current and desired state.
+The OpenShift templates are located in `ocp-config` and can be compared with the OC cluster using [tailor](https://github.com/opendevstack/tailor). For example, run `cd ocp-config && tailor status -l app=ods-provisioning-app -n ods` to see if there is any drift between current and desired state.
 
-To deploy the provisiong app in the `cd` namespace run `tailor apply --namespace cd` form within the `ods-core/ods-provisioning-app/openshift` directory.
+To install the provisiong app, run `make install-provisioning-app`.
