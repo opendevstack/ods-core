@@ -4,16 +4,16 @@
 
 set -ue
 
-function usage {
-   printf "usage: %s [options]\n" $0
-   printf "\t-h|--help\tPrints the usage\n"
-   printf "\t-v|--verbose\tVerbose output\n"
-   printf "\t-b|--build-config\tName of BuildConfig to start build for\n"
-   printf "\t-n|--namespace\tNamespace (defaults to 'cd')\n"
-}
-
-NAMESPACE="cd"
+NAMESPACE="ods"
 BUILD_CONFIG=
+
+function usage {
+  printf "usage: %s [options]\n" $0
+  printf "\t-h|--help\tPrints the usage\n"
+  printf "\t-v|--verbose\tVerbose output\n"
+  printf "\t-b|--build-config\tName of BuildConfig to start build for\n"
+  printf "\t-n|--namespace\tNamespace (defaults to '${NAMESPACE}')\n"
+}
 
 while [[ "$#" -gt 0 ]]; do case $1 in
   -v|--verbose) set -x;;

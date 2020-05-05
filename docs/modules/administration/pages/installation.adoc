@@ -111,7 +111,7 @@ OpenDevStack needs one central `cd` project in OpenShift, which will hold all sh
 In `ods-core` run:
 [source,sh]
 ----
-make install-cd-project
+make install-ods-project
 ----
 
 
@@ -157,8 +157,23 @@ In `ods-core` run:
 make install-jenkins
 ----
 
+=== Document Generation service
+At this stage you can setup or modify the image stream for the Document Generation service.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-doc-gen
+----
+
 === Provisioning Application
-At this stage you can setup or modify the provisioning application. Installation of this will change in the next version of OpenDevStack. Instructions will be added here then.
+At this stage you can setup or modify the provisioning application.
+
+In `ods-core` run:
+[source,sh]
+----
+make install-provisioning-app
+----
 
 
 Congratulations! At this point you should have a complete ODS installation. Try it out by provisioning a new project with the provisioning application.

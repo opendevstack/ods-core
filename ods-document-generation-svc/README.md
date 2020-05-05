@@ -4,6 +4,6 @@ The [ODS document generation](https://github.com/opendevstack/ods-document-gener
 
 # Setup
 
-The OpenShift templates are located in `openshift` and can be compared with the OC cluster using [tailor](https://github.com/opendevstack/tailor). For example, run `cd openshift && tailor status -l app=ods-doc-gen-svc -n cd` to see if there is any drift between current and desired state.
+The OpenShift templates are located in `ocp-config` and can be compared with the OC cluster using [tailor](https://github.com/opendevstack/tailor). For example, run `cd ocp-config && tailor status -l app=ods-doc-gen-svc -n ods` to see if there is any drift between current and desired state.
 
-To deploy the doc gen service in the `cd` namespace run `tailor apply --namespace cd` form within the `ods-core/ods-document-generation-svc/openshift` directory.
+To install the doc gen service, run `make install-doc-gen`.
