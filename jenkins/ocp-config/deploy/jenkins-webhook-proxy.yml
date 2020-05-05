@@ -105,15 +105,6 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - webhook-proxy
-        from:
-          kind: ImageStreamTag
-          name: jenkins-webhook-proxy:${ODS_IMAGE_TAG}
-          namespace: '${NAMESPACE}'
-      type: ImageChange
 - apiVersion: v1
   kind: Secret
   metadata:

@@ -259,16 +259,6 @@ objects:
               claimName: '${JENKINS_SERVICE_NAME}'
     test: false
     triggers:
-      - imageChangeParams:
-          automatic: true
-          containerNames:
-            - jenkins
-          from:
-            kind: ImageStreamTag
-            name: 'jenkins-master:${ODS_IMAGE_TAG}'
-            namespace: '${NAMESPACE}'
-          lastTriggeredImage: ''
-        type: ImageChange
       - type: ConfigChange
 - apiVersion: v1
   kind: ServiceAccount
