@@ -52,7 +52,12 @@ fi
 oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}
 oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
 
-# Create  global cd_user secret
+# Allow Jenkins serviceaccount to create new projects
+oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:${NAMESPACE}:jenkins
+
+# Create cd-user secret
 cd ${SCRIPT_DIR}/ocp-config/cd-user
 ${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE}
 cd -
+
+echo "Done"
