@@ -30,7 +30,7 @@ prepare-config:
 # ODS SETUP
 ## Setup central "ods" project.
 install-ods-project:
-	cd ods-setup && ./setup-ods-project.sh --namespace ${NAMESPACE}
+	cd ods-setup && ./setup-ods-project.sh --namespace ${NAMESPACE} --reveal-secrets
 
 
 # JENKINS
