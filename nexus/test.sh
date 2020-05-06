@@ -1,14 +1,13 @@
-
 #!/usr/bin/env bash
 set -ue
 
-NEXUS_VERSION=3.22.0
+NEXUS_VERSION="3.22.0"
 
 function usage {
     printf "Test Nexus setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--nexus-version\t\tNexus version, e.g. '3.22.0' (defaults to ${NEXUS_VERSION})\n"
+    printf "\t-s|--nexus-version\t\tNexus version, e.g. '3.22.0' (defaults to %s)\n" "${NEXUS_VERSION}"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -28,26 +27,26 @@ CONTAINER_IMAGE="sonatype/nexus3:${NEXUS_VERSION}"
 HOST_PORT="8081"
 
 echo "Run container using image ${CONTAINER_IMAGE}"
-containerId=$(docker run -d -p ${HOST_PORT}:8081 ${CONTAINER_IMAGE})
+containerId=$(docker run -d -p "${HOST_PORT}:8081" "${CONTAINER_IMAGE}")
 
 function cleanup {
     echo "Cleanup"
-    docker rm -f ${containerId}
+    docker rm -f "${containerId}"
 }
 trap cleanup EXIT
 
 NEXUS_URL="http://localhost:${HOST_PORT}"
-ADMIN_USER_NAME=admin
-ADMIN_USER_PWD=s3cr3t
-DEV_USER_NAME=developer
-DEV_USER_PWD=geHeim
+ADMIN_USER_NAME="admin"
+ADMIN_USER_PWD="s3cr3t"
+DEV_USER_NAME="developer"
+DEV_USER_PWD="geHeim"
 
 echo "Run ./configure.sh"
 ./configure.sh \
-    --admin-password=${ADMIN_USER_PWD} \
-    --developer-password=${DEV_USER_PWD} \
-    --nexus=${NEXUS_URL} \
-    --local-container-id=${containerId}
+    --admin-password="${ADMIN_USER_PWD}" \
+    --developer-password="${DEV_USER_PWD}" \
+    --nexus="${NEXUS_URL}" \
+    --local-container-id="${containerId}"
 
 echo "Check for blobstores"
 expectedBlobstores=( "candidates"
@@ -60,11 +59,11 @@ expectedBlobstores=( "candidates"
 actualBlobstores=$(curl \
     --fail \
     --silent \
-    --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
+    --user "${ADMIN_USER_NAME}:${ADMIN_USER_PWD}" \
     ${NEXUS_URL}/service/rest/beta/blobstores)
 
 for blobstore in "${expectedBlobstores[@]}"; do
-    if echo ${actualBlobstores} | jq -e ".[] | select(.name == \"${blobstore}\")" > /dev/null; then
+    if echo "${actualBlobstores}" | jq -e ".[] | select(.name == \"${blobstore}\")" > /dev/null; then
         echo "Blobstore '${blobstore}' is available"
     else
         echo "Blobstore '${blobstore}' is missing"
@@ -93,14 +92,14 @@ expectedRepos=( "candidates:hosted"
 actualRepos=$(curl \
     --fail \
     --silent \
-    --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
+    --user "${ADMIN_USER_NAME}:${ADMIN_USER_PWD}" \
     ${NEXUS_URL}/service/rest/v1/repositories)
 
 for repo in "${expectedRepos[@]}"; do
     repoName=${repo%%:*}
     repoType=${repo#*:}
-    if echo ${actualRepos} | jq -e ".[] | select(.name == \"${repoName}\")" > /dev/null; then
-        actualType=$(echo ${actualRepos} | jq -r ".[] | select(.name == \"${repoName}\") | .type")
+    if echo "${actualRepos}" | jq -e ".[] | select(.name == \"${repoName}\")" > /dev/null; then
+        actualType=$(echo "${actualRepos}" | jq -r ".[] | select(.name == \"${repoName}\") | .type")
         if [ "${actualType}" == "${repoType}" ]; then
             echo "Repo '${repoName}' is available and has expected type '${repoType}'"
         else
@@ -124,7 +123,7 @@ fi
 
 echo "Check developer access"
 if curl --fail --silent \
-    -u ${DEV_USER_NAME}:${DEV_USER_PWD} \
+    --user "${DEV_USER_NAME}:${DEV_USER_PWD}" \
     ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0" > /dev/null; then
     echo "Developer access not possible"
     exit 1
