@@ -12,6 +12,10 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v2.0.0
       -
+        name: Check shell scripts
+        run: |
+          shellcheck sonarqube/*.sh
+      -
         name: Run tests
         run: |
           cd sonarqube && ./test.sh --sq-version=${{ matrix.version }}
@@ -23,6 +27,10 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v2.0.0
+      -
+        name: Check shell scripts
+        run: |
+          shellcheck nexus/*.sh
       -
         name: Run tests
         run: |

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -ue
 
@@ -24,43 +23,43 @@ while [[ "$#" -gt 0 ]]; do
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
-if [ -z ${SONAR_VERSION} ]; then
+if [ -z "${SONAR_VERSION}" ]; then
   echo "ERROR: Param --sq-version is missing!"; usage; exit 1;
 fi
 
-SONAR_DISTRIBUTION_URL=https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip
+SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip"
 HOST_PORT="9000"
 CONTAINER_IMAGE="sqtest"
 
 echo "Build image"
 docker build \
-    -t ${CONTAINER_IMAGE} \
-    --build-arg sonarDistributionUrl=${SONAR_DISTRIBUTION_URL} \
-    --build-arg sonarVersion=${SONAR_VERSION} \
+    -t "${CONTAINER_IMAGE}" \
+    --build-arg sonarDistributionUrl="${SONAR_DISTRIBUTION_URL}" \
+    --build-arg sonarVersion="${SONAR_VERSION}" \
     --build-arg idpDns="" \
     .
 
 echo "Run container using image ${CONTAINER_IMAGE}"
-containerId=$(docker run -d --stop-timeout 3600 -p ${HOST_PORT}:9000 -p 9092:9092 ${CONTAINER_IMAGE})
+containerId=$(docker run -d --stop-timeout 3600 -p "${HOST_PORT}":9000 -p 9092:9092 "${CONTAINER_IMAGE}")
 
 function cleanup {
     echo "Cleanup"
-    docker rm -f ${containerId}
+    docker rm -f "${containerId}"
 }
 trap cleanup EXIT
 
 SONARQUBE_URL="http://localhost:${HOST_PORT}"
-ADMIN_USER_NAME=admin
-ADMIN_USER_DEFAULT_PASSWORD=admin
-ADMIN_USER_PWD=s3cr3t
-PIPELINE_USER_NAME=cd_user
-PIPELINE_USER_PWD=cd_user
+ADMIN_USER_NAME="admin"
+ADMIN_USER_DEFAULT_PASSWORD="admin"
+ADMIN_USER_PWD="s3cr3t"
+PIPELINE_USER_NAME="cd_user"
+PIPELINE_USER_PWD="cd_user"
 
 echo "Wait for SonarQube to become healthy"
 set +e
 n=0
 until [ $n -ge 20 ]; do
-    health=$(curl --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD} \
+    health=$(curl --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
         "${SONARQUBE_URL}/api/system/health" | jq -r .health)
     if [ "${health}" == "GREEN" ]; then
         echo "SonarQube is up"
@@ -68,13 +67,13 @@ until [ $n -ge 20 ]; do
     else
         echo "SonarQube is not up yet, waiting 10s ..."
         sleep 10s
-        n=$[$n+1]
+        n=$((n+1))
     fi
 done
 set -e
 
 echo "Create fake cd_user"
-curl -X POST --silent --fail --user ${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD} \
+curl -X POST --silent --fail --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
     "${SONARQUBE_URL}/api/users/create?login=${PIPELINE_USER_NAME}&name=${PIPELINE_USER_NAME}&local=true&password=${PIPELINE_USER_PWD}" > /dev/null
 
 echo "Run ./configure.sh"
@@ -125,7 +124,7 @@ actualPlugins=$(curl \
 for plugin in "${expectedPlugins[@]}"; do
     pluginName=${plugin%%:*}
     pluginVersion=${plugin#*:}
-    actualVersion=$(echo ${actualPlugins} | jq -r ".[] | select(.name == \"${pluginName}\") | .version")
+    actualVersion=$(echo "${actualPlugins}" | jq -r ".[] | select(.name == \"${pluginName}\") | .version")
     if [ "${actualVersion}" == "${pluginVersion}" ]; then
         echo "Plugin ${pluginName} has expected version ${pluginVersion}"
     else
