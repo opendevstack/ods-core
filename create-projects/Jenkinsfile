@@ -2,6 +2,7 @@
 def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsBitbucketProject = ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
 def projectGroups = env.PROJECT_GROUPS
@@ -72,7 +73,7 @@ podTemplate(
         submoduleCfg: [],
         userRemoteConfigs: [[
           credentialsId: 'prov-cd-cd-user-with-password',
-          url: "${bitbucketUrl}/scm/opendevstack/ods-configuration.git"
+          url: "${bitbucketUrl}/scm/${odsBitbucketProject}/ods-configuration.git"
         ]]
       ])
     }

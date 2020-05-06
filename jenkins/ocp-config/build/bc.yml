@@ -2,6 +2,35 @@ apiVersion: v1
 kind: Template
 metadata:
   name: jenkins
+parameters:
+- name: ODS_BITBUCKET_PROJECT
+  description: Bitbucket project name.
+  value: opendevstack
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
+  required: true
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
+- name: REPO_BASE
+  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+  required: true
+- name: JENKINS_AGENT_BASE_IMAGE
+  description: configuration which agent dockerfile to use, either .centos7 or .rhel7
+- name: JENKINS_AGENT_BASE_FROM_IMAGE
+  description: configuration which agent base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
+- name: APP_DNS
+  description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
+- name: APP_DNS_PORT
+  description: OpenShift application base dns port - used for grabbing the root ca and adding into the agent
+- name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
+  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+- name: TARGET_HOSTS
+  description: if you have multiple DNS with different root ca, add them here seperated by ';'. They are added to jenkins master
+- name: SONAR_EDITION
+  description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
+- name: SONAR_VERSION
+  description: SonarQube version, e.g. "7.9"
 objects:
 - kind: BuildConfig
   apiVersion: v1
@@ -20,7 +49,7 @@ objects:
       contextDir: jenkins/master
       git:
         ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
+        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
       sourceSecret:
         name: cd-user-token
     strategy:
@@ -68,7 +97,7 @@ objects:
       contextDir: jenkins/slave-base
       git:
         ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
+        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
       sourceSecret:
         name: cd-user-token
       type: Git
@@ -107,7 +136,7 @@ objects:
       contextDir: jenkins/webhook-proxy
       git:
         ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
+        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
       sourceSecret:
         name: cd-user-token
       type: Git
@@ -118,29 +147,3 @@ objects:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     triggers: []
-parameters:
-- name: ODS_IMAGE_TAG
-  description: OpenDevStack image tag to use.
-  required: true
-- name: ODS_GIT_REF
-  description: Git ref to use for source code.
-  required: true
-- name: REPO_BASE
-  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
-  required: true
-- name: JENKINS_AGENT_BASE_IMAGE
-  description: configuration which agent dockerfile to use, either .centos7 or .rhel7
-- name: JENKINS_AGENT_BASE_FROM_IMAGE
-  description: configuration which agent base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
-- name: APP_DNS
-  description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
-- name: APP_DNS_PORT
-  description: OpenShift application base dns port - used for grabbing the root ca and adding into the agent
-- name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
-  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
-- name: TARGET_HOSTS
-  description: if you have multiple DNS with different root ca, add them here seperated by ';'. They are added to jenkins master
-- name: SONAR_EDITION
-  description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
-- name: SONAR_VERSION
-  description: SonarQube version, e.g. "7.9"
