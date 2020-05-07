@@ -64,6 +64,9 @@ parameters:
 - name: LOGGING_FILE_PATH
   required: true
   description: File system location for the log files
+- name: READABLE_OPENDEVSTACK_REPOS
+  required: true
+  description: Repositories which the project specific technical user can read
 objects:
 - kind: ConfigMap
   metadata:
@@ -128,8 +131,7 @@ objects:
       bitbucket.technical.user=${CD_USER_ID}
       bitbucket.opendevstack.project=opendevstack
 
-      scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
-      scm.global.readablerepos.opendevstack[1]=ods-quickstarters
+      scm.global.readablerepos.opendevstack=${READABLE_OPENDEVSTACK_REPOS}
 
       # ODS properties
       ods.image-tag=${ODS_IMAGE_TAG}
