@@ -5,11 +5,11 @@ NAMESPACE="ods"
 BACKUP_DIR="."
 
 function usage {
-  printf "usage: %s [options]\n" $0
+  printf "usage: %s [options]\n" "$0"
   printf "\t-h|--help\tPrints the usage\n"
   printf "\t-v|--verbose\tVerbose output\n"
   printf "\t-b|--backup-dir\tLocation of backup directory\n"
-  printf "\t-n|--namespace\tNamespace (defaults to '${NAMESPACE}')\n"
+  printf "\t-n|--namespace\tNamespace (defaults to '%s')\n" "${NAMESPACE}"
 }
 
 while [[ "$#" -gt 0 ]]; do case $1 in
@@ -32,12 +32,12 @@ if ! oc whoami > /dev/null; then
 fi
 
 # Dump database
-podWithPrefix=$(oc get pods -n ${NAMESPACE} --selector name=sonarqube-postgresql --no-headers -o name)
+podWithPrefix=$(oc get pods -n "${NAMESPACE}" --selector name=sonarqube-postgresql --no-headers -o name)
 pod=${podWithPrefix#"pod/"}
-oc rsh -n ${NAMESPACE} pod/$pod bash -c "pg_dump sonarqube > sonarqube.sql"
+oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "pg_dump sonarqube > sonarqube.sql"
 # Copy export
-oc cp ${NAMESPACE}/$pod:/opt/app-root/src/sonarqube.sql $BACKUP_DIR/
+oc cp "${NAMESPACE}/${pod}:/opt/app-root/src/sonarqube.sql" "${BACKUP_DIR}/"
 # Delete export in pod
-oc rsh -n ${NAMESPACE} pod/$pod bash -c "rm sonarqube.sql"
+oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm sonarqube.sql"
 
 echo "Database 'sonarqube' copied to $BACKUP_DIR."

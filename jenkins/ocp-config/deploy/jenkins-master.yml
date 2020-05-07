@@ -28,8 +28,8 @@ parameters:
   value: "-Xmx4g"
 - name: JENKINS_CONTAINER_HEAP_PERCENT
   value: "1"
-- name: NAMESPACE
-  value: cd
+- name: ODS_NAMESPACE
+  value: ods
 - name: TAILOR_NAMESPACE
   required: true
 - name: CD_USER_ID_B64
@@ -210,7 +210,7 @@ objects:
               value: '${DOCKER_REGISTRY}'
             - name: BITBUCKET_HOST
               value: '${BITBUCKET_HOST}'
-          image: ' '
+          image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-master:${ODS_IMAGE_TAG}'
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 30
@@ -259,16 +259,6 @@ objects:
               claimName: '${JENKINS_SERVICE_NAME}'
     test: false
     triggers:
-      - imageChangeParams:
-          automatic: true
-          containerNames:
-            - jenkins
-          from:
-            kind: ImageStreamTag
-            name: 'jenkins-master:${ODS_IMAGE_TAG}'
-            namespace: '${NAMESPACE}'
-          lastTriggeredImage: ''
-        type: ImageChange
       - type: ConfigChange
 - apiVersion: v1
   kind: ServiceAccount

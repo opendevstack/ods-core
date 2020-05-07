@@ -1,7 +1,7 @@
 // BuildConfig environment variables
 def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsGitRef = env.ODS_GIT_REF ?: 'master'
 def odsBitbucketProject = ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
@@ -13,10 +13,13 @@ def cdUserType = env.CD_USER_TYPE
 // Jenkins DeploymentConfig environment variables
 def bitbucketHost
 def dockerRegistry
+
+def pipelineOpenShiftProject
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   bitbucketHost = env.GIT_SERVER_URL ?: env.BITBUCKET_HOST
-  echo ("Resolved variable 'bitbucketHost' to '${bitbucketHost}'! [defaultHost=${env.BITBUCKET_HOST}, customHost=${env.GIT_SERVER_URL}]")
+  echo("Resolved variable 'bitbucketHost' to '${bitbucketHost}'! [defaultHost=${env.BITBUCKET_HOST}, customHost=${env.GIT_SERVER_URL}]")
+  pipelineOpenShiftProject = env.JOB_NAME.split('/').first()
 }
 
 def gitIsHttps = false
@@ -61,7 +64,7 @@ podTemplate(
     stage('Checkout ods-configuration') {
       def bitbucketScheme = gitIsHttps ? 'https://' : 'http://'
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
-      echo ("Getting ods configuration from (${bitbucketHost})")
+      echo("Getting ods configuration from (${bitbucketHost})")
       checkout([
         $class: 'GitSCM',
         branches: [[name: "*/master"]],
@@ -72,7 +75,7 @@ podTemplate(
         ]],
         submoduleCfg: [],
         userRemoteConfigs: [[
-          credentialsId: 'prov-cd-cd-user-with-password',
+          credentialsId: "${pipelineOpenShiftProject}-cd-user-with-password",
           url: "${bitbucketUrl}/scm/${odsBitbucketProject}/ods-configuration.git"
         ]]
       ])

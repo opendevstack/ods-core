@@ -20,12 +20,12 @@ echo_info(){
     echo -e "\033[94mINFO\033[39m: $1"
 }
 
-ADMIN_USER_NAME=admin
-ADMIN_USER_DEFAULT_PASSWORD=admin
+ADMIN_USER_NAME="admin"
+ADMIN_USER_DEFAULT_PASSWORD="admin"
 ADMIN_USER_PASSWORD=
-PIPELINE_USER_NAME=cd_user
+PIPELINE_USER_NAME="cd_user"
 PIPELINE_USER_PWD=
-TOKEN_NAME=ods-jenkins-shared-library
+TOKEN_NAME="ods-jenkins-shared-library"
 SONARQUBE_URL=
 INSECURE=
 
@@ -67,31 +67,31 @@ esac; shift; done
 
 if ! which jq >/dev/null; then
     echo_warn "Binary 'jq' (https://stedolan.github.io/jq/) is not in your PATH. This will make the script less comfortable to use."
-    read -e -p "Continue anyway? [y/n] " input
+    read -r -e -p "Continue anyway? [y/n] " input
     if [ "${input:-""}" != "y" ]; then
         exit 1
     fi
 fi
 
-if [ -z ${SONARQUBE_URL} ]; then
+if [ -z "${SONARQUBE_URL}" ]; then
     configuredUrl="https://example.sonarqube.com"
-    if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
+    if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
         echo_info "Configuration located"
-        configuredUrl=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep SONARQUBE_URL | cut -d "=" -f 2- <<< "$s")
+        configuredUrl=$(grep SONARQUBE_URL "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
     fi
-    read -e -p "Enter SonarQube URL [${configuredUrl}]: " input
-    if [ -z ${input} ]; then
+    read -r -e -p "Enter SonarQube URL [${configuredUrl}]: " input
+    if [ -z "${input}" ]; then
         SONARQUBE_URL=${configuredUrl}
     else
         SONARQUBE_URL=${input:-""}
     fi
 fi
 
-if [ -z ${ADMIN_USER_PASSWORD} ]; then
-    if [ -f ${ODS_CORE_DIR}/../ods-configuration/ods-core.env ]; then
+if [ -z "${ADMIN_USER_PASSWORD}" ]; then
+    if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
         echo_info "Configuration located, checking if password is changed from sample value"
-        samplePassword=$(cat ${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample | grep SONAR_ADMIN_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s")
-        configuredPassword=$(cat ${ODS_CORE_DIR}/../ods-configuration/ods-core.env | grep SONAR_ADMIN_PASSWORD_B64 | cut -d "=" -f 2- <<< "$s" | base64 --decode)
+        samplePassword=$(grep SONAR_ADMIN_PASSWORD_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
+        configuredPassword=$(grep SONAR_ADMIN_PASSWORD_B64 "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
         if [ "${configuredPassword}" == "${samplePassword}" ]; then
             echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
         else
@@ -99,9 +99,9 @@ if [ -z ${ADMIN_USER_PASSWORD} ]; then
             ADMIN_USER_PASSWORD=${configuredPassword}
         fi
     fi
-    if [ -z ${ADMIN_USER_PASSWORD} ]; then
+    if [ -z "${ADMIN_USER_PASSWORD}" ]; then
         echo "Please enter SonarQube admin password:"
-        read -e -s input
+        read -r -e -s input
         ADMIN_USER_PASSWORD=${input:-""}
     fi
 fi
@@ -117,7 +117,7 @@ until [ $n -ge 20 ]; do
     else
         echo_info "SonarQube is not up yet, waiting 10s ..."
         sleep 10s
-        n=$[$n+1]
+        n=$((n+1))
     fi
 done
 set -e
@@ -126,12 +126,12 @@ echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_
 if curl ${INSECURE} -X POST --fail --silent \
     "${SONARQUBE_URL}/api/authentication/login?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
     echo_info "Default password '${ADMIN_USER_DEFAULT_PASSWORD}' is used, updating it now."
-    if ! curl ${INSECURE} -X POST --fail --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_NAME} \
+    if ! curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_NAME}" \
         "${SONARQUBE_URL}/api/users/change_password?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_PASSWORD}&previousPassword=${ADMIN_USER_DEFAULT_PASSWORD}"; then
         echo_error "Could not change default password of '${ADMIN_USER_NAME}'."
         exit 1
     fi
-    base64Password=$(echo -n $ADMIN_USER_PASSWORD | base64)
+    base64Password=$(echo -n "${ADMIN_USER_PASSWORD}" | base64)
     echo_info "Base64-encoded password to use for 'SONAR_ADMIN_PASSWORD_B64': ${base64Password}"
     echo_info "Default password changed"
 else
@@ -139,7 +139,7 @@ else
 fi
 
 echo_info "Setting sonar.forceAuthentication=true"
-if ! curl ${INSECURE} -X POST --fail --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD} \
+if ! curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/settings/set?key=sonar.forceAuthentication&value=true"; then
     echo_error "Could not enable sonar.forceAuthentication."
     exit 1
@@ -147,12 +147,12 @@ fi
 echo_info "sonar.forceAuthentication is enabled"
 
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists"
-if curl ${INSECURE} -X POST --fail --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD} \
+if curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/users/search?q=${PIPELINE_USER_NAME}" | grep '"users":\[\]' >/dev/null; then
     echo_info "No user '${PIPELINE_USER_NAME}' present yet."
-    if [ -z ${PIPELINE_USER_PWD} ]; then
+    if [ -z "${PIPELINE_USER_PWD}" ]; then
         echo "Please enter '${PIPELINE_USER_NAME}' password:"
-        read -e -s input
+        read -r -e -s input
         PIPELINE_USER_PWD=${input:-""}
     fi
     echo_info "Trying to login in with '${PIPELINE_USER_NAME}'"
@@ -166,19 +166,19 @@ fi
 echo_info "User '${PIPELINE_USER_NAME}' exists in SonarQube"
 
 echo_info "Checking if there are already tokens for '${PIPELINE_USER_NAME}'"
-if ! curl ${INSECURE} --fail --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD} \
+if ! curl ${INSECURE} --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/user_tokens/search?login=${PIPELINE_USER_NAME}" | grep '"userTokens":\[\]' >/dev/null; then
     echo_info "There are already token(s) for '${PIPELINE_USER_NAME}'."
 else
     echo_info "Creating token for '${PIPELINE_USER_NAME}'."
-    tokenResponse=$(curl ${INSECURE} -X POST --fail --silent --user ${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD} \
+    tokenResponse=$(curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
         "${SONARQUBE_URL}/api/user_tokens/generate?login=${PIPELINE_USER_NAME}&name=${TOKEN_NAME}")
     # Example response:
     # {"login":"cd_user","name":"foo","token":"bar","createdAt":"2020-04-22T13:21:54+0000"}
     if which jq >/dev/null; then
-        token=$(echo $tokenResponse | jq -r .token)
+        token=$(echo "${tokenResponse}" | jq -r .token)
         echo_info "Created token: ${token}"
-        base64Token=$(echo -n $token | base64)
+        base64Token=$(echo -n "${token}" | base64)
         echo_info "Base64-encoded token to use for 'SONAR_AUTH_TOKEN_B64': ${base64Token}"
     else
         echo_info "Created token! Response: ${tokenResponse}"

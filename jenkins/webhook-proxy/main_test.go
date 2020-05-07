@@ -203,6 +203,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		Project:                 "bar",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
+		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
 		AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
@@ -327,26 +328,46 @@ func TestHandleRootReadsRequests(t *testing.T) {
 }
 
 func TestSkipsPayloads(t *testing.T) {
-	ts, _ := testServer()
-	defer ts.Close()
-
 	// The expected events depend on the values in the payload files.
 	tests := map[string]struct {
-		payloadFile string
-		expectedLog string
+		acceptedEvents []string
+		payloadFile    string
+		expectedLog    string
 	}{
 		"Tag pushed": {
-			payloadFile: "repo-refs-changed-tag-payload.json",
-			expectedLog: "Skipping change ref type TAG as ALLOWED_CHANGE_REF_TYPES does not include it",
+			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
+			payloadFile:    "repo-refs-changed-tag-payload.json",
+			expectedLog:    "Skipping change ref type TAG as ALLOWED_CHANGE_REF_TYPES does not include it",
 		},
 		"Unknown event": {
-			payloadFile: "unknown-event-payload.json",
-			expectedLog: "Skipping unknown event",
+			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
+			payloadFile:    "unknown-event-payload.json",
+			expectedLog:    "Skipping event foo:bar as ACCEPTED_EVENTS does not include it",
+		},
+		"Unaccepted event": {
+			acceptedEvents: []string{"repo:refs_changed", "pr:declined", "pr:merged", "pr:deleted"},
+			payloadFile:    "unaccepted-event-payload.json",
+			expectedLog:    "Skipping event pr:opened as ACCEPTED_EVENTS does not include it",
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			mc := &mockClient{}
+			server := &Server{
+				Client:                  mc,
+				Namespace:               "bar-cd",
+				Project:                 "bar",
+				TriggerSecret:           "s3cr3t",
+				ProtectedBranches:       []string{"baz"},
+				AcceptedEvents:          tc.acceptedEvents,
+				AllowedExternalProjects: []string{"opendevstack"},
+				AllowedChangeRefTypes:   []string{"BRANCH"},
+				RepoBase:                "https://domain.com",
+			}
+			ts := httptest.NewServer(server.HandleRoot())
+			defer ts.Close()
+
 			f, err := os.Open("test/fixtures/" + tc.payloadFile)
 			if err != nil {
 				t.Fatal(err)
@@ -449,6 +470,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				Project:                 tc.project,
 				TriggerSecret:           fakeSecret,
 				ProtectedBranches:       []string{"baz"},
+				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
 				AllowedExternalProjects: tc.allowedExternalProjects,
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
@@ -686,6 +708,7 @@ func TestBuildEndpoint(t *testing.T) {
 				Project:                 "bar",
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
+				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
 				AllowedExternalProjects: []string{"opendevstack"},
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
@@ -729,6 +752,7 @@ func TestNotFound(t *testing.T) {
 		Project:                 "bar",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
+		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
 		AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
