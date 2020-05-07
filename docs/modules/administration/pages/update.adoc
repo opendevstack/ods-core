@@ -8,8 +8,7 @@ installation of it.
 
 Updating repositories means that new refs from repositories under
 `github.com/opendevstack` are pushed into the repositories in your BitBucket
-instance. Note that only updates to the `production` branch in BitBucket will
-have any effect on the OpenDevStack installation.
+instance.
 
 First, you need a clone of each repository in BitBucket which should be updated
 on your local machine.
@@ -40,8 +39,8 @@ git reset --hard ods/2.x
 git push origin 2.x
 ----
 
-If your OpenDevStack installation is based on the `production` branch, then you
-need to create a pull request on BitBucket from `2.x` into `production` now.
+If your OpenDevStack installation is based on a custom branch (such as `2.acme`), then you
+need to create a pull request on BitBucket from `2.x` into that custom branch now.
 
 Now that the repositories are updated, you also need to modify the images and the
 running instances in OpenShift.
