@@ -1,7 +1,5 @@
 FROM openshift/jenkins-slave-base-centos7
 
-LABEL maintainer="Richard Attermeyer <richard.attermeyer@opitz-consulting.com>"
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \

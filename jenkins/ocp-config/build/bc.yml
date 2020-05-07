@@ -15,10 +15,12 @@ parameters:
 - name: REPO_BASE
   description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
   required: true
-- name: JENKINS_AGENT_BASE_IMAGE
-  description: configuration which agent dockerfile to use, either .centos7 or .rhel7
+- name: JENKINS_MASTER_BASE_FROM_IMAGE
+  required: true
+  description: Base image for Jenkins master
 - name: JENKINS_AGENT_BASE_FROM_IMAGE
-  description: configuration which agent base to use, for rhel7 use registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
+  required: true
+  description: Base image for Jenkins agent base
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
 - name: APP_DNS_PORT
@@ -39,11 +41,15 @@ objects:
     labels:
       app: jenkins
   spec:
+    failedBuildsHistoryLimit: 5
     nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'jenkins-master:${ODS_IMAGE_TAG}'
     postCommit: {}
     resources: {}
     runPolicy: Serial
-    triggers: []
     source:
       type: Git
       contextDir: jenkins/master
@@ -71,13 +77,10 @@ objects:
           - name: SONAR_VERSION
             value: ${SONAR_VERSION}
         from:
-          kind: ImageStreamTag
-          name: jenkins:2
-          namespace: openshift
-    output:
-      to:
-        kind: ImageStreamTag
-        name: 'jenkins-master:${ODS_IMAGE_TAG}'
+          kind: DockerImage
+          name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
+    successfulBuildsHistoryLimit: 5
+    triggers: []
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -85,6 +88,7 @@ objects:
     labels:
       app: jenkins
   spec:
+    failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
@@ -103,7 +107,6 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: ${JENKINS_AGENT_BASE_IMAGE}
         env:
           - name: APP_DNS
             value: ${APP_DNS}
@@ -117,6 +120,7 @@ objects:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
       type: Docker
+    successfulBuildsHistoryLimit: 5
     triggers: []
 - apiVersion: v1
   kind: BuildConfig
