@@ -7,12 +7,17 @@ usage() {
 for bitbucket host> -t <target env to clone to> -s <source env to clone from>";
 }
 
+ODS_BITBUCKET_PROJECT=opendevstack
+
 while [[ "$#" > 0 ]]; do case $1 in
   -o=*|--openshift-host=*) OPENSHIFT_HOST="${1#*=}";;
   -o|--openshift-host) OPENSHIFT_HOST="$2"; shift;;
 
   -b=*|--bitbucket-host=*) BITBUCKET_HOST="${1#*=}";;
   -b|--bitbucket-host) BITBUCKET_HOST="$2"; shift;;
+
+  --ods-bitbucket-project=*) ODS_BITBUCKET_PROJECT="${1#*=}";;
+  --ods-bitbucket-project) ODS_BITBUCKET_PROJECT="$2"; shift;;
 
   -c=*|--credentials=*) CREDENTIALS="${1#*=}";;
   -c|--credentials) CREDENTIALS="$2"; shift;;
@@ -105,14 +110,14 @@ echo $(pwd)
 # compatibility with older shared jenkins library
 cleanup=()
 if [ ! -f "$SCRIPT_DIR/export-project.sh" ]; then
-  export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
+  export_url="https://$BITBUCKET_HOST/projects/$ODS_BITBUCKET_PROJECT/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
   echo "Retrieving missing export-project.sh from $export_url"
   file="$SCRIPT_DIR/export-project.sh"
   curl --fail -s --user $CREDENTIALS -G $export_url -d raw -o "$file"
   cleanup+=( "$file" )
 fi
 if [ ! -f "$SCRIPT_DIR/import-project.sh" ]; then
-  import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
+  import_url="https://$BITBUCKET_HOST/projects/$ODS_BITBUCKET_PROJECT/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
   echo "Retrieving missing import-project.sh from $import_url"
   file="$SCRIPT_DIR/import-project.sh"
   curl --fail -s --user $CREDENTIALS -G $import_url -d raw -o "$file"

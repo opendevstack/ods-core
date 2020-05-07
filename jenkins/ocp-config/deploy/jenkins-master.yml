@@ -51,7 +51,7 @@ parameters:
 - name: SONAR_AUTH_TOKEN_B64
   required: true
 - name: SHARED_LIBRARY_REPOSITORY
-  value: opendevstack/ods-jenkins-shared-library.git
+  required: true
 - name: DOCKER_REGISTRY
   required: true
 - name: BITBUCKET_HOST
@@ -205,7 +205,7 @@ objects:
                   key: auth-token
                   name: sonarqube
             - name: SHARED_LIBRARY_REPOSITORY
-              value: '${REPO_BASE}/${SHARED_LIBRARY_REPOSITORY}'
+              value: '${SHARED_LIBRARY_REPOSITORY}'
             - name: DOCKER_REGISTRY
               value: '${DOCKER_REGISTRY}'
             - name: BITBUCKET_HOST

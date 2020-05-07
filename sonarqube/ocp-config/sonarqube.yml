@@ -3,6 +3,9 @@ kind: Template
 metadata:
   name: sonarqube
 parameters:
+- name: ODS_BITBUCKET_PROJECT
+  description: Bitbucket project name.
+  value: opendevstack
 - name: ODS_NAMESPACE
   description: OpenDevStack namespace to use.
   value: ods
@@ -90,7 +93,7 @@ objects:
     source:
       contextDir: sonarqube
       git:
-        uri: ${REPO_BASE}/opendevstack/ods-core.git
+        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
         ref: ${ODS_GIT_REF}
       sourceSecret:
         name: cd-user-token
