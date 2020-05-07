@@ -1,7 +1,7 @@
 // BuildConfig environment variables
 def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsGitRef = env.ODS_GIT_REF ?: 'master'
 def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN
 def projectGroups = env.PROJECT_GROUPS

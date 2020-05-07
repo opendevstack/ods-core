@@ -24,7 +24,7 @@ def odsConfig = jsonSlurper.parse(new File("/etc/opendevstack/config.json"))
 println "INFO: Read ODS configuration ${odsConfig}"
 
 // Define parameters.
-def defaultBranch = odsConfig.odsGitRef ?: 'production'
+def defaultBranch = odsConfig.odsGitRef ?: 'master'
 def globalLibrariesParameters = [
   branch:               defaultBranch,
   credentialId:         credentialsId,

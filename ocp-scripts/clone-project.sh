@@ -38,6 +38,9 @@ while [[ "$#" > 0 ]]; do case $1 in
   -gb=*|--git-branch=*) GIT_BRANCH="${1#*=}";;
   -gb|--git-branch) GIT_BRANCH="$2"; shift;;
 
+  -sb=*|--script-branch=*) SCRIPT_BRANCH="${1#*=}";;
+  -sb|--script-branch) SCRIPT_BRANCH="$2"; shift;;
+
   *) echo "Unknown parameter passed: $1"; usage; exit 1;;
 esac; shift; done
 
@@ -77,6 +80,11 @@ if [[ -z "$GIT_BRANCH" ]]; then
     GIT_BRANCH=master
 fi
 
+if [[ -z "$SCRIPT_BRANCH" ]]; then
+    echo "[DEBUG]: no script branch set - defaulting to master"
+    SCRIPT_BRANCH=master
+fi
+
 echo "Provided params: \
 - PROJECT_ID: $PROJECT_ID \
 - OPENSHIFT_HOST: $OPENSHIFT_HOST \
@@ -97,14 +105,14 @@ echo $(pwd)
 # compatibility with older shared jenkins library
 cleanup=()
 if [ ! -f "$SCRIPT_DIR/export-project.sh" ]; then
-  export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2Fproduction"
+  export_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/export-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
   echo "Retrieving missing export-project.sh from $export_url"
   file="$SCRIPT_DIR/export-project.sh"
   curl --fail -s --user $CREDENTIALS -G $export_url -d raw -o "$file"
   cleanup+=( "$file" )
 fi
 if [ ! -f "$SCRIPT_DIR/import-project.sh" ]; then
-  import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2Fproduction"
+  import_url="https://$BITBUCKET_HOST/projects/opendevstack/repos/ods-core/raw/ocp-scripts/import-project.sh?at=refs%2Fheads%2F${SCRIPT_BRANCH}"
   echo "Retrieving missing import-project.sh from $import_url"
   file="$SCRIPT_DIR/import-project.sh"
   curl --fail -s --user $CREDENTIALS -G $import_url -d raw -o "$file"
