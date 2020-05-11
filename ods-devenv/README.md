@@ -7,6 +7,8 @@ The EDP box is intended to run in various environments:
   - VMWare or
   - VirtualBox
 
+The scripts are written to be executed by an unprivileged user openshift provided in the basic VM box setup.
+
 ## Preparation steps
 ### Local Deployment
 For local deployment create a VMWare virtual machine from CentOS-7 2003 using this configuration:
