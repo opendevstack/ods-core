@@ -1,5 +1,5 @@
 # EDP / ODS Development Environment
-This project provides scripts to setup a complete EDP environment for end-to-end testing purposes and as a development environment, aka **EDP in a box**.
+This project provides scripts to setup a development and test environment for EDP/ODS, aka EDP box.
 
 The EDP box is intended to run in various environments:
 - As an EC2 virtual machine on AWS
@@ -7,7 +7,20 @@ The EDP box is intended to run in various environments:
   - VMWare or
   - VirtualBox
 
-The scripts are written to be executed by an unprivileged user openshift provided in the basic VM box setup.
+The core script is scripts/deploy.sh. It is intended to be run by an unprivileged user on the target system.
+The script implements a set of functions that can be executed en-suite or single file as needed.
+
+The functions can be called like this:
+```
+bash deploy.sh install_docker       # will install the docker infrastructure
+bash deploy.sh setup_rdp            # will install remote desktop infrastructure
+bash deploy.sh basic_vm_setup       # the utility function basic_vm_setup will call other functions to perform a basic vm setup
+```
+
+Currently, the script will setup a fresh VM with an OpenShift cluster, a docker installation and some means of communication with clients.
+Next steps will be
+- Install ODS in OpenShift
+- Integrate provisioning-app
 
 ## Preparation steps
 ### Local Deployment
