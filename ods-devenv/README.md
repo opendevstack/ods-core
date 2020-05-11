@@ -1,5 +1,5 @@
 # EDP / ODS Development Environment
-This project provides scripts to setup a complete EDP environment for end-to-end testing purposes and as a development environment aka **EDP in a box**.
+This project provides scripts to setup a complete EDP environment for end-to-end testing purposes and as a development environment, aka **EDP in a box**.
 
 The EDP box is intended to run in various environments:
 - As an EC2 virtual machine on AWS
