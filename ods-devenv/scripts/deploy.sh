@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
+set -eu
+
+atlassian_mysql_container_name=atlassian_mysql
+atlassian_mysql_port=3306
+atlassian_mysql_version=5.7
+atlassian_jira_db_name=jiradb
 atlassian_jira_software_version=8.5.3
 atlassian_jira_port=18080
+atlassian_bitbucket_db_name=bitbucketdb
 atlassian_bitbucket_version=6.8.2-jdk11
 atlassian_bitbucket_port=28080
 
@@ -190,9 +197,43 @@ function print_system_setup() {
 }
 
 #######################################
-# list versions of software installed in the basic setup
+# Start up a containerized mysql instance capable of hosting Atlassian databases
+# for Jira, BitBucket, Confluence.
+# Globals:
+#   atlassian_mysql_container_name
+#   atlassian_mysql_port
+#   atlassian_mysql_version
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function startup_atlassian_mysql() {
+    echo "Setting up a mysql instance for the Atlassian tool suite."
+    docker container run -dp ${atlassian_mysql_port}:3306 \
+        --name ${atlassian_mysql_container_name} \
+        -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
+        -v /home/$USER/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version} --default-storage-engine=INNODB \
+        --character-set-server=utf8 \
+        --collation-server=utf8_bin \
+        --default-storage-engine=INNODB \
+        --innodb-default-row-format=DYNAMIC \
+        --innodb-large-prefix=ON \
+        --innodb-file-format=Barracuda \
+        --innodb-log-file-size=2G
+    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
+}
+
+#######################################
+# Start up a containerized Jira instance, connecting against a database
+# provided by atlassian_mysql_container_name
 # Globals:
 #   atlassian_jira_software_version
+#   atlassian_jira_db_name
+#   atlassian_mysql_container_name
+#   atlassian_mysql_port
+#   atlassian_mysql_version
 # Arguments:
 #   n/a
 # Returns:
@@ -201,23 +242,10 @@ function print_system_setup() {
 function startup_atlassian_jira() {
     echo "Installing Atlassian Jira ${atlassian_jira_software_version}"
 
-    echo "fire up mysql db service"
-    docker container run -dp 3306:3306 \
-        --name atlassian_mysql \
-        -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-        -v /home/$USER/mysql_data:/var/lib/mysql mysql:5.7 --default-storage-engine=INNODB \
-        --character-set-server=utf8 \
-        --collation-server=utf8_bin \
-        --default-storage-engine=INNODB \
-        --innodb-default-row-format=DYNAMIC \
-        --innodb-large-prefix=ON \
-        --innodb-file-format=Barracuda \
-        --innodb-log-file-size=2G
-
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' atlassian_mysql)
-    echo "Setting up jiradb on ${mysql_ip}:3306."
-    echo "jiradbrpwd" | docker container run -it --rm mysql:5.7 mysql -h ${mysql_ip} -u root -p -e \
-        "create database jiradb character set utf8 collate utf8_bin; \
+    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
+        "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
         flush privileges;"
 
@@ -228,23 +256,40 @@ function startup_atlassian_jira() {
         --name jira \
         -v $HOME/jira_data:/var/atlassian/application-data/jira \
         -dp ${atlassian_jira_port}:8080 \
-        -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:3306/jiradb" \
+        -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/jiradb" \
         -e ATL_JDBC_USER=jira_user \
         -e ATL_JDBC_PASSWORD=jira_password \
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version}
-    docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib
+    # this race condition normally works out. Did not cause any trouble yet.
+    # Alternative approach: start container, stop container, cp driver, restart container ...
+    docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
+    rm mysql-connector-java-8.0.20.jar
 }
 
+#######################################
+# Start up a containerized BitBucket instance, connecting against a database
+# provided by atlassian_mysql_container_name
+# Globals:
+#   atlassian_bitbucket_version
+#   atlassian_bitbucket_db_name
+#   atlassian_mysql_container_name
+#   atlassian_mysql_port
+#   atlassian_mysql_version
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
 function startup_atlassian_bitbucket() {
     echo "Installing Atlassian BitBucket ${atlassian_bitbucket_version}"
 
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' atlassian_mysql)
-    echo "Setting up bitbucketdb on ${mysql_ip}:3306."
-    echo "jiradbrpwd" | docker container run -it --rm mysql:5.7 mysql -h ${mysql_ip} -u root -p -e \
-        "create database bitbucketdb character set utf8 collate utf8_bin; \
+    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    echo "Setting up bitbucket database on ${mysql_ip}:${atlassian_mysql_port}."
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
+        "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
 
@@ -255,17 +300,18 @@ function startup_atlassian_bitbucket() {
         --name bitbucket \
         -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
         -dp ${atlassian_bitbucket_port}:7990 \
-        -e "JDBC_URL=jdbc:mysql://${mysql_ip}:3306/bitbucketdb" \
+        -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/bitbucketdb" \
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
+    rm mysql-connector-java-8.0.20.jar
 }
 
 #######################################
 # this utility function will call some functions in a meaningful order
-# to prep a fresh CentOS box for ODS / EDP installation.
+# to prep a fresh CentOS box for EDP/ODS installation.
 # Globals:
 #   n/a
 # Arguments:
@@ -280,6 +326,9 @@ function basic_vm_setup() {
     setup_openshift_cluster
     download_tailor
     print_system_setup
+    startup_atlassian_mysql
+    startup_atlassian_jira
+    startup_atlassian_bitbucket
 }
 
 # the next line will make bash try to execute the script arguments in the context of this script,
