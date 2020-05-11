@@ -233,22 +233,14 @@ function startup_atlassian_mysql() {
 #   atlassian_jira_db_name
 #   atlassian_mysql_container_name
 #   atlassian_mysql_port
-#   atlassian_mysql_version
 # Arguments:
 #   n/a
 # Returns:
 #   None
 #######################################
-function startup_atlassian_jira() {
-    echo "Installing Atlassian Jira ${atlassian_jira_software_version}"
-
+function startup_atlassian_jira(){
+    echo "Starting Atlassian Jira ${atlassian_jira_software_version}"
     local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
-    echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
-        "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
-        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
-        flush privileges;"
-
     echo "Downloading mysql-connector-java"
     curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
 
@@ -256,7 +248,7 @@ function startup_atlassian_jira() {
         --name jira \
         -v $HOME/jira_data:/var/atlassian/application-data/jira \
         -dp ${atlassian_jira_port}:8080 \
-        -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/jiradb" \
+        -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
         -e ATL_JDBC_USER=jira_user \
         -e ATL_JDBC_PASSWORD=jira_password \
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
@@ -270,10 +262,61 @@ function startup_atlassian_jira() {
 }
 
 #######################################
+# Initialize Jira database. Requires database service to be running
+# Globals:
+#   atlassian_jira_db_name
+#   atlassian_mysql_container_name
+#   atlassian_mysql_port
+#   atlassian_mysql_version
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function initialize_atlassian_jiradb() {
+    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
+        "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
+        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
+        flush privileges;"
+}
+
+#######################################
 # Start up a containerized BitBucket instance, connecting against a database
 # provided by atlassian_mysql_container_name
 # Globals:
 #   atlassian_bitbucket_version
+#   atlassian_bitbucket_db_name
+#   atlassian_mysql_container_name
+#   atlassian_mysql_port
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function startup_atlassian_bitbucket() {
+    echo "Strating up Atlassian BitBucket ${atlassian_bitbucket_version}"
+    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    echo "Downloading mysql-connector-java"
+    curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
+
+    docker container run \
+        --name bitbucket \
+        -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
+        -dp ${atlassian_bitbucket_port}:7990 \
+        -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
+        -e JDBC_DRIVER=com.mysql.jdbc.Driver \
+        -e JDBC_USER=bitbucket_user \
+        -e JDBC_PASSWORD=bitbucket_password \
+        atlassian/bitbucket-server:${atlassian_bitbucket_version}
+    docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
+    rm mysql-connector-java-8.0.20.jar
+}
+
+#######################################
+# Initialize bitbucket database. Requires a database service to be running.
+# Globals:
 #   atlassian_bitbucket_db_name
 #   atlassian_mysql_container_name
 #   atlassian_mysql_port
@@ -283,30 +326,13 @@ function startup_atlassian_jira() {
 # Returns:
 #   None
 #######################################
-function startup_atlassian_bitbucket() {
-    echo "Installing Atlassian BitBucket ${atlassian_bitbucket_version}"
-
+function initialize_atlassian_bitbucketdb() {
     local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Setting up bitbucket database on ${mysql_ip}:${atlassian_mysql_port}."
     echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
         "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
-
-    echo "Downloading mysql-connector-java"
-    curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
-
-    docker container run \
-        --name bitbucket \
-        -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
-        -dp ${atlassian_bitbucket_port}:7990 \
-        -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/bitbucketdb" \
-        -e JDBC_DRIVER=com.mysql.jdbc.Driver \
-        -e JDBC_USER=bitbucket_user \
-        -e JDBC_PASSWORD=bitbucket_password \
-        atlassian/bitbucket-server:${atlassian_bitbucket_version}
-    docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
-    rm mysql-connector-java-8.0.20.jar
 }
 
 #######################################
