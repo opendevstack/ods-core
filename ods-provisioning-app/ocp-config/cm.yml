@@ -236,7 +236,9 @@ objects:
       # in an ods installation.
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
-      
+
+      openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
+
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
 
       # Cookie Domain
