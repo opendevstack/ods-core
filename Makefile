@@ -75,7 +75,9 @@ install-provisioning-app: apply-provisioning-app-deploy
 
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE}
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is
+	../../ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --imagename ods-provisioning-app
+	tailor apply --namespace ${NAMESPACE} --exclude is
 .PHONY: apply-provisioning-app-deploy
 
 
@@ -87,6 +89,7 @@ install-doc-gen: apply-doc-gen-build
 ## Update OpenShift resources related to the Document Generation image.
 apply-doc-gen-build:
 	cd ods-doc-gen-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
+	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --imagename ods-document-generation-svc targetimagestream ods-doc-gen-svc
 .PHONY: apply-doc-gen-build
 
 
