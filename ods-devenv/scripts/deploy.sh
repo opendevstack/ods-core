@@ -425,10 +425,11 @@ function delete_ods_repositories() {
 function initialise_ods_repositories() {
     local opendevstack_dir="/home/${USER}/opendevstack"
     local current_dir="$(pwd)"
-    mkdir "${opendevstack_dir}"
+    mkdir -p "${opendevstack_dir}"
     cd "${opendevstack_dir}"
 
-    curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+    # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+    curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
     ./repos.sh --sync --bitbucket http://openshift:openshift@localhost:${atlassian_bitbucket_port} --git-ref master --confirm
 }
