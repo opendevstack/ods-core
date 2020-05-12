@@ -213,7 +213,7 @@ function startup_atlassian_mysql() {
     docker container run -dp ${atlassian_mysql_port}:3306 \
         --name ${atlassian_mysql_container_name} \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-        -v /home/$USER/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version} --default-storage-engine=INNODB \
+        -v /home/${USER}/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version} --default-storage-engine=INNODB \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \
@@ -385,13 +385,52 @@ function restore_atlassian_bitbucketdb_with_license() {
 function create_empty_ods_repositories() {
     # The repository list in the next line can be modified to project specific needs.
     # For each of the listed names, a repository will be created in the local bitbucket
-    # instance under the OPENDEVSTACK project.
+    # instance under the OPENDEVSTACK project. The list should be synced with the repo
+    # list in ods-core/ods-setup/repos.sh.
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
         echo "Creating repository ${repository} on http://localhost:${atlassian_bitbucket_port}."
         curl -X POST --user openshift:openshift http://localhost:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
     done
+}
+
+#######################################
+# For each of the listed names this function will delete the corresponding
+# repository in the local BitBucket instance in the opendevstack project
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function delete_ods_repositories() {
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
+        echo "Deleting repository opendevstack/${repository} on http://localhost:${atlassian_bitbucket_port}."
+        curl -X DELETE --user openshift:openshift http://localhost:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
+    done
+}
+
+#######################################
+# For each of the listed names this function will delete the corresponding
+# repository in the local BitBucket instance in the opendevstack project
+# Globals:
+#   atlassian_bitbucket_port
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function initialise_ods_repositories() {
+    local opendevstack_dir="/home/${USER}/opendevstack"
+    local current_dir="$(pwd)"
+    mkdir "${opendevstack_dir}"
+    cd "${opendevstack_dir}"
+
+    curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+    chmod u+x ./repos.sh
+    ./repos.sh --sync --bitbucket http://openshift:openshift@localhost:${atlassian_bitbucket_port} --git-ref master --confirm
 }
 
 #######################################
