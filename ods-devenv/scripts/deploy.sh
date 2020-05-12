@@ -45,6 +45,7 @@ function check_system_setup() {
     fi
 
     echo "alias ll='ls -AFhl --color=auto'" >> ~/.bashrc
+    echo "alias dcip='docker inspect --format "{{.NetworkSettings.IPAddress}}"'" >> ~/.bashrc
 
     # remove obsolete version of git
     if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
@@ -279,7 +280,7 @@ function initialize_atlassian_jiradb() {
     echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
     echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
         "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
-        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
+        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
         flush privileges;"
 }
 
@@ -351,7 +352,7 @@ function initialize_atlassian_bitbucketdb() {
     echo "Setting up bitbucket database on ${mysql_ip}:${atlassian_mysql_port}."
     echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
         "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
-        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
+        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
 }
 
@@ -369,6 +370,28 @@ function restore_atlassian_bitbucketdb_with_license() {
     local target_dir=/home/${USER}/mysql_data
     sudo rm -rf ${target_dir}/bitbucketdb
     sudo tar xzf ${BASH_SOURCE%/*}/../atlassian/bitbucketdb.tar.gz -C ${target_dir}/..
+}
+
+#######################################
+# The automated ODS setup requires some repositories to be existing in the
+# local bitbucket installation. This function takes care of it.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function create_empty_ods_repositories() {
+    # The repository list in the next line can be modified to project specific needs.
+    # For each of the listed names, a repository will be created in the local bitbucket
+    # instance under the OPENDEVSTACK project.
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
+        echo "Creating repository ${repository} on http://localhost:${atlassian_bitbucket_port}."
+        curl -X POST --user openshift:openshift http://localhost:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
+    done
 }
 
 #######################################
