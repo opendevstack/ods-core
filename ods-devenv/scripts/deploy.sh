@@ -131,7 +131,7 @@ EOF
 }
 
 #######################################
-# set up a minishift cluster 3.11 ready for ODS integration
+# set up an OKD cluster 3.11 ready for ODS integration
 # Globals:
 #   n/a
 # Arguments:
@@ -148,7 +148,6 @@ function setup_openshift_cluster() {
     echo "Starting up oc cluster for the first time"
     # ip_address=192.168.188.96
     ip_address=172.17.0.1
-    # oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix 172.17.0.1.nip.io --public-hostname 172.17.0.1 --no-proxy=172.17.0.1
     oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address} --no-proxy=${ip_address}
     oc login -u developer
     oc login -u system:admin
@@ -255,6 +254,8 @@ function startup_atlassian_jira(){
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version}
+    local jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' jira)
+    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port}"
     # this race condition normally works out. Did not cause any trouble yet.
     # Alternative approach: start container, stop container, cp driver, restart container ...
     docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
@@ -295,7 +296,7 @@ function initialize_atlassian_jiradb() {
 function restore_atlassian_jiradb_with_license() {
     local target_dir=/home/${USER}/mysql_data
     sudo rm -rf ${target_dir}/jiradb
-    sudo tar xzf ${BASH_SOURCE%/*}/jiradb.tar.gz -C ${target_dir}/..
+    sudo tar xzf ${BASH_SOURCE%/*}/../atlassian/jiradb.tar.gz -C ${target_dir}/..
 }
 
 #######################################
@@ -326,6 +327,8 @@ function startup_atlassian_bitbucket() {
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
+    local bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' bitbucket)
+    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port}"
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
@@ -365,7 +368,7 @@ function initialize_atlassian_bitbucketdb() {
 function restore_atlassian_bitbucketdb_with_license() {
     local target_dir=/home/${USER}/mysql_data
     sudo rm -rf ${target_dir}/bitbucketdb
-    sudo tar xzf ${BASH_SOURCE%/*}/bitbucketdb.tar.gz -C ${target_dir}/..
+    sudo tar xzf ${BASH_SOURCE%/*}/../atlassian/bitbucketdb.tar.gz -C ${target_dir}/..
 }
 
 #######################################
@@ -386,7 +389,11 @@ function basic_vm_setup() {
     download_tailor
     print_system_setup
     startup_atlassian_mysql
+    initialize_atlassian_jiradb
+    restore_atlassian_jiradb_with_license
     startup_atlassian_jira
+    initialize_atlassian_bitbucketdb
+    restore_atlassian_bitbucketdb_with_license
     startup_atlassian_bitbucket
 }
 
