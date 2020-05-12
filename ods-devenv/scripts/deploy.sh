@@ -452,12 +452,16 @@ function basic_vm_setup() {
     download_tailor
     print_system_setup
     startup_atlassian_mysql
+    # TODO wait until mysql becomes available
     initialize_atlassian_jiradb
     restore_atlassian_jiradb_with_license
     startup_atlassian_jira
     initialize_atlassian_bitbucketdb
     restore_atlassian_bitbucketdb_with_license
     startup_atlassian_bitbucket
+    # TODO wait until BitBucket becomes available
+    create_empty_ods_repositories
+    initialise_ods_repositories
 }
 
 # the next line will make bash try to execute the script arguments in the context of this script,
