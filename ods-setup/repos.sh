@@ -201,14 +201,13 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioni
   else
     echo_info "Creating local ref '${GIT_REF}'."
     git checkout -b ${GIT_REF} ods/${GIT_REF} --no-track
-    git branch --set-upstream-to origin/${GIT_REF}
   fi
   echo_done "Prepared ${REPO}."
 
   # Push to Bitbucket
   if [ "$SYNC" == "y" ]; then
     echo_info "Pushing '${GIT_REF}' to Bitbucket."
-    git push origin ${GIT_REF}
+    git push -u origin ${GIT_REF}
     echo_done "Pushed '${GIT_REF}' to Bitbucket."
   fi
 
