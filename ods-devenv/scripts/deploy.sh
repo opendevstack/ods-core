@@ -283,6 +283,22 @@ function initialize_atlassian_jiradb() {
 }
 
 #######################################
+# Overwrites existing jiradb data files with a backup from a fresh jiradb incl
+# timebomb licenses.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restore_atlassian_jiradb_with_license() {
+    local target_dir=/home/${USER}/mysql_data
+    sudo rm -rf ${target_dir}/jiradb
+    sudo tar xzf ${BASH_SOURCE%/*}/jiradb.tar.gz -C ${target_dir}/..
+}
+
+#######################################
 # Start up a containerized BitBucket instance, connecting against a database
 # provided by atlassian_mysql_container_name
 # Globals:
@@ -334,6 +350,22 @@ function initialize_atlassian_bitbucketdb() {
         "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
+}
+
+#######################################
+# Overwrites existing bitbucketdb data files with a backup from a fresh bitbucketdb incl
+# timebomb licenses.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restore_atlassian_bitbucketdb_with_license() {
+    local target_dir=/home/${USER}/mysql_data
+    sudo rm -rf ${target_dir}/bitbucketdb
+    sudo tar xzf ${BASH_SOURCE%/*}/bitbucketdb.tar.gz -C ${target_dir}/..
 }
 
 #######################################
