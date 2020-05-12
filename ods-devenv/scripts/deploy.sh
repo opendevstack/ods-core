@@ -310,6 +310,7 @@ function startup_atlassian_bitbucket() {
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
+    docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
 }
