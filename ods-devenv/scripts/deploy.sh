@@ -72,7 +72,7 @@ function setup_rdp() {
     sudo yum install -y yum-utils epel-release https://centos7.iuscommunity.org/ius-release.rpm
     sudo yum -y install xrdp
     sudo systemctl start xrdp
-    netstat -antup | grep xrdp
+    sudo netstat -antup | grep xrdp
     sudo systemctl enable xrdp
     sudo chcon --type=bin_t /usr/sbin/xrdp
     sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
