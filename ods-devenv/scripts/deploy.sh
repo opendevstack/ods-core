@@ -473,13 +473,26 @@ function create_configuration() {
     sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${openshift_route}:${atlassian_bitbucket_port}/scm|" ods-core.env
     sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=Y2RfdXNlcgo=|" ods-core.env
     sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=Y2RfcGFzc3dvckQxCg==|" ods-core.env
+    sed -i "s|NEXUS_PASSWORD_B64=changeme|NEXUS_PASSWORD_B64=Y2hhbmdlbWUK|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
+    git add -- .
+    git commit -m "updated config for EDP box"
+    git push
+    popd
+}
+
+function install_ods_project() {
+    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose
+    make install-nexus
+    local nexus_url="https://$(oc -n ods get route nexus3 -ojsonpath={.spec.host})"
+    pushd nexus
+    ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose
     popd
 }
 
 #######################################
-# Timebomb licenses will invalidate after 3 hours uptime of the atlassian services.
-# This function can be used to restart the service.
+# Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
+# This utility function can be used to restart the Atlassian services.
 # Depending on the number of available cores the restart can take a while.
 # Restart can be monitored using glances.
 # Globals:
