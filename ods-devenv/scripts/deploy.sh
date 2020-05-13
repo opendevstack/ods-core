@@ -387,9 +387,12 @@ function restore_atlassian_bitbucketdb_with_license() {
 function create_empty_ods_repositories() {
     # creating project opendevstack if it does not exist yet
     if [[ -z $(curl -X GET --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
+        echo "Creating project opendevstack in BitBucket"
         curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
             -H "Content-Type: application/json" \
             -d "{\"key\":\"OPENDEVSTACK\", \"name\": \"opendevstack\", \"description\": \"OpenDevStack\"}"
+    else
+        echo "Found project opendevstack in BitBucket."
     fi
     # The repository list in the next line can be modified to project specific needs.
     # For each of the listed names, a repository will be created in the local bitbucket
