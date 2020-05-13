@@ -446,6 +446,17 @@ function initialise_ods_repositories() {
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
 }
 
+#######################################
+# Creates a config file and uploads it into ods-configuration repository on
+# the local BitBucket instance.
+# Globals:
+#   openshift_route
+#   atlassian_bitbucket_port
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
 function create_configuration() {
     ods-setup/config.sh --verbose
     pushd ../ods-configuration
@@ -455,15 +466,31 @@ function create_configuration() {
     git add -- .
     git commit -m "initial commit"
     git push --set-upstream origin master
-    sed -i "s/cd.192.168.56.101.nip.io/ods.172.17.0.1.nip.io/" ods-core.env
-    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://172.17.0.1:18080|" ods-core.env
-    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=172.17.0.1:28080|" ods-core.env
-    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://172.17.0.1:28080|" ods-core.env
-    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://172.17.0.1:28080/scm|" ods-core.env
+    sed -i "s/cd.192.168.56.101.nip.io/ods.${openshift_route}.nip.io/" ods-core.env
+    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${openshift_route}:${atlassian_jira_port}|" ods-core.env
+    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${openshift_route}:${atlassian_bitbucket_port}|" ods-core.env
+    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${openshift_route}:${atlassian_bitbucket_port}|" ods-core.env
+    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${openshift_route}:${atlassian_bitbucket_port}/scm|" ods-core.env
     sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=Y2RfdXNlcgo=|" ods-core.env
     sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=Y2RfcGFzc3dvckQxCg==|" ods-core.env
-    sed -i "s/192.168.56.101/172.17.0.1/" ods-core.env
+    sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
     popd
+}
+
+#######################################
+# Timebomb licenses will invalidate after 3 hours uptime of the atlassian services.
+# This function can be used to restart the service.
+# Depending on the number of available cores the restart can take a while.
+# Restart can be monitored using glances.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_suite() {
+    docker container restart jira bitbucket
 }
 
 #######################################
