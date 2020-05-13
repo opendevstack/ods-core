@@ -12,6 +12,8 @@ atlassian_bitbucket_db_name=bitbucketdb
 atlassian_bitbucket_version=6.8.2-jdk11
 atlassian_bitbucket_port=28080
 
+openshift_route=172.17.0.1
+
 function display_usage() {
     echo
     echo "This script provides functions to install and configure various parts of an EDP/ODS installation."
@@ -383,13 +385,19 @@ function restore_atlassian_bitbucketdb_with_license() {
 #   None
 #######################################
 function create_empty_ods_repositories() {
+    # creating project opendevstack if it does not exist yet
+    if [[ -z $(curl -X GET --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
+        curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
+            -H "Content-Type: application/json" \
+            -d "{\"key\":\"OPENDEVSTACK\", \"name\": \"opendevstack\", \"description\": \"OpenDevStack\"}"
+    fi
     # The repository list in the next line can be modified to project specific needs.
     # For each of the listed names, a repository will be created in the local bitbucket
     # instance under the OPENDEVSTACK project. The list should be synced with the repo
     # list in ods-core/ods-setup/repos.sh.
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
-        echo "Creating repository ${repository} on http://localhost:${atlassian_bitbucket_port}."
-        curl -X POST --user openshift:openshift http://localhost:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
+        echo "Creating repository ${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
+        curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
     done
@@ -407,8 +415,8 @@ function create_empty_ods_repositories() {
 #######################################
 function delete_ods_repositories() {
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
-        echo "Deleting repository opendevstack/${repository} on http://localhost:${atlassian_bitbucket_port}."
-        curl -X DELETE --user openshift:openshift http://localhost:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
+        echo "Deleting repository opendevstack/${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
+        curl -X DELETE --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
     done
 }
 
@@ -431,7 +439,7 @@ function initialise_ods_repositories() {
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --sync --bitbucket http://openshift:openshift@localhost:${atlassian_bitbucket_port} --git-ref master --confirm
+    ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
 }
 
 #######################################
