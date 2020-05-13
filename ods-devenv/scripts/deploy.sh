@@ -48,12 +48,13 @@ function check_system_setup() {
 
     echo "alias ll='ls -AFhl --color=auto'" >> ~/.bashrc
     echo "alias dcip='docker inspect --format "{{.NetworkSettings.IPAddress}}"'" >> ~/.bashrc
+    echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN" >> ~/.bashrc
 
     # remove obsolete version of git
     if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://centos7.iuscommunity.org/ius-release.rpm
-    sudo yum -y install firewalld git2u-all golang jq tree
+    sudo yum -y install firewalld git2u-all glances golang jq tree
 
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
@@ -386,7 +387,7 @@ function restore_atlassian_bitbucketdb_with_license() {
 #######################################
 function create_empty_ods_repositories() {
     # creating project opendevstack if it does not exist yet
-    if [[ -z $(curl -X GET --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
+    if [[ -z $(curl -sX GET --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
         echo "Creating project opendevstack in BitBucket"
         curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
             -H "Content-Type: application/json" \
@@ -398,7 +399,7 @@ function create_empty_ods_repositories() {
     # For each of the listed names, a repository will be created in the local bitbucket
     # instance under the OPENDEVSTACK project. The list should be synced with the repo
     # list in ods-core/ods-setup/repos.sh.
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
         echo "Creating repository ${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
         curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
             -H "Content-Type: application/json" \
@@ -417,7 +418,7 @@ function create_empty_ods_repositories() {
 #   None
 #######################################
 function delete_ods_repositories() {
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
         echo "Deleting repository opendevstack/${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
         curl -X DELETE --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
     done
@@ -443,6 +444,26 @@ function initialise_ods_repositories() {
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
+}
+
+function create_configuration() {
+    ods-setup/config.sh --verbose
+    pushd ../ods-configuration
+    git init
+    echo "ods-core.env.sample" > .gitignore
+    git remote add origin http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
+    git add -- .
+    git commit -m "initial commit"
+    git push --set-upstream origin master
+    sed -i "s/cd.192.168.56.101.nip.io/ods.172.17.0.1.nip.io/" ods-core.env
+    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://172.17.0.1:18080|" ods-core.env
+    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=172.17.0.1:28080|" ods-core.env
+    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://172.17.0.1:28080|" ods-core.env
+    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://172.17.0.1:28080/scm|" ods-core.env
+    sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=Y2RfdXNlcgo=|" ods-core.env
+    sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=Y2RfcGFzc3dvckQxCg==|" ods-core.env
+    sed -i "s/192.168.56.101/172.17.0.1/" ods-core.env
+    popd
 }
 
 #######################################
