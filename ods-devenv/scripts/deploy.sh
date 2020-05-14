@@ -469,7 +469,10 @@ function create_configuration() {
     pushd ../ods-configuration
     git init
     echo "ods-core.env.sample" > .gitignore
-    git remote add origin http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
+
+    if ! git remote | grep origin; then
+        git remote add origin http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
+    fi
     git add -- .
     git commit -m "initial commit"
     git push --set-upstream origin master
