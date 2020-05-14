@@ -5,11 +5,15 @@ set -eu
 atlassian_mysql_container_name=atlassian_mysql
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
+atlassian_jira_container_name=jira
 atlassian_jira_db_name=jiradb
 atlassian_jira_software_version=8.5.3
+atlassian_jira_ip=
 atlassian_jira_port=18080
+atlassian_bitbucket_container_name=bitbucket
 atlassian_bitbucket_db_name=bitbucketdb
 atlassian_bitbucket_version=6.8.2-jdk11
+atlassian_bitbucket_ip=
 atlassian_bitbucket_port=28080
 
 openshift_route=172.17.0.1
@@ -162,6 +166,7 @@ function setup_openshift_cluster() {
     echo "Create a simple test project to smoke test OpenShift cluster"
     oc -o yaml new-app php~https://github.com/sandervanvugt/simpleapp --name=simpleapp > s2i.yaml
     oc create -f s2i.yaml
+    rm s2i.yaml
 }
 
 #######################################
@@ -248,7 +253,7 @@ function startup_atlassian_jira(){
     curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
 
     docker container run \
-        --name jira \
+        --name ${atlassian_jira_container_name} \
         -v $HOME/jira_data:/var/atlassian/application-data/jira \
         -dp ${atlassian_jira_port}:8080 \
         -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
@@ -258,12 +263,13 @@ function startup_atlassian_jira(){
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version}
-    local jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' jira)
+    local jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
     echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port}"
     # this race condition normally works out. Did not cause any trouble yet.
     # Alternative approach: start container, stop container, cp driver, restart container ...
     docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
     rm mysql-connector-java-8.0.20.jar
+    atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 }
 
 #######################################
@@ -323,7 +329,7 @@ function startup_atlassian_bitbucket() {
     curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
 
     docker container run \
-        --name bitbucket \
+        --name ${atlassian_bitbucket_container_name} \
         -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
@@ -331,11 +337,12 @@ function startup_atlassian_bitbucket() {
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
-    local bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' bitbucket)
+    local bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
     echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port}"
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
+    atlassian_bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
 }
 
 #######################################
@@ -466,15 +473,33 @@ function create_configuration() {
     git add -- .
     git commit -m "initial commit"
     git push --set-upstream origin master
+    # base64('changeit') -> Y2hhbmdlbWUK
+    # base64('openshift') -> b3BlbnNoaWZ0Cg==
     sed -i "s/cd.192.168.56.101.nip.io/ods.${openshift_route}.nip.io/" ods-core.env
-    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${openshift_route}:${atlassian_jira_port}|" ods-core.env
-    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${openshift_route}:${atlassian_bitbucket_port}|" ods-core.env
-    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${openshift_route}:${atlassian_bitbucket_port}|" ods-core.env
-    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${openshift_route}:${atlassian_bitbucket_port}/scm|" ods-core.env
-    sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=Y2RfdXNlcgo=|" ods-core.env
-    sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=Y2RfcGFzc3dvckQxCg==|" ods-core.env
-    sed -i "s|NEXUS_PASSWORD_B64=changeme|NEXUS_PASSWORD_B64=Y2hhbmdlbWUK|" ods-core.env
+    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port}|" ods-core.env
+    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}|" ods-core.env
+    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}|" ods-core.env
+    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}/scm|" ods-core.env
+
+    sed -i "s|CD_USER_ID=.*$|CD_USER_ID=openshift|" ods-core.env
+    sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+
+    sed -i "s|NEXUS_USERNAME=.*$|NEXUS_USERNAME=openshift|" ods-core.env
+    sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=openshift|" ods-core.env
+    sed -i "s|NEXUS_PASSWORD_B64=changeme|NEXUS_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=openshift:openshift|" ods-core.env
+
+    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
+    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
+    sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
+    sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+
+    sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+
+    sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
+    # change sonarqube admin password?
     git add -- .
     git commit -m "updated config for EDP box"
     git push
@@ -503,7 +528,7 @@ function install_ods_project() {
 #   None
 #######################################
 function restart_atlassian_suite() {
-    docker container restart jira bitbucket
+    docker container restart ${atlassian_jira_container_name} ${atlassian_bitbucket_container_name}
 }
 
 #######################################
