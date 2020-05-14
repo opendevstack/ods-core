@@ -135,7 +135,7 @@ apply-nexus:
 ## Configure Nexus service.
 ### Not part of install-nexus because it is not idempotent yet.
 configure-nexus:
-	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus3 -ojsonpath={.spec.host}`
+	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus -ojsonpath={.spec.host}`
 	cd nexus && ./configure.sh --namespace ${NAMESPACE} --nexus=${NEXUS_URL}
 .PHONY: configure-nexus
 
