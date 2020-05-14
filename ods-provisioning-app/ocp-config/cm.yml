@@ -67,6 +67,9 @@ parameters:
 - name: READABLE_OPENDEVSTACK_REPOS
   required: true
   description: Repositories which the project specific technical user can read
+- name: WEBHOOK_PROXY_EVENTS
+  required: true
+  description: list of supported webhook events
 objects:
 - kind: ConfigMap
   metadata:
@@ -92,7 +95,7 @@ objects:
       server.connection-timeout=90000
       spring.session.timeout=240
       spring.mvc.async.request-timeout=90000
-      
+
       # server port
       server.port=8080
       server.use-forward-headers=true
@@ -237,6 +240,9 @@ objects:
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
 
+      # list of supported webhook events
+      openshift.jenkins.project.webhookproxy.events=${WEBHOOK_PROXY_EVENTS}
+
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
@@ -271,7 +277,7 @@ objects:
       # mail properties
       # enable mail sendout with project details
       mail.enabled=true
-      
+
       spring.mail.host=${PROV_APP_MAIL_HOST}
       spring.mail.port=587
       spring.mail.protocol=smtp
