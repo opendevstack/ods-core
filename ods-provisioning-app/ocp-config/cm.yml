@@ -226,12 +226,20 @@ objects:
       openshift.test.project.name.pattern=%s%s-test
       openshift.dev.project.name.pattern=%s%s-dev
       openshift.cd.project.name.pattern=%s%s-cd
+
+      # the webhook proxy that proxies to the jenkins instance that creates and deletes projects. Usually you have one
+      # webhook proxy of this kind in an ods installation residing in the ods namespace.
+      openshift.jenkins.admin.webhookproxy.host=webhook-proxy-ods
+
+      # the webhook proxy of a created project that proxies to the projects jenkins to create / delete quickstarters
+      # or do builds based on commits to your projects components. Usually you have as many of this as you have ods projects
+      # in an ods installation.
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
-      openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
+      openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
+
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
-
 
       # Cookie Domain
       atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}
