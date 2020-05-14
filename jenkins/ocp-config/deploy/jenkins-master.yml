@@ -123,21 +123,6 @@ objects:
         storage: '${JENKINS_VOLUME_CAPACITY}'
     storageClassName: '${STORAGE_CLASS_DATA}'
 - apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    finalizers:
-    - kubernetes.io/pvc-protection
-    name: owasp-dependency-check
-    labels:
-      template: ods-jenkins-master
-  spec:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-    storageClassName: '${STORAGE_CLASS_DATA}'
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
