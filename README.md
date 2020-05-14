@@ -9,7 +9,7 @@ All the contained components except Atlassian tools are built in the Openshift c
 
 ## Contents
 1. [Jenkins master](jenkins/master) & base slave - the basis of the ODS build engine <br>
-The [base slave](jenkins/slave-base) provides plugins for OWASP, Sonarqube, and CNES and is HTTP proxy aware.
+The [base slave](jenkins/slave-base) provides plugins for Sonarqube, optionally Snyk, CNES and is HTTP proxy aware.
 Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder slaves`. These `slaves` are based on this `base slave` and are hosted in the [ods-quickstarter repository](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-slaves) - next to their respective [boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master). <br><br>During `jenkins` builds instances/pods of those `builder` images can be found within the project specific `project-cd` namespace.
 
 1. [Nexus](nexus) - repository manager <br>

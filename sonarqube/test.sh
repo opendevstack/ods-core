@@ -105,7 +105,6 @@ fi
 echo "Check if plugins are installed in correct versions"
 expectedPlugins=( "crowd:2.1.3"
                   "authoidc:1.1.0"
-                  "dependencycheck:1.2.6"
                   "scmgit:1.9.1.1834"
                   "java:6.2.0.21135"
                   "jacoco:1.0.2.475"

@@ -3,7 +3,6 @@ FROM openshift/jenkins-slave-base-centos7
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
-    OWASP_DEPENDENCY_CHECK_VERSION=3.2.1 \
     CNES_REPORT_VERSION=3.1.0 \
     TAILOR_VERSION=0.13.1 \
     GIT_LFS_VERSION=2.6.1 \
@@ -49,15 +48,6 @@ RUN cd /tmp \
     && rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
     && /usr/local/sonar-scanner-cli/bin/sonar-scanner --version
 ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
-
-# Install OWASP Dependency Check CLI.
-RUN cd /tmp \
-    && curl -LOv https://dl.bintray.com/jeremy-long/owasp/dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip \
-    && unzip dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip \
-    && mv dependency-check /usr/local/dependency-check-cli \
-    && mv /usr/local/dependency-check-cli/bin/dependency-check.sh /usr/local/dependency-check-cli/bin/dependency-check \
-    && rm -rf dependency-check-${OWASP_DEPENDENCY_CHECK_VERSION}-release.zip
-ENV PATH=/usr/local/dependency-check-cli/bin:$PATH
 
 # Add sq cnes report jar.
 RUN cd /tmp \
