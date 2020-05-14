@@ -67,6 +67,9 @@ parameters:
 - name: READABLE_OPENDEVSTACK_REPOS
   required: true
   description: Repositories which the project specific technical user can read
+- name: WEBHOOK_PROXY_EVENTS
+  required: true
+  description: list of supported webhook events
 objects:
 - kind: ConfigMap
   metadata:
@@ -238,7 +241,7 @@ objects:
       openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
 
       # list of supported webhook events
-      openshift.jenkins.project.webhookproxy.events=repo:refs_changed,pr:merged,pr:declined,pr:deleted
+      openshift.jenkins.project.webhookproxy.events=${WEBHOOK_PROXY_EVENTS}
 
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
