@@ -1,4 +1,4 @@
-namespace cd
+namespace ods
 ignore-unknown-parameters true
 
 selector app=ods-doc-gen-svc
