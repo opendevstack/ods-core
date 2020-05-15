@@ -20,6 +20,8 @@ atlassian_bitbucket_port=28080
 # TODO drop global openshift_route and pull openshift_route from OpenShift where needed
 openshift_route=172.17.0.1
 
+NAMESPACE=ods
+
 function display_usage() {
     echo
     echo "This script provides functions to install and configure various parts of an EDP/ODS installation."
@@ -294,7 +296,7 @@ function startup_atlassian_jira(){
     # Alternative approach: start container, stop container, cp driver, restart container ...
     docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
     rm mysql-connector-java-8.0.20.jar
-    atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
+    inspect_jira_ip
 }
 
 #######################################
@@ -367,7 +369,7 @@ function startup_atlassian_bitbucket() {
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
-    atlassian_bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
+    inspect_bitbucket_ip
 }
 
 #######################################
@@ -478,12 +480,23 @@ function initialise_ods_repositories() {
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
 }
 
+function inspect_bitbucket_ip() {
+    atlassian_bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
+}
+
+function inspect_jira_ip() {
+    atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
+}
+
 #######################################
 # Creates a config file and uploads it into ods-configuration repository on
 # the local BitBucket instance.
 # Globals:
-#   openshift_route
+#   atlassian_bitbucket_ip
 #   atlassian_bitbucket_port
+#   atlassian_jira_ip
+#   atlassian_jira_port
+#   openshift_route
 # Arguments:
 #   n/a
 # Returns:
@@ -494,6 +507,15 @@ function create_configuration() {
     pushd ../ods-configuration
     git init
     echo "ods-core.env.sample" > .gitignore
+
+    if [[ -z ${atlassian_bitbucket_ip} ]]; then
+        # can happen if script functions are called selectively
+        inspect_bitbucket_ip
+    fi
+    if [[ -z ${atlassian_jira_ip} ]]; then
+        # can happen if script functions are called selectively
+        inspect_jira_ip
+    fi
 
     if ! git remote | grep origin; then
         git remote add origin http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
@@ -533,7 +555,7 @@ function create_configuration() {
 }
 
 function install_ods_project() {
-    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose
+    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
 }
 
 #######################################
@@ -546,7 +568,7 @@ function install_ods_project() {
 #   None
 #######################################
 function setup_nexus() {
-    make install-nexus
+    make install-nexus # TODO call script directly to make call to tailor non-interactive
     local nexus_url="https://$(oc -n ods get route nexus3 -ojsonpath={.spec.host})"
     pushd nexus
     ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose
@@ -564,6 +586,12 @@ function setup_nexus() {
 #######################################
 function setup_sonarqube() {
     echo "Setting up SonarQube"
+    echo "apply-sonarqube-build:"
+    pushd sonarqube/ocp-config
+    tailor apply --namespace ${NAMESPACE} bc,is --non-interactive --verbose
+    popd
+    echo "start-sonarqube-build:"
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube --verbose
 }
 
 #######################################
@@ -610,6 +638,11 @@ function basic_vm_setup() {
     # TODO wait until BitBucket becomes available
     create_empty_ods_repositories
     initialise_ods_repositories
+
+    create_configuration
+    install_ods_project
+    setup_nexus
+
 }
 
 # the next line will make bash try to execute the script arguments in the context of this script,
