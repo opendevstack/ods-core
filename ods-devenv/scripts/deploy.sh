@@ -10,11 +10,15 @@ atlassian_jira_db_name=jiradb
 atlassian_jira_software_version=8.5.3
 atlassian_jira_ip=
 atlassian_jira_port=18080
+# docker network internal jira port
+atlassian_jira_port_internal=8080
 atlassian_bitbucket_container_name=bitbucket
 atlassian_bitbucket_db_name=bitbucketdb
 atlassian_bitbucket_version=6.8.2-jdk11
 atlassian_bitbucket_ip=
 atlassian_bitbucket_port=28080
+# docker network internal bitbucket port
+atlassian_bitbucket_port_internal=7990
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 # TODO drop global openshift_route and pull openshift_route from OpenShift where needed
@@ -493,9 +497,9 @@ function inspect_jira_ip() {
 # the local BitBucket instance.
 # Globals:
 #   atlassian_bitbucket_ip
-#   atlassian_bitbucket_port
+#   atlassian_bitbucket_port_internal
 #   atlassian_jira_ip
-#   atlassian_jira_port
+#   atlassian_jira_port_internal
 #   openshift_route
 # Arguments:
 #   n/a
@@ -526,10 +530,10 @@ function create_configuration() {
     # base64('changeit') -> Y2hhbmdlbWUK
     # base64('openshift') -> b3BlbnNoaWZ0Cg==
     sed -i "s/cd.192.168.56.101.nip.io/ods.${openshift_route}.nip.io/" ods-core.env
-    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port}|" ods-core.env
-    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}|" ods-core.env
-    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}|" ods-core.env
-    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}/scm|" ods-core.env
+    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port_internal}|" ods-core.env
+    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
+    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
+    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}/scm|" ods-core.env
 
     sed -i "s|CD_USER_ID=.*$|CD_USER_ID=openshift|" ods-core.env
     sed -i "s|CD_USER_ID_B64=.*$|CD_USER_ID_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
