@@ -152,7 +152,7 @@ backup-ocp-config:
 
 ## Create a backup of the SonarQube database in the current directory.
 backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace ${NAMESPACE} --backup-dir .
+	cd sonarqube && ./backup.sh --namespace ${NAMESPACE} --backup-dir `pwd`
 .PHONY: backup-sonarqube
 
 
