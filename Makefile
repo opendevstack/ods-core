@@ -110,7 +110,7 @@ start-sonarqube-build:
 
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
-	cd sonarqube/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude bc,is
+	cd sonarqube/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude bc,is --param ODS_NAMESPACE=${NAMESPACE}
 	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube -ojsonpath={.spec.host}`
 	echo "Visit ${SONARQUBE_URL}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
