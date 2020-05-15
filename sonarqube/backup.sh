@@ -32,12 +32,13 @@ if ! oc whoami > /dev/null; then
 fi
 
 # Dump database
+destinationFile="${BACKUP_DIR}/sonarqube.sql"
 podWithPrefix=$(oc get pods -n "${NAMESPACE}" --selector name=sonarqube-postgresql --no-headers -o name)
 pod=${podWithPrefix#"pod/"}
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "pg_dump sonarqube > sonarqube.sql"
 # Copy export
-oc cp "${NAMESPACE}/${pod}:/opt/app-root/src/sonarqube.sql" "${BACKUP_DIR}/"
+oc cp "${NAMESPACE}/${pod}:/opt/app-root/src/sonarqube.sql" "${destinationFile}"
 # Delete export in pod
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm sonarqube.sql"
 
-echo "Database 'sonarqube' copied to $BACKUP_DIR."
+echo "Database 'sonarqube' backed up to ${destinationFile}."
