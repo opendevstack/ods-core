@@ -119,7 +119,8 @@ fi
 function waitForReady {
     echo_info "Wait for Nexus to become responsive"
     set +e
-    n=0
+    local n=0
+    local httpOk=
     until [ $n -ge 20 ]; do
         httpOk=$(curl ${INSECURE} --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
         if [ "${httpOk}" == "200" ]; then
@@ -132,6 +133,11 @@ function waitForReady {
         fi
     done
     set -e
+
+    if [ "${httpOk}" != "200" ]; then
+        echo_error "Nexus did not start, got HTTP code ${httpOk}."
+        exit 1
+    fi
 }
 
 function runJsonScript {
