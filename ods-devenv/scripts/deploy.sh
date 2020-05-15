@@ -563,7 +563,7 @@ function setup_nexus() {
 #   None
 #######################################
 function setup_sonarqube() {
-
+    echo "Setting up SonarQube"
 }
 
 #######################################
