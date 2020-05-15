@@ -66,6 +66,29 @@ function check_system_setup() {
 }
 
 #######################################
+# Optionally, install Vistual Studio Code
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_vscode() {
+    sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+    cat <<EOF |
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+    sudo tee /etc/yum.repos.d/vscode.repo
+    sudo yum install -y code
+}
+
+#######################################
 # Install remote desktop protocol.
 # Connect to the openshift user session using MS Remote Desktop.
 # Globals:
@@ -511,11 +534,36 @@ function create_configuration() {
 
 function install_ods_project() {
     ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose
+}
+
+#######################################
+# Sets up Nexus as a service OpenShift.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_nexus() {
     make install-nexus
     local nexus_url="https://$(oc -n ods get route nexus3 -ojsonpath={.spec.host})"
     pushd nexus
     ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose
     popd
+}
+
+#######################################
+# Sets up SonarQube as a service OpenShift.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_sonarqube() {
+
 }
 
 #######################################
