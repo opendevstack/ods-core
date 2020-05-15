@@ -109,6 +109,7 @@ fi
 echo_info "Wait for SonarQube to become responsive"
 set +e
 n=0
+httpOk=
 until [ $n -ge 20 ]; do
     httpOk=$(curl ${INSECURE} --silent -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
     if [ "${httpOk}" == "200" ]; then
@@ -121,6 +122,11 @@ until [ $n -ge 20 ]; do
     fi
 done
 set -e
+
+if [ "${httpOk}" != "200" ]; then
+    echo_error "SonarQube did not start, got HTTP code ${httpOk}."
+    exit 1
+fi
 
 echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_DEFAULT_PASSWORD}'"
 if curl ${INSECURE} -X POST --fail --silent \
