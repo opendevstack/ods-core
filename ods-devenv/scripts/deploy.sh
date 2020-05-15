@@ -16,6 +16,8 @@ atlassian_bitbucket_version=6.8.2-jdk11
 atlassian_bitbucket_ip=
 atlassian_bitbucket_port=28080
 
+# TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
+# TODO drop global openshift_route and pull openshift_route from OpenShift where needed
 openshift_route=172.17.0.1
 
 function display_usage() {
@@ -508,20 +510,18 @@ function create_configuration() {
     sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port}/scm|" ods-core.env
 
     sed -i "s|CD_USER_ID=.*$|CD_USER_ID=openshift|" ods-core.env
-    sed -i "s|CD_USER_ID_B64=cd_user_b64|CD_USER_ID_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
-    sed -i "s|CD_USER_PWD_B64=changeme_b64|CD_USER_PWD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|CD_USER_ID_B64=.*$|CD_USER_ID_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|CD_USER_PWD_B64=.*$|CD_USER_PWD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
 
     sed -i "s|NEXUS_USERNAME=.*$|NEXUS_USERNAME=openshift|" ods-core.env
     sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=openshift|" ods-core.env
-    sed -i "s|NEXUS_PASSWORD_B64=changeme|NEXUS_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=openshift:openshift|" ods-core.env
 
     sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
     sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
     sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
-    sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
-
-    sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=b3BlbnNoaWZ0Cg==|" ods-core.env
+    sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
