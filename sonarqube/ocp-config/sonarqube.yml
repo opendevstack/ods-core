@@ -152,7 +152,7 @@ objects:
               configMapKeyRef:
                 key: database-name
                 name: sonarqube
-          image: registry.access.redhat.com/rhscl/postgresql-95-rhel7@sha256:de66da4812f0de42cee0bef65899d75f8b1a7440858271f133c8f73c80be663d
+          image: ''
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -223,7 +223,6 @@ objects:
     selector:
       app: sonarqube
       deploymentconfig: sonarqube
-      tuned.openshift.io/elasticsearch: ""
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -235,6 +234,7 @@ objects:
         labels:
           app: sonarqube
           deploymentconfig: sonarqube
+          tuned.openshift.io/elasticsearch: ""
       spec:
         containers:
         - name: sonarqube
