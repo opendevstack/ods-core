@@ -544,6 +544,7 @@ function create_configuration() {
     sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
     sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
+    sed -i "s|SONAR_DATABASE_PASSWORD_B64=.*$|SONAR_DATABASE_PASSWORD_B64=$(echo sonarqube | base64)|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
@@ -578,7 +579,7 @@ function setup_nexus() {
 #######################################
 # Sets up SonarQube as a service OpenShift.
 # Globals:
-#   n/a
+#   NAMESPACE (e.g. ods)
 # Arguments:
 #   n/a
 # Returns:
@@ -586,12 +587,26 @@ function setup_nexus() {
 #######################################
 function setup_sonarqube() {
     echo "Setting up SonarQube"
+
     echo "apply-sonarqube-build:"
     pushd sonarqube/ocp-config
     tailor apply --namespace ${NAMESPACE} bc,is --non-interactive --verbose
     popd
+
     echo "start-sonarqube-build:"
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube --verbose
+
+    echo "apply-sonarqube-deploy:"
+    pushd sonarqube/ocp-config
+    tailor apply --namespace ${NAMESPACE} --exclude bc,is --non-interactive --verbose
+    local sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube -ojsonpath={.spec.host})
+    echo "Visit ${sonarqube_url}/setup to see if any update actions need to be taken."
+    popd
+
+    echo "configure-sonarqube:"
+    pushd sonarqube
+    ./configure.sh --sonarqube=${SONARQUBE_URL} --verbose --insecure
+    popd
 }
 
 #######################################
