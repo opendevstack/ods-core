@@ -1,14 +1,15 @@
 apiVersion: v1
 kind: Template
-metadata:
-  name: nexus3
+parameters:
+- name: NEXUS_NAME
+  value: nexus
 objects:
 - apiVersion: v1
   kind: Service
   metadata:
     labels:
-      app: nexus3
-    name: nexus3
+      app: ${NEXUS_NAME}
+    name: ${NEXUS_NAME}
   spec:
     ports:
     - name: 8081-tcp
@@ -16,6 +17,6 @@ objects:
       protocol: TCP
       targetPort: 8081
     selector:
-      deploymentconfig: nexus3
+      deploymentconfig: ${NEXUS_NAME}
     sessionAffinity: None
     type: ClusterIP
