@@ -341,7 +341,7 @@ function startup_and_follow_atlassian_mysql() {
 #######################################
 function startup_atlassian_jira(){
     echo "Starting Atlassian Jira ${atlassian_jira_software_version}"
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Downloading mysql-connector-java"
     curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
 
@@ -356,17 +356,20 @@ function startup_atlassian_jira(){
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version}
-    local jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
-    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port}"
+    local jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
     # this race condition normally works out. Did not cause any trouble yet.
     # Alternative approach: start container, stop container, cp driver, restart container ...
     docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
+    docker container exec -it jira bash -c "sed -i 's|172.17.0.6|172.17.0.2|' dbconfig.xml"
+
     rm mysql-connector-java-8.0.20.jar
     inspect_jira_ip
+    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${openshift_route}:${atlassian_jira_port}"
 }
 
 #######################################
-# Initialize Jira database. Requires database service to be running
+# Initialize Jira database. Requires database service to be running.
+# Is to be used mutually exclusively with prepare_atlassian_stack.
 # Globals:
 #   atlassian_jira_db_name
 #   atlassian_mysql_container_name
@@ -384,22 +387,6 @@ function initialize_atlassian_jiradb() {
         "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
         flush privileges;"
-}
-
-#######################################
-# Overwrites existing jiradb data files with a backup from a fresh jiradb incl
-# timebomb licenses.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function restore_atlassian_jiradb_with_license() {
-    local target_dir=/home/${USER}/mysql_data
-    sudo rm -rf ${target_dir}/jiradb
-    sudo tar xzf ${BASH_SOURCE%/*}/../atlassian/jiradb.tar.gz -C ${target_dir}/..
 }
 
 #######################################
@@ -431,15 +418,16 @@ function startup_atlassian_bitbucket() {
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
     local bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
-    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port}"
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
     inspect_bitbucket_ip
+    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${openshift_route}:${atlassian_bitbucket_port}"
 }
 
 #######################################
 # Initialize bitbucket database. Requires a database service to be running.
+# Is to be used mutually exclusively with prepare_atlassian_stack.
 # Globals:
 #   atlassian_bitbucket_db_name
 #   atlassian_mysql_container_name
@@ -457,22 +445,6 @@ function initialize_atlassian_bitbucketdb() {
         "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
-}
-
-#######################################
-# Overwrites existing bitbucketdb data files with a backup from a fresh bitbucketdb incl
-# timebomb licenses.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function restore_atlassian_bitbucketdb_with_license() {
-    local target_dir=/home/${USER}/mysql_data
-    sudo rm -rf ${target_dir}/bitbucketdb
-    sudo tar xzf ${BASH_SOURCE%/*}/../atlassian/bitbucketdb.tar.gz -C ${target_dir}/..
 }
 
 #######################################
@@ -708,15 +680,17 @@ function basic_vm_setup() {
     setup_openshift_cluster
     download_tailor
     print_system_setup
+    # download atlassian stack backup files for unattented setup.
+    # either use prepare_atlassian_stack
+    # or
+    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
+    prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
-    # TODO wait until mysql becomes available
-    initialize_atlassian_jiradb
-    restore_atlassian_jiradb_with_license
+    # initialize_atlassian_jiradb
     startup_atlassian_jira
-    initialize_atlassian_bitbucketdb
-    restore_atlassian_bitbucketdb_with_license
+    # initialize_atlassian_bitbucketdb
     startup_atlassian_bitbucket
-    # TODO wait until BitBucket becomes available
+    # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
     initialise_ods_repositories
 
