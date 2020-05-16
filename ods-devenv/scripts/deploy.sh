@@ -19,6 +19,10 @@ atlassian_bitbucket_ip=
 atlassian_bitbucket_port=28080
 # docker network internal bitbucket port
 atlassian_bitbucket_port_internal=7990
+# Backup files
+atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/mysql_data.tar.gz
+atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
+atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 # TODO drop global openshift_route and pull openshift_route from OpenShift where needed
@@ -233,6 +237,34 @@ function print_system_setup() {
     echo "go version: $(go version)"
     echo "git version: $(git --version)"
     echo "docker version: $(docker --version)"
+}
+
+#######################################
+# Retrieve database dump and backup files for Atlassian stack components
+# initialized with timebomb licenses and ODS users from backup in the cloud.
+# If someone would rather start with a clean state and provide licenses and
+# basic configuration manually, this function should be skipped in the setup
+# process.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function prepare_atlassian_stack() {
+    echo "Downloading data dumps for Atlassian stack."
+    pushd "/home/${USER}"
+    curl -LO ${atlassian_mysql_dump_url}
+    curl -LO ${atlassian_jira_backup_url}
+    curl -LO ${atlassian_bitbucket_backup_url}
+    echo "Extracting files"
+    for archive in bitbucket_data.tar.gz jira_data.tar.gz mysql_data.tar.gz
+    do
+        tar xzf "${archive}"
+    done
+    popd
+    echo "Finished downloading and extracting Atlassian stack data dumps."
 }
 
 #######################################
@@ -669,7 +701,7 @@ function basic_vm_setup() {
     setup_openshift_cluster
     download_tailor
     print_system_setup
-    startup_atlassian_mysql
+    startup_and_follow_atlassian_mysql
     # TODO wait until mysql becomes available
     initialize_atlassian_jiradb
     restore_atlassian_jiradb_with_license
