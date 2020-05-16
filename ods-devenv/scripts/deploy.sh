@@ -326,6 +326,17 @@ function startup_and_follow_atlassian_mysql() {
     echo "mysqld up and running."
 }
 
+function startup_and_follow_bitbucket() {
+    startup_atlassian_bitbucket
+    printf "Waiting for bitbucket to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "bitbucket up and running."
+}
+
 #######################################
 # Start up a containerized Jira instance, connecting against a database
 # provided by atlassian_mysql_container_name
@@ -404,12 +415,13 @@ function initialize_atlassian_jiradb() {
 #######################################
 function startup_atlassian_bitbucket() {
     echo "Strating up Atlassian BitBucket ${atlassian_bitbucket_version}"
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Downloading mysql-connector-java"
     curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
+        --health-cmd "curl -f localhost:7990" \
         -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
@@ -417,7 +429,7 @@ function startup_atlassian_bitbucket() {
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version}
-    local bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
+    local bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm mysql-connector-java-8.0.20.jar
@@ -689,7 +701,7 @@ function basic_vm_setup() {
     # initialize_atlassian_jiradb
     startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
-    startup_atlassian_bitbucket
+    startup_and_follow_bitbucket
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
     initialise_ods_repositories
