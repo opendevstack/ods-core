@@ -251,6 +251,7 @@ function startup_atlassian_mysql() {
     echo "Setting up a mysql instance for the Atlassian tool suite."
     docker container run -dp ${atlassian_mysql_port}:3306 \
         --name ${atlassian_mysql_container_name} \
+        --health-cmd "mysqladmin ping --silent" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
         -v /home/${USER}/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version} --default-storage-engine=INNODB \
         --character-set-server=utf8 \
@@ -262,6 +263,28 @@ function startup_atlassian_mysql() {
         --innodb-log-file-size=2G
     local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
+}
+
+#######################################
+# Will use startup_atlassian_mysql to start a mysql database in a docker
+# container and hold execution until mysql becomes available und client
+# services like the Atlassian stack can safely be started.
+# Globals:
+#   atlassian_mysql_container_name
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function startup_and_follow_atlassian_mysql() {
+    startup_atlassian_mysql
+    printf "Waiting for mysqld to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "mysqld up and running."
 }
 
 #######################################
