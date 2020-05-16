@@ -64,7 +64,7 @@ function check_system_setup() {
 
     echo "alias ll='ls -AFhl --color=auto'" >> ~/.bashrc
     echo "alias dcip='docker inspect --format "{{.NetworkSettings.IPAddress}}"'" >> ~/.bashrc
-    echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN" >> ~/.bashrc
+    echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'" >> ~/.bashrc
 
     # remove obsolete version of git
     if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
