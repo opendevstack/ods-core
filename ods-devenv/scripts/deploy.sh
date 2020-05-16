@@ -421,7 +421,7 @@ function startup_atlassian_bitbucket() {
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
-        --health-cmd "curl -f localhost:7990" \
+        --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
         -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
