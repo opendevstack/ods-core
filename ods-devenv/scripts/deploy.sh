@@ -243,7 +243,10 @@ function print_system_setup() {
 # Retrieve database dump and backup files for Atlassian stack components
 # initialized with timebomb licenses and ODS users from backup in the cloud.
 # If someone would rather start with a clean state and provide licenses and
-# basic configuration manually, this function should be skipped in the setup
+# basic configuration manually, this function should be skipped in the setup.
+# This function will try to clean up old states by deleting local folders
+# mapped to docker volumes etc. So, it should not be called in a running
+# system.
 # process.
 # Globals:
 #   n/a
@@ -259,9 +262,13 @@ function prepare_atlassian_stack() {
     curl -LO ${atlassian_jira_backup_url}
     curl -LO ${atlassian_bitbucket_backup_url}
     echo "Extracting files"
-    for archive in bitbucket_data.tar.gz jira_data.tar.gz mysql_data.tar.gz
+    for data_file in bitbucket_data jira_data mysql_data
     do
-        tar xzf "${archive}"
+        # cleaning up (stale) files and folders
+        rm -rf "/home/${USER}/${data_file}"
+        # download and expand archives
+        tar xzf "${data_file}.tar.gz"
+        rm "${data_file}.tar.gz"
     done
     popd
     echo "Finished downloading and extracting Atlassian stack data dumps."
