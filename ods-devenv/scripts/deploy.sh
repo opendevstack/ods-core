@@ -371,7 +371,7 @@ function startup_atlassian_jira(){
     # this race condition normally works out. Did not cause any trouble yet.
     # Alternative approach: start container, stop container, cp driver, restart container ...
     docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
-    docker container exec -it jira bash -c "sed -i 's|172.17.0.6|172.17.0.2|' dbconfig.xml"
+    docker container exec -it jira bash -c "sed -i \"s|172.17.0.6|${mysql_ip}|\" dbconfig.xml"
 
     rm mysql-connector-java-8.0.20.jar
     inspect_jira_ip
