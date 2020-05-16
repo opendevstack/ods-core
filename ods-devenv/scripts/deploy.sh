@@ -522,12 +522,12 @@ function initialise_ods_repositories() {
     local opendevstack_dir="/home/${USER}/opendevstack"
     local current_dir="$(pwd)"
     mkdir -p "${opendevstack_dir}"
-    cd "${opendevstack_dir}"
-
+    pushd "${opendevstack_dir}"
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
+    popd
 }
 
 function inspect_bitbucket_ip() {
@@ -553,6 +553,7 @@ function inspect_jira_ip() {
 #   None
 #######################################
 function create_configuration() {
+    pwd
     ods-setup/config.sh --verbose
     pushd ../ods-configuration
     git init
