@@ -620,10 +620,19 @@ function install_ods_project() {
 #   None
 #######################################
 function setup_nexus() {
-    make install-nexus # TODO call script directly to make call to tailor non-interactive
-    local nexus_url="https://$(oc -n ods get route nexus3 -ojsonpath={.spec.host})"
+    echo "make install-nexus: / apply-nexus:"
+    pushd nexus/ocp-config
+    tailor apply --namespace ods --non-interactive --verbose
+    popd
+
+
+    echo "make configure-nexus:"
     pushd nexus
-    ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose
+    local nexus_url="https://$(oc -n ods get route nexus -ojsonpath={.spec.host})"
+    local nexus_port=$(oc -n ods get route nexus -ojsonpath={.spec.port.targetPort})
+    # cut -tcp from nexus_port value
+    # nexus_url=${nexus_url}:${nexus_port%-*}
+    ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose --admin-password openshift
     popd
 }
 
