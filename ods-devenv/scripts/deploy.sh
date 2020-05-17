@@ -669,6 +669,25 @@ function setup_sonarqube() {
     popd
 }
 
+function setup_jenkins() {
+    echo "Setting up Jenkins"
+
+    echo "make apply-jenkins-build:"
+    pushd jenkins/ocp-config/build
+    tailor apply --namespace ${NAMESPACE} --non-interactive --verbose
+    popd
+
+    echo "make start-jenkins-build:"
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy
+
+    echo "make apply-jenkins-deploy:"
+    pushd jenkins/ocp-config/deploy
+    tailor apply --namespace ${NAMESPACE} --selector template=ods-jenkins-template --non-interactive --verbose
+    popd
+}
+
 #######################################
 # Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
 # This utility function can be used to restart the Atlassian services.
