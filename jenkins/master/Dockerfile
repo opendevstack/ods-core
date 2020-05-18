@@ -14,10 +14,6 @@ RUN yum -y install openssl gnutls-utils \
     && yum clean all  \
     && rm -rf /var/cache/yum/*
 
-# Fetch certificates and store them in tmp directory.
-COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
-
 # Copy configuration and plugins.
 COPY plugins.txt /opt/openshift/configuration/plugins.txt
 COPY kube-slave-common.sh /usr/local/bin/kube-slave-common.sh
