@@ -599,6 +599,12 @@ function create_configuration() {
     # TODO remove this line when Atlassian Crowd becomes available in EDP in a box.
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=false|" ods-core.env
 
+    # configure Jenkins
+    sed -i "s|APP_DNS=.*$|APP_DNS=172.30.0.1|" ods-core.env
+    sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo openshift | base64)|" ods-core.env
+    sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
+
+
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
     # change sonarqube admin password?
@@ -680,9 +686,9 @@ function setup_jenkins() {
     popd
 
     echo "make start-jenkins-build:"
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose
 
     echo "make apply-jenkins-deploy:"
     pushd jenkins/ocp-config/deploy
