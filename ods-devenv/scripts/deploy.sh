@@ -665,7 +665,7 @@ function setup_sonarqube() {
 
     echo "configure-sonarqube:"
     pushd sonarqube
-    ./configure.sh --sonarqube=${SONARQUBE_URL} --verbose --insecure
+    ./configure.sh --sonarqube=${sonarqube_url} --verbose --insecure
     popd
 }
 
