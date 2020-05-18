@@ -32,6 +32,8 @@ RUN mkdir -p /etc/opendevstack \
     && echo "  \"sonarqubeVersion\": \"$SONAR_VERSION\"" >> /etc/opendevstack/config.json \
     && echo "}" >> /etc/opendevstack/config.json
 
+RUN chmod g+w /opt/java/openjdk/lib/security/cacerts
+
 USER jenkins
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
 CMD ["/usr/libexec/s2i/ods-run"]
