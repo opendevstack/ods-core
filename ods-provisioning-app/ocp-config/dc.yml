@@ -30,7 +30,7 @@ objects:
           app: ods-provisioning-app
       spec:
         containers:
-        - image: ${PROV_APP_IMAGE}
+        - image: ${TAILOR_NAMESPACE}/${PROV_APP_IMAGE}
           imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
           name: ods-provisioning-app
           ports:
@@ -68,4 +68,13 @@ objects:
           name: volume-ikfik
     test: false
     triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - prov-app
+        from:
+          kind: ImageStreamTag
+          name: ${PROV_APP_IMAGE}
+          namespace: ${TAILOR_NAMESPACE}
+      type: ImageChange
     - type: ConfigChange
