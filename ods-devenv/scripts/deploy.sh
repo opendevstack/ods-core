@@ -591,11 +591,12 @@ function create_configuration() {
     sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=openshift:openshift|" ods-core.env
 
-    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
-    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.nio|" ods-core.env
+    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
+    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
     sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
     sed -i "s|SONAR_DATABASE_PASSWORD_B64=.*$|SONAR_DATABASE_PASSWORD_B64=$(echo sonarqube | base64)|" ods-core.env
+    # TODO remove this line when Atlassian Crowd becomes available in EDP in a box.
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=false|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
