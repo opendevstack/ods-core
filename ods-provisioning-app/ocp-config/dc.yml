@@ -74,7 +74,7 @@ objects:
         - prov-app
         from:
           kind: ImageStreamTag
-          name: prov-app:latest
+          name: ${PROV_APP_IMAGE}
           namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
     - type: ConfigChange
