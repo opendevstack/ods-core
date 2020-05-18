@@ -2,7 +2,7 @@
 
 #Builds all jenkins-master jenkins-slave-base and webhook-proxy
 
-set -eux
+set -ue
 
 function usage {
    printf "usage: %s [options]\n" $0
@@ -62,7 +62,7 @@ if [ ! -z "${REPOSITORY}" ]; then
   REPOSITORY_PARAM="--param=REPO_BASE=${REPOSITORY}"
 fi
 
-cd ${BASH_SOURCE%/*}/../jenkins/ocp-config/build
+cd ${BASH_SOURCE%/*}/../jenkins/ocp-config
 ${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE} ${REF_PARAM} ${REPOSITORY_PARAM}
 cd -
 
