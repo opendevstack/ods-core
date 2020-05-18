@@ -596,6 +596,7 @@ function create_configuration() {
     sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo openshift | base64)|" ods-core.env
     sed -i "s|SONAR_DATABASE_PASSWORD_B64=.*$|SONAR_DATABASE_PASSWORD_B64=$(echo sonarqube | base64)|" ods-core.env
+    sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=false|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
