@@ -622,7 +622,7 @@ function install_ods_project() {
 function setup_nexus() {
     echo "make install-nexus: / apply-nexus:"
     pushd nexus/ocp-config
-    tailor apply --namespace ods --non-interactive --verbose
+    tailor apply --namespace ${NAMESPACE} --non-interactive --verbose
     popd
 
 
@@ -647,7 +647,7 @@ function setup_nexus() {
 #######################################
 function setup_sonarqube() {
     echo "Setting up SonarQube"
-
+    sudo sysctl -w vm.max_map_count=262144
     echo "apply-sonarqube-build:"
     pushd sonarqube/ocp-config
     tailor apply --namespace ${NAMESPACE} bc,is --non-interactive --verbose
@@ -717,6 +717,8 @@ function restart_atlassian_suite() {
 function basic_vm_setup() {
     check_system_setup
     setup_rdp
+    # optional
+    setup_vscode
     install_docker
     setup_openshift_cluster
     download_tailor
