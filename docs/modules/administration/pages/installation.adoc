@@ -4,6 +4,13 @@ This document will guide you through installing / maintaining an OpenDevStack in
 
 NOTE: From now on we assume, you work from a Bash (Cygwin / Linux).
 
+== Server prerequisites
+
+In order to run the Atlassian suite and OpenShift, your host must have:
+
+- at least 16GB RAM
+- `vm.max_map_count=262144` to run SonarQube (which can be set via `sudo sysctl -w vm.max_map_count=262144`)
+
 == Local Setup
 
 Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the sources available on your local machine.
@@ -104,9 +111,9 @@ git push origin master
 
 == OpenDevStack environment in OpenShift
 
-=== Central CD project
+=== Central ODS project
 
-OpenDevStack needs one central `cd` project in OpenShift, which will hold all shared resources such as images or deployments.
+OpenDevStack needs one central `ods` project in OpenShift, which will hold all shared resources such as images or deployments.
 
 In `ods-core` run:
 [source,sh]
