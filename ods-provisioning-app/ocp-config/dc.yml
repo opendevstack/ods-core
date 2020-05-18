@@ -68,13 +68,13 @@ objects:
           name: volume-ikfik
     test: false
     triggers:
-        - imageChangeParams:
+    - imageChangeParams:
         automatic: true
         containerNames:
-        - ods-provisioning-app
+        - prov-app
         from:
           kind: ImageStreamTag
-          name: ${PROV_APP_IMAGE}
+          name: prov-app:latest
           namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
     - type: ConfigChange
