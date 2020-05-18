@@ -621,7 +621,6 @@ function install_ods_project() {
         tailor -n ${NAMESPACE} apply --non-interactive --verbose
     popd
 
-    echo "Calling setup-jenkins-images.sh"
     ${BASH_SOURCE%/*}/../../ods-setup/setup-jenkins-images.sh --verbose --non-interactive --ods-ref master
 }
 
