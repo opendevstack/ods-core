@@ -608,20 +608,6 @@ function create_configuration() {
 
 function install_ods_project() {
     ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
-
-    if ! oc get clusterroles | grep request_role
-    then
-        echo "adding request_role"
-        oc create -f ${BASH_SOURCE%/*}/../../tests/scripts/json/create-cluster-role.json
-    fi
-    oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}
-    oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
-
-    pushd ${BASH_SOURCE%/*}/../../ods-setup/ocp-config/cd-user
-        tailor -n ${NAMESPACE} apply --non-interactive --verbose
-    popd
-
-    ${BASH_SOURCE%/*}/../../ods-setup/setup-jenkins-images.sh --verbose --non-interactive --ods-ref master
 }
 
 #######################################
@@ -636,7 +622,7 @@ function install_ods_project() {
 function setup_nexus() {
     echo "make install-nexus: / apply-nexus:"
     pushd nexus/ocp-config
-    tailor apply --namespace ${NAMESPACE} --non-interactive --verbose
+    tailor apply --namespace ods --non-interactive --verbose
     popd
 
 
@@ -661,7 +647,7 @@ function setup_nexus() {
 #######################################
 function setup_sonarqube() {
     echo "Setting up SonarQube"
-    sudo sysctl -w vm.max_map_count=262144
+
     echo "apply-sonarqube-build:"
     pushd sonarqube/ocp-config
     tailor apply --namespace ${NAMESPACE} bc,is --non-interactive --verbose
@@ -730,8 +716,6 @@ function restart_atlassian_suite() {
 #######################################
 function basic_vm_setup() {
     check_system_setup
-    # optionally
-    setup_vscode
     setup_rdp
     install_docker
     setup_openshift_cluster
