@@ -9,7 +9,7 @@ SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
 if [[ -f $SERVICEACCOUNT_CA ]]; then
   echo "INFO: found $SERVICEACCOUNT_CA"
   echo "INFO: importing into cacerts"
-  keytool -importcert -v -trustcacerts -alias service-ca -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -file $SERVICEACCOUNT_CA -noprompt
+  keytool -importcert -v -trustcacerts -alias service-ca -keystore "$JAVA_HOME"/lib/security/cacerts -storepass changeit -file "$SERVICEACCOUNT_CA" -noprompt
 else
   echo "INFO: could not find '$SERVICEACCOUNT_CA'"
   echo "INFO: skip import"
