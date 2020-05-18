@@ -15,7 +15,7 @@ function usage {
 }
 
 TAILOR="tailor"
-NAMESPACE="ods"
+NAMESPACE="cd"
 REPOSITORY=""
 REPOSITORY_PARAM=""
 REF=""
