@@ -1,7 +1,5 @@
 apiVersion: v1
 kind: Template
-labels:
-  template: ods-jenkins-template
 parameters:
 - name: ODS_IMAGE_TAG
   description: OpenDevStack image tag to use.
@@ -16,6 +14,8 @@ parameters:
   required: true
 - name: REPO_BASE
   required: true
+- name: DOCKER_REGISTRY
+  required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
 objects:
@@ -23,11 +23,11 @@ objects:
   kind: Route
   metadata:
     labels:
-      template: ods-jenkins-webhook-proxy
+      template: ods-jenkins-template
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
-    host: webhook-proxy-${TAILOR_NAMESPACE}{OPENSHIFT_APPS_BASEDOMAIN}
+    host: webhook-proxy-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -40,7 +40,7 @@ objects:
   kind: Service
   metadata:
     labels:
-      template: ods-jenkins-webhook-proxy
+      template: ods-jenkins-template
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
@@ -57,7 +57,7 @@ objects:
   kind: DeploymentConfig
   metadata:
     labels:
-      template: ods-jenkins-webhook-proxy
+      template: ods-jenkins-template
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
@@ -110,6 +110,7 @@ objects:
   metadata:
     name: webhook-proxy
     labels:
+      template: ods-jenkins-template
       app: jenkins-webhook-proxy
   type: opaque
   data:
