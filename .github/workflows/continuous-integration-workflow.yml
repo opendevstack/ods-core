@@ -129,6 +129,23 @@ jobs:
         run: |
           ./run.sh
 
+  clone-check:
+    name: verify clone script requirements
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+        name: Check jsl expectations
+        run: |
+          ocp-scripts/verify-jsl-expectations.sh
+      -
+        name: Check compliant shell scripts
+        run: |
+          shellcheck ocp-scripts/clone-project.sh
+          shellcheck ocp-scripts/verify-jsl-expectations.sh
+
 # cluster:
 #   name: Setup and project provisioning tests
 #   runs-on: ubuntu-16.04
