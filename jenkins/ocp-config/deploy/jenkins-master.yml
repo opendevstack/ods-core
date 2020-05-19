@@ -67,7 +67,7 @@ objects:
   metadata:
     name: cd-user-with-password
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
   type: kubernetes.io/basic-auth
 - apiVersion: v1
   data:
@@ -76,7 +76,7 @@ objects:
   metadata:
     name: sonarqube
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
   type: opaque
 - apiVersion: v1
   data:
@@ -84,7 +84,7 @@ objects:
   kind: Secret
   metadata:
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
       app: jenkins
     name: nexus
   type: opaque
@@ -94,7 +94,7 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
       app: jenkins-master
   spec:
     host: jenkins-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
@@ -113,7 +113,7 @@ objects:
     - kubernetes.io/pvc-protection
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
       app: jenkins-master
   spec:
     accessModes:
@@ -128,7 +128,7 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
       app: jenkins-master
   spec:
     replicas: 1
@@ -253,14 +253,14 @@ objects:
         {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE_NAME}"}}
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
 - apiVersion: rbac.authorization.k8s.io/v1
   groupNames: null
   kind: RoleBinding
   metadata:
     name: '${JENKINS_SERVICE_NAME}_edit'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
   roleRef:
     name: edit
     apiGroup: rbac.authorization.k8s.io
@@ -276,7 +276,7 @@ objects:
   metadata:
     name: '${JENKINS_JNLP_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
   spec:
     ports:
       - name: agent
@@ -296,7 +296,7 @@ objects:
     creationTimestamp: null
     name: '${JENKINS_SERVICE_NAME}'
     labels:
-      template: ods-jenkins-master
+      template: ods-jenkins-template
       app: jenkins-master
   spec:
     ports:
