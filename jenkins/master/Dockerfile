@@ -14,6 +14,10 @@ RUN yum -y install openssl gnutls-utils \
     && yum clean all  \
     && rm -rf /var/cache/yum/*
 
+# Fetch certificates and store them in tmp directory.
+COPY ./import_certs.sh /usr/local/bin/import_certs.sh
+RUN import_certs.sh
+
 # Copy configuration and plugins.
 COPY plugins.txt /opt/openshift/configuration/plugins.txt
 COPY kube-slave-common.sh /usr/local/bin/kube-slave-common.sh
@@ -31,8 +35,6 @@ RUN mkdir -p /etc/opendevstack \
     && echo "  \"sonarqubeEdition\": \"$SONAR_EDITION\"," >> /etc/opendevstack/config.json \
     && echo "  \"sonarqubeVersion\": \"$SONAR_VERSION\"" >> /etc/opendevstack/config.json \
     && echo "}" >> /etc/opendevstack/config.json
-
-RUN chmod g+w /opt/java/openjdk/lib/security/cacerts
 
 USER jenkins
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
