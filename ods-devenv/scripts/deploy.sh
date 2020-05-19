@@ -687,6 +687,7 @@ function setup_jenkins() {
     popd
 
     echo "make start-jenkins-build:"
+    # TODO candidate for parallelization
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose
