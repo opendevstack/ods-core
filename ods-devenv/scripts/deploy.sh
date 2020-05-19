@@ -679,6 +679,7 @@ function setup_sonarqube() {
 
 function setup_jenkins() {
     echo "Setting up Jenkins"
+    oc policy add-role-to-user edit -z jenkins -n ${NAMESPACE}
 
     echo "make apply-jenkins-build:"
     pushd jenkins/ocp-config/build
