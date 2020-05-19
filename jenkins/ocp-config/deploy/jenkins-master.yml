@@ -254,8 +254,7 @@ objects:
     name: '${JENKINS_SERVICE_NAME}'
     labels:
       template: ods-jenkins-template
-- apiVersion: rbac.authorization.k8s.io/v1
-  groupNames: null
+- apiVersion: authorization.openshift.io/v1
   kind: RoleBinding
   metadata:
     name: '${JENKINS_SERVICE_NAME}_edit'
@@ -263,14 +262,10 @@ objects:
       template: ods-jenkins-template
   roleRef:
     name: edit
-    apiGroup: rbac.authorization.k8s.io
-    kind: ClusterRole
   subjects:
     - kind: ServiceAccount
       name: '${JENKINS_SERVICE_NAME}'
       namespace: '${TAILOR_NAMESPACE}'
-  userNames:
-    - system:serviceaccount:${TAILOR_NAMESPACE}:jenkins
 - apiVersion: v1
   kind: Service
   metadata:
