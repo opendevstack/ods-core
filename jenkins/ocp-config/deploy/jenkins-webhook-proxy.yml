@@ -16,6 +16,8 @@ parameters:
   required: true
 - name: REPO_BASE
   required: true
+- name: DOCKER_REGISTRY
+  required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
 objects:
@@ -27,7 +29,7 @@ objects:
       app: jenkins-webhook-proxy
     name: webhook-proxy
   spec:
-    host: webhook-proxy-${TAILOR_NAMESPACE}{OPENSHIFT_APPS_BASEDOMAIN}
+    host: webhook-proxy-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge

@@ -97,7 +97,7 @@ objects:
       template: ods-jenkins-master
       app: jenkins-master
   spec:
-    host: jenkins-${TAILOR_NAMESPACE}{OPENSHIFT_APPS_BASEDOMAIN}
+    host: jenkins-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
