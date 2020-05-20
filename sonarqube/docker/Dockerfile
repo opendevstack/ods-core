@@ -38,6 +38,11 @@ VOLUME "$SONARQUBE_HOME/data"
 
 WORKDIR $SONARQUBE_HOME
 
+# Set proxy settings
+COPY set-proxy.sh /tmp/set-proxy.sh
+RUN chmod +x /tmp/set-proxy.sh \
+    && /tmp/set-proxy.sh conf/sonar.properties
+
 COPY run.sh $SONARQUBE_HOME/bin/
 
 # Add plugins (mainly from https://docs.sonarqube.org/display/PLUG/Plugin+Library)

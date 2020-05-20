@@ -1,0 +1,4 @@
+http.proxyHost=example.com
+http.proxyPort=9000
+http.proxyUser=foo
+http.proxyPassword=bar
