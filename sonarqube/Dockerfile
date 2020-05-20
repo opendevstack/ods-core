@@ -59,7 +59,7 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plu
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \
     chown -R :0 $SONARQUBE_HOME/bin; \
-    chmod g+w /opt/java/openjdk/lib/security/cacerts; \
+    chmod g+w $JAVA_HOME/lib/security/cacerts; \
     chmod -R g+x $SONARQUBE_HOME/bin/run.sh
 
 USER sonarqube
