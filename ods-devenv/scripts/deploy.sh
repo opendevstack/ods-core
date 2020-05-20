@@ -520,12 +520,13 @@ function delete_ods_repositories() {
 #######################################
 function initialise_ods_repositories() {
     local opendevstack_dir="/home/${USER}/opendevstack"
-    local current_dir="$(pwd)"
+
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
+    ./repos.sh --init --confirm --git-ref master --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
     popd
 }
@@ -688,9 +689,21 @@ function setup_jenkins() {
 
     echo "make start-jenkins-build:"
     # TODO candidate for parallelization
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose &
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose &
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose &
+
+    local fail_count=0
+    for job in $(jobs -p)
+    do
+        echo "Waiting for openshift build ${job} to complete."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+    done
+    if [[ "${fail_count}" -gt 0 ]]
+    then
+        echo "${fail_count} of the jenkins builds failed. Going to exit the setup script."
+    fi
 
     echo "make apply-jenkins-deploy:"
     pushd jenkins/ocp-config/deploy
