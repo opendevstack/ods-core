@@ -9,10 +9,15 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v2.0.0
       -
-        name: Build image
+        name: Build Jenkins master image
         working-directory: jenkins/master
         run: |
-          docker build -t jenkins .
+          docker build -t jenkins-master .
+      -
+        name: Build Jenkins slave-base image
+        working-directory: jenkins/slave-base
+        run: |
+          docker build -t jenkins-slave-base .
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-18.04
