@@ -69,7 +69,7 @@ function check_system_setup() {
     # remove obsolete version of git
     if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
     sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://centos7.iuscommunity.org/ius-release.rpm
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
 
     if ! systemctl status firewalld | grep -i running; then
