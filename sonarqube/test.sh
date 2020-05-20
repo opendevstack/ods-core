@@ -37,7 +37,7 @@ docker build \
     --build-arg sonarDistributionUrl="${SONAR_DISTRIBUTION_URL}" \
     --build-arg sonarVersion="${SONAR_VERSION}" \
     --build-arg idpDns="" \
-    .
+    ./docker
 
 echo "Run container using image ${CONTAINER_IMAGE}"
 containerId=$(docker run -d --stop-timeout 3600 -p "${HOST_PORT}":9000 -p 9092:9092 "${CONTAINER_IMAGE}")

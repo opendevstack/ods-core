@@ -91,7 +91,7 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: sonarqube
+      contextDir: sonarqube/docker
       git:
         uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
         ref: ${ODS_GIT_REF}
