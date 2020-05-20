@@ -28,14 +28,6 @@ jobs:
         run: |
           shellcheck sonarqube/*.sh
       -
-        name: Build image
-        working-directory: sonarqube
-        run: |
-          docker build \
-          --build-arg sonarVersion=${{ matrix.version }} \
-          --build-arg sonarDistributionUrl="https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${{ matrix.version }}.zip" \
-          -t sonarcube .
-      -
         name: Run tests
         run: |
           cd sonarqube && ./test.sh --sq-version=${{ matrix.version }}
