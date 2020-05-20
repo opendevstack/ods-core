@@ -2,7 +2,7 @@
 #
 # This script copies any init.groovy.d files under the control of OpenDevStack,
 # then delegates to the original run script of the base image.
-set -ue
+set -uxe
 
 echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
 rm -rf $HOME/.kube || true
@@ -45,10 +45,13 @@ fi
 NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g" | sed -e "s|http://||g")
 mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
+echo "log grapeConfig.xml before substitutions:"
+cat ${HOME}/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
+echo "log grapeConfig.xml after substitutions:"
 
 echo "Booting Jenkins ..."
 /usr/libexec/s2i/run
