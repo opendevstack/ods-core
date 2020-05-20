@@ -48,7 +48,13 @@ objects:
         kind: ImageStreamTag
         name: 'jenkins-master:${ODS_IMAGE_TAG}'
     postCommit: {}
-    resources: {}
+    resources:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: "200m"
+        memory: "1Gi"
     runPolicy: Serial
     source:
       type: Git
@@ -95,7 +101,13 @@ objects:
         kind: ImageStreamTag
         name: 'jenkins-slave-base:${ODS_IMAGE_TAG}'
     postCommit: {}
-    resources: {}
+    resources:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: "200m"
+        memory: "1Gi"
     runPolicy: Serial
     source:
       contextDir: jenkins/slave-base
@@ -134,7 +146,13 @@ objects:
         kind: ImageStreamTag
         name: 'jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
     postCommit: {}
-    resources: {}
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
     runPolicy: Serial
     source:
       contextDir: jenkins/webhook-proxy
