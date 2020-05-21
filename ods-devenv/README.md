@@ -1,5 +1,5 @@
 # EDP / ODS Development Environment
-This project provides scripts to setup a development and test environment for EDP/ODS, aka EDP box.
+This project provides scripts to setup a development environment for EDP/ODS, aka EDP in a box.
 
 The EDP box is intended to run in various environments:
 - As an EC2 virtual machine on AWS
@@ -7,14 +7,16 @@ The EDP box is intended to run in various environments:
   - VMWare or
   - VirtualBox
 
-The core script is scripts/deploy.sh. It is intended to be run by an unprivileged user on the target system.
+The core script is ods-core/ods-devenv/scripts/deploy.sh. It is intended to be run by an unprivileged user on the target system (see installation instructions below).
 The script implements a set of functions that can be executed en-suite or single file as needed.
 
 The functions can be called like this:
 ```
+bash deploy.sh basic_vm_setup       # basic_vm_setup is a utility function that will
+                                    # call other functions to perform the complete
+                                    # EDP/ODS setup.
 bash deploy.sh install_docker       # will install the docker infrastructure
 bash deploy.sh setup_rdp            # will install remote desktop infrastructure
-bash deploy.sh basic_vm_setup       # the utility function basic_vm_setup will call other functions to perform a basic vm setup
 ```
 
 Currently, the script will setup a fresh VM with an OpenShift cluster, a docker installation and some means of communication with clients.
@@ -22,13 +24,30 @@ Next steps will be
 - Install ODS in OpenShift
 - Integrate provisioning-app
 
-## Preparation steps
+The following components will b installed
+- OpenShift 3.11
+    - Sonatype Nexus
+    - SonarQube
+- Atlassian Stack
+    - Jira 8.3.5
+        - 3H Atlassian timebomb licenses (https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/)
+        - Credentials: openshift:openshift
+    - BitBucket
+        - 3H Atlassian timebomb licenses
+        - Credentials: openshift:openshift
+    - MySQL DB for the Atlassian Suite
+    - credentials: root:jiradbrpwd
+
+## Installation Instructions
 ### Local Deployment
-For local deployment create a VMWare virtual machine from CentOS-7 2003 using this configuration:
+For local deployment create a VMWare (recommended) or VirtualBox virtual machine from CentOS-7.8 2003 using this configuration:
 (note: these steps will be automated using Packer)
+
+All of the prerequisites listed below are essentials for the setup to work. E.g. failing to add the Linux user to the groups docker and wheel will prevent the setup script from working.
+
 - VMWare Machine Configuration
-    - 2 processor cores
-    - 8 GB RAM
+    - At least 4 processor cores. The setup has also been tested with 2 cores but the usability is very limited in this configuration
+    - At least 12 GB RAM. The basic setup running OpenShift, Atlassian BitBucket, Atlassian Jira, Sonatype Nexus, SonarQube, Jenkins and a Webhook Proxy will require 12 GB of RAM. Deploying additional applications and running pipelines will require additional memory.
     - enable hypervisor applications
     - 40 GB harddisk
     - Connect network adapter
@@ -37,15 +56,18 @@ For local deployment create a VMWare virtual machine from CentOS-7 2003 using th
     - Timezone CEST
     - Server with GUI (Gnome)
     - create admin user openshift
-        - make user admin
-        - add user to docker group
+        - Make user admin -> add user to wheel group to allow it to use sudo.
+        - Add user to docker group. Failing to do so will prevent OpenShift installation from working.
     - set root user password
 - Desktop Configuration
-    - Install git to clone the ods-core project
-    - git clone the ods-core project
-    - Configure the CentOS box to requirements by running different script goals, e.g.
-      - ```bash deploy.sh basic_vm_setup```
-    - optionally, turn off screen lock
+    - The following steps need to be executed as openshift user
+        - ```cd ${HOME}```
+        - ```mkdir -p bin```
+        - ```vim bin/bootstrap```
+        - copy and paste the contents of the script ods-core/ods-devenv-scripts/bootstrap.sh
+        - ```chmod u+x bin/bootstrap```
+        - ```bootstrap```
+        - The bootstrap script will clone the ods-core project from github and run the ods-devenv setup script
 
 ### AWS deployment
 Use the provided AWS AMI to launch an instance of the ODS development environment
@@ -54,17 +76,17 @@ Use the provided AWS AMI to launch an instance of the ODS development environmen
 - Select the EC2 Service from the Services -> Compute -> EC2
 - Click the button "Launch instance"
 - From "My AMIs" select "AWS-VMImport service: Linux - CentOS Linux release 7.7.1908 (Core)" - TODO provide AMI-ID
-- Choose an Instance Type with at least 8GiB Memory and at least 2 vCPUs (e.g. t2.large)
-- Configure at least 40GiB disk size
+- Choose an Instance Type with at least 16GiB Memory and at least 4 vCPUs (e.g. t2.xlarge, or t2.2xlarge if there is an intent to run builds and deploy applications)
+- Configure at least 40GiB disk size (or 100GiB if there is an intent to run builds and deploy applications)
 - Create a key pair required to log into the EC2 instance and store the pem file locally
 - The security group ods-security-group (TODO fix naming) should be used
     - opens port 22 for ssh connections
-    - opens port range 3359 for VNC connections to support RDP
+    - opens port range 3389 for VNC connections to support RDP
 - Launch the EC2 instance
 - Review the EC2 instance details and take note of
     - the path to the key pem file PATH_TO_PEM_FILE
     - the public DNS of the new EC2 instance EC2_PUBLIC_DNS
-- When the EC2 instance has become available you can log into the vm
+- When the EC2 instance has become available log into the vm
     - ssh: ssh -i PATH_TO_PEM_FILE.pem openshift@EC2_PUBLIC_DNS
     - MS Remote Desktop Client -> EC2_PUBLIC_DNS
 

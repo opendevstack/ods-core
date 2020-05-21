@@ -509,8 +509,8 @@ function delete_ods_repositories() {
 }
 
 #######################################
-# For each of the listed names this function will delete the corresponding
-# repository in the local BitBucket instance in the opendevstack project
+# Makes use of ods-core/ods-setup-repos.sh to clone ods repositories from github
+# and push them to the local BitBucket instance.
 # Globals:
 #   atlassian_bitbucket_port
 # Arguments:
@@ -620,7 +620,7 @@ function install_ods_project() {
 }
 
 #######################################
-# Sets up Nexus as a service OpenShift.
+# Sets up Nexus as a service in OpenShift.
 # Globals:
 #   n/a
 # Arguments:
@@ -646,7 +646,7 @@ function setup_nexus() {
 }
 
 #######################################
-# Sets up SonarQube as a service OpenShift.
+# Sets up SonarQube as a service in OpenShift.
 # Globals:
 #   NAMESPACE (e.g. ods)
 # Arguments:
@@ -678,6 +678,15 @@ function setup_sonarqube() {
     popd
 }
 
+#######################################
+# Sets up Jenkins and the Webhook-Proxy as services in OpenShift.
+# Globals:
+#   NAMESPACE (e.g. ods)
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
 function setup_jenkins() {
     echo "Setting up Jenkins"
     oc policy add-role-to-user edit -z jenkins -n ${NAMESPACE}
@@ -688,7 +697,6 @@ function setup_jenkins() {
     popd
 
     echo "make start-jenkins-build:"
-    # TODO candidate for parallelization
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose &
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose &
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose &
@@ -762,7 +770,9 @@ function basic_vm_setup() {
 
     create_configuration
     install_ods_project
+    # TODO The next 3 steps could be run in parallel
     setup_nexus
+    setup_sonarqube
     setup_jenkins
 }
 
