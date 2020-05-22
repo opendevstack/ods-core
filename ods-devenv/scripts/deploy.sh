@@ -9,6 +9,7 @@ atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
 atlassian_crowd_port=38080
 atlassian_crowd_port_internal=8095
+atlassian_crowd_ip=
 atlassian_jira_container_name=jira
 atlassian_jira_db_name=jiradb
 atlassian_jira_software_version=8.5.3
@@ -398,9 +399,9 @@ function startup_atlassian_jira(){
 #######################################
 function startup_atlassian_crowd() {
     echo "Calling ./crowd/setup_crowd.sh"
-    cd ${BASH_SOURCE%/*}/crowd
+    pushd ${BASH_SOURCE%/*}/crowd
     ./setup_crowd.sh setup
-    cd ..
+    popd
 }
 
 #######################################
@@ -564,6 +565,10 @@ function inspect_jira_ip() {
     atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 }
 
+function inspect_crowd_ip() {
+    atlassian_crowd_ip=$(docker container inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
+}
+
 #######################################
 # Creates a config file and uploads it into ods-configuration repository on
 # the local BitBucket instance.
@@ -579,6 +584,7 @@ function inspect_jira_ip() {
 #   None
 #######################################
 function create_configuration() {
+    echo "create configuration"
     pwd
     ods-setup/config.sh --verbose
     pushd ../ods-configuration
@@ -592,6 +598,10 @@ function create_configuration() {
     if [[ -z ${atlassian_jira_ip} ]]; then
         # can happen if script functions are called selectively
         inspect_jira_ip
+    fi
+    if [[ -z ${atlassian_crowd_ip} ]]
+    then
+        inspect_crowd_ip
     fi
 
     if ! git remote | grep origin; then
@@ -635,6 +645,12 @@ function create_configuration() {
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
     # change sonarqube admin password?
+
+    # provisioning app settings
+    sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${atlassian_crowd_ip}/" ods-core.env
+    sed -i "s/PROV_APP_CROWD_PASSWORD=.*$/PROV_APP_CROWD_PASSWORD=ods/" ods-core.env
+    sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
+
     git add -- .
     git commit -m "updated config for EDP box"
     git push
@@ -743,6 +759,29 @@ function setup_jenkins() {
     pushd jenkins/ocp-config/deploy
     tailor apply --namespace ${NAMESPACE} --selector template=ods-jenkins-template --non-interactive --verbose
     popd
+}
+
+#######################################
+# Uses Makefile targets to setup provisioning app.
+# Globals:
+#   NAMESPACE (e.g. ods)
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_provisioning_app() {
+    echo "Setting up provisioning app"
+    echo "make apply-provisioning-app-deploy:"
+    pushd ods-provisioning-app/ocp-config
+    tailor apply --namespace ${NAMESPACE} is --non-interactive --verbose
+    popd
+
+    ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-provisioning-app
+
+    pushd ods-provisioning-app/ocp-config
+
+
 }
 
 #######################################
