@@ -5,6 +5,10 @@ set -eu
 atlassian_mysql_container_name=atlassian_mysql
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
+atlassian_crowd_software_version=3.7.0
+atlassian_crowd_container_name=crowd
+atlassian_crowd_port=38080
+atlassian_crowd_port_internal=8095
 atlassian_jira_container_name=jira
 atlassian_jira_db_name=jiradb
 atlassian_jira_software_version=8.5.3
@@ -376,6 +380,27 @@ function startup_atlassian_jira(){
     rm mysql-connector-java-8.0.20.jar
     inspect_jira_ip
     echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${openshift_route}:${atlassian_jira_port}"
+}
+
+#######################################
+# Start up a containerized Crowd instance, connecting against a database
+# provided by atlassian_mysql_container_name
+# Globals:
+#   atlassian_crowd_software_version
+#   atlassian_crowd_container_name
+#   atlassian_crowd_port
+#   atlassian_crowd_port_internal
+#
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function startup_atlassian_crowd() {
+    echo "Calling ./crowd/setup_crowd.sh"
+    cd crowd
+    ./setup_crowd.sh setup
+    cd ..
 }
 
 #######################################
@@ -762,6 +787,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
+    startup_atlassian_crowd
     startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
