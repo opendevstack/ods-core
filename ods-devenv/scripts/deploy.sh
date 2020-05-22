@@ -782,7 +782,8 @@ function setup_provisioning_app() {
     ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-provisioning-app
 
     pushd ods-provisioning-app/ocp-config
-
+        tailor apply --namespace ${NAMESPACE} --exclude is --non-interactive --verbose
+    popd
 
 }
 
