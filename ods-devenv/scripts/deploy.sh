@@ -526,7 +526,7 @@ function initialise_ods_repositories() {
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --git-ref master --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
+    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --git-ref master --confirm
     popd
 }
