@@ -16,6 +16,7 @@ objects:
     name: ods-provisioning-app
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: ods-provisioning-app
     strategy:
@@ -30,7 +31,7 @@ objects:
           app: ods-provisioning-app
       spec:
         containers:
-        - image: ${TAILOR_NAMESPACE}/${PROV_APP_IMAGE}
+        - image: ""
           imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
           name: ods-provisioning-app
           ports:
@@ -71,7 +72,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - prov-app
+        - ods-provisioning-app
         from:
           kind: ImageStreamTag
           name: ${PROV_APP_IMAGE}
