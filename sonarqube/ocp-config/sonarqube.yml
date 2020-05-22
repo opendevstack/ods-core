@@ -88,7 +88,13 @@ objects:
         kind: ImageStreamTag
         name: sonarqube:${ODS_IMAGE_TAG}
     postCommit: {}
-    resources: {}
+    resources:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: "200m"
+        memory: "1Gi"
     runPolicy: Serial
     source:
       contextDir: sonarqube
