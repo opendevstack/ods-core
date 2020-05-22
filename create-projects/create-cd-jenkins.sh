@@ -1,69 +1,95 @@
 #!/usr/bin/env bash
 set -eu
 
-# This script sets up a ${PROJECT_ID}-cd/jenkins-master and the associated webhook proxy for the project you are creating.
+# This script sets up a ${PROJECT_ID}-cd/jenkins-master and the associated
+# webhook proxy for the project you are creating.
 
 TAILOR="tailor"
-VERBOSE=false
-STATUS=false
+ODS_NAMESPACE="ods"
+ODS_IMAGE_TAG="lastest"
+PROJECT_ID=""
+CD_USER_TYPE=""
+CD_USER_ID_B64=""
+PIPELINE_TRIGGER_SECRET_B64=""
+TAILOR_VERBOSE=""
+TAILOR_NON_INTERACTIVE=""
 
 function usage {
-   printf "usage: %s [options]\n", $0
-   printf "\t--status\tExecutes tailor status\n"
-   printf "\t-h|--help\tPrints the usage\n"
-   printf "\t-v|--verbose\tVerbose output\n"
-   printf "\t-t|--tailor\tChanges the executable of tailor. Default: tailor\n"
-   printf "\tods-namespace\tThe namespace where all ODS resources reside. Default: cd\n"
-
+  printf "usage: %s [options]\n" $0
+  printf "\t-h|--help\t\t\tPrints the usage\n"
+  printf "\t-v|--verbose\t\t\tVerbose output\n"
+  printf "\t-t|--tailor\t\t\tChanges the executable of tailor. Default: %s\n" "${TAILOR}"
+  printf "\t-p|--project\t\t\tProject ID\n"
+  printf "\t--ods-namespace\t\t\tThe namespace where all ODS resources reside. Default: %s\n" "${ODS_NAMESPACE}"
+  printf "\t--ods-image-tag\t\t\tThe image tag to use. Default: %s\n" "${ODS_IMAGE_TAG}"
+  printf "\t--pipeline-trigger-secret-b64\tTrigger secret for pipelines (base64 encoded)\n"
+  printf "\t--cd-user-type\t\t\tWhether CD user is general or project specific\n"
+  printf "\t--cd-user-id-b64\t\tName of CD user (base64 encoded)\n"
 }
 
-ODS_NAMESPACE="cd"
-
 while [[ "$#" -gt 0 ]]; do case $1 in
-   --status) STATUS=true;;
+  -v|--verbose) TAILOR_VERBOSE="-v"; set -x;;
 
-   -v|--verbose) VERBOSE=true; set -x;;
+  --non-interactive) TAILOR_NON_INTERACTIVE="--non-interactive";;
 
-   -h|--help) usage; exit 0;;
+  -h|--help) usage; exit 0;;
 
-   -t=*|--tailor=*) TAILOR="${1#*=}";;
-   -t|--tailor) TAILOR="$2"; shift;;
+  -t=*|--tailor=*) TAILOR="${1#*=}";;
+  -t|--tailor) TAILOR="$2"; shift;;
 
-   --ods-namespace=*) ODS_NAMESPACE="${1#*=}";;
-   --ods-namespace)   ODS_NAMESPACE="$2"; shift;;
+  -p=*|--project=*) PROJECT_ID="${1#*=}";;
+  -p|--project)     PROJECT_ID="$2"; shift;;
+
+  --ods-namespace=*) ODS_NAMESPACE="${1#*=}";;
+  --ods-namespace)   ODS_NAMESPACE="$2"; shift;;
+
+  --ods-image-tag=*) ODS_IMAGE_TAG="${1#*=}";;
+  --ods-image-tag)   ODS_IMAGE_TAG="$2"; shift;;
+
+  --pipeline-trigger-secret-b64=*) PIPELINE_TRIGGER_SECRET_B64="${1#*=}";;
+  --pipeline-trigger-secret-b64)   PIPELINE_TRIGGER_SECRET_B64="$2"; shift;;
+
+  --cd-user-type=*) CD_USER_TYPE="${1#*=}";;
+  --cd-user-type)   CD_USER_TYPE="$2"; shift;;
+
+  --cd-user-id-b64=*) CD_USER_ID_B64="${1#*=}";;
+  --cd-user-id-b64)   CD_USER_ID_B64="$2"; shift;;
 
    *) echo "Unknown parameter passed: $1"; usage; exit 1;;
- esac; shift; done
+esac; shift; done
 
-echo "Current tailor version is: $(${TAILOR} version)"
-
-if $VERBOSE; then
-  tailor_verbose="-v"
+if [ -z "${PROJECT_ID}" ]; then
+  echo "--project is missing, but required"; usage
+  exit 1
 else
-  tailor_verbose=""
+  echo "--project=${PROJECT_ID}"
 fi
 
-if [ -z ${PROJECT_ID+x} ]; then
-  echo "PROJECT_ID is unset, but required"
+if [ -z "${PIPELINE_TRIGGER_SECRET_B64}" ]; then
+  echo "--pipeline-trigger-secret-b64 is missing, but required"; usage
   exit 1
-else echo "PROJECT_ID=${PROJECT_ID}"; fi
+else
+  echo "--pipeline-trigger-secret-b64=${PIPELINE_TRIGGER_SECRET_B64}"
+fi
 
-if $STATUS; then
-  echo "NOTE: Invoked with --status:  will use tailor status instead of tailor update."
+if [ -z "${CD_USER_TYPE}" ]; then
+  echo "--cd-user-type is missing, but required"; usage
+  exit 1
+else
+  echo "--cd-user-type=${CD_USER_TYPE}"
+fi
+
+if [ -z "${CD_USER_ID_B64}" ]; then
+  echo "--cd-user-id-b64 is missing, but required"; usage
+  exit 1
+else
+  echo "--cd-user-id-b64=${CD_USER_ID_B64}"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 
-tailor_update_in_dir() {
-  local dir="$1"
-  shift
-  if [ ${STATUS} = "true" ]; then
-    cd "$dir" && ${TAILOR} $tailor_verbose status "$@"
-  else
-    cd "$dir" && ${TAILOR} $tailor_verbose --non-interactive update "$@"
-  fi
-}
+echo "Tailor version: $(${TAILOR} version)"
 
 cdUserPwdParam=""
 if [ "${CD_USER_TYPE}" != "general" ]; then
@@ -71,13 +97,14 @@ if [ "${CD_USER_TYPE}" != "general" ]; then
   cdUserPwdParam="--param=CD_USER_PWD_B64=${base64Pwd}"
 fi
 
+cd "${ODS_CORE_DIR}/jenkins/ocp-config/deploy"
 
-
-tailor_update_in_dir "${ODS_CORE_DIR}/jenkins/ocp-config/deploy" \
+${TAILOR} ${TAILOR_VERBOSE} ${TAILOR_NON_INTERACTIVE} apply \
   "--namespace=${PROJECT_ID}-cd" \
-  "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
+  "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET_B64}" \
   "--param=PROJECT=${PROJECT_ID}" \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
-  "--param=NAMESPACE=${ODS_NAMESPACE}" \
-  $cdUserPwdParam \
+  "--param=ODS_NAMESPACE=${ODS_NAMESPACE}" \
+  "--param=ODS_IMAGE_TAG=${ODS_IMAGE_TAG}" \
+  ${cdUserPwdParam} \
   --selector "template=ods-jenkins-template"

@@ -75,13 +75,29 @@ podTemplate(
 
     stage('Create OpenShift projects') {
       dir('ods-core') {
-        sh './create-projects/create-projects.sh'
+        sh(
+          script: """./create-projects/create-projects.sh --verbose \
+            --project=${projectId} \
+            --admins=${projectAdmins} \
+            --groups=${projectGroups}""",
+          label: 'Create OpenShift projects'
+        )
       }
     }
 
     stage('Setup Jenkins in CD project') {
       dir('ods-core') {
-        sh './create-projects/create-cd-jenkins.sh --verbose'
+        sh(
+          script: """./create-projects/create-cd-jenkins.sh --verbose \
+            --non-interactive \
+            --project=${projectId} \
+            --ods-namespace=${odsNamespace} \
+            --ods-image-tag=${odsImageTag} \
+            --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
+            --cd-user-type=${cdUserType} \
+            --cd-user-id-b64=${cdUserIdB64}""",
+          label: 'Setup Jenkins in CD project'
+        )
       }
     }
   }
