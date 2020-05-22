@@ -109,7 +109,7 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
 curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
 -b crowd_sessionid_cookie.txt \
 --header 'Content-Type: text/plain' \
---data-raw '{username: "ods", password: "ods", rememberMe: false}'
+--data-raw '{username: "openshift", password: "openshift", rememberMe: false}'
 
     sleep 1
 
