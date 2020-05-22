@@ -577,6 +577,7 @@ function create_configuration() {
     git push --set-upstream origin master
     # base64('changeit') -> Y2hhbmdlbWUK
     # base64('openshift') -> b3BlbnNoaWZ0Cg==
+    sed -i "s|ODS_GIT_REF=.*$|ODS_GIT_REF=feature/ods-devenv|" ods-core.env
     sed -i "s/cd.192.168.56.101.nip.io/ods.${openshift_route}.nip.io/" ods-core.env
     sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port_internal}|" ods-core.env
     sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
