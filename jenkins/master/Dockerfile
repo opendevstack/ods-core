@@ -23,15 +23,6 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run /usr/libexec/s2i/ods-run
 
-# Add ODS configuration file.
-RUN mkdir -p /etc/opendevstack \
-    && echo "{" > /etc/opendevstack/config.json \
-    && echo "  \"odsGitRef\": \"$ODS_GIT_REF\"," >> /etc/opendevstack/config.json \
-    && echo "  \"odsImageTag\": \"$ODS_IMAGE_TAG\"," >> /etc/opendevstack/config.json \
-    && echo "  \"sonarqubeEdition\": \"$SONAR_EDITION\"," >> /etc/opendevstack/config.json \
-    && echo "  \"sonarqubeVersion\": \"$SONAR_VERSION\"" >> /etc/opendevstack/config.json \
-    && echo "}" >> /etc/opendevstack/config.json
-
 RUN chmod g+w $JAVA_HOME/lib/security/cacerts
 
 USER jenkins
