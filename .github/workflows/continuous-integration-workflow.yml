@@ -1,18 +1,6 @@
 name: Continous Integration Tests
 on: [push, pull_request]
 jobs:
-  jenkins:
-    name: Jenkins tests
-    runs-on: ubuntu-18.04
-    steps:
-      -
-        name: Checkout repository
-        uses: actions/checkout@v2.0.0
-      -
-        name: Build image
-        working-directory: jenkins/master
-        run: |
-          docker build -t jenkins .
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-18.04
