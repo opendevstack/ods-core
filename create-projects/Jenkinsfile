@@ -56,7 +56,7 @@ podTemplate(
     stage('Checkout ods-configuration') {
       def bitbucketScheme = gitIsHttps ? 'https://' : 'http://'
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
-      echo("Getting ods configuration from (${bitbucketHost})")
+      echo("Getting ods configuration from ${bitbucketHost}")
       checkout([
         $class: 'GitSCM',
         branches: [[name: "*/master"]],
