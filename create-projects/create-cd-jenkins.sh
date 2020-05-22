@@ -53,17 +53,14 @@ if $STATUS; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ODS_CORE_DIR=${SCRIPT_DIR%/*}
 
 tailor_update_in_dir() {
   local dir="$1"
   shift
   if [ ${STATUS} = "true" ]; then
-    $VERBOSE && echo 'exec:' cd "$dir" '&&'
-    $VERBOSE && echo 'exec:' ${TAILOR} $tailor_verbose status "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose status "$@"
   else
-    $VERBOSE && echo 'exec:' cd "$dir" '&&'
-    $VERBOSE && echo 'exec:    ' ${TAILOR} $tailor_verbose --non-interactive update "$@"
     cd "$dir" && ${TAILOR} $tailor_verbose --non-interactive update "$@"
   fi
 }
@@ -76,7 +73,7 @@ fi
 
 
 
-tailor_update_in_dir "${SCRIPT_DIR}/ocp-config/cd-jenkins" \
+tailor_update_in_dir "${ODS_CORE_DIR}/jenkins/ocp-config/deploy" \
   "--namespace=${PROJECT_ID}-cd" \
   "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET}" \
   "--param=PROJECT=${PROJECT_ID}" \
