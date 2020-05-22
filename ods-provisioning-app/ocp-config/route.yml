@@ -10,7 +10,7 @@ objects:
       app: ods-provisioning-app
     name: ods-provisioning-app
   spec:
-    host: ods-prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
+    host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge

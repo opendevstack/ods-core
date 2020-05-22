@@ -3,6 +3,8 @@ kind: Template
 parameters:
 - name: TAILOR_NAMESPACE
   required: true
+- name: DOCKER_REGISTRY
+  required: true
 - name: PROV_APP_IMAGE
   required: true
 - name: PROV_APP_IMAGE_PULL_POLICY
@@ -16,6 +18,7 @@ objects:
     name: ods-provisioning-app
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: ods-provisioning-app
     strategy:
@@ -30,7 +33,7 @@ objects:
           app: ods-provisioning-app
       spec:
         containers:
-        - image: ${TAILOR_NAMESPACE}/${PROV_APP_IMAGE}
+        - image: ${DOCKER_REGISTRY}/${TAILOR_NAMESPACE}/${PROV_APP_IMAGE}
           imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
           name: ods-provisioning-app
           ports:

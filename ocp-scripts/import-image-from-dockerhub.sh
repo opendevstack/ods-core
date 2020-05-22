@@ -61,28 +61,28 @@ while [[ "$#" -gt 0 ]]; do
 esac; shift; done
 
 if [ -z "${NAMESPACE}" ]; then
-    odsprojectname=
+    odsProjectName=
     if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
         echo_info "Configuration located"
-        odsprojectname=$(grep ODS_NAMESPACE "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
+        odsProjectName=$(grep ODS_NAMESPACE "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
     fi
-    read -r -e -p "Enter ods central namespace [${odsprojectname}]: " input
-    if [[ -z "${input}" || $(echo -n $input | wc -m) == 0 ]]; then
-    	NAMESPACE=$odsprojectname
-        echo_info "Setting namespace to ${odsprojectname}"
+    read -r -e -p "Enter ODS central namespace [${odsProjectName}]: " input
+    if [ -z "${input}" ]; then
+    	NAMESPACE="$odsProjectName"
+        echo_info "Setting namespace to ${odsProjectName}"
     else
         NAMESPACE=${input:-""}
     fi
 fi
 
-if ! oc project ${NAMESPACE} -q; then
-    echo_error "OCP Project ${NAMESPACE} does NOT exist"
+if ! oc project ${NAMESPACE} &> /dev/null; then
+    echo_error "OpenShift project ${NAMESPACE} does NOT exist"
     exit 1
 fi
 
 if [ -z "${IMAGE}" ]; then
     read -r -e -p "Enter image name: " input
-    if [[ -z "${input}" || $(echo -n $input | wc -m) == 0 ]]; then
+    if [ -z "${input}" ]; then
         echo_error "Image name 'image' is mandatory, aborting without it"
         exit 1
     else
@@ -92,8 +92,8 @@ fi
 
 if [ -z "${TARGET_STREAM}" ]; then
     read -r -e -p "Enter target image stream name [${IMAGE}]: " input
-    if [[ -z "${input}" || $(echo -n $input | wc -m) == 0 ]]; then
-        TARGET_STREAM=$IMAGE
+    if [ -z "${input}" ]; then
+        TARGET_STREAM="$IMAGE"
         echo_info "Target image not set, defaulting to source: $IMAGE"
     else
         TARGET_STREAM=${input:-""}
@@ -106,15 +106,15 @@ if ! oc -n ${NAMESPACE} get is ${TARGET_STREAM} >/dev/null; then
 fi
 
 if [ -z "${IMAGE_TAG}" ]; then
-    imageversion=
+    imageTag=
     if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
         echo_info "Configuration located"
-        imageversion=$(grep ODS_IMAGE_TAG "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
+        imageTag=$(grep ODS_IMAGE_TAG "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
     fi
-    read -r -e -p "Enter image version [${imageversion}]: " input
+    read -r -e -p "Enter image tag [${imageTag}]: " input
     if [[ -z "${input}" || $(echo -n $input | wc -m) == 0 ]]; then
-        IMAGE_TAG=${imageversion}
-        echo_info "Imagetag not set, setting to: $imageversion"
+        IMAGE_TAG=${imageTag}
+        echo_info "Image tag not set, setting to: $imageTag"
     else
         IMAGE_TAG=${input:-""}
     fi
@@ -123,7 +123,7 @@ fi
 TAG_SOURCE=${ODS_AT_DOCKERHUB}/${IMAGE}:${IMAGE_TAG}
 TAG_TARGET=${NAMESPACE}/${TARGET_STREAM}:${IMAGE_TAG}
 
-echo_info "importing remote image ${TAG_SOURCE} into local ${TAG_TARGET}"
+echo_info "Importing remote image '${TAG_SOURCE}' into local '${TAG_TARGET}'"
 
 # this is an async call, so we wait 5 secs and then get the tag, which will fail
 # in case errors happened
@@ -136,4 +136,4 @@ if ! oc -n ${NAMESPACE} get istag ${TARGET_STREAM}:${IMAGE_TAG} &> /dev/null; th
 	exit 1
 fi
 
-echo_done "Remote image ${TAG_SOURCE} imported into ${TAG_TARGET}"
+echo_done "Remote image '${TAG_SOURCE}' imported into '${TAG_TARGET}'"
