@@ -4,7 +4,7 @@ set -eu
 
 atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
-atlassian_crowd_port=38080
+atlassian_crowd_port=48080
 # docker network internal crowd port
 atlassian_crowd_port_internal=8095
 
@@ -42,19 +42,19 @@ function setup() {
 
     echo
     echo "...ping crowd web server"
-    curl --location --request -GET "http://localhost:$atlassian_crowd_port/" -v
+    curl --silent --location --request -GET "http://localhost:$atlassian_crowd_port/" -v
 
     # Get session cookie
     echo
     echo "...get session cookie from crowd web console"
-    curl --location --request GET "http://localhost:$atlassian_crowd_port/crowd/console/" -c crowd_sessionid_cookie.txt
+    curl --silent --location --request GET "http://localhost:$atlassian_crowd_port/crowd/console/" -c crowd_sessionid_cookie.txt
 
     sleep 1
 
     # Set time limited license
     echo
     echo "...setup license"
-    curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
 -b crowd_sessionid_cookie.txt \
 --form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
 yg9ZvLN+HuM/e1BUHdGlNvuuEHQ73X73Y4bR4nbbgU9ZwFiD2IchcPH+8T7vXzuej9eXp68YSv45
@@ -73,14 +73,14 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     # Set install type action
     echo
     echo "...start crowd configuration"
-    curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml" -b crowd_sessionid_cookie.txt
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml" -b crowd_sessionid_cookie.txt
 
     sleep 1
 
     # Set setup database option to embedded
     echo
     echo "...choose embedded db option"
-    curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action" \
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action" \
 -b crowd_sessionid_cookie.txt \
 --form 'databaseOption= db.embedded' \
 --form 'jdbcDatabaseType= ' \
@@ -97,7 +97,7 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     # Restore configuration from the backup file
     echo
     echo "...choose install with config file (config file was copied to container already)"
-    curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action" \
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action" \
 -b crowd_sessionid_cookie.txt \
 --form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml'
 
@@ -106,10 +106,10 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     # Test setup by login into crowd
     echo
     echo "...login in crowd to test installation"
-curl --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
+curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
 -b crowd_sessionid_cookie.txt \
 --header 'Content-Type: text/plain' \
---data-raw '{username: "openshift", password: "openshift", rememberMe: false}'
+--data '{username: "openshift", password: "openshift", rememberMe: false}'
 
     sleep 1
 

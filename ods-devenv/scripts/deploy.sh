@@ -398,7 +398,7 @@ function startup_atlassian_jira(){
 #######################################
 function startup_atlassian_crowd() {
     echo "Calling ./crowd/setup_crowd.sh"
-    cd crowd
+    cd ${BASH_SOURCE%/*}/crowd
     ./setup_crowd.sh setup
     cd ..
 }
