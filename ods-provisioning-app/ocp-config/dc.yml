@@ -3,8 +3,6 @@ kind: Template
 parameters:
 - name: TAILOR_NAMESPACE
   required: true
-- name: DOCKER_REGISTRY
-  required: true
 - name: PROV_APP_IMAGE
   required: true
 - name: PROV_APP_IMAGE_PULL_POLICY
@@ -33,7 +31,7 @@ objects:
           app: ods-provisioning-app
       spec:
         containers:
-        - image: ${DOCKER_REGISTRY}/${TAILOR_NAMESPACE}/${PROV_APP_IMAGE}
+        - image: ""
           imagePullPolicy: ${PROV_APP_IMAGE_PULL_POLICY}
           name: ods-provisioning-app
           ports:
@@ -74,7 +72,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - prov-app
+        - ods-provisioning-app
         from:
           kind: ImageStreamTag
           name: ${PROV_APP_IMAGE}
