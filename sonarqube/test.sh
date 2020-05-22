@@ -31,13 +31,21 @@ SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/Distribution/sonarqube/
 HOST_PORT="9000"
 CONTAINER_IMAGE="sqtest"
 
+echo "Test proxy settings"
+rm test.properties || true
+sh -c "HTTP_PROXY=https://foo:bar@example.com:9000 ./docker/set-proxy.sh test.properties"
+if ! diff test.properties.fixture test.properties; then
+    echo "Proxy settings mismatch"
+    exit 1
+fi
+
 echo "Build image"
 docker build \
     -t "${CONTAINER_IMAGE}" \
     --build-arg sonarDistributionUrl="${SONAR_DISTRIBUTION_URL}" \
     --build-arg sonarVersion="${SONAR_VERSION}" \
     --build-arg idpDns="" \
-    .
+    ./docker
 
 echo "Run container using image ${CONTAINER_IMAGE}"
 containerId=$(docker run -d --stop-timeout 3600 -p "${HOST_PORT}":9000 -p 9092:9092 "${CONTAINER_IMAGE}")
@@ -45,6 +53,7 @@ containerId=$(docker run -d --stop-timeout 3600 -p "${HOST_PORT}":9000 -p 9092:9
 function cleanup {
     echo "Cleanup"
     docker rm -f "${containerId}"
+    rm test.properties
 }
 trap cleanup EXIT
 
