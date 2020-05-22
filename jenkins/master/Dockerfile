@@ -2,12 +2,6 @@ FROM openshift/jenkins-2-centos7
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 
-ARG APP_DNS=192.168.99.100.nip.io
-ARG ODS_GIT_REF
-ARG ODS_IMAGE_TAG
-ARG SONAR_EDITION
-ARG SONAR_VERSION
-
 USER root
 RUN yum -y install openssl gnutls-utils \
     && $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \

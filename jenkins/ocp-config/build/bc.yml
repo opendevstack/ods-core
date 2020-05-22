@@ -61,21 +61,6 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
-        env:
-          - name: APP_DNS
-            value: ${APP_DNS}
-          - name: APP_DNS_PORT
-            value: ${APP_DNS_PORT}
-          - name: TARGET_HOSTS
-            value: ${TARGET_HOSTS}
-          - name: ODS_GIT_REF
-            value: ${ODS_GIT_REF}
-          - name: ODS_IMAGE_TAG
-            value: ${ODS_IMAGE_TAG}
-          - name: SONAR_EDITION
-            value: ${SONAR_EDITION}
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
         from:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
