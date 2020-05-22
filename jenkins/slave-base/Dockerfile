@@ -9,9 +9,10 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1
 
-ARG APP_DNS=192.168.99.100.nip.io
-ARG APP_DNS_PORT=443
-ARG SNYK_DISTRIBUTION_URL
+ARG APP_DNS=
+ARG APP_DNS_PORT=
+
+ARG snykDistributionUrl
 
 RUN yum -y install \
     gnutls-utils \
@@ -73,8 +74,8 @@ RUN cd /tmp \
     && rm -rf /tmp/git-lfs*
 
 # Optionally install snyk.
-RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ; else echo 'Installing snyk... getting binary from' $SNYK_DISTRIBUTION_URL \
-    && curl -Lv $SNYK_DISTRIBUTION_URL --output snyk \
+RUN if [ -z $snykDistributionUrl ] ; then echo 'Skipping snyk installation!' ; else echo 'Installing snyk... getting binary from' $snykDistributionUrl \
+    && curl -Lv $snykDistributionUrl --output snyk \
     && mv snyk /usr/local/bin \
     && chmod +rwx /usr/local/bin/snyk \
     && mkdir -p $HOME/.config/configstore/ \

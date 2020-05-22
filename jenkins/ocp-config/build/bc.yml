@@ -92,13 +92,14 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
+        buildArgs:
+          - name: snykDistributionUrl
+            value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
         env:
           - name: APP_DNS
             value: ${APP_DNS}
           - name: APP_DNS_PORT
             value: ${APP_DNS_PORT}
-          - name: SNYK_DISTRIBUTION_URL
-            value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
           - name: TARGET_HOSTS
             value: ${TARGET_HOSTS}
         from:
