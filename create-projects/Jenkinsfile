@@ -43,17 +43,9 @@ podTemplate(
   node(podLabel) {
 
     stage('Checkout ods-core') {
-      checkout([
-        $class: 'GitSCM',
-        branches: scm.branches,
-        doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-        extensions: scm.extensions + [[
-          $class: 'RelativeTargetDirectory',
-          relativeTargetDir: 'ods-core'
-        ]],
-        userRemoteConfigs: scm.userRemoteConfigs
-      ])
+      sh 'mkdir -p ods-core'
       dir('ods-core') {
+        checkout scm
         gitIsHttps = sh(
           returnStdout: true,
           script: 'git config remote.origin.url'
@@ -64,7 +56,7 @@ podTemplate(
     stage('Checkout ods-configuration') {
       def bitbucketScheme = gitIsHttps ? 'https://' : 'http://'
       def bitbucketUrl = bitbucketScheme + bitbucketHost;
-      echo("Getting ods configuration from (${bitbucketHost})")
+      echo("Getting ods configuration from ${bitbucketHost}")
       checkout([
         $class: 'GitSCM',
         branches: [[name: "*/master"]],
