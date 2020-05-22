@@ -787,6 +787,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
+    startup_atlassian_crowd
     startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
