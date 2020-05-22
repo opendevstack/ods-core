@@ -88,7 +88,7 @@ install-doc-gen: apply-doc-gen-build
 
 ## Update OpenShift resources related to the Document Generation image.
 apply-doc-gen-build:
-	cd ods-doc-gen-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
+	cd ods-document-generation-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
 	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-document-generation-svc --target-stream ods-doc-gen-svc
 .PHONY: apply-doc-gen-build
 
