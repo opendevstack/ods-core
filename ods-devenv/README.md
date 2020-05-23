@@ -75,13 +75,17 @@ Use the provided AWS AMI to launch an instance of the ODS development environmen
 - Login to the AWS Management Console
 - Select the EC2 Service from the Services -> Compute -> EC2
 - Click the button "Launch instance"
-- From "My AMIs" select "AWS-VMImport service: Linux - CentOS Linux release 7.7.1908 (Core)" - TODO provide AMI-ID
+- Select AMI-ID ami-09aa29230f09bb1ea
+    - CentOS 7.8 2003
+    - User openshift in groups wheel and docker
+    - bootstrap script pre-installed
 - Choose an Instance Type with at least 16GiB Memory and at least 4 vCPUs (e.g. t2.xlarge, or t2.2xlarge if there is an intent to run builds and deploy applications)
 - Configure at least 40GiB disk size (or 100GiB if there is an intent to run builds and deploy applications)
 - Create a key pair required to log into the EC2 instance and store the pem file locally
-- The security group ods-security-group (TODO fix naming) should be used
+- The security group ods-dev-env-security-group or equivalent should be used
     - opens port 22 for ssh connections
     - opens port range 3389 for VNC connections to support RDP
+    - opens 8080 (for Jira)
 - Launch the EC2 instance
 - Review the EC2 instance details and take note of
     - the path to the key pem file PATH_TO_PEM_FILE
@@ -89,6 +93,7 @@ Use the provided AWS AMI to launch an instance of the ODS development environmen
 - When the EC2 instance has become available log into the vm
     - ssh: ssh -i PATH_TO_PEM_FILE.pem openshift@EC2_PUBLIC_DNS
     - MS Remote Desktop Client -> EC2_PUBLIC_DNS
+- When logged into the EC2 instance as user openshift, run the command ```bootstrap```
 
 ## Misc
 To find the AMI for the latest version of Cent OS 7:
