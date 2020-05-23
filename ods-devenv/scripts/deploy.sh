@@ -106,6 +106,21 @@ EOF
 }
 
 #######################################
+# The provisioning app requires Google Chrome.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_google_chrome() {
+    curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+    sudo yum install -y ./google-chrome-stable_current_*.rpm
+    rm ./google-chrome-stable_current_*.rpm
+}
+
+#######################################
 # Install remote desktop protocol.
 # Connect to the openshift user session using MS Remote Desktop.
 # Globals:
@@ -820,6 +835,7 @@ function basic_vm_setup() {
     setup_rdp
     # optional
     setup_vscode
+    setup_google_chrome
     install_docker
     setup_openshift_cluster
     download_tailor
@@ -845,6 +861,11 @@ function basic_vm_setup() {
     setup_nexus
     setup_sonarqube
     setup_jenkins
+
+    echo "Installation completed."
+    echo "Now start a new terminal session or run:"
+    echo "source /etc/bash_completion.d/docker-compose"
+    echo "source /etc/bash_completion.d/oc"
 }
 
 # the next line will make bash try to execute the script arguments in the context of this script,
