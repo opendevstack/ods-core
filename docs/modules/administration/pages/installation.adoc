@@ -85,7 +85,7 @@ At this stage you can setup the Atlassian tools if they do not exist yet, or mod
 
 WARNING: Documentation for this is missing.
 
-After Bitbucket is running, create the `OPENDEVSTACK` project and create bare repositories for each OpenDevStack repository that you have setup locally.
+After Crowd is running, ensure that there is a user corresponding to the `CD_USER_ID_B64`/`CD_USER_PWD_B64` parameters in `ods-core.env`.
 
 === OpenShift cluster
 At this stage you can setup the OpenShift cluster if it does not exist yet.
@@ -96,7 +96,7 @@ TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repoisitories
 
-It is important that all repositories in BitBucket are up-to-date and ready to be used e.g. from `BuildConfig` resources in OpenShift.
+Ensure that there is an `OPENDEVSTACK` project in Bitbucket and that there is a corresponding OpenDevStack repository for each ODS repository that you have locally. In the next step, they will be filled / updated with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift.
 
 In `ods-core` run:
 [source,sh]
