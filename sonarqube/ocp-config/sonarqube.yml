@@ -60,6 +60,7 @@ parameters:
 - name: STORAGE_CLASS_DATA
   # for AWS the default is gp2
   description: Storage class for data for AWS, e.g. gp2. Leave empty for local (e.g. vagrant) deployment
+  value: ""
 - name: STORAGE_PROVISIONER
   description: The kubernetes provisioner, e.g. kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployment
 - name: STORAGE_CLASS_BACKUP

@@ -13,7 +13,7 @@ parameters:
 - name: JENKINS_JNLP_SERVICE_NAME
   value: jenkins-jnlp
 - name: STORAGE_CLASS_DATA
-  required: false
+  value: ""
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
