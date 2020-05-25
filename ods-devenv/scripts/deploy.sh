@@ -928,6 +928,40 @@ function restart_atlassian_suite() {
 }
 
 #######################################
+# Sets up Jenkins slaves for various technologies, like:
+# airflow, golang, maven, nodejs/angular, python, scala
+#
+# Relies on initialise_ods_repositories having run before to create and
+# initialise the opendevstack project folder with its repositories.
+#
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_jenkins_slaves() {
+    # tailor apply --namespace ${NAMESPACE} is --non-interactive --verbose
+
+    local opendevstack_dir="/home/${USER}/opendevstack"
+    local quickstarters_dir="${opendevstack_dir}/quickstarters/common/jenkins-slaves"
+    local ocp_config_folder="ocp-config"
+
+    for technology in airflow golang maven nodejs10-angular python scala
+    do
+        push "${quickstarters_dir}/${technology}/${ocp-config}"
+    done
+
+    mkdir -p "${opendevstack_dir}"
+    pushd "${opendevstack_dir}"
+
+
+
+
+}
+
+#######################################
 # this utility function will call some functions in a meaningful order
 # to prep a fresh CentOS box for EDP/ODS installation.
 # Globals:
