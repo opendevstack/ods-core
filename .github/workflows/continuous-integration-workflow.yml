@@ -74,6 +74,23 @@ jobs:
         run: |
           docker build -t webhook-proxy .
 
+  create-projects:
+    name: Create Projects tests
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+          name: Check shell scripts
+          run: |
+            shellcheck create-projects/*.sh
+      -
+        name: Run tests
+        working-directory: create-projects/tests
+        run: |
+          ./run.sh
+
 # cluster:
 #   name: Setup and project provisioning tests
 #   runs-on: ubuntu-16.04

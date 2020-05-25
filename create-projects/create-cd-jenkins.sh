@@ -15,7 +15,7 @@ TAILOR_VERBOSE=""
 TAILOR_NON_INTERACTIVE=""
 
 function usage {
-  printf "usage: %s [options]\n" $0
+  printf "usage: %s [options]\n" "$0"
   printf "\t-h|--help\t\t\tPrints the usage\n"
   printf "\t-v|--verbose\t\t\tVerbose output\n"
   printf "\t-t|--tailor\t\t\tChanges the executable of tailor. Default: %s\n" "${TAILOR}"
@@ -106,5 +106,5 @@ ${TAILOR} ${TAILOR_VERBOSE} ${TAILOR_NON_INTERACTIVE} apply \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   "--param=ODS_NAMESPACE=${ODS_NAMESPACE}" \
   "--param=ODS_IMAGE_TAG=${ODS_IMAGE_TAG}" \
-  ${cdUserPwdParam} \
+  "${cdUserPwdParam}" \
   --selector "template=ods-jenkins-template"
