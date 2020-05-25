@@ -1,7 +1,6 @@
 #!groovy
 
 // imports
-import groovy.json.JsonSlurper
 import hudson.scm.SCM
 import jenkins.model.Jenkins
 import jenkins.plugins.git.GitSCMSource
@@ -14,17 +13,12 @@ def buildSharedLibName = "ods-jenkins-shared-library"
 def namespace = "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace".execute().text.trim()
 def env = System.getenv()
 def credentialsId = namespace + "-cd-user-with-password"
-def buildSharedLibRepository = env['SHARED_LIBRARY_REPOSITORY']
+def buildSharedLibRepository = env.SHARED_LIBRARY_REPOSITORY
 
 println "INFO: Adding global library ${buildSharedLibName}: ${buildSharedLibRepository}"
 
-// Read ODS configuration.
-def jsonSlurper = new JsonSlurper()
-def odsConfig = jsonSlurper.parse(new File("/etc/opendevstack/config.json"))
-println "INFO: Read ODS configuration ${odsConfig}"
-
 // Define parameters.
-def defaultBranch = odsConfig.odsGitRef ?: 'master'
+def defaultBranch = env.ODS_GIT_REF ?: 'master'
 def globalLibrariesParameters = [
   branch:               defaultBranch,
   credentialId:         credentialsId,
