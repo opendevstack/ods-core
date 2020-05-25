@@ -71,6 +71,9 @@ function check_system_setup() {
     echo "alias dcip='docker inspect --format "{{.NetworkSettings.IPAddress}}"'" >> ~/.bashrc
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'" >> ~/.bashrc
 
+    # suppress sudo timeout
+    sudo sed -ie "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
+
     # remove obsolete version of git
     if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
     sudo yum update -y
