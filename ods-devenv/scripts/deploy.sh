@@ -942,22 +942,23 @@ function restart_atlassian_suite() {
 #   None
 #######################################
 function setup_jenkins_slaves() {
-    # tailor apply --namespace ${NAMESPACE} is --non-interactive --verbose
-
+    # these paths should have been created in create_empty_ods_repositories()
+    # and initialise_ods_repositories
     local opendevstack_dir="/home/${USER}/opendevstack"
     local quickstarters_dir="${opendevstack_dir}/quickstarters/common/jenkins-slaves"
     local ocp_config_folder="ocp-config"
 
     for technology in airflow golang maven nodejs10-angular python scala
     do
-        push "${quickstarters_dir}/${technology}/${ocp-config}"
+        pushd "${quickstarters_dir}/${technology}/${ocp-config}"
+        tailor update --verbose --force --non-interactive
+        popd
     done
 
-    mkdir -p "${opendevstack_dir}"
-    pushd "${opendevstack_dir}"
-
-
-
+    for technology in airflow golang maven nodejs10-angular python scala
+    do
+        oc start-build -n ${NAMESPACE} jenkins-slave-${technology} --follow
+    done
 
 }
 
