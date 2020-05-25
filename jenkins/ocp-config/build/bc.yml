@@ -6,6 +6,9 @@ parameters:
 - name: ODS_BITBUCKET_PROJECT
   description: Bitbucket project name.
   value: opendevstack
+- name: ODS_NAMESPACE
+  description: Central ODS namespace in OpenShift.
+  required: true
 - name: ODS_IMAGE_TAG
   description: OpenDevStack image tag to use.
   required: true
@@ -74,14 +77,12 @@ objects:
             value: ${APP_DNS_PORT}
           - name: TARGET_HOSTS
             value: ${TARGET_HOSTS}
+          - name: ODS_NAMESPACE
+            value: ${ODS_NAMESPACE}
           - name: ODS_GIT_REF
             value: ${ODS_GIT_REF}
           - name: ODS_IMAGE_TAG
             value: ${ODS_IMAGE_TAG}
-          - name: SONAR_EDITION
-            value: ${SONAR_EDITION}
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
         from:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}

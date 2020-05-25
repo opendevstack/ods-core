@@ -3,10 +3,11 @@ FROM openshift/jenkins-2-centos7
 ENV JAVA_HOME /usr/lib/jvm/jre
 
 ARG APP_DNS=192.168.99.100.nip.io
+
+# ODS defaults, available to use within pipelines.
+ARG ODS_NAMESPACE
 ARG ODS_GIT_REF
 ARG ODS_IMAGE_TAG
-ARG SONAR_EDITION
-ARG SONAR_VERSION
 
 USER root
 RUN yum -y install openssl gnutls-utils \
@@ -26,15 +27,6 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && touch /var/lib/jenkins/configured
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run /usr/libexec/s2i/ods-run
-
-# Add ODS configuration file.
-RUN mkdir -p /etc/opendevstack \
-    && echo "{" > /etc/opendevstack/config.json \
-    && echo "  \"odsGitRef\": \"$ODS_GIT_REF\"," >> /etc/opendevstack/config.json \
-    && echo "  \"odsImageTag\": \"$ODS_IMAGE_TAG\"," >> /etc/opendevstack/config.json \
-    && echo "  \"sonarqubeEdition\": \"$SONAR_EDITION\"," >> /etc/opendevstack/config.json \
-    && echo "  \"sonarqubeVersion\": \"$SONAR_VERSION\"" >> /etc/opendevstack/config.json \
-    && echo "}" >> /etc/opendevstack/config.json
 
 USER jenkins
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
