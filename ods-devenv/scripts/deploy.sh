@@ -963,6 +963,7 @@ function basic_vm_setup() {
     setup_nexus
     setup_sonarqube
     setup_jenkins
+    setup_provisioning_app
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
