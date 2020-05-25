@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <crowd dateformat="yyyy-MM-dd'T'HH:mm:ssX">
-  <creationDate>Mon May 25 08:23:46 GMT 2020</creationDate>
+  <creationDate>Mon May 25 14:17:17 GMT 2020</creationDate>
   <version>3.7.0</version>
   <buildNumber>1270</buildNumber>
   <buildDate>2019-10-03</buildDate>
@@ -156,19 +156,14 @@
       <credentialRecords/>
       <attributes>
         <attribute>
-          <id>1212418</id>
-          <name>lastActive</name>
-          <value>1590395026442</value>
-        </attribute>
-        <attribute>
           <id>1048577</id>
           <name>requiresPasswordChange</name>
           <value>false</value>
         </attribute>
         <attribute>
-          <id>1212417</id>
-          <name>lastAuthenticated</name>
-          <value>1590394789032</value>
+          <id>1212418</id>
+          <name>lastActive</name>
+          <value>1590416235055</value>
         </attribute>
         <attribute>
           <id>1048579</id>
@@ -179,6 +174,11 @@
           <id>1048578</id>
           <name>invalidPasswordAttempts</name>
           <value>0</value>
+        </attribute>
+        <attribute>
+          <id>1212417</id>
+          <name>lastAuthenticated</name>
+          <value>1590416120275</value>
         </attribute>
         <attribute>
           <id>1671182</id>
@@ -611,6 +611,68 @@
         </directoryMapping>
       </directoryMappings>
     </application>
+    <application>
+      <id>1867777</id>
+      <name>sonarqube</name>
+      <createdDate>2020-05-25T14:12:15Z</createdDate>
+      <updatedDate>2020-05-25T14:17:09Z</updatedDate>
+      <active>true</active>
+      <type>GENERIC_APPLICATION</type>
+      <description></description>
+      <credential>{PKCS5S2}XMGupXO8Qt74wj36CBqJEVGhfOH3JOBUei4+Q+YW5Nq/bn/NCboBpoPCgOHlhVzj</credential>
+      <remoteAddresses>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
+      </remoteAddresses>
+      <attributes>
+        <attribute>
+          <name>aggregateMemberships</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>aliasingEnabled</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>applicationURL</name>
+          <value>https://sonarqube-ods.172.17.0.1.nip.io</value>
+        </attribute>
+        <attribute>
+          <name>atlassian_sha1_applied</name>
+          <value>true</value>
+        </attribute>
+        <attribute>
+          <name>licenseDataSyncInterval</name>
+          <value>60</value>
+        </attribute>
+        <attribute>
+          <name>lowerCaseOutput</name>
+          <value>false</value>
+        </attribute>
+      </attributes>
+      <directoryMappings>
+        <directoryMapping>
+          <id>1900545</id>
+          <directoryId>163841</directoryId>
+          <allowAll>true</allowAll>
+          <groupMappings/>
+          <permissions>
+            <permission>CREATE_USER</permission>
+            <permission>CREATE_GROUP</permission>
+            <permission>CREATE_ROLE</permission>
+            <permission>UPDATE_USER</permission>
+            <permission>UPDATE_GROUP</permission>
+            <permission>UPDATE_ROLE</permission>
+            <permission>UPDATE_USER_ATTRIBUTE</permission>
+            <permission>UPDATE_GROUP_ATTRIBUTE</permission>
+            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
+            <permission>DELETE_USER</permission>
+            <permission>DELETE_GROUP</permission>
+            <permission>DELETE_ROLE</permission>
+          </permissions>
+          <defaultGroupMembershipConfigs/>
+        </directoryMapping>
+      </directoryMappings>
+    </application>
   </applications>
   <aliases/>
   <properties encoding="base64">
@@ -762,7 +824,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG0ubG9nLlBsdWdpblNldHRpbmdzQXVkaXRMb2dTZXJ2aWNlOmxvZzp1cG1fYXVkaXRfbG9nX3Yz</name>
-      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDM4OTYyNzAyMSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMzA5OTEwOTkxLCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAxNTYyNDg1MTMsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDEzODYwMTgzOSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTg5OTY5NTQ4NDY5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1ODk5NTk2NzcyNDcsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119</value>
+      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDQxNDE1MTM3OSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMzg5NjI3MDIxLCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAzMDk5MTA5OTEsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDE1NjI0ODUxMywiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMTM4NjAxODM5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1ODk5Njk1NDg0NjksImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU4OTk1OTY3NzI0NywiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0=</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
@@ -772,12 +834,12 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG06bm90aWZpY2F0aW9uczpub3RpZmljYXRpb24tZXZhbHVhdGlvbi5leHBpcmVk</name>
-      <value>I2phdmEudXRpbC5MaXN0CmppcmEucHJvZHVjdC5qaXJhLWNvcmUKamlyYS5wcm9kdWN0LmppcmEtc2VydmljZWRlc2sKamlyYS5wcm9kdWN0LmppcmEtc29mdHdhcmU=</value>
+      <value>I2phdmEudXRpbC5MaXN0Cg==</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG06bm90aWZpY2F0aW9uczpub3RpZmljYXRpb24tZXZhbHVhdGlvbi5uZWFybHlleHBpcmVk</name>
-      <value>I2phdmEudXRpbC5MaXN0Cg==</value>
+      <value>I2phdmEudXRpbC5MaXN0CmppcmEucHJvZHVjdC5qaXJhLWNvcmUKamlyYS5wcm9kdWN0LmppcmEtc2VydmljZWRlc2sKamlyYS5wcm9kdWN0LmppcmEtc29mdHdhcmU=</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
@@ -817,7 +879,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y3Jvd2QuYW5hbHl0aWNzLmluc3RhbmNlLnN0YXJ0dXAuaW5mbw==</name>
-      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwMzg5NjI4MDgxCmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
+      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwNDE0MTUxNTUxCmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
     </property>
   </properties>
   <grantedPermissions>
@@ -837,6 +899,266 @@
     </grantedPermission>
   </grantedPermissions>
   <auditLogs>
+    <auditLog>
+      <id>1769479</id>
+      <timestamp>1590416229156</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802259</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[172.17.0.0/16, 172.17.0.15]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933318</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769478</id>
+      <timestamp>1590416220796</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802258</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[172.17.0.15]</oldValue>
+          <newValue>[172.17.0.0/16, 172.17.0.15]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933317</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769477</id>
+      <timestamp>1590415939548</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802255</id>
+          <propertyName>Attribute: aggregateMemberships</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802256</id>
+          <propertyName>Attribute: aliasingEnabled</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802257</id>
+          <propertyName>Attribute: lowerCaseOutput</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933316</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769476</id>
+      <timestamp>1590415936039</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802252</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802253</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802254</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_USER, UPDATE_ROLE, CREATE_GROUP, CREATE_ROLE, UPDATE_USER, DELETE_ROLE, DELETE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, UPDATE_ROLE_ATTRIBUTE, UPDATE_GROUP]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933315</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769475</id>
+      <timestamp>1590415936027</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802251</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.15]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933314</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769474</id>
+      <timestamp>1590415936000</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802242</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>https://sonarqube-ods.172.17.0.1.nip.io</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802243</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802244</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-25T14:12:15.990+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802245</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>sonarqube</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802246</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802247</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802248</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>GENERIC_APPLICATION</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802249</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1802250</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1933313</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1769473</id>
+      <timestamp>1590414151269</timestamp>
+      <authorType>OTHER</authorType>
+      <authorId></authorId>
+      <authorName></authorName>
+      <eventType>RESTORE_FINISHED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1802241</id>
+          <propertyName>XML path</propertyName>
+          <oldValue></oldValue>
+          <newValue>/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities/>
+    </auditLog>
     <auditLog>
       <id>1572872</id>
       <timestamp>1590392601203</timestamp>

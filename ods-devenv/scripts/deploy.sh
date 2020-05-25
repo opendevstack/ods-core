@@ -955,7 +955,9 @@ function basic_vm_setup() {
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
     startup_atlassian_crowd
-    startup_atlassian_jira
+    # currently nothing is waiting on Jira to become available, can just run in
+    # the background
+    startup_atlassian_jira &
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
     # TODO wait until BitBucket (and Jira) becomes available
