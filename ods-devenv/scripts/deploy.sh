@@ -426,7 +426,7 @@ function startup_atlassian_crowd() {
     echo
     echo "...copy config 'crowd-provision-app-backup.xml' to container"
     docker container exec crowd bash -c "mkdir -p /var/atlassian/application-data/crowd/shared/; chown crowd:crowd /var/atlassian/application-data/crowd/shared/"
-    docker cp crowd-provision-app-backup.xml crowd:/var/atlassian/application-data/crowd/shared/
+    docker cp ${BASH_SOURCE%/*}/crowd-provision-app-backup.xml crowd:/var/atlassian/application-data/crowd/shared/
 
     echo
     echo "...change permission of config in container"
