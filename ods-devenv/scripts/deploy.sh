@@ -753,8 +753,11 @@ function create_configuration() {
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|SONAR_DATABASE_PASSWORD_B64=.*$|SONAR_DATABASE_PASSWORD_B64=$(echo -n sonarqube | base64)|" ods-core.env
-    # TODO remove this line when Atlassian Crowd becomes available in EDP in a box.
-    sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=false|" ods-core.env
+    sed -i "s|SONAR_CROWD_PASSWORD_B64=.*$|SONAR_CROWD_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
+    sed -i "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=$(echo -n openshift | base64)|" ods-core.env
+    # Toggle value of this line when Atlassian Crowd becomes available / not-available in EDP in a box.
+    sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
+
 
     # configure Jenkins
     sed -i "s|APP_DNS=.*$|APP_DNS=172.30.0.1|" ods-core.env
@@ -764,7 +767,6 @@ function create_configuration() {
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
-    # change sonarqube admin password?
 
     # provisioning app settings
     sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${atlassian_crowd_ip}/" ods-core.env
