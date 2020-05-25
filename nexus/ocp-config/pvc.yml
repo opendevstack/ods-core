@@ -5,10 +5,13 @@ parameters:
   value: nexus
 - name: STORAGE_PROVISIONER
   description: storage class provisioner. For AWS this could be kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployments
+  value: ""
 - name: STORAGE_CLASS_DATA
   description: storage class for data. For AWS this could be gp2. Leave empty for local (e.g. vagrant) deployments
+  value: ""
 - name: STORAGE_CLASS_BACKUP
   description: Storage class for data backup. For AWS this could be gp2-encrypted. Leave empty for local (e.g. vagrant) deployments
+  value: ""
 - name: NEXUS_DATA_CAPACITY
   value: 60Gi
 - name: NEXUS_BACKUP_CAPACITY
