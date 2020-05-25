@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <crowd dateformat="yyyy-MM-dd'T'HH:mm:ssX">
-  <creationDate>Fri May 22 09:12:26 GMT 2020</creationDate>
+  <creationDate>Mon May 25 08:23:46 GMT 2020</creationDate>
   <version>3.7.0</version>
   <buildNumber>1270</buildNumber>
   <buildDate>2019-10-03</buildDate>
@@ -58,10 +58,42 @@
   <users>
     <user>
       <directoryId>163841</directoryId>
+      <id>1540097</id>
+      <name>notprovappuser</name>
+      <createdDate>2020-05-25T07:38:29Z</createdDate>
+      <updatedDate>2020-05-25T07:38:29Z</updatedDate>
+      <active>true</active>
+      <firstName>notprovappuser</firstName>
+      <lastName>notprovappuser</lastName>
+      <displayName>notprovappuser notprovappuser</displayName>
+      <email>notprovappuser@edpcore.com</email>
+      <externalId>5e9de8d1-abdb-4dc6-bf07-2e0187ed37d0</externalId>
+      <credential>{PKCS5S2}1mBVNj0qkEbpTwMuobjIJX2AYrBgCsAMSxq8o6RL6fRmP23CMA6lQbPWk8ha9ty1</credential>
+      <credentialRecords/>
+      <attributes>
+        <attribute>
+          <id>1671170</id>
+          <name>invalidPasswordAttempts</name>
+          <value>0</value>
+        </attribute>
+        <attribute>
+          <id>1671171</id>
+          <name>passwordLastChanged</name>
+          <value>1590392309984</value>
+        </attribute>
+        <attribute>
+          <id>1671169</id>
+          <name>requiresPasswordChange</name>
+          <value>false</value>
+        </attribute>
+      </attributes>
+    </user>
+    <user>
+      <directoryId>163841</directoryId>
       <id>196609</id>
       <name>ods</name>
       <createdDate>2020-05-20T07:27:48Z</createdDate>
-      <updatedDate>2020-05-20T07:27:48Z</updatedDate>
+      <updatedDate>2020-05-24T08:54:38Z</updatedDate>
       <active>true</active>
       <firstName>ods</firstName>
       <lastName>ods</lastName>
@@ -87,19 +119,24 @@
           <value>false</value>
         </attribute>
         <attribute>
-          <id>491522</id>
-          <name>lastActive</name>
-          <value>1590138746281</value>
+          <id>1376257</id>
+          <name>sal_com.atlassian.nps.plugin.configuration.nextSurveyDate.ods</name>
+          <value>1590915278651</value>
         </attribute>
         <attribute>
-          <id>491521</id>
-          <name>lastAuthenticated</name>
-          <value>1590138642650</value>
+          <id>491522</id>
+          <name>lastActive</name>
+          <value>1590392707088</value>
         </attribute>
         <attribute>
           <id>229378</id>
           <name>invalidPasswordAttempts</name>
           <value>0</value>
+        </attribute>
+        <attribute>
+          <id>491521</id>
+          <name>lastAuthenticated</name>
+          <value>1590392053778</value>
         </attribute>
       </attributes>
     </user>
@@ -108,7 +145,7 @@
       <id>983041</id>
       <name>openshift</name>
       <createdDate>2020-05-22T09:11:50Z</createdDate>
-      <updatedDate>2020-05-22T09:11:50Z</updatedDate>
+      <updatedDate>2020-05-25T08:19:49Z</updatedDate>
       <active>true</active>
       <firstName>openshift</firstName>
       <lastName>openshift</lastName>
@@ -119,9 +156,19 @@
       <credentialRecords/>
       <attributes>
         <attribute>
+          <id>1212418</id>
+          <name>lastActive</name>
+          <value>1590395026442</value>
+        </attribute>
+        <attribute>
           <id>1048577</id>
           <name>requiresPasswordChange</name>
           <value>false</value>
+        </attribute>
+        <attribute>
+          <id>1212417</id>
+          <name>lastAuthenticated</name>
+          <value>1590394789032</value>
         </attribute>
         <attribute>
           <id>1048579</id>
@@ -132,6 +179,95 @@
           <id>1048578</id>
           <name>invalidPasswordAttempts</name>
           <value>0</value>
+        </attribute>
+        <attribute>
+          <id>1671182</id>
+          <name>sal_com.atlassian.nps.plugin.configuration.nextSurveyDate.openshift</name>
+          <value>1591085989372</value>
+        </attribute>
+      </attributes>
+    </user>
+    <user>
+      <directoryId>163841</directoryId>
+      <id>1540099</id>
+      <name>provappadmin</name>
+      <createdDate>2020-05-25T07:39:54Z</createdDate>
+      <updatedDate>2020-05-25T07:44:32Z</updatedDate>
+      <active>true</active>
+      <firstName>provappadmin</firstName>
+      <lastName>provappadmin</lastName>
+      <displayName>provappadmin provappadmin</displayName>
+      <email>provappadmin@edpcore.com</email>
+      <externalId>cfd691be-702a-43c3-8bd5-71d45badc757</externalId>
+      <credential>{PKCS5S2}QYDF8jDA2O2y97T1bnyrjgu6rVQooxE/J7bu/Kx28Q57dSSno7LVv8wx5zIRDGJo</credential>
+      <credentialRecords/>
+      <attributes>
+        <attribute>
+          <id>1671176</id>
+          <name>invalidPasswordAttempts</name>
+          <value>0</value>
+        </attribute>
+        <attribute>
+          <id>1671177</id>
+          <name>passwordLastChanged</name>
+          <value>1590392394209</value>
+        </attribute>
+        <attribute>
+          <id>1671181</id>
+          <name>lastActive</name>
+          <value>1590392638993</value>
+        </attribute>
+        <attribute>
+          <id>1671175</id>
+          <name>requiresPasswordChange</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <id>1671180</id>
+          <name>lastAuthenticated</name>
+          <value>1590392638990</value>
+        </attribute>
+      </attributes>
+    </user>
+    <user>
+      <directoryId>163841</directoryId>
+      <id>1540098</id>
+      <name>provappuser</name>
+      <createdDate>2020-05-25T07:39:16Z</createdDate>
+      <updatedDate>2020-05-25T07:39:16Z</updatedDate>
+      <active>true</active>
+      <firstName>provappuser</firstName>
+      <lastName>provappuser</lastName>
+      <displayName>provappuser provappuser</displayName>
+      <email>provappuser@edpcore.com</email>
+      <externalId>e80ca430-5b4f-4d9d-8b4b-96318fef55ec</externalId>
+      <credential>{PKCS5S2}Ocu8lxjmzzREq9/0TvjvmJyRj+o6qkC2NqcZIC6Xnd4SAL+Rxeu9KdRipnoOwv0P</credential>
+      <credentialRecords/>
+      <attributes>
+        <attribute>
+          <id>1671174</id>
+          <name>passwordLastChanged</name>
+          <value>1590392356636</value>
+        </attribute>
+        <attribute>
+          <id>1671173</id>
+          <name>invalidPasswordAttempts</name>
+          <value>0</value>
+        </attribute>
+        <attribute>
+          <id>1671179</id>
+          <name>lastActive</name>
+          <value>1590392629578</value>
+        </attribute>
+        <attribute>
+          <id>1671178</id>
+          <name>lastAuthenticated</name>
+          <value>1590392629575</value>
+        </attribute>
+        <attribute>
+          <id>1671172</id>
+          <name>requiresPasswordChange</name>
+          <value>false</value>
         </attribute>
       </attributes>
     </user>
@@ -169,6 +305,28 @@
     </user>
   </users>
   <groups>
+    <group>
+      <directoryId>163841</directoryId>
+      <id>1245186</id>
+      <name>bitbucket-administrators</name>
+      <createdDate>2020-05-22T16:40:45Z</createdDate>
+      <updatedDate>2020-05-22T16:40:45Z</updatedDate>
+      <active>true</active>
+      <description></description>
+      <type>GROUP</type>
+      <attributes/>
+    </group>
+    <group>
+      <directoryId>163841</directoryId>
+      <id>1245185</id>
+      <name>bitbucket-users</name>
+      <createdDate>2020-05-22T16:40:26Z</createdDate>
+      <updatedDate>2020-05-22T16:40:36Z</updatedDate>
+      <active>true</active>
+      <description></description>
+      <type>GROUP</type>
+      <attributes/>
+    </group>
     <group>
       <directoryId>163841</directoryId>
       <id>262145</id>
@@ -236,6 +394,61 @@
       <membershipType>GROUP_USER</membershipType>
       <groupType>GROUP</groupType>
       <createdDate>2020-05-22T09:12:10Z</createdDate>
+    </membership>
+    <membership>
+      <id>1310721</id>
+      <directoryId>163841</directoryId>
+      <parentName>bitbucket-administrators</parentName>
+      <childName>openshift</childName>
+      <parentId>1245186</parentId>
+      <childId>983041</childId>
+      <membershipType>GROUP_USER</membershipType>
+      <groupType>GROUP</groupType>
+      <createdDate>2020-05-22T16:41:15Z</createdDate>
+    </membership>
+    <membership>
+      <id>1310722</id>
+      <directoryId>163841</directoryId>
+      <parentName>bitbucket-users</parentName>
+      <childName>openshift</childName>
+      <parentId>1245185</parentId>
+      <childId>983041</childId>
+      <membershipType>GROUP_USER</membershipType>
+      <groupType>GROUP</groupType>
+      <createdDate>2020-05-22T16:41:15Z</createdDate>
+    </membership>
+    <membership>
+      <id>1703937</id>
+      <directoryId>163841</directoryId>
+      <parentName>bitbucket-users</parentName>
+      <childName>provappuser</childName>
+      <parentId>1245185</parentId>
+      <childId>1540098</childId>
+      <membershipType>GROUP_USER</membershipType>
+      <groupType>GROUP</groupType>
+      <createdDate>2020-05-25T07:39:26Z</createdDate>
+    </membership>
+    <membership>
+      <id>1703938</id>
+      <directoryId>163841</directoryId>
+      <parentName>bitbucket-administrators</parentName>
+      <childName>provappadmin</childName>
+      <parentId>1245186</parentId>
+      <childId>1540099</childId>
+      <membershipType>GROUP_USER</membershipType>
+      <groupType>GROUP</groupType>
+      <createdDate>2020-05-25T07:40:03Z</createdDate>
+    </membership>
+    <membership>
+      <id>1703939</id>
+      <directoryId>163841</directoryId>
+      <parentName>bitbucket-users</parentName>
+      <childName>provappadmin</childName>
+      <parentId>1245185</parentId>
+      <childId>1540099</childId>
+      <membershipType>GROUP_USER</membershipType>
+      <groupType>GROUP</groupType>
+      <createdDate>2020-05-25T07:40:03Z</createdDate>
     </membership>
   </memberships>
   <applications>
@@ -330,13 +543,14 @@
       <id>786433</id>
       <name>provision</name>
       <createdDate>2020-05-20T10:18:16Z</createdDate>
-      <updatedDate>2020-05-20T10:18:22Z</updatedDate>
+      <updatedDate>2020-05-25T07:43:21Z</updatedDate>
       <active>true</active>
       <type>GENERIC_APPLICATION</type>
       <description>provisioning app</description>
-      <credential>{PKCS5S2}zj27n3KQraaWKNSudX+YWXybs0daYwYDkZfIUgO7LqlZZtxajuR7iT5/0jPf7SUZ</credential>
+      <credential>{PKCS5S2}62mufe58zbo6xyrzNi0q0/1UdpSjR+XbPrd8LTFovKdR3t7W2B99Vswj8Ieerd5z</credential>
       <remoteAddresses>
         <remoteAddress>10.0.0.0/16</remoteAddress>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
       </remoteAddresses>
       <attributes>
         <attribute>
@@ -371,6 +585,14 @@
           <allowAll>false</allowAll>
           <groupMappings>
             <groupMapping>
+              <id>1736706</id>
+              <groupName>bitbucket-administrators</groupName>
+            </groupMapping>
+            <groupMapping>
+              <id>1736705</id>
+              <groupName>bitbucket-users</groupName>
+            </groupMapping>
+            <groupMapping>
               <id>851969</id>
               <groupName>crowd-administrators</groupName>
             </groupMapping>
@@ -378,16 +600,12 @@
           <permissions>
             <permission>CREATE_USER</permission>
             <permission>CREATE_GROUP</permission>
-            <permission>CREATE_ROLE</permission>
             <permission>UPDATE_USER</permission>
             <permission>UPDATE_GROUP</permission>
-            <permission>UPDATE_ROLE</permission>
             <permission>UPDATE_USER_ATTRIBUTE</permission>
             <permission>UPDATE_GROUP_ATTRIBUTE</permission>
-            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
             <permission>DELETE_USER</permission>
             <permission>DELETE_GROUP</permission>
-            <permission>DELETE_ROLE</permission>
           </permissions>
           <defaultGroupMembershipConfigs/>
         </directoryMapping>
@@ -523,6 +741,11 @@
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
+      <name>Y29tLmF0bGFzc2lhbi5hbmFseXRpY3MuY2xpZW50LnVwbG9hZC5sYXN0X2RhdGU=</name>
+      <value>NS8yNS8yMCAxMjozMiBBTQ==</value>
+    </property>
+    <property>
+      <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi5ucHMucGx1Z2luLnN0YXR1cy5ucHNfYWNrbm93bGVkZ2Vk</name>
       <value>dHJ1ZQ==</value>
     </property>
@@ -539,7 +762,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG0ubG9nLlBsdWdpblNldHRpbmdzQXVkaXRMb2dTZXJ2aWNlOmxvZzp1cG1fYXVkaXRfbG9nX3Yz</name>
-      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDEzODYwMTgzOSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTg5OTY5NTQ4NDY5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1ODk5NTk2NzcyNDcsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119</value>
+      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDM4OTYyNzAyMSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMzA5OTEwOTkxLCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAxNTYyNDg1MTMsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDEzODYwMTgzOSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTg5OTY5NTQ4NDY5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1ODk5NTk2NzcyNDcsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
@@ -549,12 +772,12 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG06bm90aWZpY2F0aW9uczpub3RpZmljYXRpb24tZXZhbHVhdGlvbi5leHBpcmVk</name>
-      <value>I2phdmEudXRpbC5MaXN0Cg==</value>
+      <value>I2phdmEudXRpbC5MaXN0CmppcmEucHJvZHVjdC5qaXJhLWNvcmUKamlyYS5wcm9kdWN0LmppcmEtc2VydmljZWRlc2sKamlyYS5wcm9kdWN0LmppcmEtc29mdHdhcmU=</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG06bm90aWZpY2F0aW9uczpub3RpZmljYXRpb24tZXZhbHVhdGlvbi5uZWFybHlleHBpcmVk</name>
-      <value>I2phdmEudXRpbC5MaXN0CmppcmEucHJvZHVjdC5qaXJhLWNvcmUKamlyYS5wcm9kdWN0LmppcmEtc2VydmljZWRlc2sKamlyYS5wcm9kdWN0LmppcmEtc29mdHdhcmU=</value>
+      <value>I2phdmEudXRpbC5MaXN0Cg==</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
@@ -594,7 +817,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y3Jvd2QuYW5hbHl0aWNzLmluc3RhbmNlLnN0YXJ0dXAuaW5mbw==</name>
-      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwMTM4NjAyMDM1CmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
+      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwMzg5NjI4MDgxCmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
     </property>
   </properties>
   <grantedPermissions>
@@ -614,6 +837,250 @@
     </grantedPermission>
   </grantedPermissions>
   <auditLogs>
+    <auditLog>
+      <id>1572872</id>
+      <timestamp>1590392601203</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1605658</id>
+          <propertyName>Directory mappings.163841.Groups</propertyName>
+          <oldValue>[bitbucket-users, crowd-administrators]</oldValue>
+          <newValue>[bitbucket-administrators, bitbucket-users, crowd-administrators]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1638417</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1572871</id>
+      <timestamp>1590392601200</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1605657</id>
+          <propertyName>Directory mappings.163841.Groups</propertyName>
+          <oldValue>[crowd-administrators]</oldValue>
+          <newValue>[bitbucket-users, crowd-administrators]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1638416</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409030</id>
+      <timestamp>1590310581812</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441798</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[10.0.0.0/16]</oldValue>
+          <newValue>[10.0.0.0/16, 172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474566</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409029</id>
+      <timestamp>1590310561743</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441797</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[DELETE_USER, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_GROUP_ATTRIBUTE]</oldValue>
+          <newValue>[DELETE_USER, DELETE_GROUP, UPDATE_USER, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_GROUP_ATTRIBUTE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474565</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409028</id>
+      <timestamp>1590310561737</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441796</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[DELETE_USER, UPDATE_ROLE_ATTRIBUTE, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_GROUP_ATTRIBUTE]</oldValue>
+          <newValue>[DELETE_USER, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_GROUP_ATTRIBUTE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474564</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409027</id>
+      <timestamp>1590310561733</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441795</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[DELETE_USER, UPDATE_ROLE_ATTRIBUTE, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_GROUP_ATTRIBUTE]</oldValue>
+          <newValue>[DELETE_USER, UPDATE_ROLE_ATTRIBUTE, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_GROUP_ATTRIBUTE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474563</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409026</id>
+      <timestamp>1590310561728</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441794</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[DELETE_USER, UPDATE_ROLE_ATTRIBUTE, DELETE_GROUP, CREATE_ROLE, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_GROUP_ATTRIBUTE]</oldValue>
+          <newValue>[DELETE_USER, UPDATE_ROLE_ATTRIBUTE, DELETE_GROUP, UPDATE_USER, DELETE_ROLE, UPDATE_USER_ATTRIBUTE, CREATE_USER, CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_GROUP_ATTRIBUTE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474562</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1409025</id>
+      <timestamp>1590310520231</timestamp>
+      <authorType>USER</authorType>
+      <authorId>196609</authorId>
+      <authorName>ods</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1441793</id>
+          <propertyName>Password</propertyName>
+          <oldValue>*****</oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>1474561</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>786433</entityId>
+          <entityName>provision</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1114113</id>
+      <timestamp>1590156248402</timestamp>
+      <authorType>OTHER</authorType>
+      <authorId></authorId>
+      <authorName></authorName>
+      <eventType>RESTORE_FINISHED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1146881</id>
+          <propertyName>XML path</propertyName>
+          <oldValue></oldValue>
+          <newValue>/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities/>
+    </auditLog>
     <auditLog>
       <id>884737</id>
       <timestamp>1590138601689</timestamp>

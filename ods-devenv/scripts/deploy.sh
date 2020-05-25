@@ -7,7 +7,7 @@ atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
 atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
-atlassian_crowd_port=38080
+atlassian_crowd_port=48080
 atlassian_crowd_port_internal=8095
 atlassian_crowd_ip=
 atlassian_jira_container_name=jira
@@ -413,11 +413,113 @@ function startup_atlassian_jira(){
 #   None
 #######################################
 function startup_atlassian_crowd() {
-    echo "Calling ./crowd/setup_crowd.sh"
-    pushd ${BASH_SOURCE%/*}/crowd
-    ./setup_crowd.sh setup
-    popd
+
+    echo "Starting Atlassian Crowd ${atlassian_crowd_software_version} installation"
+    docker volume create --name odsCrowdVolume
+    docker container run -v odsCrowdVolume:/var/atlassian/application-data/crowd --name="crowd" -d -p ${atlassian_crowd_port}:${atlassian_crowd_port_internal} atlassian/crowd:${atlassian_crowd_software_version}
+
+    sleep 3
+
+    echo
+    echo "...copy config 'crowd-provision-app-backup.xml' to container"
+    docker container exec crowd bash -c "mkdir -p /var/atlassian/application-data/crowd/shared/; chown crowd:crowd /var/atlassian/application-data/crowd/shared/"
+    docker cp crowd-provision-app-backup.xml crowd:/var/atlassian/application-data/crowd/shared/
+
+    echo
+    echo "...change permission of config in container"
+    docker exec -it crowd bash -c 'chown crowd:crowd /var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml; ls -lart /var/atlassian/application-data/crowd/shared/'
+
+    sleep 1
+
+    echo
+    echo "...ping crowd web server"
+    curl --silent --location --request -GET "http://localhost:$atlassian_crowd_port/" -v
+
+    # Get session cookie
+    echo
+    echo "...get session cookie from crowd web console"
+    curl --silent --location --request GET "http://localhost:$atlassian_crowd_port/crowd/console/" -c crowd_sessionid_cookie.txt
+
+    sleep 1
+
+    # Set time limited license
+    echo
+    echo "...setup license"
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
+-b crowd_sessionid_cookie.txt \
+--form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
+yg9ZvLN+HuM/e1BUHdGlNvuuEHQ73X73Y4bR4nbbgU9ZwFiD2IchcPH+8T7vXzuej9eXp68YSv45
+UwoASYhOeYwxTsIE7RIxtNHhwh+SP3a33D0XnntuxHsIeM5CIdwtvYxUXQPoRIF6KaC0FUGVlEB3
+v0hOAOWYiH9abFbgZith3i34nwOO65gsAGmZBhUbNC/nIpjhBWEcefJWelzqIDPWz/OtjmXRYv2X
+yqwnwueFkT57x8e4cLmbCD1QnX0UoKQoRc4EUgiaK4oZ2ECUrlZeay75sLNs2JDmZtWR8oPCfWZG
+wHAtjzXgIo0SqmZiKYJmsfz8QI5aI+zApuq6fqJKVPAMCPnNpk4LPW6kBWgkZb+kQAzzzS2g6Dnt
+e69Tqvsr4SOskIqEFOeggz1v4zrHbr0yLJR8rU64FpQpVtBy1mZxM4CnHC9Faf8tKMnTF1AiXORF
+ixyQaWto3RZ+ncWLXtMg6EnKZZRpmQNb2R8tnJXFulCfXmXLry7TrHBWn2HNVyH8WYxj9AzmsxiN
+L/R88Xg6rA1lVs4QpO5titxhplJcCY2mFFZLutAZVhKipm15/VhJx36YVqyN8YP7IaGC1+lwnJ7Q
+5pJpNmxk5hP3qovutY8Pi4E2WIJ59esnr1p+T6eD67teBVCHf+ga+ho4/4D9YItZDAsAhQ5qQ6pA
+SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
+
+    sleep 1
+
+    # Set install type action
+    echo
+    echo "...start crowd configuration"
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml" -b crowd_sessionid_cookie.txt
+
+    sleep 1
+
+    # Set setup database option to embedded
+    echo
+    echo "...choose embedded db option"
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action" \
+-b crowd_sessionid_cookie.txt \
+--form 'databaseOption= db.embedded' \
+--form 'jdbcDatabaseType= ' \
+--form 'jdbcDriverClassName= ' \
+--form 'jdbcUrl= ' \
+--form 'jdbcUsername= ' \
+--form 'jdbcPassword= ' \
+--form 'jdbcHibernateDialect= ' \
+--form 'datasourceDatabaseType= ' \
+--form 'datasourceJndiName='
+
+    sleep 1
+
+    # Restore configuration from the backup file
+    echo
+    echo "...choose install with config file (config file was copied to container already)"
+    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action" \
+-b crowd_sessionid_cookie.txt \
+--form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml'
+
+    sleep 1
+
+    # Test setup by login into crowd
+    echo
+    echo "...login in crowd to test installation"
+curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
+-b crowd_sessionid_cookie.txt \
+--header 'Content-Type: text/plain' \
+--data '{username: "openshift", password: "openshift", rememberMe: false}'
+
+    sleep 1
+
+    local crowd_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
+
+    echo
+    echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${openshift_route}:${atlassian_crowd_port}"
+    echo
+
 }
+
+# Helper function for local development of crowd setup
+function crowd_cleanup() {
+    docker stop crowd
+    docker container rm crowd
+    docker volume rm odsCrowdVolume
+    docker container ls -a
+}
+
 
 #######################################
 # Initialize Jira database. Requires database service to be running.
