@@ -163,7 +163,7 @@ if curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_U
     fi
     echo_info "Trying to login in with '${PIPELINE_USER_NAME}'"
     if ! curl ${INSECURE} -X POST --fail --silent \
-        "${SONARQUBE_URL}/api/authentication/login?login=${PIPELINE_USER_NAME}?password=${PIPELINE_USER_PWD}"; then
+        "${SONARQUBE_URL}/api/authentication/login?login=${PIPELINE_USER_NAME}&password=${PIPELINE_USER_PWD}"; then
         echo_error "Could not login with '${PIPELINE_USER_NAME}'."
         exit 1
     fi
