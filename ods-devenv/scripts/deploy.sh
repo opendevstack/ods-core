@@ -952,17 +952,42 @@ function setup_jenkins_slaves() {
     echo "Copying ods-configuration to ${opendevstack_dir}"
     cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
 
+    # create build configurations in parallel
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
         pushd "${quickstarters_jenkins_slaves_dir}/${technology}/${ocp_config_folder}"
-        tailor apply --verbose --force --non-interactive
+        echo "Creating build configuration of jenkins-slave for technology ${technology}."
+        tailor apply --verbose --force --non-interactive &
         popd
     done
 
+    for job in $(jobs -p)
+    do
+        echo "Waiting for openshift build configuration ${job} to be created."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build configuration job ${job} returned. Number of failed jobs is ${fail_count}"
+    done
+    if [[ "${fail_count}" -gt 0 ]]
+    then
+        echo "${fail_count} of the jenkins-slave build configurations failed. Going to exit the setup script."
+    fi
+
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        oc start-build -n "${NAMESPACE}" "jenkins-slave-${technology}" --follow
+        echo "Starting build of jenkins-slave for technology ${technology}."
+        oc start-build -n "${NAMESPACE}" "jenkins-slave-${technology}" --follow &
     done
+
+    for job in $(jobs -p)
+    do
+        echo "Waiting for jenkins-slave builds  ${job} to complete."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+    done
+    if [[ "${fail_count}" -gt 0 ]]
+    then
+        echo "${fail_count} of the jenkins-slave builds failed. Going to exit the setup script."
+    fi
 }
 
 #######################################
