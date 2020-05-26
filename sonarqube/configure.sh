@@ -56,6 +56,9 @@ while [[ "$#" -gt 0 ]]; do
     -p|--pipeline-user) PIPELINE_USER_NAME="$2"; shift;;
     -p=*|--pipeline-user=*) PIPELINE_USER_NAME="${1#*=}";;
 
+    -w|--pipeline-user-password) PIPELINE_USER_PWD="$2"; shift;;
+    -w=*|--pipeline-user-password=*) PIPELINE_USER_PWD="${1#*=}";;
+
     -t|--token-name) TOKEN_NAME="$2"; shift;;
     -t=*|--token-name=*) TOKEN_NAME="${1#*=}";;
 
