@@ -927,9 +927,19 @@ function restart_atlassian_suite() {
     docker container restart ${atlassian_jira_container_name} ${atlassian_bitbucket_container_name}
 }
 
+function test_function() {
+    local bash_source=${BASH_SOURCE}
+    local project_dir="${BASH_SOURCE%/*}/.."
+    echo "bash_source is ${bash_source}"
+    echo "project_dir = ${project_dir}"
+    pushd "${project_dir}"
+    echo "pwd in ${project_dir}: $(pwd)"
+    popd
+}
+
 #######################################
 # Sets up Jenkins slaves for various technologies, like:
-# airflow, golang, maven, nodejs/angular, python, scala
+# airflow, golang, maven, nodejs/angular, nodejs12, python, scala
 #
 # Relies on initialise_ods_repositories having run before to create and
 # initialise the opendevstack project folder with its repositories.
@@ -945,21 +955,23 @@ function setup_jenkins_slaves() {
     # these paths should have been created in create_empty_ods_repositories()
     # and initialise_ods_repositories
     local opendevstack_dir="/home/${USER}/opendevstack"
-    local quickstarters_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
+    local quickstarters_jenkins_slaves_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
     local ocp_config_folder="ocp-config"
+    local project_dir="/home/${USER}/projects"
+    # tailor will look for the ods-configuration folder under opendevstack_dir
+    cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
 
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        pushd "${quickstarters_dir}/${technology}/${ocp-ocp_config_folder}"
+        pushd "${quickstarters_jenkins_slaves_dir}/${technology}/${ocp-ocp_config_folder}"
         tailor update --verbose --force --non-interactive
         popd
     done
 
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        oc start-build -n ${NAMESPACE} jenkins-slave-${technology} --follow
+        oc start-build -n "${NAMESPACE}" "jenkins-slave-${technology}" --follow
     done
-
 }
 
 #######################################
