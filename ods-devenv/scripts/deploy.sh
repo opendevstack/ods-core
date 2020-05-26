@@ -1036,6 +1036,7 @@ function basic_vm_setup() {
     setup_sonarqube
     setup_jenkins
     setup_provisioning_app
+    setup_jenkins_slaves
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
