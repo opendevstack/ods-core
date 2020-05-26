@@ -672,7 +672,7 @@ function initialise_ods_repositories() {
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
+    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --verbose
     ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
     popd
 }
@@ -706,7 +706,7 @@ function inspect_crowd_ip() {
 function create_configuration() {
     echo "create configuration"
     pwd
-    ods-setup/config.sh --verbose
+    ods-setup/config.sh --verbose --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
     pushd ../ods-configuration
     git init
     echo "ods-core.env.sample" > .gitignore
@@ -840,6 +840,7 @@ function setup_sonarqube() {
     pushd sonarqube
     ./configure.sh --sonarqube="https://${sonarqube_url}" --verbose --insecure \
         --pipeline-user openshift \
+        --pipeline-user-password openshift \
         --admin-password openshift
     popd
 }
@@ -903,6 +904,7 @@ function setup_provisioning_app() {
 
     ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} \
         --image ods-provisioning-app \
+        --image-tag latest \
         --target-stream ods-provisioning-app
 
     pushd ods-provisioning-app/ocp-config
