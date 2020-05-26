@@ -927,16 +927,6 @@ function restart_atlassian_suite() {
     docker container restart ${atlassian_jira_container_name} ${atlassian_bitbucket_container_name}
 }
 
-function test_function() {
-    local bash_source=${BASH_SOURCE}
-    local project_dir="${BASH_SOURCE%/*}/.."
-    echo "bash_source is ${bash_source}"
-    echo "project_dir = ${project_dir}"
-    pushd "${project_dir}"
-    echo "pwd in ${project_dir}: $(pwd)"
-    popd
-}
-
 #######################################
 # Sets up Jenkins slaves for various technologies, like:
 # airflow, golang, maven, nodejs/angular, nodejs12, python, scala
