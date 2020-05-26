@@ -931,7 +931,7 @@ function restart_atlassian_suite() {
 # Sets up Jenkins slaves for various technologies, like:
 # airflow, golang, maven, nodejs/angular, nodejs12, python, scala
 #
-# Relies on initialise_ods_repositories having run before to create and
+# Relies on initialise_ods_repositories' having run before to create and
 # initialise the opendevstack project folder with its repositories.
 #
 # Globals:
@@ -949,12 +949,13 @@ function setup_jenkins_slaves() {
     local ocp_config_folder="ocp-config"
     local project_dir="/home/${USER}/projects"
     # tailor will look for the ods-configuration folder under opendevstack_dir
+    echo "Copying ods-configuration to ${opendevstack_dir}"
     cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
 
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        pushd "${quickstarters_jenkins_slaves_dir}/${technology}/${ocp-ocp_config_folder}"
-        tailor update --verbose --force --non-interactive
+        pushd "${quickstarters_jenkins_slaves_dir}/${technology}/${ocp_config_folder}"
+        tailor apply --verbose --force --non-interactive
         popd
     done
 
