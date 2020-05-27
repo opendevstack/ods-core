@@ -6,7 +6,7 @@ set -eu
 
 TAILOR="tailor"
 ODS_NAMESPACE="ods"
-ODS_IMAGE_TAG="lastest"
+ODS_IMAGE_TAG="latest"
 PROJECT_ID=""
 CD_USER_TYPE=""
 CD_USER_ID_B64=""
