@@ -71,7 +71,8 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN cp /usr/local/bin/run-jnlp-client /usr/local/bin/ocp-run-jnlp-client
 COPY ods-run-jnlp-client /usr/local/bin/run-jnlp-client
-RUN chmod 777 /tmp/set_java_proxy.sh \
+RUN chmod +x /usr/local/bin/run-jnlp-client \
+    && chmod +x /tmp/set_java_proxy.sh \
     && . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 
 # Add skopeo.
