@@ -8,6 +8,8 @@ curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/master/bo
 curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/master/bock.sh" -o "${SCRIPT_DIR}/tailor" && chmod +x "${SCRIPT_DIR}/tailor"
 
 function cleanup {
+    rm "${SCRIPT_DIR}/.bock-want" &> /dev/null || true
+    rm "${SCRIPT_DIR}/.bock-got" &> /dev/null || true
     rm "${SCRIPT_DIR}/oc"
     rm "${SCRIPT_DIR}/tailor"
 }
@@ -15,8 +17,6 @@ trap cleanup EXIT
 
 echo ""
 echo "=== create-projects: Without admins and groups ==="
-
-oc mock --init
 
 oc mock --receive='new-project foo-cd' --times 1
 oc mock --receive='new-project foo-dev' --times 1
@@ -51,8 +51,6 @@ oc mock --verify
 echo ""
 echo "=== create-projects: With admins but no groups ==="
 
-oc mock --init
-
 oc mock --receive='new-project' --times 3
 
 # Expect admins
@@ -68,14 +66,12 @@ oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-dev
 oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-test' --times 1
 oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd' --times 1
 
-../create-projects.sh --project foo --admins foo.bar@example.com,baz.qux@example.com
+../create-projects.sh --project foo --admins foo.bar@example.com,baz.qux@example.com --groups=
 
 oc mock --verify
 
 echo ""
 echo "=== create-projects: With groups ==="
-
-oc mock --init
 
 oc mock --receive='new-project' --times 3
 
@@ -108,8 +104,6 @@ oc mock --verify
 echo ""
 echo "=== create-cd-jenkins: With general CD user ==="
 
-tailor mock --init
-
 tailor mock --receive='version' --stdout='1.0.0'
 
 tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELINE_TRIGGER_SECRET_B64=czNjcjN0 --param=PROJECT=foo --param=CD_USER_ID_B64=Y2RfdXNlcg== --param=ODS_NAMESPACE=bar --param=ODS_IMAGE_TAG=3.x --selector template=ods-jenkins-template' --times 1
@@ -127,8 +121,6 @@ tailor mock --verify
 
 echo ""
 echo "=== create-cd-jenkins: With project-specific CD user ==="
-
-tailor mock --init
 
 tailor mock --receive='version' --stdout='1.0.0'
 
