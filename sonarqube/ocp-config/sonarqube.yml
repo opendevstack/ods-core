@@ -74,6 +74,30 @@ parameters:
   description: "Set to true, if you want to use crowd as identity provider"
 - name: IDP_DNS
   description: "Define the identity provider domain, so you are able to use self signed certificates with authentication"
+- name: SONAR_CPU_REQUEST
+  value: 200m
+- name: SONAR_CPU_LIMIT
+  value: "1"
+- name: SONAR_MEMORY_REQUEST
+  value: 2560Mi
+- name: SONAR_MEMORY_LIMIT
+  value: 4Gi
+- name: SONAR_BUILD_CPU_REQUEST
+  value: 200m
+- name: SONAR_BUILD_CPU_LIMIT
+  value: "1"
+- name: SONAR_BUILD_MEMORY_REQUEST
+  value: 1Gi
+- name: SONAR_BUILD_MEMORY_LIMIT
+  value: 2Gi
+- name: SONAR_POSTGRESQL_CPU_REQUEST
+  value: 100m
+- name: SONAR_POSTGRESQL_CPU_LIMIT
+  value: "1"
+- name: SONAR_POSTGRESQL_MEMORY_REQUEST
+  value: 256Mi
+- name: SONAR_POSTGRESQL_MEMORY_LIMIT
+  value: 512Mi
 objects:
 - apiVersion: v1
   kind: BuildConfig
@@ -91,11 +115,11 @@ objects:
     postCommit: {}
     resources:
       limits:
-        cpu: "1"
-        memory: "2Gi"
+        cpu: ${SONAR_BUILD_CPU_LIMIT}
+        memory: ${SONAR_BUILD_MEMORY_LIMIT}
       requests:
-        cpu: "200m"
-        memory: "1Gi"
+        cpu: ${SONAR_BUILD_CPU_REQUEST}
+        memory: ${SONAR_BUILD_MEMORY_REQUEST}
     runPolicy: Serial
     source:
       contextDir: sonarqube/docker
@@ -188,7 +212,11 @@ objects:
             timeoutSeconds: 1
           resources:
             limits:
-              memory: 512Mi
+              cpu: ${SONAR_POSTGRESQL_CPU_LIMIT}
+              memory: ${SONAR_POSTGRESQL_MEMORY_LIMIT}
+            requests:
+              cpu: ${SONAR_POSTGRESQL_CPU_REQUEST}
+              memory: ${SONAR_POSTGRESQL_MEMORY_REQUEST}
           securityContext:
             capabilities: {}
             privileged: false
@@ -293,7 +321,13 @@ objects:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
-          resources: {}
+          resources:
+            limits:
+              cpu: ${SONAR_CPU_LIMIT}
+              memory: ${SONAR_MEMORY_LIMIT}
+            requests:
+              cpu: ${SONAR_CPU_REQUEST}
+              memory: ${SONAR_MEMORY_REQUEST}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
