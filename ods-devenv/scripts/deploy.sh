@@ -523,6 +523,15 @@ function crowd_cleanup() {
     docker container ls -a
 }
 
+# Helper function for local development of crowd setup
+function crowd_echo_backup_cmd() {
+    echo "To copy from `crowd` container the backup file to local folder:"
+    echo "1. copy this docker command:"
+    echo "docker cp crowd:/var/atlassian/application-data/crowd/shared/backups/<BACKUP_FILE_NAME>.xml ."
+    echo "2. replace 'BACKUP_FILE_NAME' with one backup file from this list:"
+    docker exec -it crowd bash -c "cd /var/atlassian/application-data/crowd/shared/backups/; ls"
+    echo "3. and run the command"
+}
 
 #######################################
 # Initialize Jira database. Requires database service to be running.
