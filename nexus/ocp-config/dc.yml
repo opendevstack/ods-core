@@ -6,6 +6,14 @@ parameters:
 - name: NEXUS_IMAGE
   description: Image to use for Nexus
   value: sonatype/nexus3:3.22.0
+- name: NEXUS_CPU_REQUEST
+  value: 200m
+- name: NEXUS_CPU_LIMIT
+  value: "1"
+- name: NEXUS_MEMORY_REQUEST
+  value: 1536Mi
+- name: NEXUS_MEMORY_LIMIT
+  value: 3Gi
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -38,7 +46,13 @@ objects:
           ports:
           - containerPort: 8081
             protocol: TCP
-          resources: {}
+          resources:
+            limits:
+              cpu: ${NEXUS_CPU_LIMIT}
+              memory: ${NEXUS_MEMORY_LIMIT}
+            requests:
+              cpu: ${NEXUS_CPU_REQUEST}
+              memory: ${NEXUS_MEMORY_REQUEST}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
