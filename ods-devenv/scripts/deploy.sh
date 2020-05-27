@@ -902,7 +902,8 @@ function setup_provisioning_app() {
     tailor apply --namespace ${NAMESPACE} is --non-interactive --verbose
     popd
 
-    ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} \
+    ocp-scripts/import-image-from-dockerhub.sh \
+        --namespace ${NAMESPACE} \
         --image ods-provisioning-app \
         --image-tag latest \
         --target-stream ods-provisioning-app
@@ -995,6 +996,28 @@ function setup_jenkins_slaves() {
     then
         echo "${fail_count} of the jenkins-slave builds failed. Going to exit the setup script."
     fi
+}
+
+#######################################
+# Provide the doc-gen-service image in the OpenShift image stream
+# for later use by the release manager.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function provide_document_generation_service_image() {
+    pushd "ods-document-generation-svc/ocp-config"
+    tailor apply --namespace ${NAMESPACE} --verbose --non-interactive
+    popd
+
+    ocp-scripts/import-image-from-dockerhub.sh \
+        --namespace ${NAMESPACE} \
+        --image-tag latest \
+        --image ods-document-generation-svc \
+        --target-stream ods-doc-gen-svc
 }
 
 #######################################
