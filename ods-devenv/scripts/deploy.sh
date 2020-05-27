@@ -951,7 +951,7 @@ function setup_jenkins_slaves() {
     local ocp_config_folder="ocp-config"
     local project_dir="/home/${USER}/projects"
 
-    if [[ ! -d "${project_dir}/ods-configuration" ]]
+    if [[ ! -d "${opendevstack_dir}/ods-configuration" ]]
     then
         # tailor will look for the ods-configuration folder under opendevstack_dir
         echo "Copying ods-configuration to ${opendevstack_dir}"
