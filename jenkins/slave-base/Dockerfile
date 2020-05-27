@@ -9,8 +9,6 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1
 
-ARG APP_DNS=192.168.99.100.nip.io
-ARG APP_DNS_PORT=443
 ARG SNYK_DISTRIBUTION_URL
 
 RUN yum -y install \
@@ -24,21 +22,6 @@ ENV JAVA_HOME=/usr/lib/jvm/jre
 RUN yum -y install java-1.8.0-openjdk-devel.x86_64 \
     && yum clean all \
     && rm -rf /var/cache/yum/*
-
-# Fetch certificates and store them in tmp directory.
-RUN echo ${APP_DNS} \
-    && gnutls-cli --insecure --print-cert ${APP_DNS} -p ${APP_DNS_PORT} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
-
-# Add root ca into cert store so OC can pick it up.
-RUN cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt \
-    && cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt
-
-# Import base domain wildcard certificate.
-RUN echo $JAVA_HOME \
-    && cat /tmp/oc_app.crt \
-    && $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
-    && echo "yes" | $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword \
-    && echo "yes"
 
 # Install Sonar Scanner.
 RUN cd /tmp \
@@ -86,7 +69,10 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
 
 # Set java proxy var.
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
-RUN chmod 777 /tmp/set_java_proxy.sh \
+RUN cp /usr/local/bin/run-jnlp-client /usr/local/bin/ocp-run-jnlp-client
+COPY ods-run-jnlp-client /usr/local/bin/run-jnlp-client
+RUN chmod +x /usr/local/bin/run-jnlp-client \
+    && chmod +x /tmp/set_java_proxy.sh \
     && . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 
 # Add skopeo.
@@ -101,3 +87,5 @@ RUN yum install -y \
 # Fix permissions.
 RUN mkdir -p /home/jenkins/.config && chmod g+w /home/jenkins/.config \
     && mkdir -p /home/jenkins/.cache && chmod g+w /home/jenkins/.cache
+
+RUN chmod g+w $JAVA_HOME/lib/security/cacerts

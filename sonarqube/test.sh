@@ -122,7 +122,8 @@ expectedPlugins=( "crowd:2.1.3"
                   "python:2.1.0.5269"
                   "typescript:2.1.0.4359"
                   "sonarscala:1.5.0.315"
-                  "php:3.3.0.5166" )
+                  "php:3.3.0.5166"
+                  "groovy:1.6" )
 
 actualPlugins=$(curl \
     --fail \

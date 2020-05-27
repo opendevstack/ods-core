@@ -2,7 +2,6 @@ FROM adoptopenjdk/openjdk11:alpine-jre
 
 ARG sonarDistributionUrl
 ARG sonarVersion
-ARG idpDns
 
 ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
@@ -35,15 +34,6 @@ RUN set -x \
     && mkdir -p /opt/configuration/sonarqube \
     && chown -R sonarqube:root /opt/configuration/sonarqube
 
-# fetch certificates and store them in tmp directory
-RUN if [ -z $idpDns ]; then echo 'Skipping custom certificate!'; else \
-    echo "Setting up custom certificate from ${idpDns} ..."; \
-    gnutls-cli --insecure --print-cert ${idpDns} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/idp.crt; \
-    cat /tmp/idp.crt|awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {print > "/usr/local/share/ca-certificates/mycert" n ".crt"}'; \
-    update-ca-certificates; \
-    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass changeit; \
-    fi
-
 VOLUME "$SONARQUBE_HOME/data"
 
 WORKDIR $SONARQUBE_HOME
@@ -70,10 +60,12 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-pyth
 ADD https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala-plugin-1.5.0.315.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plugin-3.3.0.5166.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.6/sonar-groovy-plugin-1.6.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \
     chown -R :0 $SONARQUBE_HOME/bin; \
+    chmod g+w $JAVA_HOME/lib/security/cacerts; \
     chmod -R g+x $SONARQUBE_HOME/bin/run.sh
 
 USER sonarqube
