@@ -950,9 +950,13 @@ function setup_jenkins_slaves() {
     local quickstarters_jenkins_slaves_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
     local ocp_config_folder="ocp-config"
     local project_dir="/home/${USER}/projects"
-    # tailor will look for the ods-configuration folder under opendevstack_dir
-    echo "Copying ods-configuration to ${opendevstack_dir}"
-    cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
+
+    if [[ ! -d "${project_dir}/ods-configuration" ]]
+    then
+        # tailor will look for the ods-configuration folder under opendevstack_dir
+        echo "Copying ods-configuration to ${opendevstack_dir}"
+        cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
+    fi
 
     # create build configurations in parallel
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
