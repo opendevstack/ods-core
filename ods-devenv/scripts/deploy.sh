@@ -963,6 +963,7 @@ function setup_jenkins_slaves() {
         popd
     done
 
+    local fail_count=0
     for job in $(jobs -p)
     do
         echo "Waiting for openshift build configuration ${job} to be created."
