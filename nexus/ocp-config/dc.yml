@@ -5,7 +5,7 @@ parameters:
   value: nexus
 - name: NEXUS_IMAGE
   description: Image to use for Nexus
-  value: sonatype/nexus3:3.22.1
+  value: sonatype/nexus3:3.23.0
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
