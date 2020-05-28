@@ -28,6 +28,8 @@ if [ -d "$target_init_groovy_dir" ] ; then
         echo "---> Copying ${source_init_groovy_dir}/${fileName} to ${target_init_groovy_dir}/${fileName} ..."
         cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
     done
+    echo "Remove legacy init.groovy.d files ..."
+    rm "${target_init_groovy_dir}/ods-mro-jenkins-shared-library.groovy" || true
 fi
 
 NEXUS_SHORT=$(echo $NEXUS_HOST | sed -e "s|https://||g" | sed -e "s|http://||g") 
