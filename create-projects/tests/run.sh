@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -ue
 
+# Unfortunately, an end-to-end test against an OpenShift cluster is not feasible
+# to run on public infrastructure such as GitHub Actions (as of May 2020).
+# To still have a small safety net, we use https://github.com/michaelsauter/bock
+# to mock the "oc" and "tailor" binaries in this test script.
+# Once we find a working solution to run an OpenShift cluster in a public
+# build, we might be able to get rid of this and write better tests.
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATH=${SCRIPT_DIR}:$PATH
 

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
+# As this script is executed within the context of Jenkins, which has some
+# env vars exposed (via the DeploymentConfig, but also from inside the image).
+# It might be surprising to have them alter what the script does without seeing
+# them passed/set in the Jenkinsfile. That's why we reset all env vars here
+# and require them to be passed as parameters to the script.
+
 PROJECT_ID=""
 PROJECT_ADMINS=""
 PROJECT_GROUPS=""

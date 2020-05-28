@@ -4,6 +4,12 @@ set -eu
 # This script sets up a ${PROJECT_ID}-cd/jenkins-master and the associated
 # webhook proxy for the project you are creating.
 
+# As this script is executed within the context of Jenkins, which has some
+# env vars exposed (via the DeploymentConfig, but also from inside the image).
+# It might be surprising to have them alter what the script does without seeing
+# them passed/set in the Jenkinsfile. That's why we reset all env vars here
+# and require them to be passed as parameters to the script.
+
 TAILOR="tailor"
 ODS_NAMESPACE="ods"
 ODS_IMAGE_TAG="latest"
