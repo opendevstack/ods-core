@@ -4,8 +4,8 @@ def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 def odsGitRef = env.ODS_GIT_REF ?: 'master'
 def odsBitbucketProject = env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 def projectId = env.PROJECT_ID
-def projectAdmins = env.PROJECT_ADMIN
-def projectGroups = env.PROJECT_GROUPS
+def projectAdmins = env.PROJECT_ADMIN ?: ''
+def projectGroups = env.PROJECT_GROUPS ?: ''
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
 def cdUserIdB64 = env.CD_USER_ID_B64
 def cdUserType = env.CD_USER_TYPE
@@ -75,13 +75,29 @@ podTemplate(
 
     stage('Create OpenShift projects') {
       dir('ods-core') {
-        sh './create-projects/create-projects.sh'
+        sh(
+          script: """./create-projects/create-projects.sh --verbose \
+            --project=${projectId} \
+            --admins=${projectAdmins} \
+            --groups=${projectGroups}""",
+          label: 'Create OpenShift projects'
+        )
       }
     }
 
     stage('Setup Jenkins in CD project') {
       dir('ods-core') {
-        sh './create-projects/create-cd-jenkins.sh --verbose'
+        sh(
+          script: """./create-projects/create-cd-jenkins.sh --verbose \
+            --non-interactive \
+            --project=${projectId} \
+            --ods-namespace=${odsNamespace} \
+            --ods-image-tag=${odsImageTag} \
+            --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
+            --cd-user-type=${cdUserType} \
+            --cd-user-id-b64=${cdUserIdB64}""",
+          label: 'Setup Jenkins in CD project'
+        )
       }
     }
   }
