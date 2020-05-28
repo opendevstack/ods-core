@@ -4,8 +4,8 @@ set -ue
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATH=${SCRIPT_DIR}:$PATH
 
-curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/master/bock.sh" -o "${SCRIPT_DIR}/oc" && chmod +x "${SCRIPT_DIR}/oc"
-curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/master/bock.sh" -o "${SCRIPT_DIR}/tailor" && chmod +x "${SCRIPT_DIR}/tailor"
+curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/v0.1.0/bock.sh" -o "${SCRIPT_DIR}/oc" && chmod +x "${SCRIPT_DIR}/oc"
+curl --silent -L "https://raw.githubusercontent.com/michaelsauter/bock/v0.1.0/bock.sh" -o "${SCRIPT_DIR}/tailor" && chmod +x "${SCRIPT_DIR}/tailor"
 
 function cleanup {
     rm "${SCRIPT_DIR}/.bock-want" &> /dev/null || true
