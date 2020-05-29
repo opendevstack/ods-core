@@ -70,6 +70,14 @@ func TestCreateJenkinsSuccessfully(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 	odsNamespace := "cd"
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{fmt.Sprintf("--project=%s", utils.PROJECT_NAME)}, []string{})
+	if err != nil {
+		t.Fatalf(
+			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
+			stdout,
+			stderr)
+	}
+
 	values, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatalf(
@@ -79,7 +87,7 @@ func TestCreateJenkinsSuccessfully(t *testing.T) {
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{
+	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{
 		"--verbose",
 		fmt.Sprintf("--ods-namespace=%s", odsNamespace),
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
