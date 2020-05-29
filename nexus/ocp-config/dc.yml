@@ -11,9 +11,9 @@ parameters:
 - name: NEXUS_CPU_LIMIT
   value: "1"
 - name: NEXUS_MEMORY_REQUEST
-  value: 1536Mi
+  value: 2560Mi
 - name: NEXUS_MEMORY_LIMIT
-  value: 3Gi
+  value: 4Gi
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
