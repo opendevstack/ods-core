@@ -751,11 +751,15 @@ function create_configuration() {
     sed -i "s|CD_USER_ID_B64=.*$|CD_USER_ID_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|CD_USER_PWD_B64=.*$|CD_USER_PWD_B64=$(echo -n openshift | base64)|" ods-core.env
 
-    sed -i "s|NEXUS_USERNAME=.*$|NEXUS_USERNAME=openshift|" ods-core.env
+    ## NEXUS
+    sed -i "s|NEXUS_USERNAME=.*$|NEXUS_USERNAME=admin|" ods-core.env
     sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=openshift|" ods-core.env
     sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
-    sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=openshift:openshift|" ods-core.env
+    sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
+    # TODO workaround for routes not being resolvable from within OpenShift pods.
+    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=http://nexus:8081|" ods-core.env
 
+    # SONARQUBE
     sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
     sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
     # SONAR_ADMIN_USERNAME appears to have to be admin
@@ -767,12 +771,10 @@ function create_configuration() {
     # Toggle value of this line when Atlassian Crowd becomes available / not-available in EDP in a box.
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
 
-
-    # configure Jenkins
+    # JENKINS
     sed -i "s|APP_DNS=.*$|APP_DNS=172.30.0.1|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
-
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
