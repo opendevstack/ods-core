@@ -37,7 +37,6 @@ REGISTRY_IP=172.30.1.1
 echo "ODS_IMAGE_TAG=cicdtests" > ${OUTPUT}
 echo "ODS_NAMESPACE=ods" >> ${OUTPUT}
 echo "ODS_GIT_REF=cicdtests" >> ${OUTPUT}
-echo "JENKINS_MASTER_BASE_FROM_IMAGE=openshift/jenkins-2-centos7:v3.11" >> ${OUTPUT}
 
 echo "" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
@@ -156,10 +155,11 @@ echo "#####      Jenkins      #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
+echo "JENKINS_MASTER_BASE_FROM_IMAGE=openshift/jenkins-2-centos7:v3.11" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_IMAGE=Dockerfile.centos7" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_FROM_IMAGE=openshift/jenkins-slave-base-centos7" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL=https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux" >> ${OUTPUT}
-
+echo "SHARED_LIBRARY_REPOSITORY=https://github.com/opendevstack/ods-jenkins-shared-library.git" >> ${OUTPUT}
 
 echo "" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
