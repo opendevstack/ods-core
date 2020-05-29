@@ -19,45 +19,43 @@ func TestCreateJenkinsWithMissingEnvVars(t *testing.T) {
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 
 	var testCases = map[string]struct {
-		envVars       []string
-		missingEnvVar string
+		args       []string
+		missingArg string
 	}{
 		"Create Jenkins without project id": {
-			envVars: []string{
-				//    utils.PROJECT_ENV_VAR,
-				"CD_USER_TYPE=general",
-				fmt.Sprintf("CD_USER_ID_B64=%s", user),
-				fmt.Sprintf("PIPELINE_TRIGGER_SECRET=%s", secret),
+			args: []string{
+				fmt.Sprintf("--cd-user-type=%s", "general"),
+				fmt.Sprintf("--cd-user-id-b64=%s", user),
+				fmt.Sprintf("--pipeline-trigger-secret-b64=%s", secret),
 			},
-			missingEnvVar: "PROJECT_ID",
+			missingArg: "--project",
 		},
 		"Create Jenkins without CD user type": {
-			envVars: []string{
-				utils.PROJECT_ENV_VAR,
-				//"CD_USER_TYPE=general",
-				fmt.Sprintf("CD_USER_ID_B64=%s", user),
-				fmt.Sprintf("PIPELINE_TRIGGER_SECRET=%s", secret),
+			args: []string{
+				fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
+				fmt.Sprintf("--cd-user-id-b64=%s", user),
+				fmt.Sprintf("--pipeline-trigger-secret-b64=%s", secret),
 			},
-			missingEnvVar: "CD_USER_TYPE",
+			missingArg: "--cd-user-type",
 		},
 		"Create Jenkins without pipeline trigger secret": {
-			envVars: []string{
-				utils.PROJECT_ENV_VAR,
-				"CD_USER_TYPE=general",
-				fmt.Sprintf("CD_USER_ID_B64=%s", user),
-				// fmt.Sprintf("PIPELINE_TRIGGER_SECRET=%s", secret),
+			args: []string{
+				fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
+				fmt.Sprintf("--cd-user-type=%s", "general"),
+				fmt.Sprintf("--cd-user-id-b64=%s", user),
 			},
-			missingEnvVar: "PIPELINE_TRIGGER_SECRET",
+			missingArg: "--pipeline-trigger-secret-b64",
 		},
 	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
-			stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{"--verbose"}, testCase.envVars)
+			args := append(testCase.args, "--verbose")
+			stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", args, []string{})
 			if err == nil {
 				t.Fatalf(
 					"Execution of `create-cd-jenkins.sh` must fail if no %s is set: \nStdOut: %s\nStdErr: %s",
-					testCase.missingEnvVar,
+					testCase.missingArg,
 					stdout,
 					stderr,
 				)
@@ -72,7 +70,7 @@ func TestCreateJenkinsSuccessfully(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 	odsNamespace := "cd"
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{}, []string{utils.PROJECT_ENV_VAR})
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{"--project=" + utils.PROJECT_NAME}, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
