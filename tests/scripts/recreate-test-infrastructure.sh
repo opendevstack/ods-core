@@ -59,11 +59,13 @@ if oc project "${PROJECT_ID}-cd" > /dev/null; then
     oc delete project "${PROJECT_ID}-cd"
 fi
 
-# Create projects
-${ODS_CORE_DIR}/create-projects/create-projects.sh  --verbose -p ${PROJECT_ID}
+# Create projects and Jenkins instance
+${ODS_CORE_DIR}/create-projects/create-projects.sh --verbose \
+    --project ${PROJECT_ID}
 
-CD_USER_TYPE=general
-CD_USER_ID_B64=${CD_USER_ID_B64}
-PIPELINE_TRIGGER_SECRET=${PIPELINE_TRIGGER_SECRET_B64}
-
-${ODS_CORE_DIR}/create-projects/create-cd-jenkins.sh --ods-namespace ${NAMESPACE} --verbose --cd-user-type ${CD_USER_TYPE} --cd-user-id-b64 ${CD_USER_ID_B64} --pipeline-trigger-secret-b64 ${PIPELINE_TRIGGER_SECRET_B64} --project ${PROJECT_ID}
+${ODS_CORE_DIR}/create-projects/create-cd-jenkins.sh --verbose \
+    --ods-namespace ${NAMESPACE} \
+    --cd-user-type general \
+    --cd-user-id-b64 ${CD_USER_ID_B64} \
+    --pipeline-trigger-secret-b64 ${PIPELINE_TRIGGER_SECRET_B64} \
+    --project ${PROJECT_ID}
