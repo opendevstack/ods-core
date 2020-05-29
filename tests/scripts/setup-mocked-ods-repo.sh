@@ -68,8 +68,6 @@ git remote add mockbucket "http://$(urlencode ${CD_USER_ID}):$(urlencode ${CD_US
 git -c http.sslVerify=false push mockbucket --set-upstream "${HEAD}:${REF}"
 git remote remove mockbucket
 
-mkdir -p "${BASH_SOURCE%/*}/../../../ods-configuration"
-cp ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env ${BASH_SOURCE%/*}/../../../ods-configuration
 
 cd "${BASH_SOURCE%/*}/../../../ods-configuration"
 git init

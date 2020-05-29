@@ -35,6 +35,10 @@ fi
 SUBDOMAIN=$(grep -A 1 routingConfig "${BASE_OC_DIR}/openshift-apiserver/master-config.yaml" | tail -n1 | awk '{print $2}')
 REGISTRY_IP=172.30.1.1
 echo "ODS_IMAGE_TAG=cicdtests" > ${OUTPUT}
+echo "ODS_NAMESPACE=ods" >> ${OUTPUT}
+echo "ODS_GIT_REF=cicdtests" >> ${OUTPUT}
+echo "JENKINS_MASTER_BASE_FROM_IMAGE=openshift/jenkins-2-centos7:v3.11" >> ${OUTPUT}
+
 echo "" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "#####       NEXUS       #####" >> ${OUTPUT}
