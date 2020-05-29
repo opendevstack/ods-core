@@ -11,8 +11,8 @@ NOTE: It is assumed that you are updating from ODS 1.2.x.
 
 === Update image tags of Jenkins deployments
 
-Go into your `*-cd` namespace and edit the deployments (`jenkins` and
-`webhook-proxy`) to point to the new tags (via "Actions" > "Edit"), and trigger a deployment.
+Go into your OpenShift `*-cd` namespace and edit (via "Actions" > "Edit") the deployments (`jenkins` and
+`webhook-proxy`) to point to the new image tags (`2.x`), and trigger a deployment.
 
 === Update Jenkinsfiles in Git repositories
 
