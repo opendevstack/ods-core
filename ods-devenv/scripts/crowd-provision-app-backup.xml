@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <crowd dateformat="yyyy-MM-dd'T'HH:mm:ssX">
-  <creationDate>Mon May 25 14:17:17 GMT 2020</creationDate>
+  <creationDate>Wed May 27 08:02:54 GMT 2020</creationDate>
   <version>3.7.0</version>
   <buildNumber>1270</buildNumber>
   <buildDate>2019-10-03</buildDate>
@@ -161,9 +161,9 @@
           <value>false</value>
         </attribute>
         <attribute>
-          <id>1212418</id>
-          <name>lastActive</name>
-          <value>1590416235055</value>
+          <id>1212417</id>
+          <name>lastAuthenticated</name>
+          <value>1590565840709</value>
         </attribute>
         <attribute>
           <id>1048579</id>
@@ -176,14 +176,14 @@
           <value>0</value>
         </attribute>
         <attribute>
-          <id>1212417</id>
-          <name>lastAuthenticated</name>
-          <value>1590416120275</value>
-        </attribute>
-        <attribute>
           <id>1671182</id>
           <name>sal_com.atlassian.nps.plugin.configuration.nextSurveyDate.openshift</name>
           <value>1591085989372</value>
+        </attribute>
+        <attribute>
+          <id>1212418</id>
+          <name>lastActive</name>
+          <value>1590566574373</value>
         </attribute>
       </attributes>
     </user>
@@ -453,6 +453,118 @@
   </memberships>
   <applications>
     <application>
+      <id>2064389</id>
+      <name>bitbucket</name>
+      <createdDate>2020-05-27T07:57:26Z</createdDate>
+      <updatedDate>2020-05-27T07:57:31Z</updatedDate>
+      <active>true</active>
+      <type>STASH</type>
+      <description>bitbucket</description>
+      <credential>{PKCS5S2}h0fKtZFBa8etOZiaRdADZB+nQnPNbDyrMFv/1PrnQGNkUI+O2TqkWbvVD6YBwhZv</credential>
+      <remoteAddresses>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
+      </remoteAddresses>
+      <attributes>
+        <attribute>
+          <name>aggregateMemberships</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>aliasingEnabled</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>applicationURL</name>
+          <value>http://bitbucket.edpcore.com</value>
+        </attribute>
+        <attribute>
+          <name>atlassian_sha1_applied</name>
+          <value>true</value>
+        </attribute>
+        <attribute>
+          <name>licenseDataSyncInterval</name>
+          <value>60</value>
+        </attribute>
+        <attribute>
+          <name>lowerCaseOutput</name>
+          <value>false</value>
+        </attribute>
+      </attributes>
+      <directoryMappings>
+        <directoryMapping>
+          <id>2097157</id>
+          <directoryId>163841</directoryId>
+          <allowAll>true</allowAll>
+          <groupMappings/>
+          <permissions>
+            <permission>CREATE_USER</permission>
+            <permission>CREATE_GROUP</permission>
+            <permission>CREATE_ROLE</permission>
+            <permission>UPDATE_USER</permission>
+            <permission>UPDATE_GROUP</permission>
+            <permission>UPDATE_ROLE</permission>
+            <permission>UPDATE_USER_ATTRIBUTE</permission>
+            <permission>UPDATE_GROUP_ATTRIBUTE</permission>
+            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
+            <permission>DELETE_USER</permission>
+            <permission>DELETE_GROUP</permission>
+            <permission>DELETE_ROLE</permission>
+          </permissions>
+          <defaultGroupMembershipConfigs/>
+        </directoryMapping>
+      </directoryMappings>
+    </application>
+    <application>
+      <id>2064387</id>
+      <name>confluence</name>
+      <createdDate>2020-05-27T07:55:22Z</createdDate>
+      <updatedDate>2020-05-27T07:55:22Z</updatedDate>
+      <active>true</active>
+      <type>CONFLUENCE</type>
+      <description>confluence</description>
+      <credential>{PKCS5S2}xNG682gzMLNJWGrhreyc8EgIOizk0TU0vq3GmZGs5dX2qW/cjymZ0f1AOpyE7QLk</credential>
+      <remoteAddresses>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
+      </remoteAddresses>
+      <attributes>
+        <attribute>
+          <name>applicationURL</name>
+          <value>http://confluence.edpcore.com</value>
+        </attribute>
+        <attribute>
+          <name>atlassian_sha1_applied</name>
+          <value>true</value>
+        </attribute>
+        <attribute>
+          <name>licenseDataSyncInterval</name>
+          <value>60</value>
+        </attribute>
+      </attributes>
+      <directoryMappings>
+        <directoryMapping>
+          <id>2097155</id>
+          <directoryId>163841</directoryId>
+          <allowAll>true</allowAll>
+          <groupMappings/>
+          <permissions>
+            <permission>CREATE_USER</permission>
+            <permission>CREATE_GROUP</permission>
+            <permission>CREATE_ROLE</permission>
+            <permission>UPDATE_USER</permission>
+            <permission>UPDATE_GROUP</permission>
+            <permission>UPDATE_ROLE</permission>
+            <permission>UPDATE_USER_ATTRIBUTE</permission>
+            <permission>UPDATE_GROUP_ATTRIBUTE</permission>
+            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
+            <permission>DELETE_USER</permission>
+            <permission>DELETE_GROUP</permission>
+            <permission>DELETE_ROLE</permission>
+          </permissions>
+          <defaultGroupMembershipConfigs/>
+        </directoryMapping>
+      </directoryMappings>
+    </application>
+    <application>
       <id>32770</id>
       <name>crowd</name>
       <createdDate>2020-05-20T07:27:48Z</createdDate>
@@ -540,6 +652,118 @@
       <directoryMappings/>
     </application>
     <application>
+      <id>2064388</id>
+      <name>jira</name>
+      <createdDate>2020-05-27T07:56:36Z</createdDate>
+      <updatedDate>2020-05-27T07:56:36Z</updatedDate>
+      <active>true</active>
+      <type>JIRA</type>
+      <description>jira</description>
+      <credential>{PKCS5S2}RYq44X7cWxqOz+QLsUrYYXb35ko0oysnTpQNlyD7kKiyXsdDFsw/jweYlXkj3Kkq</credential>
+      <remoteAddresses>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
+      </remoteAddresses>
+      <attributes>
+        <attribute>
+          <name>applicationURL</name>
+          <value>http://jira.edpcore.com</value>
+        </attribute>
+        <attribute>
+          <name>atlassian_sha1_applied</name>
+          <value>true</value>
+        </attribute>
+        <attribute>
+          <name>licenseDataSyncInterval</name>
+          <value>60</value>
+        </attribute>
+      </attributes>
+      <directoryMappings>
+        <directoryMapping>
+          <id>2097156</id>
+          <directoryId>163841</directoryId>
+          <allowAll>true</allowAll>
+          <groupMappings/>
+          <permissions>
+            <permission>CREATE_USER</permission>
+            <permission>CREATE_GROUP</permission>
+            <permission>CREATE_ROLE</permission>
+            <permission>UPDATE_USER</permission>
+            <permission>UPDATE_GROUP</permission>
+            <permission>UPDATE_ROLE</permission>
+            <permission>UPDATE_USER_ATTRIBUTE</permission>
+            <permission>UPDATE_GROUP_ATTRIBUTE</permission>
+            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
+            <permission>DELETE_USER</permission>
+            <permission>DELETE_GROUP</permission>
+            <permission>DELETE_ROLE</permission>
+          </permissions>
+          <defaultGroupMembershipConfigs/>
+        </directoryMapping>
+      </directoryMappings>
+    </application>
+    <application>
+      <id>2064390</id>
+      <name>nexus</name>
+      <createdDate>2020-05-27T07:59:06Z</createdDate>
+      <updatedDate>2020-05-27T07:59:28Z</updatedDate>
+      <active>true</active>
+      <type>GENERIC_APPLICATION</type>
+      <description>nexus</description>
+      <credential>{PKCS5S2}5+N3rm1g3QoMHq+fYD5PLMxJ1lkIvjSYo0gs4YfGSardG8GVwptTDIWnhIQxGJT5</credential>
+      <remoteAddresses>
+        <remoteAddress>172.17.0.0/16</remoteAddress>
+      </remoteAddresses>
+      <attributes>
+        <attribute>
+          <name>aggregateMemberships</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>aliasingEnabled</name>
+          <value>false</value>
+        </attribute>
+        <attribute>
+          <name>applicationURL</name>
+          <value>http://nexus.edpcore.com</value>
+        </attribute>
+        <attribute>
+          <name>atlassian_sha1_applied</name>
+          <value>true</value>
+        </attribute>
+        <attribute>
+          <name>licenseDataSyncInterval</name>
+          <value>60</value>
+        </attribute>
+        <attribute>
+          <name>lowerCaseOutput</name>
+          <value>false</value>
+        </attribute>
+      </attributes>
+      <directoryMappings>
+        <directoryMapping>
+          <id>2097158</id>
+          <directoryId>163841</directoryId>
+          <allowAll>true</allowAll>
+          <groupMappings/>
+          <permissions>
+            <permission>CREATE_USER</permission>
+            <permission>CREATE_GROUP</permission>
+            <permission>CREATE_ROLE</permission>
+            <permission>UPDATE_USER</permission>
+            <permission>UPDATE_GROUP</permission>
+            <permission>UPDATE_ROLE</permission>
+            <permission>UPDATE_USER_ATTRIBUTE</permission>
+            <permission>UPDATE_GROUP_ATTRIBUTE</permission>
+            <permission>UPDATE_ROLE_ATTRIBUTE</permission>
+            <permission>DELETE_USER</permission>
+            <permission>DELETE_GROUP</permission>
+            <permission>DELETE_ROLE</permission>
+          </permissions>
+          <defaultGroupMembershipConfigs/>
+        </directoryMapping>
+      </directoryMappings>
+    </application>
+    <application>
       <id>786433</id>
       <name>provision</name>
       <createdDate>2020-05-20T10:18:16Z</createdDate>
@@ -615,10 +839,10 @@
       <id>1867777</id>
       <name>sonarqube</name>
       <createdDate>2020-05-25T14:12:15Z</createdDate>
-      <updatedDate>2020-05-25T14:17:09Z</updatedDate>
+      <updatedDate>2020-05-27T08:00:54Z</updatedDate>
       <active>true</active>
       <type>GENERIC_APPLICATION</type>
-      <description></description>
+      <description>sonarqube</description>
       <credential>{PKCS5S2}XMGupXO8Qt74wj36CBqJEVGhfOH3JOBUei4+Q+YW5Nq/bn/NCboBpoPCgOHlhVzj</credential>
       <remoteAddresses>
         <remoteAddress>172.17.0.0/16</remoteAddress>
@@ -824,7 +1048,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y29tLmF0bGFzc2lhbi51cG0ubG9nLlBsdWdpblNldHRpbmdzQXVkaXRMb2dTZXJ2aWNlOmxvZzp1cG1fYXVkaXRfbG9nX3Yz</name>
-      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDQxNDE1MTM3OSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMzg5NjI3MDIxLCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAzMDk5MTA5OTEsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDE1NjI0ODUxMywiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMTM4NjAxODM5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1ODk5Njk1NDg0NjksImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU4OTk1OTY3NzI0NywiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0=</value>
+      <value>I2phdmEudXRpbC5MaXN0CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDU2NTgwOTY1NywiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwNDE0MTUxMzc5LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAzODk2MjcwMjEsImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU5MDMwOTkxMDk5MSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTkwMTU2MjQ4NTEzLCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQp7InVzZXJLZXkiOiJDcm93ZCIsImRhdGUiOjE1OTAxMzg2MDE4MzksImkxOG5LZXkiOiJ1cG0uYXVkaXRMb2cudXBtLnN0YXJ0dXAiLCJlbnRyeVR5cGUiOiJVUE1fU1RBUlRVUCIsInBhcmFtcyI6W119CnsidXNlcktleSI6IkNyb3dkIiwiZGF0ZSI6MTU4OTk2OTU0ODQ2OSwiaTE4bktleSI6InVwbS5hdWRpdExvZy51cG0uc3RhcnR1cCIsImVudHJ5VHlwZSI6IlVQTV9TVEFSVFVQIiwicGFyYW1zIjpbXX0KeyJ1c2VyS2V5IjoiQ3Jvd2QiLCJkYXRlIjoxNTg5OTU5Njc3MjQ3LCJpMThuS2V5IjoidXBtLmF1ZGl0TG9nLnVwbS5zdGFydHVwIiwiZW50cnlUeXBlIjoiVVBNX1NUQVJUVVAiLCJwYXJhbXMiOltdfQ==</value>
     </property>
     <property>
       <key>cGx1Z2luLm51bGw=</key>
@@ -879,7 +1103,7 @@
     <property>
       <key>cGx1Z2luLm51bGw=</key>
       <name>Y3Jvd2QuYW5hbHl0aWNzLmluc3RhbmNlLnN0YXJ0dXAuaW5mbw==</name>
-      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwNDE0MTUxNTUxCmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
+      <value>I2phdmEudXRpbC5NYXAKc3RhcnRfdGltZQwxNTkwNTY1ODA5OTA3CmJ1aWxkX251bWJlcgwxMjcwCmNsdXN0ZXJlZAxmYWxzZQ==</value>
     </property>
   </properties>
   <grantedPermissions>
@@ -899,6 +1123,1304 @@
     </grantedPermission>
   </grantedPermissions>
   <auditLogs>
+    <auditLog>
+      <id>1966105</id>
+      <timestamp>1590566454302</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998974</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>sonarqube</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129944</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>1867777</entityId>
+          <entityName>sonarqube</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966104</id>
+      <timestamp>1590566368218</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998971</id>
+          <propertyName>Attribute: aggregateMemberships</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998972</id>
+          <propertyName>Attribute: aliasingEnabled</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998973</id>
+          <propertyName>Attribute: lowerCaseOutput</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129943</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064390</entityId>
+          <entityName>nexus</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966103</id>
+      <timestamp>1590566346901</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998968</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998969</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998970</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129942</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064390</entityId>
+          <entityName>nexus</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966102</id>
+      <timestamp>1590566346897</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998967</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129941</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064390</entityId>
+          <entityName>nexus</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966101</id>
+      <timestamp>1590566346894</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998957</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998958</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:59:06.891+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998959</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>nexus</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998960</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>nexus</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998961</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://nexus.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998962</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998963</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998964</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>GENERIC_APPLICATION</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998965</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998966</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129940</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064390</entityId>
+          <entityName>nexus</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966100</id>
+      <timestamp>1590566248924</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998954</id>
+          <propertyName>Attribute: aggregateMemberships</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998955</id>
+          <propertyName>Attribute: aliasingEnabled</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998956</id>
+          <propertyName>Attribute: lowerCaseOutput</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129939</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064389</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966099</id>
+      <timestamp>1590566246784</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998951</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998952</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998953</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129938</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064389</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966098</id>
+      <timestamp>1590566246779</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998950</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129937</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064389</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966097</id>
+      <timestamp>1590566246776</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998940</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998941</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>bitbucket</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998942</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://bitbucket.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998943</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>STASH</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998944</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:57:26.774+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998945</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998946</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998947</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>bitbucket</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998948</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998949</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129936</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064389</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966096</id>
+      <timestamp>1590566196163</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998937</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998938</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998939</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129935</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064388</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966095</id>
+      <timestamp>1590566196158</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998936</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129934</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064388</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966094</id>
+      <timestamp>1590566196156</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998926</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998927</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://jira.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998928</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>jira</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998929</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>jira</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998930</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:56:36.153+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998931</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>JIRA</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998932</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998933</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998934</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998935</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129933</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064388</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966093</id>
+      <timestamp>1590566147303</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_DELETED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998909</id>
+          <propertyName>Password</propertyName>
+          <oldValue>*****</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998910</id>
+          <propertyName>Name</propertyName>
+          <oldValue>jira</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998911</id>
+          <propertyName>Type</propertyName>
+          <oldValue>GENERIC_APPLICATION</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998912</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998913</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[172.17.0.0/16]</oldValue>
+          <newValue>[]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998914</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998915</id>
+          <propertyName>Attribute: lowerCaseOutput</propertyName>
+          <oldValue>false</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998916</id>
+          <propertyName>Active</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998917</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[CREATE_GROUP, DELETE_ROLE, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998918</id>
+          <propertyName>Description</propertyName>
+          <oldValue>jira</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998919</id>
+          <propertyName>Attribute: aliasingEnabled</propertyName>
+          <oldValue>false</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998920</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue>http://jira.edpcore.com</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998921</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue>60</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998922</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue>2020-05-27T07:53:57.359+0000</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998923</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[163841]</oldValue>
+          <newValue>[]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998924</id>
+          <propertyName>Attribute: aggregateMemberships</propertyName>
+          <oldValue>false</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998925</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue>false</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129932</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064386</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966092</id>
+      <timestamp>1590566140319</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_DELETED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998895</id>
+          <propertyName>Password</propertyName>
+          <oldValue>*****</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998896</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue>2020-05-27T07:52:13.158+0000</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998897</id>
+          <propertyName>Type</propertyName>
+          <oldValue>GENERIC_APPLICATION</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998898</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue>http://bitbucket.edpcore.com</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998899</id>
+          <propertyName>Name</propertyName>
+          <oldValue>bitbucket</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998900</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998901</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[172.17.0.0/16]</oldValue>
+          <newValue>[]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998902</id>
+          <propertyName>Description</propertyName>
+          <oldValue>bitbucket</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998903</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998904</id>
+          <propertyName>Active</propertyName>
+          <oldValue>true</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998905</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue>[CREATE_GROUP, DELETE_ROLE, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998906</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue>60</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998907</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[163841]</oldValue>
+          <newValue>[]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998908</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue>false</oldValue>
+          <newValue></newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129931</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064385</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966091</id>
+      <timestamp>1590566122957</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998892</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998893</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998894</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129930</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064387</entityId>
+          <entityName>confluence</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966090</id>
+      <timestamp>1590566122952</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998891</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129929</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064387</entityId>
+          <entityName>confluence</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966089</id>
+      <timestamp>1590566122949</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998881</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998882</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://confluence.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998883</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:55:22.947+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998884</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>confluence</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998885</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>confluence</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998886</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>CONFLUENCE</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998887</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998888</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998889</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998890</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129928</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064387</entityId>
+          <entityName>confluence</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966088</id>
+      <timestamp>1590566064529</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998878</id>
+          <propertyName>Attribute: aggregateMemberships</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998879</id>
+          <propertyName>Attribute: aliasingEnabled</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998880</id>
+          <propertyName>Attribute: lowerCaseOutput</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129927</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064386</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966087</id>
+      <timestamp>1590566037372</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998875</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998876</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998877</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129926</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064386</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966086</id>
+      <timestamp>1590566037367</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998874</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129925</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064386</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966085</id>
+      <timestamp>1590566037363</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998864</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998865</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:53:57.359+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998866</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://jira.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998867</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>jira</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998868</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>jira</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998869</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998870</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998871</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>GENERIC_APPLICATION</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998872</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998873</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129924</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064386</entityId>
+          <entityName>jira</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966084</id>
+      <timestamp>1590565933210</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998861</id>
+          <propertyName>Directory mappings</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[163841]</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998862</id>
+          <propertyName>Directory mappings.163841.Allow all to authenticate</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998863</id>
+          <propertyName>Directory mappings.163841.Allowed operations</propertyName>
+          <oldValue></oldValue>
+          <newValue>[CREATE_GROUP, UPDATE_GROUP, UPDATE_ROLE, UPDATE_ROLE_ATTRIBUTE, DELETE_ROLE, UPDATE_USER, CREATE_USER, DELETE_GROUP, UPDATE_USER_ATTRIBUTE, UPDATE_GROUP_ATTRIBUTE, DELETE_USER, CREATE_ROLE]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129923</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064385</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966083</id>
+      <timestamp>1590565933198</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_UPDATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998860</id>
+          <propertyName>Remote addresses</propertyName>
+          <oldValue>[]</oldValue>
+          <newValue>[172.17.0.0/16]</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129922</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064385</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966082</id>
+      <timestamp>1590565933166</timestamp>
+      <authorType>USER</authorType>
+      <authorId>983041</authorId>
+      <authorName>openshift</authorName>
+      <eventType>APPLICATION_CREATED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998850</id>
+          <propertyName>Is permanent</propertyName>
+          <oldValue></oldValue>
+          <newValue>false</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998851</id>
+          <propertyName>Created Date</propertyName>
+          <oldValue></oldValue>
+          <newValue>2020-05-27T07:52:13.158+0000</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998852</id>
+          <propertyName>Description</propertyName>
+          <oldValue></oldValue>
+          <newValue>bitbucket</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998853</id>
+          <propertyName>Attribute: applicationURL</propertyName>
+          <oldValue></oldValue>
+          <newValue>http://bitbucket.edpcore.com</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998854</id>
+          <propertyName>Attribute: licenseDataSyncInterval</propertyName>
+          <oldValue></oldValue>
+          <newValue>60</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998855</id>
+          <propertyName>Attribute: atlassian_sha1_applied</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998856</id>
+          <propertyName>Name</propertyName>
+          <oldValue></oldValue>
+          <newValue>bitbucket</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998857</id>
+          <propertyName>Type</propertyName>
+          <oldValue></oldValue>
+          <newValue>GENERIC_APPLICATION</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998858</id>
+          <propertyName>Active</propertyName>
+          <oldValue></oldValue>
+          <newValue>true</newValue>
+        </auditEntry>
+        <auditEntry>
+          <id>1998859</id>
+          <propertyName>Password</propertyName>
+          <oldValue></oldValue>
+          <newValue>*****</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities>
+        <entity>
+          <id>2129921</id>
+          <entityType>APPLICATION</entityType>
+          <entityId>2064385</entityId>
+          <entityName>bitbucket</entityName>
+          <primary>true</primary>
+        </entity>
+      </entities>
+    </auditLog>
+    <auditLog>
+      <id>1966081</id>
+      <timestamp>1590565809517</timestamp>
+      <authorType>OTHER</authorType>
+      <authorId></authorId>
+      <authorName></authorName>
+      <eventType>RESTORE_FINISHED</eventType>
+      <ipAddress>172.17.0.1</ipAddress>
+      <eventMessage></eventMessage>
+      <source>MANUAL</source>
+      <auditEntries>
+        <auditEntry>
+          <id>1998849</id>
+          <propertyName>XML path</propertyName>
+          <oldValue></oldValue>
+          <newValue>/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml</newValue>
+        </auditEntry>
+      </auditEntries>
+      <entities/>
+    </auditLog>
     <auditLog>
       <id>1769479</id>
       <timestamp>1590416229156</timestamp>
