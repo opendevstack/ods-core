@@ -11,7 +11,7 @@ import (
 func ReadConfiguration() (map[string]string, error) {
 
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "..", "..", "ods-config", "ods-core.env")
+	dir := path.Join(path.Dir(filename), "..", "..", "..", "ods-configuration", "ods-core.env")
 
 	file, err := os.Open(dir)
 	if err != nil {
