@@ -1,0 +1,15 @@
+= Update Guide to version 3.x for OpenDevStack users
+:toc:
+
+Learn all about how to update your OpenDevStack based project to ODS 3.x.
+
+NOTE: It is assumed that you are updating from ODS 2.x.
+
+== Update image tags of Jenkins deployments
+
+Go into your `*-cd` namespace and edit the deployments (`jenkins` and
+`webhook-proxy`) to point to the new image tags (via "Actions" > "Edit"), and
+trigger a deployment.
+
+include::jenkins-shared-library:partial$update-to-3x.adoc[]
+

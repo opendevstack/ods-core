@@ -1,6 +1,0 @@
-== Jenkins base image changes
-
-In 2.x, the Jenkins master base image was pulled from the `openshift` namespace. The slave base image could have been pulled from that namespace as well, or directly from a registry. In 3.x, the master can also be pulled directly from a registry. The advantage of this is that you do not need to worry about the import policy set in the `openshift` namespace, which can have suprising results (e.g. your base image never updating even though a fix has been released by RedHat). The behaviour is defined by a new configuration parameter, `JENKINS_MASTER_BASE_FROM_IMAGE`.
-
-Further, in 2.x you had to pick (via `JENKINS_AGENT_BASE_IMAGE`) whether you wanted to use `Dockerfile.centos7` or `Dockerfile.rhel7`. However, both files contained the same instructions. Therefore, those were combined into a single `Dockerfile` and you only need to choose which base image to use via `JENKINS_AGENT_BASE_FROM_IMAGE` (like before).
-
