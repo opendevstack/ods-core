@@ -70,6 +70,10 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
         - ```chmod u+x bin/bootstrap```
         - ```bootstrap```
         - The bootstrap script will clone the ods-core project from github and run the ods-devenv setup script
+    - Provide shortcuts for
+      - OpenShift Webconsole
+      - BitBucket
+      - Jira
 
 ### AWS deployment
 Use the provided AWS AMI to launch an instance of the ODS development environment
@@ -77,21 +81,21 @@ Use the provided AWS AMI to launch an instance of the ODS development environmen
 - Login to the AWS Management Console
 - Select the EC2 Service from the Services -> Compute -> EC2
 - Click the button "Launch instance"
-- Select AMI-ID ami-09aa29230f09bb1ea
+- Select AMI-ID ami-0cc2581d5cf49754b
     - CentOS 7.8 2003
     - User openshift in groups wheel and docker
     - bootstrap script pre-installed
-- Choose an Instance Type with at least 16GiB Memory and at least 4 vCPUs (e.g. t2.xlarge, or t2.2xlarge if there is an intent to run builds and deploy applications)
-- Configure at least 40GiB disk size (or 100GiB if there is an intent to run builds and deploy applications)
+- Choose an Instance Type with at least 20GiB Memory and at least 4 vCPUs (e.g. t2.2xlarge)
+- Configure 70GiB disk size (should be suggested as a default for the given AMI)
 - Create a key pair required to log into the EC2 instance and store the pem file locally
 - The security group ods-dev-env-security-group or equivalent should be used
-    - opens port 22 for ssh connections
-    - opens port range 3389 for VNC connections to support RDP
-    - opens 8080 (for Jira)
+    - Opens port 22 for ssh connections
+    - Opens port range 3389 for VNC connections to support RDP
+    - Opens 8080 (for Jira)
 - Launch the EC2 instance
 - Review the EC2 instance details and take note of
-    - the path to the key pem file PATH_TO_PEM_FILE
-    - the public DNS of the new EC2 instance EC2_PUBLIC_DNS
+    - The path to the key pem file PATH_TO_PEM_FILE
+    - The public DNS of the new EC2 instance EC2_PUBLIC_DNS
 - When the EC2 instance has become available log into the vm
     - ssh: ssh -i PATH_TO_PEM_FILE.pem openshift@EC2_PUBLIC_DNS
     - MS Remote Desktop Client -> EC2_PUBLIC_DNS
