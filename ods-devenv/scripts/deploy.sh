@@ -376,7 +376,7 @@ function startup_and_follow_bitbucket() {
 # Returns:
 #   None
 #######################################
-function startup_atlassian_jira(){
+function startup_atlassian_jira() {
     echo "Starting Atlassian Jira ${atlassian_jira_software_version}"
     local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Downloading mysql-connector-java"
@@ -394,14 +394,28 @@ function startup_atlassian_jira(){
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version}
     local jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
-    # this race condition normally works out. Did not cause any trouble yet.
-    # Alternative approach: start container, stop container, cp driver, restart container ...
-    docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
-    docker container exec -it jira bash -c "sed -i \"s|172.17.0.6|${mysql_ip}|\" dbconfig.xml"
+
+    echo -n "Preparing jira container for connection to local mysql database."
+    prepare_jira_container
+    while ! (docker container exec -it jira bash -c "grep -q ${mysql_ip} dbconfig.xml")
+    do
+        # this race condition of the container getting ready and writing to dbconfig.xml
+        # normally works out. If it should fail on 1st try, try again ...
+        # Alternative approach: start container, stop container, cp driver, restart container ...
+        sleep 1
+        echo -n "."
+        prepare_jira_container
+    done
+    echo "done"
 
     rm mysql-connector-java-8.0.20.jar
     inspect_jira_ip
     echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${openshift_route}:${atlassian_jira_port}"
+}
+
+function prepare_jira_container() {
+    docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
+    docker container exec -it jira bash -c "sed -i \"s|172.17.0.6|${mysql_ip}|\" dbconfig.xml"
 }
 
 #######################################
