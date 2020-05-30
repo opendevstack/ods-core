@@ -62,6 +62,7 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
     - Update the system (yum update)
 - Desktop Configuration
     - Enable RDP
+    - Turn off screen-lock
     - The following steps need to be executed as openshift user
         - ```cd ${HOME}```
         - ```mkdir -p bin```
@@ -181,3 +182,17 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6
 - RDP on CentOS 7 
   - https://www.itzgeek.com/how-tos/linux/centos-how-tos/install-xrdp-on-centos-7-rhel-7.html
   - https://darrenoneill.eu/?p=421
+
+# Dealing with exceptional situations and error
+## yum lock
+### Error Message:
+```
+Existing lock /var/run/yum.pid: another copy is running as pid 3665.
+Another app is currently holding the yum lock; waiting for it to exit...
+  The other application is: PackageKit
+    Memory :  38 M RSS (1.4 GB VSZ)
+    Started: Sat May 30 19:46:42 2020 - 00:05 ago
+    State  : Sleeping, pid: 3665
+```
+### Resolution
+PackageKit holds a yum lock. Normally, script execution will continue as soon as PackageKit releases the lock.
