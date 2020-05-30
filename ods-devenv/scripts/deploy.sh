@@ -756,8 +756,6 @@ function create_configuration() {
     sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=openshift|" ods-core.env
     sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
-    # TODO workaround for routes not being resolvable from within OpenShift pods.
-    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=http://nexus:8081|" ods-core.env
 
     # SONARQUBE
     sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
