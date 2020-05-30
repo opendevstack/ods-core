@@ -217,7 +217,7 @@ function setup_openshift_cluster() {
     echo "Starting up oc cluster for the first time"
     # ip_address=192.168.188.96
     ip_address=172.17.0.1
-    oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address} --no-proxy=${ip_address}
+    oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address}.nip.io --no-proxy=${ip_address}
     oc login -u developer
     oc login -u system:admin
     oc projects
