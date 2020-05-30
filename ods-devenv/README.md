@@ -49,17 +49,19 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
     - At least 4 processor cores. The setup has also been tested with 2 cores but the usability is very limited in this configuration
     - At least 12 GB RAM. The basic setup running OpenShift, Atlassian BitBucket, Atlassian Jira, Sonatype Nexus, SonarQube, Jenkins and a Webhook Proxy will require 12 GB of RAM. Deploying additional applications and running pipelines will require additional memory.
     - enable hypervisor applications
-    - 40 GB harddisk
+    - 70 GB harddisk (40GB proved to be too little space for a whole installation)
     - Connect network adapter
         - Configure Bridged Networking (Autodetect)
 - CentOS setup
     - Timezone CEST
     - Server with GUI (Gnome)
-    - create admin user openshift
+    - Create admin user openshift
         - Make user admin -> add user to wheel group to allow it to use sudo.
         - Add user to docker group. Failing to do so will prevent OpenShift installation from working.
-    - set root user password
+    - Set root user password
+    - Update the system (yum update)
 - Desktop Configuration
+    - Enable RDP
     - The following steps need to be executed as openshift user
         - ```cd ${HOME}```
         - ```mkdir -p bin```
