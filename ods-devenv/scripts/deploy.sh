@@ -447,8 +447,7 @@ function startup_atlassian_crowd() {
         -v odsCrowdVolume:/var/atlassian/application-data/crowd \
         --name="crowd" \
         -dp ${atlassian_crowd_port}:${atlassian_crowd_port_internal} \
-        atlassian/crowd:${atlassian_crowd_software_version} \
-        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
+        atlassian/crowd:${atlassian_crowd_software_version}
 
     sleep 3
 
@@ -777,7 +776,8 @@ function create_configuration() {
     ods-setup/config.sh --verbose --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
     pushd ../ods-configuration
     git init
-    echo "ods-core.env.sample" > .gitignore
+    # keep ods-core.env.sample as a reference
+    # echo "ods-core.env.sample" > .gitignore
 
     if [[ -z ${atlassian_bitbucket_ip} ]]; then
         # can happen if script functions are called selectively
@@ -1115,7 +1115,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
-    startup_atlassian_crowd &
+    startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
     startup_atlassian_jira &
