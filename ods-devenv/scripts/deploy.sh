@@ -171,7 +171,7 @@ function install_docker() {
         "default-address-pools": [
             {
                 "base": "172.17.0.0/16",
-                "size": 16
+                "size": 24
             }
         ],
         "insecure-registries": [
@@ -871,9 +871,18 @@ function setup_nexus() {
     pushd nexus
     local nexus_url="https://$(oc -n ods get route nexus -ojsonpath={.spec.host})"
     local nexus_port=$(oc -n ods get route nexus -ojsonpath={.spec.port.targetPort})
-    # cut -tcp from nexus_port value
-    # nexus_url=${nexus_url}:${nexus_port%-*}
+    nexus_port=${nexus_port%-*} # truncate -tcp from 8081-tcp
+
     ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose --admin-password openshift
+    popd
+
+    # TODO workaround for OpenShift route resolver failure (?)
+    # -> jenkins-slave build pods cannot resolve OpenShift routes
+    local nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
+    local nexus_ip=$(oc -n ods get pod ${nexus_pod_name} -o jsonpath={.status.podIP})
+    local nexus_url_internal="http://"nexus-ods.${nexus_ip}.nip.io:${nexus_port}
+    pushd ../ods-configuration
+    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
     popd
 }
 
