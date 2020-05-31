@@ -325,7 +325,8 @@ function startup_atlassian_mysql() {
         --innodb-default-row-format=DYNAMIC \
         --innodb-large-prefix=ON \
         --innodb-file-format=Barracuda \
-        --innodb-log-file-size=2G
+        --innodb-log-file-size=2G \
+        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
     local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
 }
@@ -379,8 +380,12 @@ function startup_and_follow_bitbucket() {
 function startup_atlassian_jira() {
     echo "Starting Atlassian Jira ${atlassian_jira_software_version}"
     local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+
     echo "Downloading mysql-connector-java"
-    curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
+    local download_dir="downloads_jira"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
+    local db_driver_file="mysql-connector-java-8.0.20.jar"
+    download_file_to_folder "${download_url}" "${download_dir}"
 
     docker container run \
         --name ${atlassian_jira_container_name} \
@@ -392,11 +397,12 @@ function startup_atlassian_jira() {
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
-        atlassian/jira-software:${atlassian_jira_software_version}
+        atlassian/jira-software:${atlassian_jira_software_version} \
+        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
     local jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 
     echo -n "Preparing jira container for connection to local mysql database."
-    prepare_jira_container
+    prepare_jira_container "${download_dir}"
     while ! (docker container exec -i jira bash -c "grep -q ${mysql_ip} dbconfig.xml")
     do
         # this race condition of the container getting ready and writing to dbconfig.xml
@@ -404,17 +410,18 @@ function startup_atlassian_jira() {
         # Alternative approach: start container, stop container, cp driver, restart container ...
         sleep 1
         echo -n "."
-        prepare_jira_container
+        prepare_jira_container "${download_dir}"
     done
     echo "done"
 
-    rm mysql-connector-java-8.0.20.jar
+    rm -rf "${download_dir}"
     inspect_jira_ip
     echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${openshift_route}:${atlassian_jira_port}"
 }
 
 function prepare_jira_container() {
-    docker container cp mysql-connector-java-8.0.20.jar jira:/opt/atlassian/jira/lib/
+    local download_dir="${1:?null}"
+    docker container cp "${download_dir}/mysql-connector-java-8.0.20.jar" jira:/opt/atlassian/jira/lib/
     docker container exec -i jira bash -c "sed -i \"s|172.17.0.6|${mysql_ip}|\" dbconfig.xml"
 }
 
@@ -436,7 +443,12 @@ function startup_atlassian_crowd() {
 
     echo "Starting Atlassian Crowd ${atlassian_crowd_software_version} installation"
     docker volume create --name odsCrowdVolume
-    docker container run -v odsCrowdVolume:/var/atlassian/application-data/crowd --name="crowd" -d -p ${atlassian_crowd_port}:${atlassian_crowd_port_internal} atlassian/crowd:${atlassian_crowd_software_version}
+    docker container run \
+        -v odsCrowdVolume:/var/atlassian/application-data/crowd \
+        --name="crowd" \
+        -dp ${atlassian_crowd_port}:${atlassian_crowd_port_internal} \
+        atlassian/crowd:${atlassian_crowd_software_version} \
+        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
 
     sleep 3
 
@@ -573,6 +585,30 @@ function initialize_atlassian_jiradb() {
 }
 
 #######################################
+# Will download the file specified by the url in the 1st argument
+# and save it to the download directory specified
+# Globals:
+#   n/a
+# Arguments:
+#   url             for file to download
+#   download_dir    relative path to the folder where client will expect to find the downloaded file
+# Returns:
+#   None
+#######################################
+function download_file_to_folder() {
+    # fail if 2 expected arguments are not provided
+    echo "Expecting download URL and download directory as arguments ..."
+    local download_url="${1:?null}"
+    local download_dir="${2:?null}"
+    echo "Going to download ${download_url} to ${download_dir}."
+
+    mkdir -p "${download_dir}"
+    pushd "${download_dir}"
+        curl -LO "${download_url}"
+    popd
+}
+
+#######################################
 # Start up a containerized BitBucket instance, connecting against a database
 # provided by atlassian_mysql_container_name
 # Globals:
@@ -588,8 +624,12 @@ function initialize_atlassian_jiradb() {
 function startup_atlassian_bitbucket() {
     echo "Strating up Atlassian BitBucket ${atlassian_bitbucket_version}"
     local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+
     echo "Downloading mysql-connector-java"
-    curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar
+    local download_dir="downloads_bitbucket"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
+    local db_driver_file="mysql-connector-java-8.0.20.jar"
+    download_file_to_folder "${download_url}" "${download_dir}"
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
@@ -600,11 +640,13 @@ function startup_atlassian_bitbucket() {
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
-        atlassian/bitbucket-server:${atlassian_bitbucket_version}
+        atlassian/bitbucket-server:${atlassian_bitbucket_version} \
+        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
+
     local bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
-    docker container cp mysql-connector-java-8.0.20.jar bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
-    rm mysql-connector-java-8.0.20.jar
+    docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
+    rm -rf "${download_dir}"
     inspect_bitbucket_ip
     echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${openshift_route}:${atlassian_bitbucket_port}"
 }
@@ -1073,7 +1115,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
-    startup_atlassian_crowd
+    startup_atlassian_crowd &
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
     startup_atlassian_jira &
