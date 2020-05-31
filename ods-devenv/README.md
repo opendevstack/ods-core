@@ -47,7 +47,7 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
 
 - VMWare Machine Configuration
     - At least 4 processor cores. The setup has also been tested with 2 cores but the usability is very limited in this configuration
-    - At least 12 GB RAM. The basic setup running OpenShift, Atlassian BitBucket, Atlassian Jira, Sonatype Nexus, SonarQube, Jenkins and a Webhook Proxy will require 12 GB of RAM. Deploying additional applications and running pipelines will require additional memory.
+    - At least 16 GB RAM. The basic setup running OpenShift, Atlassian BitBucket, Atlassian Jira, Sonatype Nexus, SonarQube, Jenkins and a Webhook Proxy will require 16 GB of RAM. Deploying additional applications and running pipelines will require additional memory.
     - enable hypervisor applications
     - 70 GB harddisk (40GB proved to be too little space for a whole installation)
     - Connect network adapter
