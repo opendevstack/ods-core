@@ -7,6 +7,14 @@ parameters:
   required: true
 - name: PROV_APP_IMAGE_PULL_POLICY
   required: true
+- name: PROV_APP_CPU_REQUEST
+  value: 100m
+- name: PROV_APP_CPU_LIMIT
+  value: "1"
+- name: PROV_APP_MEMORY_REQUEST
+  value: 512Mi
+- name: PROV_APP_MEMORY_LIMIT
+  value: 1Gi
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -39,11 +47,11 @@ objects:
             protocol: TCP
           resources:
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: ${PROV_APP_CPU_LIMIT}
+              memory: ${PROV_APP_MEMORY_LIMIT}
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: ${PROV_APP_CPU_REQUEST}
+              memory: ${PROV_APP_MEMORY_REQUEST}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
