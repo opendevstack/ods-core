@@ -18,6 +18,14 @@ parameters:
   required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
+- name: WEBHOOK_PROXY_CPU_REQUEST
+  value: 50m
+- name: WEBHOOK_PROXY_CPU_LIMIT
+  value: 200m
+- name: WEBHOOK_PROXY_MEMORY_REQUEST
+  value: 128Mi
+- name: WEBHOOK_PROXY_MEMORY_LIMIT
+  value: 128Mi
 objects:
 - apiVersion: v1
   kind: Route
@@ -92,7 +100,13 @@ objects:
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
           imagePullPolicy: Always
           name: webhook-proxy
-          resources: {}
+          resources:
+            limits:
+              cpu: ${WEBHOOK_PROXY_CPU_LIMIT}
+              memory: ${WEBHOOK_PROXY_MEMORY_LIMIT}
+            requests:
+              cpu: ${WEBHOOK_PROXY_CPU_REQUEST}
+              memory: ${WEBHOOK_PROXY_MEMORY_REQUEST}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
