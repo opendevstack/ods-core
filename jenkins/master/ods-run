@@ -15,8 +15,6 @@ else
   echo "INFO: skip import"
 fi
 
-echo "Booting Jenkins ..."
-
 target_init_groovy_dir="${JENKINS_HOME}/init.groovy.d"
 if [ -d "$target_init_groovy_dir" ] ; then
     # If the target dir does not exist yet, files under
@@ -32,15 +30,22 @@ if [ -d "$target_init_groovy_dir" ] ; then
     rm "${target_init_groovy_dir}/ods-mro-jenkins-shared-library.groovy" || true
 fi
 
-NEXUS_SHORT=$(echo $NEXUS_HOST | sed -e "s|https://||g" | sed -e "s|http://||g") 
-
-echo "Copy grape config and amending with nexus ..."
-
+echo "Copy grape config and amending with Nexus ..."
+if [ -n "${NEXUS_URL:-}" ]; then
+  nexusUrl="${NEXUS_URL}"
+elif [ -n "${NEXUS_HOST:-}" ]; then
+  nexusUrl="${NEXUS_HOST}"
+else
+  echo "ERROR: Neither NEXUS_URL or NEXUS_HOST present."
+  exit 1
+fi
+NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g" | sed -e "s|http://||g")
 mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
 sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_HOST|$NEXUS_HOST|g" $HOME/.groovy/grapeConfig.xml
+sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
+echo "Booting Jenkins ..."
 /usr/libexec/s2i/run

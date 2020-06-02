@@ -165,8 +165,6 @@ objects:
               value: '${JENKINS_JAVA_MAX_HEAP_PARAM}'
             - name: CONTAINER_HEAP_PERCENT
               value: '${JENKINS_CONTAINER_HEAP_PERCENT}'
-            - name: NEXUS_HOST
-              value: '${NEXUS_URL}'
             - name: NEXUS_URL
               value: '${NEXUS_URL}'
             - name: NEXUS_USERNAME
