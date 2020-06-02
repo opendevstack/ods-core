@@ -4,6 +4,9 @@
 # then delegates to the original run script of the base image.
 set -ue
 
+echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
+rm -rf $HOME/.kube || true
+
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
 if [[ -f $SERVICEACCOUNT_CA ]]; then
