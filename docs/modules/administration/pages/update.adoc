@@ -103,9 +103,25 @@ update notes below which apply to your version change.
 === 2.x to 3.x
 3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.0.0[1.0.0].
 
-==== Setup secure route removal
+==== New central namespace
 
-As this is an optional step, the code has been removed, but is still available at https://github.com/BIX-Digital/ods-contrib.
+In ODS 2, there was a central namespace `cd`, alongside 3 namespace dedicated to the provisioning app: `prov-cd`, `prov-dev` and `prov-test`. In ODS 3, there is only one namespace `ods`, which contains the whole OpenDevStack installation. When updating from ODS 2 to ODS 3, you will need to move the services running in `cd`, `prov-cd` and `prov-test` to `ods`. In detail:
+
+- SonarQube is moving from `cd` to `ods`
+- Nexus is moving from `cd` to `ods`
+- Jenkins (Master and Webhook Proxy) is moving from `prov-cd` to `ods`
+- Provisioning App is moving from `prov-test` to `ods`
+
+The Provisioning App will make use of the Jenkins instance in `ods` to provision new ODS projects.
+
+When moving the instances, you may want to move the data as well. In general, you have to make a backup of the data in `cd`, and apply it to the new instance in `ods`.
+
+Apart from the instances, also all build configurations and image streams are moving from `cd` to `ods`, which means all users need to pull images from the new namespace.
+
+
+==== Secure route removal
+
+Checking for secure routes has been removed from the core, but is still available at https://github.com/BIX-Digital/ods-contrib.
 
 ==== Jenkins base image changes
 
