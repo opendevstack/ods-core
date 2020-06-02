@@ -60,6 +60,9 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 |===
 | OpenDevStack version | Tailor version
 
+| 3.x
+| >= 1.0.0
+
 | 2.x
 | >= 0.13.1
 
