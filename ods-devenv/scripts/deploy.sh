@@ -30,8 +30,9 @@ atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/a
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
-# TODO drop global openshift_route and pull openshift_route from OpenShift where needed
-openshift_route=172.17.0.1
+
+# Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
+public_hostname=$(hostname -i)
 
 NAMESPACE=ods
 
@@ -222,6 +223,8 @@ function setup_openshift_cluster() {
     oc login -u system:admin
     oc projects
     oc adm policy add-cluster-role-to-user cluster-admin developer
+    # allow for OpenShifts to be resolved within OpenShift network
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 
     # TODO create a test project to verify cluster works, remove after development phase
     echo "Create a simple test project to smoke test OpenShift cluster"
@@ -416,7 +419,7 @@ function startup_atlassian_jira() {
 
     rm -rf "${download_dir}"
     inspect_jira_ip
-    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${openshift_route}:${atlassian_jira_port}"
+    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
 }
 
 function prepare_jira_container() {
@@ -538,7 +541,7 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
     local crowd_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
 
     echo
-    echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${openshift_route}:${atlassian_crowd_port}"
+    echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
     echo
 
 }
@@ -647,7 +650,7 @@ function startup_atlassian_bitbucket() {
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
     inspect_bitbucket_ip
-    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${openshift_route}:${atlassian_bitbucket_port}"
+    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
 }
 
 #######################################
@@ -684,9 +687,9 @@ function initialize_atlassian_bitbucketdb() {
 #######################################
 function create_empty_ods_repositories() {
     # creating project opendevstack if it does not exist yet
-    if [[ -z $(curl -sX GET --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
+    if [[ -z $(curl -sX GET --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
         echo "Creating project opendevstack in BitBucket"
-        curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
+        curl -X POST --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
             -H "Content-Type: application/json" \
             -d "{\"key\":\"OPENDEVSTACK\", \"name\": \"opendevstack\", \"description\": \"OpenDevStack\"}"
     else
@@ -697,8 +700,8 @@ function create_empty_ods_repositories() {
     # instance under the OPENDEVSTACK project. The list should be synced with the repo
     # list in ods-core/ods-setup/repos.sh.
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
-        echo "Creating repository ${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
-        curl -X POST --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
+        echo "Creating repository ${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
+        curl -X POST --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
     done
@@ -716,8 +719,8 @@ function create_empty_ods_repositories() {
 #######################################
 function delete_ods_repositories() {
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
-        echo "Deleting repository opendevstack/${repository} on http://${openshift_route}:${atlassian_bitbucket_port}."
-        curl -X DELETE --user openshift:openshift http://${openshift_route}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
+        echo "Deleting repository opendevstack/${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
+        curl -X DELETE --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
     done
 }
 
@@ -739,8 +742,8 @@ function initialise_ods_repositories() {
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --verbose
-    ./repos.sh --sync --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port} --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
+    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --verbose
+    ./repos.sh --sync --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
     popd
 }
 
@@ -764,7 +767,7 @@ function inspect_crowd_ip() {
 #   atlassian_bitbucket_port_internal
 #   atlassian_jira_ip
 #   atlassian_jira_port_internal
-#   openshift_route
+#   public_hostname
 # Arguments:
 #   n/a
 # Returns:
@@ -773,7 +776,7 @@ function inspect_crowd_ip() {
 function create_configuration() {
     echo "create configuration"
     pwd
-    ods-setup/config.sh --verbose --bitbucket http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}
+    ods-setup/config.sh --verbose --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
@@ -793,14 +796,14 @@ function create_configuration() {
     fi
 
     if ! git remote | grep origin; then
-        git remote add origin http://openshift:openshift@${openshift_route}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
+        git remote add origin http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
     fi
     git add -- .
     git commit -m "initial commit"
     git push --set-upstream origin master
     # base64('changeit') -> Y2hhbmdlbWUK
     sed -i "s|ODS_GIT_REF=.*$|ODS_GIT_REF=feature/ods-devenv|" ods-core.env
-    sed -i "s/cd.192.168.56.101.nip.io/ods.${openshift_route}.nip.io/" ods-core.env
+    sed -i "s/cd.192.168.56.101.nip.io/ods.${public_hostname}.nip.io/" ods-core.env
     sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port_internal}|" ods-core.env
     sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
     sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
@@ -817,8 +820,8 @@ function create_configuration() {
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
 
     # SONARQUBE
-    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
-    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${openshift_route}.nip.io|" ods-core.env
+    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${public_hostname}.nip.io|" ods-core.env
+    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${public_hostname}.nip.io|" ods-core.env
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
@@ -834,7 +837,7 @@ function create_configuration() {
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
-    sed -i "s/192.168.56.101/${openshift_route}/" ods-core.env
+    sed -i "s/192.168.56.101/${public_hostname}/" ods-core.env
 
     # provisioning app settings
     sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${atlassian_crowd_ip}/" ods-core.env
@@ -876,13 +879,15 @@ function setup_nexus() {
     ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose --admin-password openshift
     popd
 
-    # TODO workaround for OpenShift route resolver failure (?)
+    # TODO workaround for OpenShift route resolver failure (?) - can be removed when nexus_route resolves
     # -> jenkins-slave build pods cannot resolve OpenShift routes
     local nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
     local nexus_ip=$(oc -n ods get pod ${nexus_pod_name} -o jsonpath={.status.podIP})
     local nexus_url_internal="http://"nexus-ods.${nexus_ip}.nip.io:${nexus_port}
+    local nexus_route="https://nexus-ods.${public_hostname}.nip.io"
+
     pushd ../ods-configuration
-    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
+    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_route}|" ods-core.env
     popd
 }
 
