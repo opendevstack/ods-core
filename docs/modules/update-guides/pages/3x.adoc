@@ -12,3 +12,5 @@ Go into your OpenShift `*-cd` namespace and edit (via "Actions" > "Edit") the de
 
 include::jenkins-shared-library:partial$update-to-3x.adoc[]
 
+include::jenkins-slaves:partial$update-to-3x.adoc[]
+
