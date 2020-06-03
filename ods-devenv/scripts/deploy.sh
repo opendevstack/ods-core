@@ -1054,7 +1054,7 @@ function setup_jenkins_slaves() {
     done
     if [[ "${fail_count}" -gt 0 ]]
     then
-        echo "${fail_count} of the jenkins-slave build configurations failed. Going to exit the setup script."
+        echo "${fail_count} of the jenkins-slave build configurations failed."
     fi
 
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
@@ -1071,7 +1071,7 @@ function setup_jenkins_slaves() {
     done
     if [[ "${fail_count}" -gt 0 ]]
     then
-        echo "${fail_count} of the jenkins-slave builds failed. Going to exit the setup script."
+        echo "${fail_count} of the jenkins-slave builds failed."
     fi
 }
 
