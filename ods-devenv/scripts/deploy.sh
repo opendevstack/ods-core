@@ -32,7 +32,9 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 
 # Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
+# TODO make this value configurable, can then be set e.g. by bootstrap script or other clients
 public_hostname=$(hostname -i)
+echo "OpenShift ip will be ${public_hostname}"
 
 NAMESPACE=ods
 
@@ -879,7 +881,10 @@ function setup_nexus() {
     ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose --admin-password openshift
     popd
 
-    # TODO workaround for OpenShift route resolver failure (?) - can be removed when nexus_route resolves
+    # TODO nexus route workaround nexus_url_internal can be switched back to
+    # nexus_route when:
+    # - nexus_route can be resolved within OpenShift network (done)
+    # - nexus ssl certificate gets accepted by all clients (e.g. scala) (open)
     # -> jenkins-slave build pods cannot resolve OpenShift routes
     local nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
     local nexus_ip=$(oc -n ods get pod ${nexus_pod_name} -o jsonpath={.status.podIP})
@@ -887,7 +892,7 @@ function setup_nexus() {
     local nexus_route="https://nexus-ods.${public_hostname}.nip.io"
 
     pushd ../ods-configuration
-    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_route}|" ods-core.env
+    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
     popd
 }
 
