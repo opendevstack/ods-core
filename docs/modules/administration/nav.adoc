@@ -4,6 +4,7 @@
 *** xref:administration:install-guide.adoc[Local Installation (outdated)]
 *** xref:administration:infrastructure-setup.adoc[Infrastructure Setup (outdated)]
 ** xref:administration:update.adoc[Upgrade]
+** xref:provisioning-app:configuration.adoc[Provisioning App]
 ** xref:administration:keycloak.adoc[Keycloak]
 ** xref:sonarqube:administration.adoc[SonarQube]
 ** xref:jenkins:administration.adoc[Jenkins]
