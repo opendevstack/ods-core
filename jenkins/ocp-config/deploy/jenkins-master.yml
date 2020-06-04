@@ -54,7 +54,7 @@ parameters:
   required: true
 - name: DOCKER_REGISTRY
   required: true
-- name: BITBUCKET_HOST
+- name: BITBUCKET_URL
   required: true
 - name: REPO_BASE
   required: true
@@ -191,8 +191,8 @@ objects:
               value: '${SHARED_LIBRARY_REPOSITORY}'
             - name: DOCKER_REGISTRY
               value: '${DOCKER_REGISTRY}'
-            - name: BITBUCKET_HOST
-              value: '${BITBUCKET_HOST}'
+            - name: BITBUCKET_URL
+              value: '${BITBUCKET_URL}'
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-master:${ODS_IMAGE_TAG}'
           imagePullPolicy: IfNotPresent
           livenessProbe:
