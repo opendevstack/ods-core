@@ -59,6 +59,8 @@ objects:
             name: volume-history
           - mountPath: /config
             name: volume-ikfik
+          - mountPath: /quickstarters
+            name: volume-qs
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -75,6 +77,13 @@ objects:
               path: application.properties
             name: application.properties
           name: volume-ikfik
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: quickstarters.properties
+            name: quickstarters.properties
+          name: volume-qs
     test: false
     triggers:
     - imageChangeParams:

@@ -1,6 +1,7 @@
 namespace ods
 selector app=ods-provisioning-app
 param-file ../../../ods-configuration/ods-core.env
+preserve cm:quickstarters.properties:/data
 ignore-unknown-parameters true
 
 cm,dc,pvc,route,secret,svc,is

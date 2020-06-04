@@ -70,6 +70,9 @@ parameters:
 - name: WEBHOOK_PROXY_EVENTS
   required: true
   description: list of supported webhook events
+- name: PROV_APP_WEBHOOKPROXY_HOST
+  required: true
+  description: the webhookproxy host that prov app connect to
 objects:
 - kind: ConfigMap
   metadata:
@@ -162,62 +165,6 @@ objects:
       jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
       jenkinspipeline.adminjobs.delete-components.repo=ods-core
 
-      # Backend quickstarters
-      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
-      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
-      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
-      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
-      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
-      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
-
-      # Data Science quickstarters
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
-      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
-
-      # Frontend quickstarters
-      jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
-      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
-      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
-      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
-      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
-
-      #Other quickstarters
-      jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
-      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
-      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
-      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
-      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
-      jenkinspipeline.quickstarter.release-manager.create-webhook=false
-
-      jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
-      jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
-
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
@@ -232,7 +179,7 @@ objects:
 
       # the webhook proxy that proxies to the jenkins instance that creates and deletes projects. Usually you have one
       # webhook proxy of this kind in an ods installation residing in the ods namespace.
-      openshift.jenkins.admin.webhookproxy.host=webhook-proxy-ods
+      openshift.jenkins.admin.webhookproxy.host=${PROV_APP_WEBHOOKPROXY_HOST}
 
       # the webhook proxy of a created project that proxies to the projects jenkins to create / delete quickstarters
       # or do builds based on commits to your projects components. Usually you have as many of this as you have ods projects
@@ -292,3 +239,80 @@ objects:
       spring.mail.password=${PROV_APP_MAIL_PASSWORD}
       provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
+
+- kind: ConfigMap
+  metadata:
+    labels:
+      app: ods-provisioning-app
+    name: quickstarters.properties
+  apiVersion: v1
+  data:
+    properties: |
+      #############
+      # Job configurations can have the following properties:
+      #
+      # Mandatory:
+      # jenkinspipeline.[some-job-name].desc -> description of the Job
+      # jenkinspipeline.[some-job-name].repo -> repo name of the Job
+      #
+      # Optional:
+      # jenkinspipeline.[some-job-name].create-webhook -> whether a default webhook should be created for this repo or not (true by default)
+      # jenkinspipeline.[some-job-name].branch -> a branch differing from ods.git-ref
+      # jenkinspipeline.[some-job-name].jenkinsfile -> a path to the jenkinsfile differing from [some-job-name]/Jenkinsfile
+      #############
+
+      # Backend quickstarters
+      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
+      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
+      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
+      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
+      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
+      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
+
+      # Data Science quickstarters
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
+      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
+      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
+
+      # Frontend quickstarters
+      jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
+      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
+      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
+      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
+      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
+
+      #Other quickstarters
+      jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
+      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
+      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
+      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
+      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.release-manager.create-webhook=false
+
+      jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
+      jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
