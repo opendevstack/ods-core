@@ -69,14 +69,22 @@ start-jenkins-build-webhook-proxy:
 
 
 # PROVISIONING APP
-## Install the provision app.
-install-provisioning-app: apply-provisioning-app-deploy
+## Install the provisioning app.
+install-provisioning-app: apply-provisioning-app-build import-provisioning-app-image apply-provisioning-app-deploy
 .PHONY: install-provisioning-app
+
+## Update OpenShift resources related to the Provisioning App image.
+apply-provisioning-app-build:
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is
+.PHONY: apply-provisioning-app-build
+
+## Import Provisioning App image from DockerHub.
+import-provisioning-app-image:
+	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-provisioning-app --target-stream ods-provisioning-app
+.PHONY: import-provisioning-app-image
 
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is
-	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-provisioning-app --target-stream ods-provisioning-app
 	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is
 .PHONY: apply-provisioning-app-deploy
 
