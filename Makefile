@@ -89,16 +89,20 @@ apply-provisioning-app-deploy:
 .PHONY: apply-provisioning-app-deploy
 
 
-# DOCUMENT GENERATION SERVICE
-## Install the documentation generation service.
-install-doc-gen: apply-doc-gen-build
+# DOCUMENT GENERATION SERVICE IMAGE
+## Install the documentation generation image.
+install-doc-gen: apply-doc-gen-build import-doc-gen-image
 .PHONY: install-doc-gen
 
 ## Update OpenShift resources related to the Document Generation image.
 apply-doc-gen-build:
 	cd ods-document-generation-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
-	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-document-generation-svc --target-stream ods-doc-gen-svc
 .PHONY: apply-doc-gen-build
+
+## Import Document Generation image from DockerHub.
+import-doc-gen-image:
+	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-document-generation-svc --target-stream ods-doc-gen-svc
+.PHONY:import-doc-gen-image
 
 
 # SONARQUBE
