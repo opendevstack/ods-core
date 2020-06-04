@@ -9,7 +9,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1
 
-ARG APP_DNS=192.168.99.100.nip.io
+ARG APP_DNS
 ARG APP_DNS_PORT=443
 ARG SNYK_DISTRIBUTION_URL
 
@@ -26,19 +26,16 @@ RUN yum -y install java-1.8.0-openjdk-devel.x86_64 \
     && rm -rf /var/cache/yum/*
 
 # Fetch certificates and store them in tmp directory.
-RUN echo ${APP_DNS} \
-    && gnutls-cli --insecure --print-cert ${APP_DNS} -p ${APP_DNS_PORT} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt
-
-# Add root ca into cert store so OC can pick it up.
-RUN cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt \
-    && cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt
-
-# Import base domain wildcard certificate.
-RUN echo $JAVA_HOME \
-    && cat /tmp/oc_app.crt \
-    && $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
-    && echo "yes" | $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -storepass mysecretpassword \
-    && echo "yes"
+RUN if [ -z $APP_DNS ]; then echo 'Skipping custom certificate!'; else \
+    echo "Setting up custom certificate from ${APP_DNS} ..."; \
+    gnutls-cli --insecure --print-cert ${APP_DNS} -p ${APP_DNS_PORT} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt; \
+    cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt; \
+    cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt; \
+    echo $JAVA_HOME; \
+    cat /tmp/oc_app.crt; \
+    $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
+    $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass mysecretpassword; \
+    fi
 
 # Install Sonar Scanner.
 RUN cd /tmp \
