@@ -143,6 +143,7 @@ jobs:
       -
         name: Check compliant shell scripts
         run: |
+          shellcheck --version
           shellcheck ocp-scripts/clone-project.sh
           shellcheck ocp-scripts/verify-jsl-expectations.sh
 
