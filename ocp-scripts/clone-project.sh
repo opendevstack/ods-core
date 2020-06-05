@@ -113,7 +113,7 @@ echo "[INFO]: import resources into $TARGET_ENV"
 sh "$SCRIPT_DIR/import-project.sh" -h "$OPENSHIFT_HOST" -p "$PROJECT_ID" -e "$SOURCE_ENV" -g "$git_url" -gb "$GIT_BRANCH" -n "$TARGET_PROJECT" "$verbose" --apply true
 
 echo "[INFO]: cleanup workplace"
-# shellcheck disable=SC2124
+# shellcheck disable=SC2103
 cd ..
 rm -rf oc_migration_scripts
 
