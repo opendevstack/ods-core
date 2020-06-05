@@ -7,6 +7,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 instance_type="t2.micro"
 key="private-key.pem"
 az="eu-west-1a"
+volume_size="32"
 ami_id=""
 host=""
 subnet_id=""
@@ -15,6 +16,7 @@ instance_id=""
 security_group_id=""
 prepare_test=""
 rsync=""
+wait=""
 
 function usage {
   printf "Run tests in AWS.\n\n"
@@ -66,11 +68,9 @@ while [[ "$#" -gt 0 ]]; do
   --ami-id) ami_id="$2"; shift;;
   --ami-id=*) ami_id="${1#*=}";;
 
-  --rsync) rsync="yes"; shift;;
-  --rsync=*) rsync="yes";;
+  --rsync) rsync="yes";;
 
-  --prepare-test) prepare_test="yes"; shift;;
-  --prepare-test=*) prepare_test="yes";;
+  --prepare-test) prepare_test="yes";;
 
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -117,18 +117,27 @@ if [ -z "${host}" ]; then
     --instance-type ${instance_type} \
     --key-name ${key_name} \
     --security-group-ids $security_group_id \
+    --block-device-mappings "[{ \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": ${volume_size} } }]" \
     --subnet-id ${subnet_id} | jq -r '.Instances[0].InstanceId')
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
     aws ec2 wait instance-running --instance-ids $instance_id
     echo "Instance with ID=${instance_id} running"
+    aws ec2 create-tags --resources ${instance_id} --tags Key=Name,Value=ODS-Test
 
     prepare_test="yes"
+    wait="yes"
   fi
 
   echo "Get IP address"
   host=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
   echo "Instance has address=${host}"
 fi
+
+if [ -n "${wait}" ]; then
+  echo "Wait for 20 seconds"
+  sleep 20
+fi
+
 
 if [ -n "${prepare_test}" ]; then
   scp -i $key install.sh ubuntu@$host:/home/ubuntu/install.sh
