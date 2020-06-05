@@ -88,7 +88,6 @@ apply-provisioning-app-deploy:
 	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is
 .PHONY: apply-provisioning-app-deploy
 
-
 # DOCUMENT GENERATION SERVICE IMAGE
 ## Install the documentation generation image.
 install-doc-gen: apply-doc-gen-build import-doc-gen-image
@@ -145,11 +144,11 @@ apply-nexus:
 .PHONY: apply-nexus
 
 ## Configure Nexus service.
-### Not part of install-nexus because it is not idempotent yet.
 configure-nexus:
 	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus -ojsonpath={.spec.host}`
 	cd nexus && ./configure.sh --namespace ${NAMESPACE} --nexus=${NEXUS_URL}
 .PHONY: configure-nexus
+### Not part of install-nexus because it is not idempotent yet.
 
 
 # BACKUP
@@ -168,20 +167,22 @@ backup-sonarqube:
 .PHONY: backup-sonarqube
 
 
-# HELP
-# Based on https://gist.github.com/prwhite/8168133#gistcomment-2278355.
+### HELP
+### Based on https://gist.github.com/prwhite/8168133#gistcomment-2278355.
 help:
 	@echo ''
 	@echo 'Usage:'
 	@echo '  make <target>'
 	@echo ''
 	@echo 'Targets:'
-	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+	@awk '/^[a-zA-Z\-\_0-9]+:|^# .*/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
 			helpCommand = substr($$1, 0, index($$1, ":")-1); \
 			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
 			printf "  %-35s %s\n", helpCommand, helpMessage; \
+		} else { \
+			printf "\n"; \
 		} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
