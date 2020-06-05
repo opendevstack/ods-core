@@ -834,7 +834,7 @@ function create_configuration() {
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
 
     # JENKINS
-    sed -i "s|APP_DNS=.*$|APP_DNS=172.30.0.1|" ods-core.env
+    sed -i "s|APP_DNS=.*$|APP_DNS=${public_hostname}|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
 
@@ -888,11 +888,13 @@ function setup_nexus() {
     # -> jenkins-slave build pods cannot resolve OpenShift routes
     local nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
     local nexus_ip=$(oc -n ods get pod ${nexus_pod_name} -o jsonpath={.status.podIP})
-    local nexus_url_internal="http://"nexus-ods.${nexus_ip}.nip.io:${nexus_port}
+    local nexus_host_internal="nexus-ods.${nexus_ip}.nip.io:${nexus_port}"
+    local nexus_url_internal="http://${nexus_host_internal}"
     local nexus_route="https://nexus-ods.${public_hostname}.nip.io"
 
     pushd ../ods-configuration
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
+    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=${nexus_host_internal}"
     popd
 }
 
