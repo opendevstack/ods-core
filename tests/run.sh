@@ -69,6 +69,9 @@ while [[ "$#" -gt 0 ]]; do
   --rsync) rsync="yes"; shift;;
   --rsync=*) rsync="yes";;
 
+  --prepare-test) prepare_test="yes"; shift;;
+  --prepare-test=*) prepare_test="yes";;
+
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
@@ -118,6 +121,8 @@ if [ -z "${host}" ]; then
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
     aws ec2 wait instance-running --instance-ids $instance_id
     echo "Instance with ID=${instance_id} running"
+
+    prepare_test="yes"
   fi
 
   echo "Get IP address"
