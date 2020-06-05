@@ -19,7 +19,7 @@ function usage {
   printf "\t--verbose\t\tEnable verbose mode\n"
   printf "\t--host\t\tHost (bypasses launching a new instance)\n"
   printf "\t--instance-id\t\tInstance ID\n"
-  printf "\t--instance-type\t\tInstance Type(defaults to '%s')\n" "${az}"
+  printf "\t--instance-type\t\tInstance Type (defaults to '%s')\n" "${instance_type}"
   printf "\t--subnet-id\t\tSubnet ID (required if neither --instance-id nor --host are given)\n"
   printf "\t--security-group-id\t\tSecurity Group (required if neither --instance-id nor --host are given)\n"
   printf "\t--private-key\t\tPrivate key (*.pem)\n"
@@ -56,13 +56,13 @@ while [[ "$#" -gt 0 ]]; do
   --key-name) key_name="$2"; shift;;
   --key-name=*) key_name="${1#*=}";;
 
-  --availibility-zone) az="$2"; shift;;
-  --availibility-zone=*) az="${1#*=}";;
+  --availability-zone) az="$2"; shift;;
+  --availability-zone=*) az="${1#*=}";;
 
   --ami-id) ami_id="$2"; shift;;
   --ami-id=*) ami_id="${1#*=}";;
 
-  *) echo_error "Unknown parameter passed: $1"; exit 1;;
+  *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 if ! which aws &> /dev/null; then
