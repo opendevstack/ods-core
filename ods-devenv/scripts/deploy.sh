@@ -894,7 +894,7 @@ function setup_nexus() {
 
     pushd ../ods-configuration
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
-    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=${nexus_host_internal}"
+    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=${nexus_host_internal}|" ods-core.env
     popd
 }
 
