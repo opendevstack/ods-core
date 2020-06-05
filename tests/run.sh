@@ -2,6 +2,8 @@
 set -eu
 set -o pipefail
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 instance_type="t2.micro"
 key="private-key.pem"
 az="eu-west-1a"
@@ -11,6 +13,8 @@ subnet_id=""
 key_name=""
 instance_id=""
 security_group_id=""
+prepare_test=""
+rsync=""
 
 function usage {
   printf "Run tests in AWS.\n\n"
@@ -25,7 +29,7 @@ function usage {
   printf "\t--private-key\t\tPrivate key (*.pem)\n"
   printf "\t--key-name\t\tName of keypair (required if neither --instance-id nor --host are given)\n"
   printf "\t--availability-zone\t\tAZ (defaults to '%s')\n" "${az}"
-  printf "\t--ami-id\t\tAMI ID (required if neither --instance-id nor --host are given)\n"
+  printf "\t--ami-id\t\tAMI ID (defaults to latest ubuntu-xenial-16.04)\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -62,6 +66,9 @@ while [[ "$#" -gt 0 ]]; do
   --ami-id) ami_id="$2"; shift;;
   --ami-id=*) ami_id="${1#*=}";;
 
+  --rsync) rsync="yes"; shift;;
+  --rsync=*) rsync="yes";;
+
   *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
@@ -94,6 +101,12 @@ if [ -z "${host}" ]; then
       echo "ERROR: --key-name not given."
       exit 1
     fi
+    if [ -z "${ami_id}" ]; then
+      ami_id=$(aws ec2 describe-images \
+        --owners 099720109477 \
+        --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64*" "Name=root-device-type,Values=ebs" \
+        --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+    fi
     echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} in AZ/subnet=${az}/${subnet_id} with security_group=${security_group_id} ..."
     echo "Boot instance"
     instance_id=$(aws ec2 run-instances --image-id $ami_id \
@@ -110,6 +123,20 @@ if [ -z "${host}" ]; then
   echo "Get IP address"
   host=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
   echo "Instance has address=${host}"
+fi
+
+if [ -n "${prepare_test}" ]; then
+  scp -i $key install.sh ubuntu@$host:/home/ubuntu/install.sh
+  ssh -i $key ubuntu@$host 'bash -c "./install.sh"'
+
+  scp -i $key prepare-test.sh ubuntu@$host:/home/ubuntu/prepare-test.sh
+  ssh -i $key ubuntu@$host 'bash -c "./prepare-test.sh"'
+fi
+
+if [ -n "${rsync}" ]; then
+  cd ${SCRIPT_DIR}/..
+  rsync -e "ssh -i ${SCRIPT_DIR}/$key" -v --exclude .git/ -u --delete -a . ubuntu@$host:/home/ubuntu/ods-core
+  cd -
 fi
 
 echo "SSH into instance and run tests"
