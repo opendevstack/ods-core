@@ -135,7 +135,8 @@ echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
 BITBUCKET_HOST=172.17.0.1:8080
-REPO_BASE=http://${BITBUCKET_HOST}/scm
+BITBUCKET_URL=http://${BITBUCKET_HOST}
+REPO_BASE=${BITBUCKET_URL}/scm
 
 CD_USER_ID=cd_user
 CD_USER_ID_B64=$(echo -n "${CD_USER_ID}" | base64)
@@ -143,6 +144,7 @@ CD_USER_PWD=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64  | rev | cut
 CD_USER_PWD_B64=$(echo -n "${CD_USER_PWD}" | base64)
 
 echo "BITBUCKET_HOST=${BITBUCKET_HOST}" >> ${OUTPUT}
+echo "BITBUCKET_URL=${BITBUCKET_URL}" >> ${OUTPUT}
 echo "REPO_BASE=${REPO_BASE}" >> ${OUTPUT}
 echo "CD_USER_ID=${CD_USER_ID}" >> ${OUTPUT}
 echo "CD_USER_ID_B64=${CD_USER_ID_B64}" >> ${OUTPUT}

@@ -17,29 +17,33 @@ security_group_id=""
 prepare_test=""
 rsync=""
 wait=""
+strictHostKeyChecking="-oStrictHostKeyChecking=no"
 
 function usage {
   printf "Run tests in AWS.\n\n"
   printf "Usage:\n\n"
-  printf "\t--help\t\tPrint usage\n"
+  printf "\t--help\t\t\tPrint usage\n"
   printf "\t--verbose\t\tEnable verbose mode\n"
-  printf "\t--host\t\tHost (bypasses launching a new instance)\n"
-  printf "\t--instance-id\t\tInstance ID\n"
-  printf "\t--instance-type\t\tInstance Type (defaults to '%s')\n" "${instance_type}"
-  printf "\t--subnet-id\t\tSubnet ID (required if neither --instance-id nor --host are given)\n"
-  printf "\t--security-group-id\t\tSecurity Group (required if neither --instance-id nor --host are given)\n"
-  printf "\t--private-key\t\tPrivate key (*.pem)\n"
+  printf "\n"
+  printf "\t--host\t\t\tHost (bypasses launching a new instance)\n"
+  printf "\n"
+  printf "\t--instance-id\t\tInstance ID (bypasses creating a new instance)\n"
+  printf "\n"
+  printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
+  printf "\t--subnet-id\t\tSubnet ID of a subnet with public DNS (required if neither --instance-id nor --host are given)\n"
+  printf "\t--security-group-id\tSecurity Group with SSH access allowed (required if neither --instance-id nor --host are given)\n"
+  printf "\t--private-key\t\tPrivate key (*.pem, used if neither --instance-id nor --host are given)\n"
   printf "\t--key-name\t\tName of keypair (required if neither --instance-id nor --host are given)\n"
-  printf "\t--availability-zone\t\tAZ (defaults to '%s')\n" "${az}"
-  printf "\t--ami-id\t\tAMI ID (defaults to latest ubuntu-xenial-16.04)\n"
+  printf "\t--availability-zone\tAZ (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${az}"
+  printf "\t--ami-id\t\tAMI ID (defaults to latest ubuntu-xenial-16.04, used if neither --instance-id nor --host are given)\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 
-  --verbose) set -x;;
+  -v|--verbose) set -x;;
 
-  --help) usage; exit 0;;
+  -h|--help) usage; exit 0;;
 
   --instance-id) instance_id="$2"; shift;;
   --instance-id=*) instance_id="${1#*=}";;
@@ -134,26 +138,27 @@ if [ -z "${host}" ]; then
 fi
 
 if [ -n "${wait}" ]; then
-  echo "Wait for 20 seconds"
-  sleep 20
-fi
-
-
-if [ -n "${prepare_test}" ]; then
-  scp -i $key install.sh ubuntu@$host:/home/ubuntu/install.sh
-  ssh -i $key ubuntu@$host 'bash -c "./install.sh"'
-
-  scp -i $key prepare-test.sh ubuntu@$host:/home/ubuntu/prepare-test.sh
-  ssh -i $key ubuntu@$host 'bash -c "./prepare-test.sh"'
+  echo "Wait for 30 seconds"
+  sleep 30
 fi
 
 if [ -n "${rsync}" ]; then
+  echo "Using rsync to upload local folder to AWS"
   cd ${SCRIPT_DIR}/..
-  rsync -e "ssh -i ${SCRIPT_DIR}/$key" -v --exclude .git/ -u --delete -a . ubuntu@$host:/home/ubuntu/ods-core
+  rsync -e "ssh ${strictHostKeyChecking} -i ${SCRIPT_DIR}/$key" -v --exclude .git/ --exclude "*.pem" -u --delete -a . ubuntu@$host:/home/ubuntu/ods-core
   cd -
 fi
 
-echo "SSH into instance and run tests"
+if [ -n "${prepare_test}" ]; then
+  echo "Preparing tests in EC2 instance"
+  scp -i $key install.sh ubuntu@$host:/home/ubuntu/install.sh
+  ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./install.sh"'
+
+  scp -i $key prepare-test.sh ubuntu@$host:/home/ubuntu/prepare-test.sh
+  ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./prepare-test.sh"'
+fi
+
+echo "Running tests in EC2 instance"
 scp -i $key test.sh ubuntu@$host:/home/ubuntu/test.sh
-ssh -i $key ubuntu@$host 'bash -c "./test.sh"'
+ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./test.sh"'
 echo "Done"
