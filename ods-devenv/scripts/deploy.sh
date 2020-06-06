@@ -65,20 +65,23 @@ function display_usage() {
 #######################################
 function check_system_setup() {
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
-    if [[ -z $(grep vmx /proc/cpuinfo) ]]; then
+    if ! grep -q vmx /proc/cpuinfo
+    then
         echo "WARNING: The VM needs to be configured to enable hypervisor applications."
         echo "If you are on an AWS ECS instance you can ignore this warning."
     fi
 
-    echo "alias ll='ls -AFhl --color=auto'" >> ~/.bashrc
-    echo "alias dcip='docker inspect --format "{{.NetworkSettings.IPAddress}}"'" >> ~/.bashrc
-    echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'" >> ~/.bashrc
+{
+    echo "alias ll='ls -AFhl --color=auto'"
+    echo "alias dcip='docker inspect --format \"{{.NetworkSettings.IPAddress}}\"'"
+    echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
+} >> ~/.bashrc
 
     # suppress sudo timeout
     sudo sed -ie "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
 
     # remove obsolete version of git
-    if [[ ! -z $(command -v git) ]]; then sudo yum remove -y git*; fi
+    if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
@@ -220,7 +223,7 @@ function setup_openshift_cluster() {
     echo "Starting up oc cluster for the first time"
     # ip_address=192.168.188.96
     ip_address=172.17.0.1
-    oc cluster up --base-dir=${HOME}/openshift.local.clusterup --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address} --no-proxy=${ip_address}
+    oc cluster up --base-dir="${HOME}/openshift.local.clusterup" --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address} --no-proxy=${ip_address}
     oc login -u developer
     oc login -u system:admin
     oc projects
@@ -296,7 +299,7 @@ function prepare_atlassian_stack() {
     for data_file in bitbucket_data jira_data mysql_data
     do
         # cleaning up (stale) files and folders
-        rm -rf "/home/${USER}/${data_file}"
+        rm -rf "/home/${USER:?}/${data_file:?}"
         # download and expand archives
         tar xzf "${data_file}.tar.gz"
         rm "${data_file}.tar.gz"
@@ -323,7 +326,7 @@ function startup_atlassian_mysql() {
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-        -v /home/${USER}/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version} --default-storage-engine=INNODB \
+        -v "/home/${USER}/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \
@@ -332,7 +335,8 @@ function startup_atlassian_mysql() {
         --innodb-file-format=Barracuda \
         --innodb-log-file-size=2G \
         > jira_startup.log 2>&1 # reduce noise in log output from docker image download
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip
+    mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
 }
 
