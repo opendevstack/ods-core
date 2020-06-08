@@ -4,24 +4,22 @@ set -eu
 if [[ ! -z ${APP_DNS:=""} ]]; then
     echo "Setting up certificates from APP_DNS=${APP_DNS} ..."; \
 
-    oldIFS=$IFS
-    IFS=';'
     KEYSTORE="$JAVA_HOME/lib/security/cacerts"
 
-    for val in "${APP_DNS[@]}";
+    arrIN=(${APP_DNS//;/ })
+    for val in "${arrIN[@]}";
     do
-        IFS=':'
-        DNS=${val[0]}
-        PORT=${val[1]:=443}
+        dnsPortTuple=(${val//:/ })
+        DNS=${dnsPortTuple[0]}
+        PORT=${dnsPortTuple[1]:=443}
 
         echo "Importing DNS=$DNS PORT=$PORT"
         cert_bundle_path="/usr/local/share/ca-certificates/${DNS}.crt"
-        libressl s_client -showcerts -host ${DNS} -port ${PORT} </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${cert_bundle_path}
+        libressl s_client -showcerts -host ${DNS} -port ${PORT} </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > "${cert_bundle_path}"
         $JAVA_HOME/bin/keytool -import -noprompt -trustcacerts -file ${cert_bundle_path} -alias ${DNS} -keystore ${KEYSTORE} -storepass changeit
     done
     update-ca-certificates
     echo "Done with certificate setup"
-    IFS=$oldIFS
 else
     echo 'No certificates to import'
 fi
