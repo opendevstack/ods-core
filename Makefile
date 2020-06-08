@@ -80,7 +80,7 @@ install-provisioning-app: apply-provisioning-app-build import-provisioning-app-i
 
 ## Update OpenShift resources related to the Provisioning App image.
 apply-provisioning-app-build:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is, bc
 .PHONY: apply-provisioning-app-build
 
 ## Import Provisioning App image from DockerHub.

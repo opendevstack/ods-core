@@ -3,4 +3,4 @@ ignore-unknown-parameters true
 
 selector app=ods-doc-gen-svc
 
-is
+is,bc

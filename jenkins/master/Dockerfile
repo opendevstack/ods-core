@@ -2,8 +2,6 @@ FROM openshift/jenkins-2-centos7
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 
-ARG APP_DNS=192.168.99.100.nip.io
-
 # ODS defaults, available to use within pipelines.
 ARG ODS_NAMESPACE
 ARG ODS_GIT_REF
