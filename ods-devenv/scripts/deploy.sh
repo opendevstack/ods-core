@@ -64,6 +64,7 @@ function display_usage() {
 #   None
 #######################################
 function check_system_setup() {
+    mkdir -p "${HOME}/tmp"
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
     if ! grep -q vmx /proc/cpuinfo
     then
@@ -85,6 +86,8 @@ function check_system_setup() {
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
+    go get github.com/ericchiang/pup
+    mv "${HOME}/go/bin/pup" "${HOME}/bin/"
 
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
@@ -374,6 +377,47 @@ function startup_and_follow_bitbucket() {
 }
 
 #######################################
+# When BitBucket and Crowd both are up and running, this function can be used
+# to configure a BitBucket directory service against Crowd.
+# TODO make bitbucket user/pwd
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function configure_bitbucket2crowd() {
+    # login to bitbucket
+    curl 'http://172.17.0.1:28080/j_atl_security_check' \
+    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
+    --compressed \
+    --insecure -w '%{http_code}' -o /dev/null
+
+    # request crowd config form
+    local atl_token
+    atl_token=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/new/' \
+    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    --data 'newDirectoryType=CROWD&next=Next' \
+    --compressed \
+    --insecure -w '%{http_code}' --location --silent | pup 'input[name="atl_token"] attr{value}')
+
+    # send crowd config data
+    local crowd_ip
+    crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
+    echo "Assuming crowd service to listen at ${crowd_ip}:8098"
+    curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
+    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
+    --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
+    --compressed \
+    --insecure --location -w '%{http_code}' -o /dev/null
+}
+
+#######################################
 # Start up a containerized Jira instance, connecting against a database
 # provided by atlassian_mysql_container_name
 # Globals:
@@ -651,7 +695,8 @@ function startup_atlassian_bitbucket() {
         atlassian/bitbucket-server:${atlassian_bitbucket_version} \
         > jira_startup.log 2>&1 # reduce noise in log output from docker image download
 
-    local bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
+    local bitbucket_ip
+    bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
@@ -673,9 +718,10 @@ function startup_atlassian_bitbucket() {
 #   None
 #######################################
 function initialize_atlassian_bitbucketdb() {
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip
+    mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Setting up bitbucket database on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h "${mysql_ip}" -u root -p -e \
         "create database ${atlassian_bitbucket_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on bitbucketdb.* TO 'bitbucket_user'@'%' IDENTIFIED BY 'bitbucket_password'; \
         flush privileges;"
@@ -707,7 +753,7 @@ function create_empty_ods_repositories() {
     # list in ods-core/ods-setup/repos.sh.
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
         echo "Creating repository ${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
-        curl -X POST --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos \
+        curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos" \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
     done
@@ -726,7 +772,7 @@ function create_empty_ods_repositories() {
 function delete_ods_repositories() {
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
         echo "Deleting repository opendevstack/${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
-        curl -X DELETE --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}
+        curl -X DELETE --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}"
     done
 }
 
@@ -749,7 +795,7 @@ function initialise_ods_repositories() {
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
     ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --verbose
-    ./repos.sh --sync --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
+    ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
     popd
 }
 
@@ -782,7 +828,7 @@ function inspect_crowd_ip() {
 function create_configuration() {
     echo "create configuration"
     pwd
-    ods-setup/config.sh --verbose --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}
+    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}"
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
@@ -802,7 +848,7 @@ function create_configuration() {
     fi
 
     if ! git remote | grep origin; then
-        git remote add origin http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git
+        git remote add origin "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git"
     fi
     git add -- .
     git commit -m "initial commit"
@@ -878,11 +924,13 @@ function setup_nexus() {
 
     echo "make configure-nexus:"
     pushd nexus
-    local nexus_url="https://$(oc -n ods get route nexus -ojsonpath={.spec.host})"
-    local nexus_port=$(oc -n ods get route nexus -ojsonpath={.spec.port.targetPort})
+    local nexus_url
+    nexus_url="https://$(oc -n ods get route nexus -ojsonpath='{.spec.host}')"
+    local nexus_port
+    nexus_port=$(oc -n ods get route nexus -ojsonpath='{.spec.port.targetPort}')
     nexus_port=${nexus_port%-*} # truncate -tcp from 8081-tcp
 
-    ./configure.sh --namespace ods --nexus=${nexus_url} --insecure --verbose --admin-password openshift
+    ./configure.sh --namespace ods --nexus="${nexus_url}" --insecure --verbose --admin-password openshift
     popd
 
     # TODO nexus route workaround nexus_url_internal can be switched back to
@@ -890,11 +938,16 @@ function setup_nexus() {
     # - nexus_route can be resolved within OpenShift network (done)
     # - nexus ssl certificate gets accepted by all clients (e.g. scala) (open)
     # -> jenkins-slave build pods cannot resolve OpenShift routes
-    local nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
-    local nexus_ip=$(oc -n ods get pod ${nexus_pod_name} -o jsonpath={.status.podIP})
-    local nexus_host_internal="nexus-ods.${nexus_ip}.nip.io:${nexus_port}"
-    local nexus_url_internal="http://${nexus_host_internal}"
-    local nexus_route="https://nexus-ods.${public_hostname}.nip.io"
+    local nexus_pod_name
+    nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
+    local nexus_ip
+    nexus_ip=$(oc -n ods get pod "${nexus_pod_name}" -o jsonpath='{.status.podIP}')
+    local nexus_host_internal
+    nexus_host_internal="nexus-ods.${nexus_ip}.nip.io:${nexus_port}"
+    local nexus_url_internal
+    nexus_url_internal="http://${nexus_host_internal}"
+    # local nexus_route
+    # nexus_route="https://nexus-ods.${public_hostname}.nip.io"
 
     pushd ../ods-configuration
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
@@ -925,7 +978,8 @@ function setup_sonarqube() {
     echo "apply-sonarqube-deploy:"
     pushd sonarqube/ocp-config
     tailor apply --namespace ${NAMESPACE} --exclude bc,is --non-interactive --verbose
-    local sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube -ojsonpath={.spec.host})
+    local sonarqube_url
+    sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube -ojsonpath='{.spec.host}')
     echo "Visit ${sonarqube_url}/setup to see if any update actions need to be taken."
     popd
 
@@ -1146,6 +1200,7 @@ function basic_vm_setup() {
     startup_atlassian_jira &
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
+    configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
     initialise_ods_repositories
