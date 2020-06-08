@@ -3,6 +3,7 @@ set -ue
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
+ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
@@ -74,10 +75,10 @@ if ! which jq >/dev/null; then
 fi
 
 if [ -z "${SONARQUBE_URL}" ]; then
-    configuredUrl="https://example.sonarqube.com"
-    if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
+    configuredUrl="https://sonarqube.example.com"
+    if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
         echo_info "Configuration located"
-        configuredUrl=$(grep SONARQUBE_URL "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2-)
+        configuredUrl=$(grep SONARQUBE_URL "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-)
     fi
     read -r -e -p "Enter SonarQube URL [${configuredUrl}]: " input
     if [ -z "${input}" ]; then
@@ -88,10 +89,10 @@ if [ -z "${SONARQUBE_URL}" ]; then
 fi
 
 if [ -z "${ADMIN_USER_PASSWORD}" ]; then
-    if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
+    if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
         echo_info "Configuration located, checking if password is changed from sample value"
         samplePassword=$(grep SONAR_ADMIN_PASSWORD_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
-        configuredPassword=$(grep SONAR_ADMIN_PASSWORD_B64 "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
+        configuredPassword=$(grep SONAR_ADMIN_PASSWORD_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
         if [ "${configuredPassword}" == "${samplePassword}" ]; then
             echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
         else
