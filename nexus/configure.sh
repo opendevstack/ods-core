@@ -28,7 +28,7 @@ NEXUS_URL=
 LOCAL_CONTAINER_ID=
 NAMESPACE="ods"
 NEXUS_DC="nexus"
-INSECURE=
+INSECURE=""
 
 function usage {
     printf "Setup Nexus.\n\n"
@@ -36,11 +36,13 @@ function usage {
     printf "However, you can also pass them directly. Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-n|--nexus\t\tNexus URL, e.g. 'https://nexus.example.com'\n"
+    printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
+    printf "\n"
+    printf "\t-n|--nexus\t\t\tNexus URL, e.g. 'https://nexus.example.com'\n"
     printf "\t-l|--local-container-id\t\tLocal container ID\n"
     printf "\t-a|--admin-password\t\tAdmin password\n"
     printf "\t-d|--developer-password\t\tDeveloper password\n"
-    printf "\t-n|--namespace\tNamespace (defaults to '%s')\n" "${NAMESPACE}"
+    printf "\t-n|--namespace\t\t\tNamespace (defaults to '%s')\n" "${NAMESPACE}"
 }
 
 while [[ "$#" -gt 0 ]]; do
