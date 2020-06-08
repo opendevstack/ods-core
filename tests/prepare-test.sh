@@ -2,8 +2,6 @@
 set -eux
 set -o pipefail
 
-source ~/.bashrc
-
 oc cluster up \
     --base-dir=${HOME}/openshift.local.clusterup \
     --routing-suffix 172.17.0.1.nip.io \

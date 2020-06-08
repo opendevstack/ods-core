@@ -15,7 +15,8 @@ if [ ${URL} != "https://172.17.0.1:8443" ]; then
 fi
 
 if ! oc get clusterroles | grep request_role; then
-  oc create -f ${BASH_SOURCE%/*}/json/create-cluster-role.json
+    echo "Creating cluster role as defined in json/create-cluster-role.json"
+    oc create -f ${BASH_SOURCE%/*}/json/create-cluster-role.json
 fi
 
 # Init configuration

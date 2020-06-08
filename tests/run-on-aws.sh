@@ -5,13 +5,12 @@ set -o pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 instance_type="t2.micro"
-key="private-key.pem"
 az="eu-west-1a"
 volume_size="32"
 ami_id=""
 host=""
 subnet_id=""
-key_name=""
+keypair=""
 instance_id=""
 security_group_id=""
 prepare_test=""
@@ -25,6 +24,8 @@ function usage {
   printf "\t--help\t\t\tPrint usage\n"
   printf "\t--verbose\t\tEnable verbose mode\n"
   printf "\n"
+  printf "\t--keypair\t\tName of keypair (required)\n"
+  printf "\n"
   printf "\t--host\t\t\tHost (bypasses launching a new instance)\n"
   printf "\n"
   printf "\t--instance-id\t\tInstance ID (bypasses creating a new instance)\n"
@@ -32,8 +33,6 @@ function usage {
   printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
   printf "\t--subnet-id\t\tSubnet ID of a subnet with public DNS (required if neither --instance-id nor --host are given)\n"
   printf "\t--security-group-id\tSecurity Group with SSH access allowed (required if neither --instance-id nor --host are given)\n"
-  printf "\t--private-key\t\tPrivate key (*.pem, used if neither --instance-id nor --host are given)\n"
-  printf "\t--key-name\t\tName of keypair (required if neither --instance-id nor --host are given)\n"
   printf "\t--availability-zone\tAZ (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${az}"
   printf "\t--ami-id\t\tAMI ID (defaults to latest ubuntu-xenial-16.04, used if neither --instance-id nor --host are given)\n"
 }
@@ -60,11 +59,8 @@ while [[ "$#" -gt 0 ]]; do
   --host) host="$2"; shift;;
   --host=*) host="${1#*=}";;
 
-  --private-key) key="$2"; shift;;
-  --private-key=*) key="${1#*=}";;
-
-  --key-name) key_name="$2"; shift;;
-  --key-name=*) key_name="${1#*=}";;
+  --keypair) keypair="$2"; shift;;
+  --keypair=*) keypair="${1#*=}";;
 
   --availability-zone) az="$2"; shift;;
   --availability-zone=*) az="${1#*=}";;
@@ -89,8 +85,13 @@ if ! which jq &> /dev/null; then
   exit 1
 fi
 
-if [ ! -f "$key" ]; then
-  echo "ERROR: Keypair file $key does not exist."
+if [  -z "$keypair" ]; then
+  echo "ERROR: --keypair is required."
+  exit 1
+fi
+keyfile="${keypair}.pem"
+if [ ! -f "$keyfile" ]; then
+  echo "ERROR: Keypair file $keyfile does not exist."
   exit 1
 fi
 
@@ -104,7 +105,7 @@ if [ -z "${host}" ]; then
       echo "ERROR: --security-group-id not given."
       exit 1
     fi
-    if [ -z "${key_name}" ]; then
+    if [ -z "${keypair}" ]; then
       echo "ERROR: --key-name not given."
       exit 1
     fi
@@ -119,7 +120,7 @@ if [ -z "${host}" ]; then
     instance_id=$(aws ec2 run-instances --image-id $ami_id \
     --count 1 \
     --instance-type ${instance_type} \
-    --key-name ${key_name} \
+    --key-name ${keypair} \
     --security-group-ids $security_group_id \
     --block-device-mappings "[{ \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": ${volume_size} } }]" \
     --subnet-id ${subnet_id} | jq -r '.Instances[0].InstanceId')
@@ -145,20 +146,24 @@ fi
 if [ -n "${rsync}" ]; then
   echo "Using rsync to upload local folder to AWS"
   cd ${SCRIPT_DIR}/..
-  rsync -e "ssh ${strictHostKeyChecking} -i ${SCRIPT_DIR}/$key" -v --exclude .git/ --exclude "*.pem" -u --delete -a . ubuntu@$host:/home/ubuntu/ods-core
+  rsync --rsh "ssh ${strictHostKeyChecking} -i ${SCRIPT_DIR}/$keyfile" -v \
+    --exclude .git/ --exclude docs/ --exclude infrastructure-setup/ --exclude "*.pem" \
+    --update --delete --archive . ubuntu@$host:/home/ubuntu/ods-core
   cd -
 fi
 
 if [ -n "${prepare_test}" ]; then
   echo "Preparing tests in EC2 instance"
-  scp -i $key install.sh ubuntu@$host:/home/ubuntu/install.sh
-  ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./install.sh"'
+  if [ -z "${rsync}" ]; then
+    scp -i $keyfile install.sh ubuntu@$host:/home/ubuntu/install.sh
+    ssh ${strictHostKeyChecking} -i $keyfile ubuntu@$host -- "./install.sh"
+  else
+    ssh ${strictHostKeyChecking} -i $keyfile ubuntu@$host -- "ods-core/tests/install.sh"
+  fi
 
-  scp -i $key prepare-test.sh ubuntu@$host:/home/ubuntu/prepare-test.sh
-  ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./prepare-test.sh"'
+  ssh ${strictHostKeyChecking} -i $keyfile ubuntu@$host -- "source /etc/profile; ods-core/tests/prepare-test.sh"
 fi
 
 echo "Running tests in EC2 instance"
-scp -i $key test.sh ubuntu@$host:/home/ubuntu/test.sh
-ssh ${strictHostKeyChecking} -i $key ubuntu@$host 'bash -c "./test.sh"'
+ssh ${strictHostKeyChecking} -i $keyfile ubuntu@$host -- "source /etc/profile; ods-core/tests/test.sh"
 echo "Done"

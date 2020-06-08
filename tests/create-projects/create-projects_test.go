@@ -16,7 +16,9 @@ func TestCreateProject(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{}, []string{utils.PROJECT_ENV_VAR})
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{
+		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
+	}, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
@@ -119,5 +121,5 @@ func CheckProjectSetup(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	fmt.Printf("WARNING: Seeding special and default permission groups is not tested yet!")
+	fmt.Println("WARNING: Seeding special and default permission groups is not tested yet!")
 }

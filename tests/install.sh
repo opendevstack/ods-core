@@ -24,10 +24,10 @@ sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 rm -f *.tar.gz
 cd -
 sudo mkdir -p /go
-echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
-echo "export GOBIN=/usr/local/bin" >> ~/.bashrc
-source ~/.bashrc
-/usr/local/go/bin/go version
+echo "export PATH=$PATH:/usr/local/go/bin" | sudo tee -a /etc/profile
+echo "export GOBIN=/usr/local/bin" | sudo tee -a /etc/profile
+source /etc/profile
+go version
 
 # JQ
 sudo apt-get install -y jq

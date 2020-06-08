@@ -43,7 +43,7 @@ echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "#####       NEXUS       #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
-NEXUS_HOST="nexus-cd.${SUBDOMAIN}"
+NEXUS_HOST="nexus-ods.${SUBDOMAIN}"
 NEXUS_URL="https://${NEXUS_HOST}"
 NEXUS_USERNAME=developer
 NEXUS_PASSWORD=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64  | rev | cut -b 2- | rev | tr -cd '[:alnum:]')
@@ -63,7 +63,7 @@ echo "#####     SonarQube     #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
-SONARQUBE_HOST="sonarqube-cd.${SUBDOMAIN}"
+SONARQUBE_HOST="sonarqube-ods.${SUBDOMAIN}"
 
 # SonarQube URL exposed by the SonarQube route
 SONARQUBE_URL="https://${SONARQUBE_HOST}"
