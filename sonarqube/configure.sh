@@ -28,7 +28,7 @@ PIPELINE_USER_NAME="cd_user"
 PIPELINE_USER_PWD=""
 TOKEN_NAME="ods-jenkins-shared-library"
 SONARQUBE_URL=
-INSECURE=
+INSECURE=""
 
 function usage {
     printf "Setup SonarQube.\n\n"
@@ -36,8 +36,10 @@ function usage {
     printf "However, you can also pass them directly. Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
+    printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
+    printf "\n"
     printf "\t-s|--sonarqube\t\tSonarQube URL, e.g. 'https://sonarqube.example.com'\n"
-    printf "\t-a|--admin-password\t\tAdmin password\n"
+    printf "\t-a|--admin-password\tAdmin password\n"
     printf "\t-p|--pipeline-user\tName of Jenkins pipeline user (defaults to 'cd_user')\n"
     printf "\t-t|--token-name\t\tName of SonarQube user token (defaults to 'ods-jenkins-shared-library')\n"
 }
