@@ -8,7 +8,7 @@ NOTE: From now on we assume, you work from a Bash (Cygwin / Linux).
 
 In order to run the Atlassian suite and OpenShift, your host must have:
 
-- At least 16GB RAM
+- At least 16GB RAM and 32GB of available disk space
 - `vm.max_map_count=262144` to run SonarQube (which can be set via `sudo sysctl -w vm.max_map_count=262144`)
 - A recent Git version (>= 2.7.0)
 
@@ -99,18 +99,23 @@ TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repoisitories
 
-Ensure that there is an `OPENDEVSTACK` project in Bitbucket and that there is a corresponding OpenDevStack repository for each ODS repository that you have locally. In the next step, they will be filled / updated with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift.
+On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary repositories such as `ods-core`. To set them up, use:
 
-In `ods-core` run:
+[source,sh]
+----
+make prepare-bitbucket-repos
+----
+
+Then, update them with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift:
 [source,sh]
 ----
 make sync-repos
 ----
 
-Next, in `ods-configuration` run:
+You also need to update `ods-configuration`, which can be done via:
 [source,sh]
 ----
-git push origin master
+git push -u origin master
 ----
 
 == OpenDevStack environment in OpenShift
