@@ -329,7 +329,7 @@ function startup_atlassian_mysql() {
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-        -v "/home/${USER}/mysql_data:/var/lib/mysql mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
+        -v "/home/${USER}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \
