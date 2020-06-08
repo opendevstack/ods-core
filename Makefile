@@ -9,10 +9,15 @@ NEXUS_URL=
 SONARQUBE_URL=
 
 # REPOSITORIES
+## Prepare Bitbucket repos (create project and repos).
+prepare-bitbucket-repos:
+	cd ods-setup && ./bitbucket.sh
+.PHONY: prepare-bitbucket-repos
+
 ## Prepare local repos (fetch changes from Bitbucket).
-prepare-repos:
+prepare-local-repos:
 	cd ods-setup && ./repos.sh --confirm
-.PHONY: prepare-repos
+.PHONY: prepare-local-repos
 
 ## Sync repos (fetch changes from GitHub, and synchronize with Bitbucket).
 sync-repos:
