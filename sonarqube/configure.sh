@@ -67,11 +67,8 @@ while [[ "$#" -gt 0 ]]; do
 esac; shift; done
 
 if ! which jq >/dev/null; then
-    echo_warn "Binary 'jq' (https://stedolan.github.io/jq/) is not in your PATH. This will make the script less comfortable to use."
-    read -r -e -p "Continue anyway? [y/n] " input
-    if [ "${input:-""}" != "y" ]; then
-        exit 1
-    fi
+    echo_error "'jq' (https://stedolan.github.io/jq/) is not in your \$PATH."
+    exit 1
 fi
 
 if [ -z "${SONARQUBE_URL}" ]; then
@@ -182,14 +179,10 @@ else
         "${SONARQUBE_URL}/api/user_tokens/generate?login=${PIPELINE_USER_NAME}&name=${TOKEN_NAME}")
     # Example response:
     # {"login":"cd_user","name":"foo","token":"bar","createdAt":"2020-04-22T13:21:54+0000"}
-    if which jq >/dev/null; then
-        token=$(echo "${tokenResponse}" | jq -r .token)
-        echo_info "Created token: ${token}"
-        base64Token=$(echo -n "${token}" | base64)
-        echo_info "Base64-encoded token to use for 'SONAR_AUTH_TOKEN_B64': ${base64Token}"
-    else
-        echo_info "Created token! Response: ${tokenResponse}"
-    fi
+    token=$(echo "${tokenResponse}" | jq -r .token)
+    echo_info "Created token: ${token}"
+    base64Token=$(echo -n "${token}" | base64)
+    echo_info "Base64-encoded token to use for 'SONAR_AUTH_TOKEN_B64': ${base64Token}"
 fi
 
 echo "If configuration needs to be updated, please add the base64 encoded token and the admin password into ods-core.env."
