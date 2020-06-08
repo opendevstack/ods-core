@@ -1,8 +1,5 @@
 * Administration
 ** xref:administration:installation.adoc[Installation]
-*** xref:administration:local-install-requirements.adoc[Local Installation Requirements]
-*** xref:administration:install-guide.adoc[Local Installation (outdated)]
-*** xref:administration:infrastructure-setup.adoc[Infrastructure Setup (outdated)]
 ** xref:administration:update.adoc[Upgrade]
 ** xref:provisioning-app:configuration.adoc[Provisioning App]
 ** xref:administration:keycloak.adoc[Keycloak]
