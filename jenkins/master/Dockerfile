@@ -8,13 +8,10 @@ ARG APP_DNS=192.168.99.100.nip.io
 ARG ODS_NAMESPACE
 ARG ODS_GIT_REF
 ARG ODS_IMAGE_TAG
+ARG APP_DNS
 
 USER root
-RUN yum -y install openssl gnutls-utils \
-    && yum clean all  \
-    && rm -rf /var/cache/yum/*
 
-# Fetch certificates and store them in tmp directory.
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 RUN import_certs.sh
 
@@ -27,7 +24,7 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run /usr/libexec/s2i/ods-run
 
-RUN chmod g+w $JAVA_HOME/lib/security/cacerts
+RUN chmod g+w $JAVA_HOME/lib/security/
 
 USER jenkins
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"

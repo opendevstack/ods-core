@@ -10,11 +10,9 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     OSTREE_VERSION=2018.5-1
 
 ARG APP_DNS
-ARG APP_DNS_PORT=443
 ARG SNYK_DISTRIBUTION_URL
 
 RUN yum -y install \
-    gnutls-utils \
     openssl \
     && yum clean all \
     && rm -rf /var/cache/yum/*
@@ -25,17 +23,8 @@ RUN yum -y install java-1.8.0-openjdk-devel.x86_64 \
     && yum clean all \
     && rm -rf /var/cache/yum/*
 
-# Fetch certificates and store them in tmp directory.
-RUN if [ -z $APP_DNS ]; then echo 'Skipping custom certificate!'; else \
-    echo "Setting up custom certificate from ${APP_DNS} ..."; \
-    gnutls-cli --insecure --print-cert ${APP_DNS} -p ${APP_DNS_PORT} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/oc_app.crt; \
-    cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.trust.crt; \
-    cat /tmp/oc_app.crt >> /etc/ssl/certs/ca-bundle.crt; \
-    echo $JAVA_HOME; \
-    cat /tmp/oc_app.crt; \
-    $JAVA_HOME/bin/keytool -storepasswd -new mysecretpassword -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
-    $JAVA_HOME/bin/keytool -import -trustcacerts -file /tmp/oc_app.crt -alias oc_app -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass mysecretpassword; \
-    fi
+COPY ./import_certs.sh /usr/local/bin/import_certs.sh
+RUN import_certs.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \

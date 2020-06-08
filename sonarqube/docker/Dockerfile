@@ -2,7 +2,7 @@ FROM adoptopenjdk/openjdk11:alpine-jre
 
 ARG sonarDistributionUrl
 ARG sonarVersion
-ARG idpDns
+ARG APP_DNS
 
 ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
@@ -18,7 +18,6 @@ RUN adduser -S -G root sonarqube
 RUN set -x \
     && apk update \
     && apk add --no-cache ca-certificates \
-    && apk add --no-cache gnutls-utils \
     && apk add --no-cache gnupg unzip \
     && apk add --no-cache libressl wget \
     && apk add --no-cache su-exec \
@@ -35,14 +34,8 @@ RUN set -x \
     && mkdir -p /opt/configuration/sonarqube \
     && chown -R sonarqube:root /opt/configuration/sonarqube
 
-# fetch certificates and store them in tmp directory
-RUN if [ -z $idpDns ]; then echo 'Skipping custom certificate!'; else \
-    echo "Setting up custom certificate from ${idpDns} ..."; \
-    gnutls-cli --insecure --print-cert ${idpDns} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/idp.crt; \
-    cat /tmp/idp.crt|awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {print > "/usr/local/share/ca-certificates/mycert" n ".crt"}'; \
-    update-ca-certificates; \
-    keytool -importcert -keypass changeit -file /tmp/idp.crt -keystore $JAVA_HOME/lib/security/cacerts -noprompt -storepass changeit; \
-    fi
+COPY ./import_certs.sh /usr/local/bin/import_certs.sh
+RUN import_certs.sh   
 
 VOLUME "$SONARQUBE_HOME/data"
 

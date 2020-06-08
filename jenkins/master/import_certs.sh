@@ -1,20 +1,27 @@
-#!/bin/sh
+#!/bin/bash
+set -eu
 
-oldIFS=$IFS
-IFS=';'
-KEYSTORE="$JAVA_HOME/lib/security/cacerts"
+if [[ ! -z ${APP_DNS:=""} ]]; then
+    echo "Setting up certificates from APP_DNS=${APP_DNS} ..."; \
 
-: "${APP_DNS_PORT:=443}"
+    oldIFS=$IFS
+    IFS=';'
+    KEYSTORE="$JAVA_HOME/lib/security/cacerts"
 
-if [ "${TARGET_HOSTS}x" == "x" ] ; then
-    TARGET_HOSTS=${APP_DNS}
+    for val in "${APP_DNS[@]}";
+    do
+        IFS=':'
+        DNS=${val[0]}
+        PORT=${val[1]:=443}
+
+        echo "Importing DNS=$DNS PORT=$PORT"
+        cert_bundle_path="/etc/pki/ca-trust/source/anchors/${DNS}.pem"
+        openssl s_client -showcerts -host ${DNS} -port ${PORT} </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${cert_bundle_path}
+        $JAVA_HOME/bin/keytool -import -noprompt -trustcacerts -file ${cert_bundle_path} -alias ${DNS} -keystore ${KEYSTORE} -storepass changeit
+    done
+    update-ca-trust
+    echo "Done with certificate setup"
+    IFS=$oldIFS
+else
+    echo 'No certificates to import'
 fi
-
-echo "KEYSTORE=${KEYSTORE}"
-for dns in $TARGET_HOSTS; do
-    cert_bundle_path="/etc/pki/ca-trust/source/anchors/${dns}.pem"
-    gnutls-cli --insecure --print-cert ${dns} -p ${APP_DNS_PORT} </dev/null| sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | tee ${cert_bundle_path}    
-    $JAVA_HOME/bin/keytool -import -noprompt -trustcacerts -file ${cert_bundle_path} -alias ${dns} -keystore ${KEYSTORE} -storepass changeit || true
-done
-update-ca-trust
-IFS=$oldIFS
