@@ -409,12 +409,22 @@ function configure_bitbucket2crowd() {
     local crowd_ip
     crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
     echo "Assuming crowd service to listen at ${crowd_ip}:8098"
-    curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
-    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
-    --compressed \
-    --insecure --location -w '%{http_code}' -o /dev/null
+    local crowd_directory_id
+    crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
+        -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F172.17.0.9%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
+        --compressed \
+        --insecure --location \
+        | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
+        | tr -d "[:space:]")
+
+    # sync bitbucket with crowd directory
+    curl "http://172.17.0.1:28080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+        -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        --compressed \
+        --insecure
 }
 
 #######################################
