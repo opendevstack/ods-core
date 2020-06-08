@@ -8,7 +8,7 @@
 
 set -e
 
-script_names=(clone-project.sh export-project.sh export-project.sh)
+script_names=(clone-project.sh export-project.sh import-project.sh)
 
 for name in "${script_names[@]}"; do
     script_name="ocp-scripts/$name"
