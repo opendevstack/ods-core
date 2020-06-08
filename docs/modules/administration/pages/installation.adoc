@@ -10,7 +10,8 @@ In order to run the Atlassian suite and OpenShift, your host must have:
 
 - At least 16GB RAM and 32GB of available disk space
 - `vm.max_map_count=262144` to run SonarQube (which can be set via `sudo sysctl -w vm.max_map_count=262144`)
-- A recent Git version (>= 2.7.0)
+- A recent `git` version (>= 2.7.0)
+- A recent `jq` version (>= 1.5, see https://stedolan.github.io/jq/)
 
 == Local Setup
 

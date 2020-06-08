@@ -68,7 +68,7 @@ echo "Wait for SonarQube to become healthy"
 set +e
 n=0
 until [ $n -ge 20 ]; do
-    health=$(curl --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
+    health=$(curl -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
         "${SONARQUBE_URL}/api/system/health" | jq -r .health)
     if [ "${health}" == "GREEN" ]; then
         echo "SonarQube is up"
@@ -82,7 +82,7 @@ done
 set -e
 
 echo "Create fake cd_user"
-curl -X POST --silent --fail --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
+curl -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
     "${SONARQUBE_URL}/api/users/create?login=${PIPELINE_USER_NAME}&name=${PIPELINE_USER_NAME}&local=true&password=${PIPELINE_USER_PWD}" > /dev/null
 
 echo "Run ./configure.sh"
@@ -92,7 +92,7 @@ echo "Run ./configure.sh"
     --sonarqube=${SONARQUBE_URL}
 
 echo "Check if login with default password is possible"
-if curl -X POST --silent --fail \
+if curl -X POST -sSf \
     "${SONARQUBE_URL}/api/authentication/login?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
     echo "Default password for '${ADMIN_USER_NAME}' has not been changed"
     exit 1
@@ -102,8 +102,7 @@ echo "Check if unauthenticated access is possible"
 # Ideally we'd check a page that needs privileged access, but that always
 # returns a loading page with status code 200. Therefore, we have to check for
 # the value of the setting.
-forceAuthentication=$(curl \
-    --silent \
+forceAuthentication=$(curl -sS \
     --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
     "${SONARQUBE_URL}/api/settings/values?keys=sonar.forceAuthentication" | jq -r ".settings[0].value")
 if [ "${forceAuthentication}" != "true" ]; then
@@ -125,9 +124,7 @@ expectedPlugins=( "crowd:2.1.3"
                   "php:3.3.0.5166"
                   "groovy:1.6" )
 
-actualPlugins=$(curl \
-    --fail \
-    --silent \
+actualPlugins=$(curl -sSf \
     --user ${ADMIN_USER_NAME}:${ADMIN_USER_PWD} \
     "${SONARQUBE_URL}/api/system/info" | jq '.Statistics.plugins')
 
