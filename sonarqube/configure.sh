@@ -111,7 +111,7 @@ set +e
 n=0
 httpOk=
 until [ $n -ge 20 ]; do
-    httpOk=$(curl ${INSECURE} --silent -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
+    httpOk=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
     if [ "${httpOk}" == "200" ]; then
         echo_info "SonarQube is up"
         break
@@ -129,10 +129,10 @@ if [ "${httpOk}" != "200" ]; then
 fi
 
 echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_DEFAULT_PASSWORD}'"
-if curl ${INSECURE} -X POST --fail --silent \
+if curl ${INSECURE} -X POST -sSf \
     "${SONARQUBE_URL}/api/authentication/login?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
     echo_info "Default password '${ADMIN_USER_DEFAULT_PASSWORD}' is used, updating it now."
-    if ! curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_NAME}" \
+    if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_NAME}" \
         "${SONARQUBE_URL}/api/users/change_password?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_PASSWORD}&previousPassword=${ADMIN_USER_DEFAULT_PASSWORD}"; then
         echo_error "Could not change default password of '${ADMIN_USER_NAME}'."
         exit 1
@@ -145,7 +145,7 @@ else
 fi
 
 echo_info "Setting sonar.forceAuthentication=true"
-if ! curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/settings/set?key=sonar.forceAuthentication&value=true"; then
     echo_error "Could not enable sonar.forceAuthentication."
     exit 1
@@ -153,7 +153,7 @@ fi
 echo_info "sonar.forceAuthentication is enabled"
 
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists"
-if curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+if curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/users/search?q=${PIPELINE_USER_NAME}" | grep '"users":\[\]' >/dev/null; then
     echo_info "No user '${PIPELINE_USER_NAME}' present yet."
     if [ -z "${PIPELINE_USER_PWD}" ]; then
@@ -162,7 +162,7 @@ if curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_U
         PIPELINE_USER_PWD=${input:-""}
     fi
     echo_info "Trying to login in with '${PIPELINE_USER_NAME}'"
-    if ! curl ${INSECURE} -X POST --fail --silent \
+    if ! curl ${INSECURE} -X POST -sSf \
         "${SONARQUBE_URL}/api/authentication/login?login=${PIPELINE_USER_NAME}&password=${PIPELINE_USER_PWD}"; then
         echo_error "Could not login with '${PIPELINE_USER_NAME}'."
         exit 1
@@ -172,12 +172,12 @@ fi
 echo_info "User '${PIPELINE_USER_NAME}' exists in SonarQube"
 
 echo_info "Checking if there are already tokens for '${PIPELINE_USER_NAME}'"
-if ! curl ${INSECURE} --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+if ! curl ${INSECURE} -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
     "${SONARQUBE_URL}/api/user_tokens/search?login=${PIPELINE_USER_NAME}" | grep '"userTokens":\[\]' >/dev/null; then
     echo_info "There are already token(s) for '${PIPELINE_USER_NAME}'."
 else
     echo_info "Creating token for '${PIPELINE_USER_NAME}'."
-    tokenResponse=$(curl ${INSECURE} -X POST --fail --silent --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+    tokenResponse=$(curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
         "${SONARQUBE_URL}/api/user_tokens/generate?login=${PIPELINE_USER_NAME}&name=${TOKEN_NAME}")
     # Example response:
     # {"login":"cd_user","name":"foo","token":"bar","createdAt":"2020-04-22T13:21:54+0000"}

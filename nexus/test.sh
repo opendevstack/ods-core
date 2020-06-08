@@ -56,9 +56,7 @@ expectedBlobstores=( "candidates"
                      "pypi-private"
                      "leva-documentation" )
 
-actualBlobstores=$(curl \
-    --fail \
-    --silent \
+actualBlobstores=$(curl -sSf \
     --user "${ADMIN_USER_NAME}:${ADMIN_USER_PWD}" \
     ${NEXUS_URL}/service/rest/beta/blobstores)
 
@@ -89,9 +87,7 @@ expectedRepos=( "candidates:hosted"
                 "pypi-all:group"
                 "leva-documentation:hosted")
 
-actualRepos=$(curl \
-    --fail \
-    --silent \
+actualRepos=$(curl -sSf \
     --user "${ADMIN_USER_NAME}:${ADMIN_USER_PWD}" \
     ${NEXUS_URL}/service/rest/v1/repositories)
 
@@ -113,7 +109,7 @@ for repo in "${expectedRepos[@]}"; do
 done
 
 echo "Check if anonymous access is still possible"
-if curl --fail --silent \
+if curl -sSf \
     ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length > 0" > /dev/null; then
     echo "Anonymous access still possible"
     exit 1
@@ -122,7 +118,7 @@ else
 fi
 
 echo "Check developer access"
-if curl --fail --silent \
+if curl -sSf \
     --user "${DEV_USER_NAME}:${DEV_USER_PWD}" \
     ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0" > /dev/null; then
     echo "Developer access not possible"

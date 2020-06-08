@@ -122,7 +122,7 @@ function waitForReady {
     local n=0
     local httpOk=
     until [ $n -ge 20 ]; do
-        httpOk=$(curl ${INSECURE} --silent -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
+        httpOk=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" "${NEXUS_URL}/service/rest/v1/status/writable")
         if [ "${httpOk}" == "200" ]; then
             echo_info "Nexus is up"
             break
@@ -145,15 +145,15 @@ function runJsonScript {
     shift 1
     # shellcheck disable=SC2124
     local runParams="$@"
-    curl ${INSECURE} -X POST --fail --silent \
+    curl ${INSECURE} -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/"${jsonScriptName}".json
-    curl ${INSECURE} -X POST --fail --silent \
+    curl ${INSECURE} -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: text/plain' \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}/run" ${runParams} > /dev/null
-    curl ${INSECURE} -X DELETE --fail --silent \
+    curl ${INSECURE} -X DELETE -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}"
 }
@@ -193,19 +193,19 @@ else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
 fi
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
-    pong=$(curl ${INSECURE} --silent --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
+    pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
         "${NEXUS_URL}/service/metrics/ping")
     if [ "${pong}" == "pong" ]; then
         echo_info "Change admin password"
-        curl ${INSECURE} -X POST --fail --silent \
+        curl ${INSECURE} -X POST -sSf \
             --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
             --header 'Content-Type: application/json' \
             "${NEXUS_URL}/service/rest/v1/script" -d @json/changeAdminPassword.json
-        curl ${INSECURE} -X POST --fail --silent \
+        curl ${INSECURE} -X POST -sSf \
             --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
             --header 'Content-Type: text/plain' \
             "${NEXUS_URL}/service/rest/v1/script/changeAdminPassword/run" -d "${ADMIN_PASSWORD}" > /dev/null
-        curl ${INSECURE} -X DELETE --fail --silent \
+        curl ${INSECURE} -X DELETE -sSf \
             --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
             "${NEXUS_URL}/service/rest/v1/script/changeAdminPassword"
     fi
