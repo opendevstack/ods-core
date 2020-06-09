@@ -388,13 +388,15 @@ function startup_and_follow_bitbucket() {
 #   None
 #######################################
 function configure_bitbucket2crowd() {
+    echo "Configure BitBucket against Crowd directory..."
     # login to bitbucket
     curl 'http://172.17.0.1:28080/j_atl_security_check' \
     -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
     -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
     --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
     --compressed \
-    --insecure -w '%{http_code}' -o /dev/null
+    --insecure --silent -o /dev/null
+    echo "Logged into BitBucket"
 
     # request crowd config form
     local atl_token
@@ -404,6 +406,7 @@ function configure_bitbucket2crowd() {
     --data 'newDirectoryType=CROWD&next=Next' \
     --compressed \
     --insecure -w '%{http_code}' --location --silent | pup 'input[name="atl_token"] attr{value}')
+    echo "Retrieved BitBucket xsrf atl_token ${atl_token}."
 
     # send crowd config data
     local crowd_ip
@@ -415,16 +418,18 @@ function configure_bitbucket2crowd() {
         -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
-        --insecure --location \
+        --insecure --location --silent \
         | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
         | tr -d "[:space:]")
+    echo "Configured Crowd directory on BitBucket, got crowd directory id ${crowd_directory_id}."
 
     # sync bitbucket with crowd directory
     curl "http://172.17.0.1:28080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
         -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
         --compressed \
-        --insecure
+        --insecure --silent -o /dev/null
+    echo "Synced BitBucket directory with Crowd."
 }
 
 #######################################
