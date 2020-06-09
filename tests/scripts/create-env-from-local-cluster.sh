@@ -35,12 +35,15 @@ fi
 SUBDOMAIN=$(grep -A 1 routingConfig "${BASE_OC_DIR}/openshift-apiserver/master-config.yaml" | tail -n1 | awk '{print $2}')
 REGISTRY_IP=172.30.1.1
 echo "ODS_IMAGE_TAG=cicdtests" > ${OUTPUT}
+echo "ODS_NAMESPACE=ods" >> ${OUTPUT}
+echo "ODS_GIT_REF=cicdtests" >> ${OUTPUT}
+
 echo "" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "#####       NEXUS       #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
-NEXUS_HOST="nexus-cd.${SUBDOMAIN}"
+NEXUS_HOST="nexus-ods.${SUBDOMAIN}"
 NEXUS_URL="https://${NEXUS_HOST}"
 NEXUS_USERNAME=developer
 NEXUS_PASSWORD=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64  | rev | cut -b 2- | rev | tr -cd '[:alnum:]')
@@ -60,7 +63,7 @@ echo "#####     SonarQube     #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
-SONARQUBE_HOST="sonarqube-cd.${SUBDOMAIN}"
+SONARQUBE_HOST="sonarqube-ods.${SUBDOMAIN}"
 
 # SonarQube URL exposed by the SonarQube route
 SONARQUBE_URL="https://${SONARQUBE_HOST}"
@@ -132,7 +135,8 @@ echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
 BITBUCKET_HOST=172.17.0.1:8080
-REPO_BASE=http://${BITBUCKET_HOST}/scm
+BITBUCKET_URL=http://${BITBUCKET_HOST}
+REPO_BASE=${BITBUCKET_URL}/scm
 
 CD_USER_ID=cd_user
 CD_USER_ID_B64=$(echo -n "${CD_USER_ID}" | base64)
@@ -140,6 +144,7 @@ CD_USER_PWD=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64  | rev | cut
 CD_USER_PWD_B64=$(echo -n "${CD_USER_PWD}" | base64)
 
 echo "BITBUCKET_HOST=${BITBUCKET_HOST}" >> ${OUTPUT}
+echo "BITBUCKET_URL=${BITBUCKET_URL}" >> ${OUTPUT}
 echo "REPO_BASE=${REPO_BASE}" >> ${OUTPUT}
 echo "CD_USER_ID=${CD_USER_ID}" >> ${OUTPUT}
 echo "CD_USER_ID_B64=${CD_USER_ID_B64}" >> ${OUTPUT}
@@ -152,10 +157,11 @@ echo "#####      Jenkins      #####" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}
 echo "" >> ${OUTPUT}
 
+echo "JENKINS_MASTER_BASE_FROM_IMAGE=openshift/jenkins-2-centos7:v3.11" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_IMAGE=Dockerfile.centos7" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_FROM_IMAGE=openshift/jenkins-slave-base-centos7" >> ${OUTPUT}
 echo "JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL=https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux" >> ${OUTPUT}
-
+echo "SHARED_LIBRARY_REPOSITORY=https://github.com/opendevstack/ods-jenkins-shared-library.git" >> ${OUTPUT}
 
 echo "" >> ${OUTPUT}
 echo "#####-#####-#####-#####-#####" >> ${OUTPUT}

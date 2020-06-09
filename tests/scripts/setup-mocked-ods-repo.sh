@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eu
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ODS_CORE_TESTS_DIR=${SCRIPT_DIR%/*}
+ODS_CORE_DIR=${ODS_CORE_TESTS_DIR%/*}
+
 function usage {
    printf "usage: %s [options]\n", $0
    printf "\t-h|--help\tPrints the usage\n"
@@ -54,29 +58,30 @@ if [ -z "${REF}" ]; then
     exit 1
 fi
 
-source ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env
+source ${ODS_CORE_DIR}/../ods-configuration/ods-core.env
 
 docker ps | grep mockbucket
 
-# git checkout -b "${REF}"
-HEAD=$(git rev-parse --abbrev-ref HEAD)
-if [ "${HEAD}" = "HEAD" ]; then
-    HEAD="cicdtests"
-    git checkout -b ${HEAD}
+cd "${ODS_CORE_DIR}"
+ls -lah
+if [ ! -d ".git" ]; then
+    git init
+    git add --all
+    git commit -m "Commit rsynced state"
 fi
+LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git remote add mockbucket "http://$(urlencode ${CD_USER_ID}):$(urlencode ${CD_USER_PWD})@${BITBUCKET_HOST}/scm/opendevstack/ods-core.git"
-git -c http.sslVerify=false push mockbucket --set-upstream "${HEAD}:${REF}"
+git -c http.sslVerify=false push mockbucket --set-upstream "${LOCAL_BRANCH}:${REF}"
 git remote remove mockbucket
+cd -
 
-mkdir -p "${BASH_SOURCE%/*}/../../../ods-configuration"
-cp ${BASH_SOURCE%/*}/../../../ods-configuration/ods-core.env ${BASH_SOURCE%/*}/../../../ods-configuration
-
-cd "${BASH_SOURCE%/*}/../../../ods-configuration"
+cd "${ODS_CORE_DIR}/../ods-configuration"
 git init
 git config user.email "test@suite.nip.io"
 git config user.name "Test Suite"
 git add ods-core.env
 git commit -m "Initial Commit"
+LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git remote add mockbucket "http://$(urlencode ${CD_USER_ID}):$(urlencode ${CD_USER_PWD})@${BITBUCKET_HOST}/scm/opendevstack/ods-configuration.git"
-git -c http.sslVerify=false push mockbucket --set-upstream "$(git rev-parse --abbrev-ref HEAD):${REF}"
+git -c http.sslVerify=false push mockbucket --set-upstream "${LOCAL_BRANCH}:${REF}"
 cd -

@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateOdsProject(t *testing.T) {
-	namespace := "cd"
+	namespace := "ods"
 	_ = utils.RemoveProject(namespace)
 	stdout, stderr, err := utils.RunScriptFromBaseDir("ods-setup/setup-ods-project.sh", []string{
 		"--verbose",

@@ -2,22 +2,13 @@ package create_projects
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/opendevstack/ods-core/tests/utils"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1client "k8s.io/client-go/kubernetes/typed/rbac/v1"
-	"testing"
 )
-
-func TestCreateProjectWithoutProjectId(t *testing.T) {
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{}, []string{})
-	if err == nil {
-		t.Fatalf(
-			"Execution of `create-project.sh` must fail if no PROJECT_ID is set: \nStdOut: %s\nStdErr: %s",
-			stdout,
-			stderr)
-	}
-}
 
 func TestCreateProject(t *testing.T) {
 	err := utils.RemoveAllTestOCProjects()
@@ -25,7 +16,9 @@ func TestCreateProject(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{}, []string{utils.PROJECT_ENV_VAR})
+	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{
+		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
+	}, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of `create-project.sh` failed: \nStdOut: %s\nStdErr: %s",
@@ -128,5 +121,5 @@ func CheckProjectSetup(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	fmt.Printf("WARNING: Seeding special and default permission groups is not tested yet!")
+	fmt.Println("WARNING: Seeding special and default permission groups is not tested yet!")
 }

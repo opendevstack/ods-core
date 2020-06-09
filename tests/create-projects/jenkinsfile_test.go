@@ -155,7 +155,10 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 
-	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{"status", "--reveal-secrets", "-n", projectNameCd,
+	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
+		"diff",
+		"--reveal-secrets",
+		"-n", projectNameCd,
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
