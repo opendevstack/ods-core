@@ -198,7 +198,7 @@ objects:
             - name: BITBUCKET_URL
               value: '${BITBUCKET_URL}'
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-master:${ODS_IMAGE_TAG}'
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 30
             httpGet:
