@@ -377,9 +377,64 @@ function startup_and_follow_bitbucket() {
 }
 
 #######################################
+# When Jira and Crowd both are up and running, this function can be used
+# to configure a Jira directory service against Crowd.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function configure_jira2crowd() {
+    local cookie_jar_path
+    cookie_jar_path="${HOME}/tmp/jira_cookie_jar.txt"
+    echo "Configure Jira against Crowd directory ..."
+    # login to Jira
+    curl 'http://172.17.0.1:18080/login.jsp' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
+        --compressed \
+        --insecure --silent --location -o /dev/null
+    echo "Logged into Jira"
+
+    # setting atl_token
+    atl_token=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+        -b /home/openshift/tmp/jira_cookie_jar.txt \
+        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        --data "newDirectoryType=CROWD&next=Next" \
+        --compressed \
+        --insecure --location --silent | pup 'input[name="atl_token"] attr{value}')
+    echo "Retrieved BitBucket xsrf atl_token ${atl_token}."
+
+    # WebSudo authentication - sign in as admin
+    curl 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
+        -b /home/openshift/tmp/jira_cookie_jar.txt \
+        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
+        --compressed \
+        --insecure --location | pup --color
+
+    # send crowd config data
+    local crowd_ip
+    crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
+    echo "Assuming crowd service to listen at ${crowd_ip}:8095"
+    local crowd_directory_id
+    crowd_directory_id=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
+        -b /home/openshift/tmp/jira_cookie_jar.txt \
+        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
+        --compressed \
+        --insecure \
+        | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
+        | tr -d "[:space:]")
+
+}
+
+#######################################
 # When BitBucket and Crowd both are up and running, this function can be used
 # to configure a BitBucket directory service against Crowd.
-# TODO make bitbucket user/pwd
 # Globals:
 #   n/a
 # Arguments:
@@ -388,30 +443,32 @@ function startup_and_follow_bitbucket() {
 #   None
 #######################################
 function configure_bitbucket2crowd() {
-    echo "Configure BitBucket against Crowd directory..."
-    # login to bitbucket
+    local cookie_jar_path
+    cookie_jar_path="${HOME}/tmp/bitbucket_cookie_jar.txt"
+    echo "Configure BitBucket against Crowd directory ..."
+    # login to BitBucket
     curl 'http://172.17.0.1:28080/j_atl_security_check' \
-    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
-    --compressed \
-    --insecure --silent -o /dev/null
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
+        --compressed \
+        --insecure --silent -o /dev/null
     echo "Logged into BitBucket"
 
     # request crowd config form
     local atl_token
     atl_token=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/new/' \
-    -b "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    -c "${HOME}/tmp/bitbucket_cookie_jar.txt" \
-    --data 'newDirectoryType=CROWD&next=Next' \
-    --compressed \
-    --insecure -w '%{http_code}' --location --silent | pup 'input[name="atl_token"] attr{value}')
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --data 'newDirectoryType=CROWD&next=Next' \
+        --compressed \
+        --insecure -w '%{http_code}' --location --silent | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved BitBucket xsrf atl_token ${atl_token}."
 
     # send crowd config data
     local crowd_ip
     crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
-    echo "Assuming crowd service to listen at ${crowd_ip}:8098"
+    echo "Assuming crowd service to listen at ${crowd_ip}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
         -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
@@ -425,8 +482,8 @@ function configure_bitbucket2crowd() {
 
     # sync bitbucket with crowd directory
     curl "http://172.17.0.1:28080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
-        -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
-        -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
         --compressed \
         --insecure --silent -o /dev/null
     echo "Synced BitBucket directory with Crowd."
