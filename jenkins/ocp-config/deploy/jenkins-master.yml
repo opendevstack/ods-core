@@ -20,6 +20,10 @@ parameters:
   value: 5Gi
 - name: JENKINS_MEMORY_REQUEST
   value: 2560Mi
+- name: JENKINS_CPU_LIMIT
+  value: "1"
+- name: JENKINS_CPU_REQUEST
+  value: 100m
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: JENKINS_JAVA_GC_OPTS
@@ -218,9 +222,11 @@ objects:
             timeoutSeconds: 3
           resources:
             limits:
-              memory: '${JENKINS_MEMORY_LIMIT}'
+              cpu: ${JENKINS_CPU_LIMIT}
+              memory: ${JENKINS_MEMORY_LIMIT}
             requests:
-              memory: '${JENKINS_MEMORY_REQUEST}'
+              cpu: ${JENKINS_CPU_REQUEST}
+              memory: ${JENKINS_MEMORY_REQUEST}
           securityContext:
             capabilities: {}
             privileged: false
