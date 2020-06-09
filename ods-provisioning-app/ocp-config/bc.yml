@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Template
+parameters:
+- name: ODS_BITBUCKET_PROJECT
+  description: Bitbucket project name.
+  value: opendevstack  
+- name: ODS_IMAGE_TAG
+  description: OpenDevStack image tag to use.
+  required: true
+- name: ODS_GIT_REF
+  description: Git ref to use for source code.
+  required: true
+- name: REPO_BASE
+  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+  required: true
+- name: PROV_APP_FROM_IMAGE
+  description: Base image for Provisioning app
+  required: true
+- name: APP_DNS
+  description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
+objects:
+- kind: BuildConfig
+  metadata:
+    labels:
+      app: ods-provisioning-app
+    name: ods-provisioning-app
+  apiVersion: v1
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'ods-provisioning-app:${ODS_IMAGE_TAG}'
+    postCommit: {}
+    resources:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: "200m"
+        memory: "1Gi"
+    runPolicy: Serial
+    source:
+      type: Git
+      contextDir: ods-provisioning-app/docker
+      git:
+        ref: ${ODS_GIT_REF}
+        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
+      sourceSecret:
+        name: cd-user-token
+    strategy:
+      type: Docker
+      dockerStrategy:
+        env:
+          - name: APP_DNS
+            value: ${APP_DNS}
+        from:
+          kind: DockerImage
+          name: ${PROV_APP_FROM_IMAGE}
+    successfulBuildsHistoryLimit: 5
+    triggers: []

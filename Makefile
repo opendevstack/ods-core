@@ -75,13 +75,18 @@ start-jenkins-build-webhook-proxy:
 
 # PROVISIONING APP
 ## Install the provisioning app.
-install-provisioning-app: apply-provisioning-app-build import-provisioning-app-image apply-provisioning-app-deploy
+install-provisioning-app: apply-provisioning-app-build start-provisioning-app-build apply-provisioning-app-deploy
 .PHONY: install-provisioning-app
 
 ## Update OpenShift resources related to the Provisioning App image.
 apply-provisioning-app-build:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is, bc
 .PHONY: apply-provisioning-app-build
+
+## Start build of BuildConfig "ods-provisioning-app".
+start-provisioning-app-build:
+	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-provisioning-app
+.PHONY: start-provisioning-app-build
 
 ## Import Provisioning App image from DockerHub.
 import-provisioning-app-image:
@@ -90,18 +95,23 @@ import-provisioning-app-image:
 
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is,bc
 .PHONY: apply-provisioning-app-deploy
 
 # DOCUMENT GENERATION SERVICE IMAGE
 ## Install the documentation generation image.
-install-doc-gen: apply-doc-gen-build import-doc-gen-image
+install-doc-gen: apply-doc-gen-build start-doc-gen-build
 .PHONY: install-doc-gen
 
 ## Update OpenShift resources related to the Document Generation image.
 apply-doc-gen-build:
 	cd ods-document-generation-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
 .PHONY: apply-doc-gen-build
+
+## Start build of BuildConfig "ods-doc-gen-svc".
+start-doc-gen-build:
+	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-doc-gen-svc
+.PHONY: start-doc-gen-build
 
 ## Import Document Generation image from DockerHub.
 import-doc-gen-image:

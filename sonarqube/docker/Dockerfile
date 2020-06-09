@@ -2,6 +2,7 @@ FROM adoptopenjdk/openjdk11:alpine-jre
 
 ARG sonarDistributionUrl
 ARG sonarVersion
+ARG APP_DNS
 
 ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
@@ -17,7 +18,6 @@ RUN adduser -S -G root sonarqube
 RUN set -x \
     && apk update \
     && apk add --no-cache ca-certificates \
-    && apk add --no-cache gnutls-utils \
     && apk add --no-cache gnupg unzip \
     && apk add --no-cache libressl wget \
     && apk add --no-cache su-exec \
@@ -33,6 +33,9 @@ RUN set -x \
     && rm -rf $SONARQUBE_HOME/bin/* \
     && mkdir -p /opt/configuration/sonarqube \
     && chown -R sonarqube:root /opt/configuration/sonarqube
+
+COPY ./import_certs.sh /usr/local/bin/import_certs.sh
+RUN import_certs.sh   
 
 VOLUME "$SONARQUBE_HOME/data"
 

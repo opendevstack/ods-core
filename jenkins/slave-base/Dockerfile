@@ -9,10 +9,10 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1
 
+ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 
 RUN yum -y install \
-    gnutls-utils \
     openssl \
     && yum clean all \
     && rm -rf /var/cache/yum/*
@@ -22,6 +22,9 @@ ENV JAVA_HOME=/usr/lib/jvm/jre
 RUN yum -y install java-1.8.0-openjdk-devel.x86_64 \
     && yum clean all \
     && rm -rf /var/cache/yum/*
+
+COPY ./import_certs.sh /usr/local/bin/import_certs.sh
+RUN import_certs.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \

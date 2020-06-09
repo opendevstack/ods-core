@@ -14,3 +14,4 @@
 .vault_pass.txt
 /infrastructure-setup/deployment_token.txt
 ods-core.iml
+.DS_Store
