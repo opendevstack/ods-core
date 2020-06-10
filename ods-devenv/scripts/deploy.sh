@@ -337,7 +337,7 @@ function startup_atlassian_mysql() {
         --innodb-large-prefix=ON \
         --innodb-file-format=Barracuda \
         --innodb-log-file-size=2G \
-        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
+        > "${HOME}/tmp/mysql_docker_download.log" 2>&1 # reduce noise in log output from docker image download
     local mysql_ip
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
@@ -523,7 +523,7 @@ function startup_atlassian_jira() {
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version} \
-        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
+        > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
     local jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 
     echo -n "Preparing jira container for connection to local mysql database."
@@ -666,6 +666,8 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
     echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
     echo
 
+    # cleanup
+    rm crowd_sessionid_cookie.txt
 }
 
 # Helper function for local development of crowd setup
@@ -765,7 +767,7 @@ function startup_atlassian_bitbucket() {
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
         atlassian/bitbucket-server:${atlassian_bitbucket_version} \
-        > jira_startup.log 2>&1 # reduce noise in log output from docker image download
+        > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
     local bitbucket_ip
     bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
@@ -1116,21 +1118,19 @@ function setup_jenkins() {
 #######################################
 function setup_provisioning_app() {
     echo "Setting up provisioning app"
+    echo "make apply-provisioning-app-build:"
+    pushd ods-provisioning-app/ocp-config
+    tailor apply --namespace ${NAMESPACE} is,bc --non-interactive --verbose
+    popd
+
+    echo "make start-provisioning-app-build:"
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-provisioning-app --verbose
+
+
     echo "make apply-provisioning-app-deploy:"
     pushd ods-provisioning-app/ocp-config
-    tailor apply --namespace ${NAMESPACE} is --non-interactive --verbose
+    tailor apply --namespace ${NAMESPACE} --exclude is,bc --non-interactive --verbose
     popd
-
-    ocp-scripts/import-image-from-dockerhub.sh \
-        --namespace ${NAMESPACE} \
-        --image ods-provisioning-app \
-        --image-tag latest \
-        --target-stream ods-provisioning-app
-
-    pushd ods-provisioning-app/ocp-config
-        tailor apply --namespace ${NAMESPACE} --exclude is --non-interactive --verbose
-    popd
-
 }
 
 #######################################
