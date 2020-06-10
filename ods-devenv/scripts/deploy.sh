@@ -247,11 +247,11 @@ function setup_openshift_cluster() {
     local return_value=-1
     while true
     do
-        sleep 20
         if oc rollout latest dc/router
         then
             break
         fi
+        sleep 20
     done
 
     echo "Expose registry route"
@@ -1309,11 +1309,21 @@ function basic_vm_setup() {
 
     create_configuration
     install_ods_project
-    # TODO The next 3 steps could be run in parallel
-    setup_nexus
-    setup_sonarqube
-    setup_jenkins
-    setup_provisioning_app
+    # Install components in OpenShift
+    setup_nexus &
+    setup_sonarqube &
+    setup_jenkins &
+    setup_provisioning_app &
+
+    local fail_count
+    fail_count=0
+    for job in $(jobs -p)
+    do
+        echo "Waiting for openshift build ${job} to complete."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+    done
+
     setup_jenkins_slaves
 
     echo "Installation completed."
