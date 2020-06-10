@@ -1,4 +1,5 @@
 namespace ods
+param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 
 selector app=ods-doc-gen-svc

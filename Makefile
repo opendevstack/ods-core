@@ -80,7 +80,7 @@ install-provisioning-app: apply-provisioning-app-build start-provisioning-app-bu
 
 ## Update OpenShift resources related to the Provisioning App image.
 apply-provisioning-app-build:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is, bc
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is,bc
 .PHONY: apply-provisioning-app-build
 
 ## Start build of BuildConfig "ods-provisioning-app".
