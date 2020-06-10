@@ -45,25 +45,3 @@
           owner: root
           group: root
           mode: 0644
-    
-- hosts: openshift
-  tags: 
-  - copy certs
-  tasks:
-    - name: name:  
-      import_tasks: "tls-server-cert.yml"
-      vars:
-        cert_bundle:
-          in_certs:
-          - "/home/vagrant/pki/ca.pem"
-          - "/home/vagrant/pki/192.168.56.101.nip.io.pem"
-          out: "/etc/ssl/192.168.56.101.nip.io.pem"
-          owner: root
-          group: root
-          mode: 0644
-        key_map:
-          in: "~/pki/192.168.56.101.nip.io-key.pem"
-          out: "/etc/ssl/private/192.168.56.101.nip.io.key"
-          owner: root
-          group: root
-          mode: 0644

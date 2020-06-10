@@ -1,6 +1,4 @@
 ---
-- src: andrewrothstein.openshift-origin-client-tools
-  version: v1.0.9
 - src: geerlingguy.nginx
   version: 2.6.2
 - src: geerlingguy.docker
