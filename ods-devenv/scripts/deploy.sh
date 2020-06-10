@@ -225,7 +225,8 @@ function setup_openshift_cluster() {
 
     echo "Starting up oc cluster for the first time"
     # ip_address=192.168.188.96
-    ip_address=172.17.0.1
+    # ip_address=172.17.0.1
+    ip_address="${public_hostname}"
     oc cluster up --base-dir="${HOME}/openshift.local.clusterup" --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address} --no-proxy=${ip_address}
     oc login -u developer
     oc login -u system:admin
@@ -504,7 +505,8 @@ function configure_bitbucket2crowd() {
 #######################################
 function startup_atlassian_jira() {
     echo "Starting Atlassian Jira ${atlassian_jira_software_version}"
-    local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip
+    mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
 
     echo "Downloading mysql-connector-java"
     local download_dir="downloads_jira"
@@ -514,7 +516,7 @@ function startup_atlassian_jira() {
 
     docker container run \
         --name ${atlassian_jira_container_name} \
-        -v $HOME/jira_data:/var/atlassian/application-data/jira \
+        -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
         -dp ${atlassian_jira_port}:8080 \
         -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
         -e ATL_JDBC_USER=jira_user \
@@ -524,7 +526,8 @@ function startup_atlassian_jira() {
         -e ATL_DB_SCHEMA_NAME= \
         atlassian/jira-software:${atlassian_jira_software_version} \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
-    local jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
+    local jira_ip
+    jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 
     echo -n "Preparing jira container for connection to local mysql database."
     prepare_jira_container "${download_dir}"
