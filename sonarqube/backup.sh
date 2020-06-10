@@ -35,10 +35,10 @@ fi
 destinationFile="${BACKUP_DIR}/sonarqube.sql"
 podWithPrefix=$(oc get pods -n "${NAMESPACE}" --selector name=sonarqube-postgresql --no-headers -o name)
 pod=${podWithPrefix#"pod/"}
-oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "pg_dump sonarqube > sonarqube.sql"
+oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "mkdir -p /var/lib/pgsql/backup && pg_dump sonarqube > /var/lib/pgsql/backup/sonarqube.sql"
 # Copy export
-oc cp "${NAMESPACE}/${pod}:/opt/app-root/src/sonarqube.sql" "${destinationFile}"
+oc cp "${NAMESPACE}/${pod}:/var/lib/pgsql/backup/sonarqube.sql" "${destinationFile}"
 # Delete export in pod
-oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm sonarqube.sql"
+oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm /var/lib/pgsql/backup/sonarqube.sql"
 
 echo "Database 'sonarqube' backed up to ${destinationFile}."
