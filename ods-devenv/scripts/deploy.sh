@@ -245,10 +245,13 @@ function setup_openshift_cluster() {
 
     # TODO wait for oc rollout to return 0
     local return_value=-1
-    until [[ ${return_value} == 0 ]]
+    while true
     do
         sleep 20
-        oc rollout latest dc/router || return_value=$?
+        if oc rollout latest dc/router
+        then
+            break
+        fi
     done
 
     echo "Expose registry route"
