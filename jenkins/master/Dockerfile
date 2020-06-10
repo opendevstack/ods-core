@@ -22,7 +22,7 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run /usr/libexec/s2i/ods-run
 
-RUN chmod g+w $JAVA_HOME/lib/security/
+RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 
 USER jenkins
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
