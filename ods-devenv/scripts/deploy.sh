@@ -242,7 +242,14 @@ function setup_openshift_cluster() {
     oc create secret tls router-certs --cert=router.pem --key=router.key -o json --dry-run | oc replace -f -
     oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- service.alpha.openshift.io/serving-cert-signed-by-
     oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=router-certs
-    oc rollout latest dc/router
+
+    # TODO wait for oc rollout to return 0
+    local return_value=-1
+    until [[ ${return_value} == 0 ]]
+    do
+        sleep 20
+        oc rollout latest dc/router || return_value=$?
+    done
 
     echo "Expose registry route"
     oc create route edge --service=docker-registry --hostname=docker-registry-default.${ip_address}.nip.io -n default
