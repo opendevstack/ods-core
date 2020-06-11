@@ -549,7 +549,7 @@ function startup_atlassian_jira() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
-    pushd ods-devenv/atlassian-docker
+    pushd ods-devenv/jira-docker
     cp Dockerfile.template Dockerfile
     sed -ie "s|__version__|${atlassian_jira_software_version}|g" Dockerfile
     sed -ie "s|__base-image__|jira-software|g" Dockerfile
@@ -802,7 +802,7 @@ function startup_atlassian_bitbucket() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
-    pushd ods-devenv/atlassian-docker
+    pushd ods-devenv/bitbucket-docker
     cp Dockerfile.template Dockerfile
     sed -ie "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
     sed -ie "s|__base-image__|bitbucket-server|g" Dockerfile
@@ -1128,7 +1128,7 @@ function setup_sonarqube() {
 
     # retrieve sonar qube tokens from where configure.sh has put them
     local sq_token_b64
-    sq_token_b64="$(cat /tmp/sq_token_b64)"
+    sq_token_b64="$(cat /tmp/sq_token_base64)"
     pushd ../ods-configuration
     sed -ie "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|g" ods-core.env
     git add -- .
