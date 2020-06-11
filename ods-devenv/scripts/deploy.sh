@@ -787,7 +787,7 @@ function startup_atlassian_bitbucket() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
-    pushd bitbucket-docker
+    pushd ods-devenv/bitbucket-docker
     sed -ie "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
     popd
