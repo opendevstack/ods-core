@@ -991,6 +991,7 @@ function create_configuration() {
     sed -i "s|APP_DNS=.*$|APP_DNS=${public_hostname}|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
+    sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git"
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${public_hostname}/" ods-core.env
@@ -1161,6 +1162,17 @@ function setup_provisioning_app() {
     pushd ods-provisioning-app/ocp-config
     tailor apply --namespace ${NAMESPACE} --exclude is,bc --non-interactive --verbose
     popd
+}
+
+function setup_docgen() {
+    echo "Setting up docgen service"
+    echo "make apply-doc-gen-build:"
+    pushd ods-document-generation-svc/ocp-config
+    tailor apply --namespace ${NAMESPACE} --non-interactive --verbose
+    popd
+
+    echo "make start-doc-gen-build:"
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-doc-gen-svc --verbose
 }
 
 #######################################
