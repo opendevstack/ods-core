@@ -1108,6 +1108,17 @@ function setup_sonarqube() {
         --pipeline-user-password openshift \
         --admin-password openshift
     popd
+
+    # retrieve sonar qube tokens from where configure.sh has put them
+    local sq_token_b64
+    sq_token_b64="$(cat /tmp/sq_token_b64)"
+    sed -ie
+    pushd ../ods-configuration
+    sed -id "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|" ods-core.env
+    git add -- .
+    git commit -m "add sonarqube token to configuration"
+    git push
+    popd
 }
 
 #######################################
