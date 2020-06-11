@@ -541,6 +541,13 @@ function startup_atlassian_jira() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
+    pushd ods-devenv/atlassian-docker
+    cp Dockerfile.template Dockerfile
+    sed -ie "s|__version__|${atlassian_jira_software_version}|g" Dockerfile
+    sed -ie "s|__base-image__|jira-software|g" Dockerfile
+    docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-jira-docker:latest .
+    popd
+
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
@@ -551,7 +558,7 @@ function startup_atlassian_jira() {
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
-        atlassian/jira-software:${atlassian_jira_software_version} \
+        ods-jira-docker:latest \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
     local jira_ip
     jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
@@ -787,8 +794,10 @@ function startup_atlassian_bitbucket() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
-    pushd ods-devenv/bitbucket-docker
+    pushd ods-devenv/atlassian-docker
+    cp Dockerfile.template Dockerfile
     sed -ie "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
+    sed -ie "s|__base-image__|bitbucket-server|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
     popd
 
@@ -1112,9 +1121,8 @@ function setup_sonarqube() {
     # retrieve sonar qube tokens from where configure.sh has put them
     local sq_token_b64
     sq_token_b64="$(cat /tmp/sq_token_b64)"
-    sed -ie
     pushd ../ods-configuration
-    sed -id "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|" ods-core.env
+    sed -ie "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|" ods-core.env
     git add -- .
     git commit -m "add sonarqube token to configuration"
     git push

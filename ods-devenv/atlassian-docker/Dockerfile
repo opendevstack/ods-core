@@ -1,4 +1,4 @@
-FROM atlassian/bitbucket-server:__version__
+FROM atlassian/__base-image__:__version__
 
 ARG APP_DNS
 
