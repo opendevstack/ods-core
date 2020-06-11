@@ -787,14 +787,11 @@ function startup_atlassian_bitbucket() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
-<<<<<<< HEAD
     pushd bitbucket-docker
     sed -ie "s|__version__|atlassian_bitbucket_version|g" Dockerfile
-    docker image build -e APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
+    docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
     popd
 
-=======
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
@@ -804,11 +801,7 @@ function startup_atlassian_bitbucket() {
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
-<<<<<<< HEAD
         ods-bitbucket-docker:latest \
-=======
-        atlassian/bitbucket-server:${atlassian_bitbucket_version} \
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
         > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
     local bitbucket_ip
@@ -867,11 +860,7 @@ function create_empty_ods_repositories() {
     # For each of the listed names, a repository will be created in the local bitbucket
     # instance under the OPENDEVSTACK project. The list should be synced with the repo
     # list in ods-core/ods-setup/repos.sh.
-<<<<<<< HEAD
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration ods-document-generation-templates; do
-=======
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
         echo "Creating repository ${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
         curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos" \
             -H "Content-Type: application/json" \
@@ -890,11 +879,7 @@ function create_empty_ods_repositories() {
 #   None
 #######################################
 function delete_ods_repositories() {
-<<<<<<< HEAD
     for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration ods-document-generation-templates; do
-=======
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
         echo "Deleting repository opendevstack/${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
         curl -X DELETE --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}"
     done
@@ -920,7 +905,6 @@ function initialise_ods_repositories() {
     chmod u+x ./repos.sh
     ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --verbose
     ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
-<<<<<<< HEAD
 
     git clone https://github.com/opendevstack/ods-document-generation-templates.git
     cd ods-document-generation-templates
@@ -928,8 +912,6 @@ function initialise_ods_repositories() {
     git push bb
     git push bb --tags
     cd -
-=======
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
     popd
 }
 
@@ -1021,10 +1003,7 @@ function create_configuration() {
     sed -i "s|APP_DNS=.*$|APP_DNS=${public_hostname}|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
-<<<<<<< HEAD
     sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git"
-=======
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${public_hostname}/" ods-core.env
@@ -1197,7 +1176,6 @@ function setup_provisioning_app() {
     popd
 }
 
-<<<<<<< HEAD
 function setup_docgen() {
     echo "Setting up docgen service"
     echo "make apply-doc-gen-build:"
@@ -1209,8 +1187,6 @@ function setup_docgen() {
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-doc-gen-svc --verbose
 }
 
-=======
->>>>>>> 73be1c5ab44352275bb0468fb07460426c10c513
 #######################################
 # Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
 # This utility function can be used to restart the Atlassian services.
