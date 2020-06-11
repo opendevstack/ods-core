@@ -442,7 +442,7 @@ function configure_jira2crowd() {
         -c /home/openshift/tmp/jira_cookie_jar.txt \
         --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
         --compressed \
-        --insecure --location | pup --color
+        --insecure --location -o /dev/null # | pup --color
 
     # send crowd config data
     local crowd_ip
@@ -455,9 +455,17 @@ function configure_jira2crowd() {
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
         --insecure \
+        --location \
         | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
         | tr -d "[:space:]")
 
+    # sync bitbucket with crowd directory
+    curl "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --insecure --silent -o /dev/null
+    echo "Synced BitBucket directory with Crowd."
 }
 
 #######################################
@@ -1358,6 +1366,7 @@ function basic_vm_setup() {
     setup_sonarqube &
     setup_jenkins &
     setup_provisioning_app &
+    setup_docgen &
 
     local fail_count
     fail_count=0
