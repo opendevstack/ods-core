@@ -855,7 +855,7 @@ function create_empty_ods_repositories() {
     # For each of the listed names, a repository will be created in the local bitbucket
     # instance under the OPENDEVSTACK project. The list should be synced with the repo
     # list in ods-core/ods-setup/repos.sh.
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration ods-document-generation-templates; do
         echo "Creating repository ${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
         curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos" \
             -H "Content-Type: application/json" \
@@ -874,7 +874,7 @@ function create_empty_ods_repositories() {
 #   None
 #######################################
 function delete_ods_repositories() {
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration; do
+    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration ods-document-generation-templates; do
         echo "Deleting repository opendevstack/${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
         curl -X DELETE --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos/${repository}"
     done
@@ -900,6 +900,13 @@ function initialise_ods_repositories() {
     chmod u+x ./repos.sh
     ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --verbose
     ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
+
+    git clone https://github.com/opendevstack/ods-document-generation-templates.git
+    cd ods-document-generation-templates
+    git remote add bb "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-document-generation-templates.git"
+    git push bb
+    git push bb --tags
+    cd -
     popd
 }
 
