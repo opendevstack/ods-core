@@ -909,6 +909,7 @@ function initialise_ods_repositories() {
     git clone https://github.com/opendevstack/ods-document-generation-templates.git
     cd ods-document-generation-templates
     git remote add bb "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-document-generation-templates.git"
+    git checkout --track origin/release/v1.0
     git push bb
     git push bb --tags
     cd -
