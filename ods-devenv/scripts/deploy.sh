@@ -434,7 +434,7 @@ function configure_jira2crowd() {
         --data "newDirectoryType=CROWD&next=Next" \
         --compressed \
         --insecure --location --silent | pup 'input[name="atl_token"] attr{value}')
-    echo "Retrieved BitBucket xsrf atl_token ${atl_token}."
+    echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
     # WebSudo authentication - sign in as admin
     curl 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
@@ -465,7 +465,7 @@ function configure_jira2crowd() {
         -c "${cookie_jar_path}" \
         --compressed \
         --insecure --silent -o /dev/null
-    echo "Synced BitBucket directory with Crowd."
+    echo "Synced Jira directory with Crowd."
 }
 
 #######################################
@@ -1358,6 +1358,7 @@ function basic_vm_setup() {
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
     initialise_ods_repositories
+    configure_jira2crowd
 
     create_configuration
     install_ods_project
