@@ -1375,6 +1375,7 @@ function basic_vm_setup() {
         echo "Waiting for openshift build ${job} to complete."
         wait "${job}" || fail_count=$((fail_count + 1))
         echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+        # TODO fail if any job fails
     done
 
     setup_jenkins_slaves
