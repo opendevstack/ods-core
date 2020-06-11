@@ -1122,7 +1122,7 @@ function setup_sonarqube() {
     local sq_token_b64
     sq_token_b64="$(cat /tmp/sq_token_b64)"
     pushd ../ods-configuration
-    sed -ie "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|" ods-core.env
+    sed -ie "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|g" ods-core.env
     git add -- .
     git commit -m "add sonarqube token to configuration"
     git push
