@@ -787,6 +787,11 @@ function startup_atlassian_bitbucket() {
     local db_driver_file="mysql-connector-java-8.0.20.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
+    pushd bitbucket-docker
+    sed -ie "s|__version__|atlassian_bitbucket_version|g" Dockerfile
+    docker image build -e APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
+    popd
+
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
@@ -796,7 +801,7 @@ function startup_atlassian_bitbucket() {
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
-        atlassian/bitbucket-server:${atlassian_bitbucket_version} \
+        ods-bitbucket-docker:latest \
         > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
     local bitbucket_ip
