@@ -188,6 +188,9 @@ else
     echo_info "Created token: ${token}"
     base64Token=$(echo -n "${token}" | base64)
     echo_info "Base64-encoded token to use for 'SONAR_AUTH_TOKEN_B64': ${base64Token}"
+
+    echo ${base64Token} > /tmp/sq_token_base64
+    echo ${token} > /tmp/sq_token
 fi
 
 echo "If configuration needs to be updated, please add the base64 encoded token and the admin password into ods-core.env."
