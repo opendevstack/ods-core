@@ -230,32 +230,34 @@ function setup_openshift_cluster() {
 
     local cluster_dir
     cluster_dir="${HOME}/openshift.local.clusterup"
-    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix ${ip_address}.nip.io --public-hostname ${ip_address}.nip.io --no-proxy=${ip_address}
+    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "${ip_address}.nip.io" --public-hostname "${ip_address}.nip.io" --no-proxy="${ip_address}"
 
     oc login -u system:admin
 
     echo -e "Create and replace old router cert"
     oc project default
-    oc get --export secret -o yaml router-certs > ${HOME}/old-router-certs-secret.yaml
-    oc adm ca create-server-cert --signer-cert=${cluster_dir}/kube-apiserver/ca.crt --signer-key=${cluster_dir}/kube-apiserver/ca.key --signer-serial=${cluster_dir}/kube-apiserver/ca.serial.txt --hostnames="kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.${ip_address}.nip.io,${ip_address},*.router.default.svc.cluster.local,router.default.svc.cluster.local" --cert=router.crt --key=router.key
-    cat router.crt ${cluster_dir}/kube-apiserver/ca.crt router.key > router.pem
+    oc get --export secret -o yaml router-certs > "${HOME}/old-router-certs-secret.yaml"
+    oc adm ca create-server-cert --signer-cert="${cluster_dir}/kube-apiserver/ca.crt" --signer-key="${cluster_dir}/kube-apiserver/ca.key" --signer-serial="${cluster_dir}/kube-apiserver/ca.serial.txt" --hostnames="kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.${ip_address}.nip.io,${ip_address},*.router.default.svc.cluster.local,router.default.svc.cluster.local" --cert=router.crt --key=router.key
+    cat router.crt "${cluster_dir}/kube-apiserver/ca.crt" router.key > router.pem
     oc create secret tls router-certs --cert=router.pem --key=router.key -o json --dry-run | oc replace -f -
     oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- service.alpha.openshift.io/serving-cert-signed-by-
     oc annotate service router service.alpha.openshift.io/serving-cert-secret-name=router-certs
 
-    # TODO wait for oc rollout to return 0
-    local return_value=-1
+    # wait for oc rollout to return 0
+    echo -n "Waiting for OpenShift router to become available"
     while true
     do
         if oc rollout latest dc/router
         then
             break
         fi
-        sleep 20
+        echo -n "."
+        sleep 10
     done
+    echo -n "available!"; echo
 
     echo "Expose registry route"
-    oc create route edge --service=docker-registry --hostname=docker-registry-default.${ip_address}.nip.io -n default
+    oc create route edge --service=docker-registry --hostname="docker-registry-default.${ip_address}.nip.io" -n default
 
     oc adm policy add-cluster-role-to-user cluster-admin developer
     # allow for OpenShifts to be resolved within OpenShift network
@@ -624,7 +626,7 @@ function startup_atlassian_crowd() {
     echo
     echo "...copy config 'crowd-provision-app-backup.xml' to container"
     docker container exec crowd bash -c "mkdir -p /var/atlassian/application-data/crowd/shared/; chown crowd:crowd /var/atlassian/application-data/crowd/shared/"
-    docker cp ${BASH_SOURCE%/*}/crowd-provision-app-backup.xml crowd:/var/atlassian/application-data/crowd/shared/
+    docker cp "${BASH_SOURCE%/*}/crowd-provision-app-backup.xml" crowd:/var/atlassian/application-data/crowd/shared/
 
     echo
     echo "...change permission of config in container"
@@ -705,7 +707,8 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
 
     sleep 1
 
-    local crowd_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
+    local crowd_ip
+    crowd_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
 
     echo
     echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
@@ -725,7 +728,7 @@ function crowd_cleanup() {
 
 # Helper function for local development of crowd setup
 function crowd_echo_backup_cmd() {
-    echo "To copy from `crowd` container the backup file to local folder:"
+    echo "To copy from 'crowd' container the backup file to local folder:"
     echo "1. copy this docker command:"
     echo "docker cp crowd:/var/atlassian/application-data/crowd/shared/backups/<BACKUP_FILE_NAME>.xml ."
     echo "2. replace 'BACKUP_FILE_NAME' with one backup file from this list:"
@@ -747,7 +750,8 @@ function crowd_echo_backup_cmd() {
 #   None
 #######################################
 function initialize_atlassian_jiradb() {
-    local mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip
+    mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
     echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
         "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
@@ -794,7 +798,8 @@ function download_file_to_folder() {
 #######################################
 function startup_atlassian_bitbucket() {
     echo "Strating up Atlassian BitBucket ${atlassian_bitbucket_version}"
-    local mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
+    local mysql_ip
+    mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
 
     echo "Downloading mysql-connector-java"
     local download_dir="downloads_bitbucket"
@@ -812,7 +817,7 @@ function startup_atlassian_bitbucket() {
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
-        -v ${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket \
+        -v "${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket" \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
@@ -865,9 +870,9 @@ function initialize_atlassian_bitbucketdb() {
 #######################################
 function create_empty_ods_repositories() {
     # creating project opendevstack if it does not exist yet
-    if [[ -z $(curl -sX GET --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
+    if [[ -z $(curl -sX GET --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects" | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
         echo "Creating project opendevstack in BitBucket"
-        curl -X POST --user openshift:openshift http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects \
+        curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects" \
             -H "Content-Type: application/json" \
             -d "{\"key\":\"OPENDEVSTACK\", \"name\": \"opendevstack\", \"description\": \"OpenDevStack\"}"
     else
@@ -920,7 +925,7 @@ function initialise_ods_repositories() {
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port} --verbose
+    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
     ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
 
     git clone https://github.com/opendevstack/ods-document-generation-templates.git
@@ -934,15 +939,15 @@ function initialise_ods_repositories() {
 }
 
 function inspect_bitbucket_ip() {
-    atlassian_bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
+    atlassian_bitbucket_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${atlassian_bitbucket_container_name}")
 }
 
 function inspect_jira_ip() {
-    atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
+    atlassian_jira_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' "${atlassian_jira_container_name}")
 }
 
 function inspect_crowd_ip() {
-    atlassian_crowd_ip=$(docker container inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
+    atlassian_crowd_ip=$(docker container inspect --format '{{.NetworkSettings.IPAddress}}' "${atlassian_crowd_container_name}")
 }
 
 #######################################
@@ -1053,7 +1058,7 @@ function install_ods_project() {
 function setup_nexus() {
     echo "make install-nexus: / apply-nexus:"
     pushd nexus/ocp-config
-    tailor apply --namespace ${NAMESPACE} --non-interactive --verbose
+    tailor apply --namespace "${NAMESPACE}" --non-interactive --verbose
     popd
 
 
