@@ -75,6 +75,9 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
       - OpenShift Webconsole
       - BitBucket
       - Jira
+      - System Tools
+      - Chrome
+      - Terminal
 
 ### AWS deployment
 Use the provided AWS AMI to launch an instance of the ODS development environment
