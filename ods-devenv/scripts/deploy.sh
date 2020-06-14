@@ -33,6 +33,7 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 
 # Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
 # TODO make this value configurable, can then be set e.g. by bootstrap script or other clients
+# TODO fix: hostname -i fails after dnsmasq dns service is configured.
 public_hostname=$(hostname -i)
 echo "OpenShift ip will be ${public_hostname}"
 
@@ -92,6 +93,57 @@ function check_system_setup() {
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
     fi
+}
+
+#######################################
+# To facilitate maintainability of services running in EDP in a box, it is
+# mandatory to be able to refer to services using names, for which a
+# nameservice is required.
+# Call this function before starting the OpenShift cluster so OpenShift
+# will find the local dns server in /etc/resolv.conf.
+#
+# TODO verify that dnsmasq will respond to services added to /etc/hosts
+# dynamically or else restart dnsmasq after Atlassian suite has be setup.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_dnsmasq() {
+    local dnsmasq_conf_path
+    dnsmasq_conf_path="/etc/dnsmasq.conf"
+
+    sudo yum install dnsmasq
+    sudo systemctl start dnsmasq
+    if ! sudo systemctl status dnsmasq | grep -q active
+    then
+        echo "dnsmasq startup appears to have failed."
+    else
+        echo "dnsmasq service up and running"
+    fi
+
+    sudo cp "${/etc/dnsmasq.conf}" "${/etc/dnsmasq.conf}.orig"
+    sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
+    sudo sed -i "s|#bogus-priv|bogus-priv|" "${dnsmasq_conf_path}"
+    # might also want to add 172.31.0.2 as forward name server
+    sudo sed -i "|#server=/localnet/192.168.0.1|a server=8.8.8.8\nserver=8.8.4.4" "${dnsmasq_conf_path}"
+    sudo sed -i "|#address=/double-click.net/127.0.0.1|a address=/odsbox.lan/${public_hostname}\naddress=/odsbox.lan/172.17.0.1\naddress=/odsbox.lan/127.0.0.1" "${dnsmasq_conf_path}"
+    sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
+    sudo sed -i "s|#domain=thekelleys.org.uk|domain=odsbox.lan|" "${dnsmasq_conf_path}"
+
+    # dnsmasq logs on stderr (?!)
+    if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
+    then
+        echo "dnsmasq configuration failed. Please check ${dnsmasq_conf_path} and compare with ${dnsmasq_conf_path}.orig"
+    else
+        echo "dnsmasq is ok with configuration changes."
+    fi
+
+    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
+    # TODO there must be a better way ...
+    sudo chattr +i /etc/resolv.conf
 }
 
 #######################################
@@ -753,7 +805,7 @@ function initialize_atlassian_jiradb() {
     local mysql_ip
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h ${mysql_ip} -u root -p -e \
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h "${mysql_ip}" -u root -p -e \
         "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
         flush privileges;"
@@ -826,13 +878,21 @@ function startup_atlassian_bitbucket() {
         ods-bitbucket-docker:latest \
         > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
-    local bitbucket_ip
-    bitbucket_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_bitbucket_container_name})
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
     inspect_bitbucket_ip
-    echo "Atlassian BitBucket is listening on ${bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
+    echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
+    echo -n "Configuring /etc/hosts with bitbucket ip by "
+    if grep -q bitbucket < /etc/hosts
+    then
+        echo "replacing the previous value."
+        sudo sed -i "s|^.*bitbucket.odsbox.lan|${atlassian_bitbucket_ip}    bitbucket.odsbox.lan|" /etc/hosts
+    else
+        echo "appending the new value... "
+        echo "${atlassian_bitbucket_ip}    bitbucket.odsbox.lan" | sudo tee -a /etc/hosts
+    fi
+    echo
 }
 
 #######################################
@@ -1339,6 +1399,7 @@ function provide_document_generation_service_image() {
 function basic_vm_setup() {
     check_system_setup
     setup_rdp
+    setup_dnsmasq
     # optional
     setup_vscode
     setup_google_chrome
@@ -1359,6 +1420,9 @@ function basic_vm_setup() {
     startup_atlassian_jira &
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
+    # TODO: push to function
+    sudo systemctl restart dnsmasq
+
     configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
