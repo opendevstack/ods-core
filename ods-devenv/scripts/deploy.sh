@@ -124,12 +124,12 @@ function setup_dnsmasq() {
         echo "dnsmasq service up and running"
     fi
 
-    sudo cp "${/etc/dnsmasq.conf}" "${/etc/dnsmasq.conf}.orig"
+    sudo cp "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
     sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#bogus-priv|bogus-priv|" "${dnsmasq_conf_path}"
     # might also want to add 172.31.0.2 as forward name server
-    sudo sed -i "|#server=/localnet/192.168.0.1|a server=8.8.8.8\nserver=8.8.4.4" "${dnsmasq_conf_path}"
-    sudo sed -i "|#address=/double-click.net/127.0.0.1|a address=/odsbox.lan/${public_hostname}\naddress=/odsbox.lan/172.17.0.1\naddress=/odsbox.lan/127.0.0.1" "${dnsmasq_conf_path}"
+    sudo sed -i "/#server=\/localnet\/192.168.0.1/a server=8.8.8.8\nserver=8.8.4.4" "${dnsmasq_conf_path}"
+    sudo sed -i "/#address=\/double-click.net\/127.0.0.1/a address=\/odsbox.lan\/${public_hostname}\naddress=\/odsbox.lan\/172.17.0.1\naddress=\/odsbox.lan\/127.0.0.1" "${dnsmasq_conf_path}"
     sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#domain=thekelleys.org.uk|domain=odsbox.lan|" "${dnsmasq_conf_path}"
 
