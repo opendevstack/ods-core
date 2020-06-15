@@ -81,7 +81,7 @@ function check_system_setup() {
 } >> ~/.bashrc
 
     # suppress sudo timeout
-    sudo sed -ie "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
+    sudo sed -i "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
 
     # remove obsolete version of git
     if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
@@ -622,8 +622,8 @@ function startup_atlassian_jira() {
 
     pushd ods-devenv/jira-docker
     cp Dockerfile.template Dockerfile
-    sed -ie "s|__version__|${atlassian_jira_software_version}|g" Dockerfile
-    sed -ie "s|__base-image__|jira-software|g" Dockerfile
+    sed -i "s|__version__|${atlassian_jira_software_version}|g" Dockerfile
+    sed -i "s|__base-image__|jira-software|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-jira-docker:latest .
     popd
 
@@ -892,8 +892,8 @@ function startup_atlassian_bitbucket() {
 
     pushd ods-devenv/bitbucket-docker
     cp Dockerfile.template Dockerfile
-    sed -ie "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
-    sed -ie "s|__base-image__|bitbucket-server|g" Dockerfile
+    sed -i "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
+    sed -i "s|__base-image__|bitbucket-server|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
     popd
 
@@ -1310,14 +1310,12 @@ function setup_sonarqube() {
     ./configure.sh --sonarqube="https://${sonarqube_url}" --verbose --insecure \
         --pipeline-user openshift \
         --pipeline-user-password openshift \
-        --admin-password openshift
+        --admin-password openshift \
+        --write-to-config
     popd
 
     # retrieve sonar qube tokens from where configure.sh has put them
-    local sq_token_b64
-    sq_token_b64="$(cat /tmp/sq_token_base64)"
     pushd ../ods-configuration
-    sed -ie "s|SONAR_AUTH_TOKEN_B64=.*$|SONAR_AUTH_TOKEN_B64=${sq_token_b64}|g" ods-core.env
     git add -- .
     git commit -m "add sonarqube token to configuration"
     git push
