@@ -17,13 +17,13 @@ echo_info(){
   echo -e "\033[94mINFO\033[39m: $1"
 }
 
-INIT=n
-CONFIRM=
-BITBUCKET_URL=
-GIT_REF=
-SOURCE_GIT_REF=
-TARGET_GIT_REF=
-SYNC=n
+INIT="n"
+CONFIRM=""
+BITBUCKET_URL=""
+GIT_REF=""
+SOURCE_GIT_REF=""
+TARGET_GIT_REF=""
+SYNC="n"
 
 function usage {
   printf "Initialise, update and sync OpenDevStack repositories.\n\n"
