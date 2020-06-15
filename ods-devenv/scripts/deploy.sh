@@ -17,10 +17,10 @@ atlassian_jira_ip=
 atlassian_jira_port=18080
 # docker network internal jira port
 atlassian_jira_port_internal=8080
+atlassian_bitbucket_ip=
 atlassian_bitbucket_container_name=bitbucket
 atlassian_bitbucket_db_name=bitbucketdb
 atlassian_bitbucket_version=6.8.2-jdk11
-atlassian_bitbucket_ip=
 atlassian_bitbucket_port=28080
 # docker network internal bitbucket port
 atlassian_bitbucket_port_internal=7990
@@ -33,9 +33,9 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 
 # Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
 # TODO make this value configurable, can then be set e.g. by bootstrap script or other clients
-# TODO fix: hostname -i fails after dnsmasq dns service is configured. write logic to retrieve ip from network device eth0 or ens33 or ... 
-# or as a workaround the first result of hostname -I ?
-public_hostname=$(hostname -i)
+# TODO fix: hostname -i fails after dnsmasq dns service is configured. The network interface will have different names on various platforms, like eth0, ens33, etc.
+# for now, making a best bet on the applicable ip adress with: hostname -I | awk '{print $1}'
+public_hostname=$(hostname -I | awk '{print $1}')
 echo "OpenShift ip will be ${public_hostname}"
 
 NAMESPACE=ods
@@ -924,6 +924,97 @@ function startup_atlassian_bitbucket() {
         echo "${atlassian_bitbucket_ip}    bitbucket.odsbox.lan" | sudo tee -a /etc/hosts
     fi
     echo
+}
+
+#######################################
+# Restart bitbucket.
+# Will register new container ip with /etc/hosts for dns resolution
+# Globals:
+#   atlassian_bitbucket_container_name
+#   atlassian_bitbucket_ip
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_bitbucket() {
+    echo "Restarting BitBucket..."
+    # restart the container
+    docker container restart "${atlassian_bitbucket_container_name}"
+    # find new ip if changed
+    inspect_bitbucket_ip
+    echo "New BitBucket container got ip ${atlassian_bitbucket_ip}. Registering with dns svc..."
+    register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
+}
+
+#######################################
+# Restart jira.
+# Will register new container ip with /etc/hosts for dns resolution
+# Globals:
+#   atlassian_jira_container_name
+#   atlassian_jira_ip
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_jira() {
+    echo "Restarting Jira..."
+    # restart the container
+    docker container restart "${atlassian_jira_container_name}"
+    # find new ip if changed
+    inspect_jira_ip
+    echo "New Jira container got ip ${atlassian_jira_ip}. Registering with dns svc..."
+    register_dns "${atlassian_jira_container_name}" "${atlassian_jira_ip}"
+}
+
+#######################################
+# Restart jira.
+# Will register new container ip with /etc/hosts for dns resolution
+# Globals:
+#   atlassian_jira_container_name
+#   atlassian_jira_ip
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_crowd() {
+    echo "Restarting Crowd...."
+    # restart the container
+    docker container restart "${atlassian_crowd_container_name}"
+    # find new ip if changed
+    inspect_crowd_ip
+    echo "New Crowd container got ip ${atlassian_crowd_ip}. Registering with dns svc..."
+    register_dns "${atlassian_crowd_container_name}" "${atlassian_crowd_ip}"
+}
+
+#######################################
+# Register service name and ip with /etc/hosts for name resolution
+# Globals:
+#   n/a
+# Arguments:
+#   service_name - e.g. bitbucket. Will be expanded with domain odsbox.lan to bitbucket.odsbox.lan
+#   ip - the new ip address for the service.
+# Returns:
+#   None
+#######################################
+function register_dns() {
+    local service_name
+    service_name=$1
+    local ip
+    ip=$2
+
+    # register new ip with /etc/hosts
+    echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
+    if grep -q "${service_name}" < /etc/hosts
+    then
+        echo "replacing the previous value."
+        sudo sed -i "s|^.*${service_name}.odsbox.lan|${ip}    ${service_name}.odsbox.lan|" /etc/hosts
+    else
+        echo "appending the new value... "
+        echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
+    fi
 }
 
 #######################################
