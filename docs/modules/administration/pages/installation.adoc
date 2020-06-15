@@ -162,7 +162,7 @@ make install-sonarqube
 
 This will launch an instance of SonarQube.
 The script will prompt for a new admin password, set it and create an auth token to be used by the Jenkins pipelines.
-At the end, the script will ask you to adjust `ods-configuration/ods-core.env`, which you need to commit and push before continuing.
+Both values can be written into `ods-configuration/ods-core.env`, which you then need to commit and push before continuing.
 
 === Jenkins
 
