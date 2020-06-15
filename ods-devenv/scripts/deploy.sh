@@ -33,7 +33,8 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 
 # Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
 # TODO make this value configurable, can then be set e.g. by bootstrap script or other clients
-# TODO fix: hostname -i fails after dnsmasq dns service is configured.
+# TODO fix: hostname -i fails after dnsmasq dns service is configured. write logic to retrieve ip from network device eth0 or ens33 or ... 
+# or as a workaround the first result of hostname -I ?
 public_hostname=$(hostname -i)
 echo "OpenShift ip will be ${public_hostname}"
 
@@ -112,12 +113,13 @@ function check_system_setup() {
 #   None
 #######################################
 function setup_dnsmasq() {
+    echo "Setting up dnsmasq DNS service"
     local dnsmasq_conf_path
     dnsmasq_conf_path="/etc/dnsmasq.conf"
 
     # tear down old running dnsmasq instances
     local job_id
-    for job_id in $(ps -ef | grep dnsmasq | awk -v col=2 '{print $2}')
+    for job_id in $(ps -ef | grep dnsmasq | grep -v grep | grep -v setup_dnsmasq | awk -v col=2 '{print $2}')
     do
         sudo kill -9 "${job_id}"
     done
@@ -151,9 +153,11 @@ function setup_dnsmasq() {
         echo "dnsmasq is ok with configuration changes."
     fi
 
+    sudo chattr -i /etc/resolv.conf
     sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
     # TODO there must be a better way ...
     sudo chattr +i /etc/resolv.conf
+    sudo systemctl restart dnsmasq.service
 }
 
 #######################################
