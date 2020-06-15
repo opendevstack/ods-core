@@ -115,11 +115,20 @@ function setup_dnsmasq() {
     local dnsmasq_conf_path
     dnsmasq_conf_path="/etc/dnsmasq.conf"
 
+    # tear down old running dnsmasq instances
+    local job_id
+    for job_id in $(ps -ef | grep dnsmasq | awk -v col=2 '{print $2}')
+    do
+        sudo kill -9 "${job_id}"
+    done
+
     sudo yum install dnsmasq
     sudo systemctl start dnsmasq
+    sleep 10
     if ! sudo systemctl status dnsmasq | grep -q active
     then
         echo "dnsmasq startup appears to have failed."
+        exit
     else
         echo "dnsmasq service up and running"
     fi
@@ -128,6 +137,7 @@ function setup_dnsmasq() {
     sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#bogus-priv|bogus-priv|" "${dnsmasq_conf_path}"
     # might also want to add 172.31.0.2 as forward name server
+    # sudo sed -i "/#server=\/localnet\/192.168.0.1/a server=172.31.0.2\nserver=8.8.8.8\nserver=8.8.4.4" "${dnsmasq_conf_path}"
     sudo sed -i "/#server=\/localnet\/192.168.0.1/a server=8.8.8.8\nserver=8.8.4.4" "${dnsmasq_conf_path}"
     sudo sed -i "/#address=\/double-click.net\/127.0.0.1/a address=\/odsbox.lan\/${public_hostname}\naddress=\/odsbox.lan\/172.17.0.1\naddress=\/odsbox.lan\/127.0.0.1" "${dnsmasq_conf_path}"
     sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
