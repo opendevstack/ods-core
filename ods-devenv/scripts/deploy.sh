@@ -121,7 +121,7 @@ function setup_dnsmasq() {
     local job_id
     for job_id in $(ps -ef | grep dnsmasq | grep -v grep | grep -v setup_dnsmasq | awk -v col=2 '{print $2}')
     do
-        sudo kill -9 "${job_id}"
+        sudo kill -9 "${job_id}" || true
     done
 
     sudo yum install dnsmasq
