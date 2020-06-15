@@ -94,6 +94,9 @@ function check_system_setup() {
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
     fi
+
+    git config --global user.email "openshift@odsbox.lan"
+    git config --global user.name "OpenShift"
 }
 
 #######################################
@@ -636,8 +639,6 @@ function startup_atlassian_jira() {
         -e ATL_DB_SCHEMA_NAME= \
         ods-jira-docker:latest \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
-    local jira_ip
-    jira_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_jira_container_name})
 
     echo -n "Preparing jira container for connection to local mysql database."
     prepare_jira_container "${download_dir}"
@@ -654,7 +655,17 @@ function startup_atlassian_jira() {
 
     rm -rf "${download_dir}"
     inspect_jira_ip
-    echo "Atlassian jira-software is listening on ${jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
+    echo "Atlassian jira-software is listening on ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
+    echo -n "Configuring /etc/hosts with jira ip by "
+    if grep -q jira < /etc/hosts
+    then
+        echo "replacing the previous value."
+        sudo sed -i "s|^.*jira.odsbox.lan|${atlassian_jira_ip}    jira.odsbox.lan|" /etc/hosts
+    else
+        echo "appending the new value... "
+        echo "${atlassian_jira_ip}    jira.odsbox.lan" | sudo tee -a /etc/hosts
+    fi
+    echo
 }
 
 function prepare_jira_container() {
@@ -772,16 +783,22 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
 --data '{username: "openshift", password: "openshift", rememberMe: false}'
 
     sleep 1
-
-    local crowd_ip
-    crowd_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_crowd_container_name})
-
-    echo
-    echo "Atlassian Crowd installation is done and server listening on http://${crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
-    echo
-
     # cleanup
     rm crowd_sessionid_cookie.txt
+
+    inspect_crowd_ip
+    echo -n "Configuring /etc/hosts with crowd ip by "
+    if grep -q crowd < /etc/hosts
+    then
+        echo "replacing the previous value."
+        sudo sed -i "s|^.*crowd.odsbox.lan|${atlassian_crowd_ip}    crowd.odsbox.lan|" /etc/hosts
+    else
+        echo "appending the new value... "
+        echo "${atlassian_crowd_ip}    crowd.odsbox.lan" | sudo tee -a /etc/hosts
+    fi
+    echo
+    echo "Atlassian Crowd installation is done and server listening on http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
+    echo
 }
 
 # Helper function for local development of crowd setup
