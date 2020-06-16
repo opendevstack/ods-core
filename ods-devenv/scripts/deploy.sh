@@ -49,10 +49,11 @@ NAMESPACE=ods
 function display_usage() {
     echo
     echo "This script provides functions to install and configure various parts of an EDP/ODS installation."
+    echo "The first argument to this script must always be the ods git ref to build against, e.g. master or feature/ods-devenv."
     echo "Functions in this script can be called like in the sample calls below:"
-    echo "deploy.sh display_usage"
-    echo "deploy.sh install_docker"
-    echo "deploy.sh startup_atlassian_bitbucket"
+    echo "deploy.sh feature/ods-devenv display_usage"
+    echo "deploy.sh feature/ods-devenv install_docker"
+    echo "deploy.sh feature/ods-devenv startup_atlassian_bitbucket"
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
@@ -1551,6 +1552,6 @@ function basic_vm_setup() {
 # bash deployments.sh install_docker
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
-ods_git_ref=${$1:feature/ods-devenv}
+ods_git_ref="${1}"
 echo "Will build ods box against git-ref ${ods_git_ref}"
 "$@"
