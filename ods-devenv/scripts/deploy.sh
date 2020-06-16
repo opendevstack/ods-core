@@ -2,6 +2,8 @@
 
 set -eu
 
+odsbox_domain=odsbox.lan
+
 atlassian_mysql_container_name=atlassian_mysql
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
@@ -9,10 +11,11 @@ atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
 atlassian_crowd_port=48080
 atlassian_crowd_port_internal=8095
+atlassian_crowd_host="crowd.${odsbox_domain}"
 atlassian_crowd_ip=
 atlassian_jira_container_name=jira
 atlassian_jira_db_name=jiradb
-atlassian_jira_
+atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
 atlassian_jira_software_version=8.5.3
@@ -21,6 +24,7 @@ atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
 atlassian_bitbucket_container_name=bitbucket
 atlassian_bitbucket_db_name=bitbucketdb
+atlassian_bitbucket_host="bitbucket.${odsbox_domain}"
 atlassian_bitbucket_version=6.8.2-jdk11
 atlassian_bitbucket_port=28080
 # docker network internal bitbucket port
@@ -33,7 +37,6 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 # git ref to build ods box against
 ods_git_ref=
 
-odsbox_domain=odsbox.lan
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 
@@ -283,8 +286,6 @@ function shutdown_openshift_cluster() {
 }
 
 function startup_openshift_cluster() {
-    
-
     local ip_address
     ip_address="${public_hostname}"
     local cluster_dir
@@ -670,7 +671,7 @@ function startup_atlassian_jira() {
 
     rm -rf "${download_dir}"
     inspect_jira_ip
-    echo "Atlassian jira-software is listening on ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
+    echo "Atlassian jira-software is listening on ${atlassian_jira_host}.${odsbox_domain}, ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
     echo -n "Configuring /etc/hosts with jira ip by "
     if grep -q jira < /etc/hosts
     then
@@ -928,7 +929,7 @@ function startup_atlassian_bitbucket() {
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
     inspect_bitbucket_ip
-    echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
+    echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}.${odsbox_domain}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     if grep -q bitbucket < /etc/hosts
     then
@@ -1142,38 +1143,25 @@ function inspect_crowd_ip() {
 function create_configuration() {
     echo "create configuration"
     pwd
-    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}"
+    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port}"
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
     # echo "ods-core.env.sample" > .gitignore
 
-    if [[ -z ${atlassian_bitbucket_ip} ]]; then
-        # can happen if script functions are called selectively
-        inspect_bitbucket_ip
-    fi
-    if [[ -z ${atlassian_jira_ip} ]]; then
-        # can happen if script functions are called selectively
-        inspect_jira_ip
-    fi
-    if [[ -z ${atlassian_crowd_ip} ]]
-    then
-        inspect_crowd_ip
-    fi
-
     if ! git remote | grep origin; then
-        git remote add origin "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git"
+        git remote add origin "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git"
     fi
     git add -- .
     git commit -m "initial commit"
     git push --set-upstream origin master
     # base64('changeit') -> Y2hhbmdlbWUK
-    sed -i "s|ODS_GIT_REF=.*$|ODS_GIT_REF=feature/ods-devenv|" ods-core.env
+    sed -i "s|ODS_GIT_REF=.*$|ODS_GIT_REF=${ods_git_ref}|" ods-core.env
     sed -i "s/cd.192.168.56.101.nip.io/ods.${public_hostname}.nip.io/" ods-core.env
-    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_ip}:${atlassian_jira_port_internal}|" ods-core.env
-    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
-    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}|" ods-core.env
-    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}/scm|" ods-core.env
+    sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_host}:${atlassian_jira_port_internal}|" ods-core.env
+    sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}|" ods-core.env
+    sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}|" ods-core.env
+    sed -i "s|REPO_BASE=http://192.168.56.31:7990/scm|REPO_BASE=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm|" ods-core.env
 
     sed -i "s|CD_USER_ID=.*$|CD_USER_ID=openshift|" ods-core.env
     sed -i "s|CD_USER_ID_B64=.*$|CD_USER_ID_B64=$(echo -n openshift | base64)|" ods-core.env
@@ -1201,15 +1189,15 @@ function create_configuration() {
     sed -i "s|APP_DNS=.*$|APP_DNS=${public_hostname}|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
-    sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
+    sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
     sed -i "s/192.168.56.101/${public_hostname}/" ods-core.env
 
     # provisioning app settings
-    sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${atlassian_crowd_ip}/" ods-core.env
+    sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${odsbox_domain}/" ods-core.env
     sed -i "s/PROV_APP_CROWD_PASSWORD=.*$/PROV_APP_CROWD_PASSWORD=ods/" ods-core.env
-    sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
+    sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
 
     git add -- .
     git commit -m "updated config for EDP box"
@@ -1547,11 +1535,20 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+
+  --branch) ods_git_ref="$2"; shift;;
+  --target) target="$2"; shift;;
+
+esac; shift; done
+
+
 # the next line will make bash try to execute the script arguments in the context of this script,
 # thus supporting syntax like this:
 # bash deployments.sh install_docker
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
-ods_git_ref="${1}"
+ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
 echo "Will build ods box against git-ref ${ods_git_ref}"
-"$@"
+${target}
