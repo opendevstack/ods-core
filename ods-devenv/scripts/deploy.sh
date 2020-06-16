@@ -30,6 +30,9 @@ atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/at
 atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
 
+# git ref to build ods box against
+ods_git_ref=
+
 odsbox_domain=odsbox.lan
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
@@ -1062,26 +1065,13 @@ function initialize_atlassian_bitbucketdb() {
 #   None
 #######################################
 function create_empty_ods_repositories() {
-    # TODO call bitbucket.sh
-    # creating project opendevstack if it does not exist yet
-    if [[ -z $(curl -sX GET --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects" | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
-        echo "Creating project opendevstack in BitBucket"
-        curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects" \
-            -H "Content-Type: application/json" \
-            -d "{\"key\":\"OPENDEVSTACK\", \"name\": \"opendevstack\", \"description\": \"OpenDevStack\"}"
-    else
-        echo "Found project opendevstack in BitBucket."
-    fi
-    # The repository list in the next line can be modified to project specific needs.
-    # For each of the listed names, a repository will be created in the local bitbucket
-    # instance under the OPENDEVSTACK project. The list should be synced with the repo
-    # list in ods-core/ods-setup/repos.sh.
-    for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app ods-configuration ods-document-generation-templates; do
-        echo "Creating repository ${repository} on http://${public_hostname}:${atlassian_bitbucket_port}."
-        curl -X POST --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects/opendevstack/repos" \
-            -H "Content-Type: application/json" \
-            -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" | jq .
-    done
+    pushd ods-setup
+    ./bitbucket.sh --insecure \
+        --bitbucket "http://${public_hostname}:${atlassian_bitbucket_port}" \
+        --user openshift \
+        --password openshift \
+        --ods-project opendevstack
+    popd
 }
 
 #######################################
@@ -1116,21 +1106,9 @@ function initialise_ods_repositories() {
 
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
-    # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
-    # TODO get repos.sh from master
-    curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
-    ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
-
-    # TODO merge master and delete 1118-to popd
-    git clone https://github.com/opendevstack/ods-document-generation-templates.git
-    cd ods-document-generation-templates
-    git remote add bb "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-document-generation-templates.git"
-    git checkout --track origin/release/v1.0
-    git push bb
-    git push bb --tags
-    cd -
+    ./ods-core/ods-setup/repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
+    ./ods-core/ods-setup/repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
     popd
 }
 
@@ -1573,4 +1551,6 @@ function basic_vm_setup() {
 # bash deployments.sh install_docker
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
+ods_git_ref=${$1:feature/ods-devenv}
+echo "Will build ods box against git-ref ${ods_git_ref}"
 "$@"
