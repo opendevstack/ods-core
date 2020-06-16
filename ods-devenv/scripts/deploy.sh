@@ -37,7 +37,6 @@ atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.
 # git ref to build ods box against
 ods_git_ref=
 
-
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 
 # Will be used in oc cluster up as --public-hostname and part of the --routing-suffix
@@ -561,6 +560,7 @@ function configure_jira2crowd() {
         --compressed \
         --insecure --silent -o /dev/null
     echo "Synced Jira directory with Crowd."
+    rm "${cookie_jar_path}"
 }
 
 #######################################
@@ -618,6 +618,7 @@ function configure_bitbucket2crowd() {
         --compressed \
         --insecure --silent -o /dev/null
     echo "Synced BitBucket directory with Crowd."
+    rm "${cookie_jar_path}"
 }
 
 #######################################
