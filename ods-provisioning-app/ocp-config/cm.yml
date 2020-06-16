@@ -262,6 +262,9 @@ objects:
       #############
 
       # Backend quickstarters
+      jenkinspipeline.quickstarter.be-gateway-nginx.desc=Backend - Gateway/Nginx
+      jenkinspipeline.quickstarter.be-gateway-nginx.repo=ods-quickstarters
+
       jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
       jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
 
