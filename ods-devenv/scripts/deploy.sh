@@ -1401,8 +1401,6 @@ function restart_atlassian_suite() {
 #   None
 #######################################
 function setup_jenkins_slaves() {
-    # these paths should have been created in create_empty_ods_repositories()
-    # and initialise_ods_repositories
     local opendevstack_dir="/home/${USER}/opendevstack"
     local quickstarters_jenkins_slaves_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
     local ocp_config_folder="ocp-config"
@@ -1493,7 +1491,6 @@ function basic_vm_setup() {
 
     configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available
-    create_empty_ods_repositories
     initialise_ods_repositories
     configure_jira2crowd
 
