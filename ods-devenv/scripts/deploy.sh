@@ -1066,6 +1066,26 @@ function initialize_atlassian_bitbucketdb() {
 }
 
 #######################################
+# The automated ODS setup requires some repositories to be existing in the
+# local bitbucket installation. This function takes care of it.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function create_empty_ods_repositories() {
+    pushd ods-setup
+    ./bitbucket.sh --insecure \
+        --bitbucket "http://${public_hostname}:${atlassian_bitbucket_port}" \
+        --user openshift \
+        --password openshift \
+        --ods-project opendevstack
+    popd
+}
+
+#######################################
 # For each of the listed names this function will delete the corresponding
 # repository in the local BitBucket instance in the opendevstack project
 # Globals:
@@ -1347,6 +1367,9 @@ function setup_provisioning_app() {
     echo "Setting up provisioning app"
     echo "make apply-provisioning-app-build:"
     pushd ods-provisioning-app/ocp-config
+    # add flag to suppress confluence adapter
+    sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+
     tailor apply --namespace ${NAMESPACE} is,bc --non-interactive --verbose
     popd
 
@@ -1357,6 +1380,8 @@ function setup_provisioning_app() {
     echo "make apply-provisioning-app-deploy:"
     pushd ods-provisioning-app/ocp-config
     tailor apply --namespace ${NAMESPACE} --exclude is,bc --non-interactive --verbose
+    # roll back change to suppress confluence adapter
+    git reset --hard
     popd
 }
 
@@ -1492,6 +1517,7 @@ function basic_vm_setup() {
 
     configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available
+    create_empty_ods_repositories
     initialise_ods_repositories
     configure_jira2crowd
 
