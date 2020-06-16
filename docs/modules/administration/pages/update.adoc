@@ -101,7 +101,7 @@ Now that the general procedure has been completed, you need to apply all the
 update notes below which apply to your version change.
 
 === 2.x to 3.x
-3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.0.0[1.0.0].
+3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.1.0[1.1.0].
 
 ==== New central namespace
 
