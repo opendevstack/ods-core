@@ -679,7 +679,7 @@ function startup_atlassian_jira() {
 
     rm -rf "${download_dir}"
     inspect_jira_ip
-    echo "Atlassian jira-software is listening on ${atlassian_jira_host}.${odsbox_domain}, ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
+    echo "Atlassian jira-software is listening on ${atlassian_jira_host}, ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
     echo -n "Configuring /etc/hosts with jira ip by "
     if grep -q jira < /etc/hosts
     then
@@ -821,7 +821,7 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
         echo "${atlassian_crowd_ip}    crowd.odsbox.lan" | sudo tee -a /etc/hosts
     fi
     echo
-    echo "Atlassian Crowd installation is done and server listening on http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
+    echo "Atlassian Crowd installation is done and server listening on ${atlassian_crowd_host}:${atlassian_crowd_port_internal}, http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
     echo
 }
 
@@ -937,7 +937,7 @@ function startup_atlassian_bitbucket() {
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
     inspect_bitbucket_ip
-    echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}.${odsbox_domain}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
+    echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     if grep -q bitbucket < /etc/hosts
     then
@@ -1152,14 +1152,14 @@ function inspect_crowd_ip() {
 function create_configuration() {
     echo "create configuration"
     pwd
-    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port}"
+    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
     # echo "ods-core.env.sample" > .gitignore
 
     if ! git remote | grep origin; then
-        git remote add origin "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port}/scm/opendevstack/ods-configuration.git"
+        git remote add origin "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-configuration.git"
     fi
     git add -- .
     git commit -m "initial commit"
