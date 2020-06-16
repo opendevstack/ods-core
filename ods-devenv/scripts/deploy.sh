@@ -1065,26 +1065,6 @@ function initialize_atlassian_bitbucketdb() {
 }
 
 #######################################
-# The automated ODS setup requires some repositories to be existing in the
-# local bitbucket installation. This function takes care of it.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function create_empty_ods_repositories() {
-    pushd ods-setup
-    ./bitbucket.sh --insecure \
-        --bitbucket "http://${public_hostname}:${atlassian_bitbucket_port}" \
-        --user openshift \
-        --password openshift \
-        --ods-project opendevstack
-    popd
-}
-
-#######################################
 # For each of the listed names this function will delete the corresponding
 # repository in the local BitBucket instance in the opendevstack project
 # Globals:
