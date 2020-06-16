@@ -1,22 +1,13 @@
-# OpenDevStack Infrastructure
-The infrastructure setup is meant to help setting up a local OpenDevStack runtime environment.
+# Atlassian Setup
+The infrastructure setup is meant to help setting up Atlassian.
 
-To start a local setup, run
-```
-./setup-local.environment.sh
-```
-
-After you have configured the atlassian tools, proceed with
-```
-./prepare-local-environment.sh
-```
-
-If you want to setup the stack on a remote environment, you will have to amend the shell scripts and 
-the inventories to match your requirements. 
+!!!
+CAUTION: The scripts serve as a reference point. They have not been updated in a
+while and likely need some adjustments to work.
+!!!
 
 ## Ansible Provisioning
-The provision via ansible has to be done at the ansible controller. This has only to be done manually, 
-if you didn't use the shell scripts. 
+The provision via ansible has to be done at the ansible controller.
 
 ### Prepare ansible controller
 To prepare ansible controller
