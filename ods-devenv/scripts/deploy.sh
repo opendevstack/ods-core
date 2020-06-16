@@ -12,9 +12,10 @@ atlassian_crowd_port_internal=8095
 atlassian_crowd_ip=
 atlassian_jira_container_name=jira
 atlassian_jira_db_name=jiradb
-atlassian_jira_software_version=8.5.3
+atlassian_jira_
 atlassian_jira_ip=
 atlassian_jira_port=18080
+atlassian_jira_software_version=8.5.3
 # docker network internal jira port
 atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
@@ -28,6 +29,8 @@ atlassian_bitbucket_port_internal=7990
 atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/mysql_data.tar.gz
 atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
+
+odsbox_domain=odsbox.lan
 
 # TODO add global openshift_user, openshift_password and use them when creating ods-core.env for improved configurability
 
@@ -229,7 +232,7 @@ function setup_rdp() {
 }
 
 #######################################
-# Sets up the docker daemon, installs docker-compoase and configures insecure registries.
+# Sets up the docker daemon and configures insecure registries.
 # Globals:
 #   n/a
 # Arguments:
@@ -259,14 +262,6 @@ function install_docker() {
 EOF
     sudo tee /etc/docker/daemon.json
     sudo systemctl restart docker.service
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    if [[ ! -f /usr/bin/docker-compose ]]; then
-        sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-    fi
-    sudo curl -L https://raw.githubusercontent.com/docker/compose/1.25.5/contrib/completion/bash/docker-compose -o /etc/bash_completion.d/docker-compose
-    # you can run this statement in your session to get docker-compose bash completion. Will be available in a new session anyway.
-    # source /etc/bash_completion.d/docker-compose
 
     echo "Configuring firewall for docker containers:"
     sudo firewall-cmd --permanent --new-zone dockerc
@@ -275,6 +270,25 @@ EOF
     sudo firewall-cmd --permanent --zone dockerc --add-port 53/udp
     sudo firewall-cmd --permanent --zone dockerc --add-port 8053/udp
     sudo firewall-cmd --reload
+}
+
+# checks whether cluster runs and if so shuts it down
+function shutdown_openshift_cluster() {
+    # TODO check if cluster is running and if so shut it down
+    oc cluster down
+}
+
+function startup_openshift_cluster() {
+    
+
+    local ip_address
+    ip_address="${public_hostname}"
+    local cluster_dir
+    cluster_dir="${HOME}/openshift.local.clusterup"
+
+    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "${ip_address}.nip.io" --public-hostname "${ip_address}.nip.io" --no-proxy="${ip_address}"
+
+    oc login -u system:admin
 }
 
 #######################################
@@ -295,13 +309,10 @@ function setup_openshift_cluster() {
     echo "Starting up oc cluster for the first time"
     # ip_address=192.168.188.96
     # ip_address=172.17.0.1
+    local ip_address
     ip_address="${public_hostname}"
 
-    local cluster_dir
-    cluster_dir="${HOME}/openshift.local.clusterup"
-    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "${ip_address}.nip.io" --public-hostname "${ip_address}.nip.io" --no-proxy="${ip_address}"
-
-    oc login -u system:admin
+    startup_openshift_cluster
 
     echo -e "Create and replace old router cert"
     oc project default
@@ -1051,6 +1062,7 @@ function initialize_atlassian_bitbucketdb() {
 #   None
 #######################################
 function create_empty_ods_repositories() {
+    # TODO call bitbucket.sh
     # creating project opendevstack if it does not exist yet
     if [[ -z $(curl -sX GET --user openshift:openshift "http://${public_hostname}:${atlassian_bitbucket_port}/rest/api/1.0/projects" | jq '.values[] | select(.key=="OPENDEVSTACK") | .key ') ]]; then
         echo "Creating project opendevstack in BitBucket"
@@ -1105,11 +1117,13 @@ function initialise_ods_repositories() {
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
     # curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+    # TODO get repos.sh from master
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/feature/ods-devenv/ods-setup/repos.sh
     chmod u+x ./repos.sh
     ./repos.sh --init --confirm --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
     ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref feature/ods-devenv --target-git-ref feature/ods-devenv --confirm
 
+    # TODO merge master and delete 1118-to popd
     git clone https://github.com/opendevstack/ods-document-generation-templates.git
     cd ods-document-generation-templates
     git remote add bb "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}/scm/opendevstack/ods-document-generation-templates.git"
@@ -1482,28 +1496,6 @@ function setup_jenkins_slaves() {
     then
         echo "${fail_count} of the jenkins-slave builds failed."
     fi
-}
-
-#######################################
-# Provide the doc-gen-service image in the OpenShift image stream
-# for later use by the release manager.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function provide_document_generation_service_image() {
-    pushd "ods-document-generation-svc/ocp-config"
-    tailor apply --namespace ${NAMESPACE} --verbose --non-interactive
-    popd
-
-    ocp-scripts/import-image-from-dockerhub.sh \
-        --namespace ${NAMESPACE} \
-        --image-tag latest \
-        --image ods-document-generation-svc \
-        --target-stream ods-doc-gen-svc
 }
 
 #######################################
