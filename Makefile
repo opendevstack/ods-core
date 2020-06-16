@@ -88,11 +88,6 @@ start-provisioning-app-build:
 	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-provisioning-app
 .PHONY: start-provisioning-app-build
 
-## Import Provisioning App image from DockerHub.
-import-provisioning-app-image:
-	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-provisioning-app --target-stream ods-provisioning-app
-.PHONY: import-provisioning-app-image
-
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
 	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is,bc
@@ -112,11 +107,6 @@ apply-doc-gen-build:
 start-doc-gen-build:
 	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-doc-gen-svc
 .PHONY: start-doc-gen-build
-
-## Import Document Generation image from DockerHub.
-import-doc-gen-image:
-	ocp-scripts/import-image-from-dockerhub.sh --namespace ${NAMESPACE} --image ods-document-generation-svc --target-stream ods-doc-gen-svc
-.PHONY:import-doc-gen-image
 
 
 # SONARQUBE

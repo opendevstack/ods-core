@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -ue
 
@@ -18,13 +17,13 @@ echo_info(){
   echo -e "\033[94mINFO\033[39m: $1"
 }
 
-INIT=n
-CONFIRM=
-BITBUCKET_URL=
-GIT_REF=
-SOURCE_GIT_REF=
-TARGET_GIT_REF=
-SYNC=n
+INIT="n"
+CONFIRM=""
+BITBUCKET_URL=""
+GIT_REF=""
+SOURCE_GIT_REF=""
+TARGET_GIT_REF=""
+SYNC="n"
 
 function usage {
   printf "Initialise, update and sync OpenDevStack repositories.\n\n"
@@ -128,7 +127,7 @@ fi
 OPENDEVSTACK_ORG="opendevstack"
 GITHUB_URL="https://github.com"
 
-for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioning-app; do
+for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-generation-templates; do
   echo_info "Preparing ${REPO}."
   GITHUB_REPO="${GITHUB_URL}/${OPENDEVSTACK_ORG}/${REPO}.git"
 
@@ -191,54 +190,63 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-provisioni
   echo_info "Fetching from remote 'ods'."
   git fetch ods
 
-  # Update local ref
-  if git rev-parse ${TARGET_GIT_REF} &> /dev/null; then
-    echo_info "Checking out existing local ref '${TARGET_GIT_REF}'."
-    if ! git checkout ${TARGET_GIT_REF}; then
-      echo_error "${TARGET_GIT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
-      exit 1
-    fi
-    if [ "$INIT" == "n" ]; then
-      if [ "$SYNC" == "y" ]; then
-        if [ "${SOURCE_GIT_REF}" != "${TARGET_GIT_REF}" ]; then
-          if git rev-parse origin/${TARGET_GIT_REF} &> /dev/null; then
-            echo_info "Merging changes from Bitbucket (origin/${TARGET_GIT_REF}) into local ref."
-            if ! git merge origin/${TARGET_GIT_REF}; then
-              echo_error "origin/${TARGET_GIT_REF} cannot be merged. Please reset your local ref to origin/${TARGET_GIT_REF}."
+  if [ "${REPO}" == "ods-document-generation-templates" ]; then
+    echo_info "Syncing master, release branches and tags of ods-document-generation-templates"
+    while read -r branchToSync; do
+      git push origin refs/remotes/ods/${branchToSync}:refs/heads/${branchToSync}
+    done < <(git for-each-ref --format '%(refname:lstrip=3)' refs/remotes/ods | grep "^release/*\|^master$")
+    git push origin --tags
+  else
+
+    # Update local ref
+    if git rev-parse ${TARGET_GIT_REF} &> /dev/null; then
+      echo_info "Checking out existing local ref '${TARGET_GIT_REF}'."
+      if ! git checkout ${TARGET_GIT_REF}; then
+        echo_error "${TARGET_GIT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
+        exit 1
+      fi
+      if [ "$INIT" == "n" ]; then
+        if [ "$SYNC" == "y" ]; then
+          if [ "${SOURCE_GIT_REF}" != "${TARGET_GIT_REF}" ]; then
+            if git rev-parse origin/${TARGET_GIT_REF} &> /dev/null; then
+              echo_info "Merging changes from Bitbucket (origin/${TARGET_GIT_REF}) into local ref."
+              if ! git merge origin/${TARGET_GIT_REF}; then
+                echo_error "origin/${TARGET_GIT_REF} cannot be merged. Please reset your local ref to origin/${TARGET_GIT_REF}."
+                exit 1
+              fi
+            fi
+          fi
+          echo_info "Merging changes from GitHub (ods/${SOURCE_GIT_REF}) into local ref."
+          if ! git merge ods/${SOURCE_GIT_REF}; then
+            echo_error "ods/${SOURCE_GIT_REF} cannot be merged. Please reset your local ref to ods/${SOURCE_GIT_REF}."
+            exit 1
+          fi
+          if [ "${SOURCE_GIT_REF}" == "${TARGET_GIT_REF}" ]; then
+            if [ "$(git rev-parse ${TARGET_GIT_REF})" != $(git rev-parse ods/${SOURCE_GIT_REF}) ]; then
+              echo_error "${TARGET_GIT_REF} differs from ods/${SOURCE_GIT_REF}. Please reset your local ref to ods/${SOURCE_GIT_REF}."
               exit 1
             fi
           fi
-        fi
-        echo_info "Merging changes from GitHub (ods/${SOURCE_GIT_REF}) into local ref."
-        if ! git merge ods/${SOURCE_GIT_REF}; then
-          echo_error "ods/${SOURCE_GIT_REF} cannot be merged. Please reset your local ref to ods/${SOURCE_GIT_REF}."
-          exit 1
-        fi
-        if [ "${SOURCE_GIT_REF}" == "${TARGET_GIT_REF}" ]; then
-          if [ "$(git rev-parse ${TARGET_GIT_REF})" != $(git rev-parse ods/${SOURCE_GIT_REF}) ]; then
-            echo_error "${TARGET_GIT_REF} differs from ods/${SOURCE_GIT_REF}. Please reset your local ref to ods/${SOURCE_GIT_REF}."
+        else
+          echo_info "Merging changes from Bitbucket (origin/${TARGET_GIT_REF}) into local ref."
+          if ! git merge origin/${TARGET_GIT_REF}; then
+            echo_error "origin/${TARGET_GIT_REF} cannot be merged. Please reset your local ref to origin/${TARGET_GIT_REF}."
             exit 1
           fi
         fi
-      else
-        echo_info "Merging changes from Bitbucket (origin/${TARGET_GIT_REF}) into local ref."
-        if ! git merge origin/${TARGET_GIT_REF}; then
-          echo_error "origin/${TARGET_GIT_REF} cannot be merged. Please reset your local ref to origin/${TARGET_GIT_REF}."
-          exit 1
-        fi
       fi
+    else
+      echo_info "Creating local ref '${TARGET_GIT_REF}'."
+      git checkout -b ${TARGET_GIT_REF} ods/${SOURCE_GIT_REF} --no-track
     fi
-  else
-    echo_info "Creating local ref '${TARGET_GIT_REF}'."
-    git checkout -b ${TARGET_GIT_REF} ods/${SOURCE_GIT_REF} --no-track
-  fi
-  echo_done "Prepared ${REPO}."
+    echo_done "Prepared ${REPO}."
 
-  # Push to Bitbucket
-  if [ "$SYNC" == "y" ]; then
-    echo_info "Pushing '${TARGET_GIT_REF}' to Bitbucket."
-    git push -u origin ${TARGET_GIT_REF}
-    echo_done "Pushed '${TARGET_GIT_REF}' to Bitbucket."
+    # Push to Bitbucket
+    if [ "$SYNC" == "y" ]; then
+      echo_info "Pushing '${TARGET_GIT_REF}' to Bitbucket."
+      git push -u origin ${TARGET_GIT_REF}
+      echo_done "Pushed '${TARGET_GIT_REF}' to Bitbucket."
+    fi
   fi
 
   cd - &> /dev/null
