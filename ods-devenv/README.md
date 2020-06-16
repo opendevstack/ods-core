@@ -24,10 +24,9 @@ Next steps will be
 - Install ODS in OpenShift
 - Integrate provisioning-app
 
-The following components will b installed
+The following components will be installed
 - OpenShift 3.11
-    - Sonatype Nexus
-    - SonarQube
+    - ODS
 - Atlassian Stack
     - Jira 8.3.5
         - 3H Atlassian timebomb licenses (https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/)
@@ -35,8 +34,12 @@ The following components will b installed
     - BitBucket
         - 3H Atlassian timebomb licenses
         - Credentials: openshift:openshift
+    - Crowd
+        - 3H Atlassian timebomb licenses
+        - Credentials: openshift:openshift
     - MySQL DB for the Atlassian Suite
-    - credentials: root:jiradbrpwd
+        - credentials: root:jiradbrpwd
+- Tailor 1.1.0
 
 ## Installation Instructions
 ### Local Deployment
@@ -128,38 +131,6 @@ $ atlassian-jira-software-X.X.X-x64.bin -q -varfile response.varfile
 
 For automated license management the community recommends to backup the Jira database - or at least the table **productlicense** and import it into the Jira schema of new instances.
 
-## Sample commands
-```
-# create mysql container
-docker container run -dp 3306:3306 \
-    -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-    -v /home/$USER/mysql_data:/var/lib/mysql --name mysql  mysql:5.7 --default-storage-engine=INNODB \
-    --character-set-server=utf8mb4 \
-    --collation-server=utf8mb4_unicode_ci \
-    --default-storage-engine=INNODB \
-    --innodb-default-row-format=DYNAMIC \
-    --innodb-large-prefix=ON \
-    --innodb-file-format=Barracuda \
-    --innodb-log-file-size=2G
-
-# find out ip of mysql container
-mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' mysql)
-
-# connect into mysql database
-docker container run -it --rm mysql:5.7 mysql -h ${mysql_ip} -u root -p
-create database jiradb character set utf8mb4 collate utf8mb4_bin;
-GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password';
-flush privileges;
-
-docker container run --name jira -v $HOME/jiira_data:/var/atlassian/application-data/jira -dp 8080:8080 \
-    -e "ATL_JDBC_URL=jdbc:mysql://$mysql_ip:3306/jiradb" \
-    -e ATL_JDBC_USER=jira_user \
-    -e ATL_JDBC_PASSWORD=jira_password \
-    -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
-    -e ATL_DB_TYPE=mysql \
-    atlassian/jira-software:8.5.3 && docker container logs -f jira
-
-```
 ## Atlassian licenses
 The EDP/ODS development environment makes use of the Atlassian timebomb licenses as available on https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/.
 

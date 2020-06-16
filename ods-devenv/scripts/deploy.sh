@@ -296,7 +296,7 @@ function startup_openshift_cluster() {
 
     if [[ -f "${HOME}/Desktop/OpenShift.desktop" ]]
     then
-        sed -i "s/__openshift_ip__/${public_hostname}/" "${HOME}/Desktop/OpenShift.desktop"
+        sed -i "s|URL=.*$|URL=https://${public_hostname}.nip.io:8443/console|" "${HOME}/Desktop/OpenShift.desktop"
     fi
 }
 
@@ -539,14 +539,14 @@ function configure_jira2crowd() {
         --insecure --location -o /dev/null # | pup --color
 
     # send crowd config data
-    local crowd_ip
-    crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
-    echo "Assuming crowd service to listen at ${crowd_ip}:8095"
+    local crowd_service_name
+    crowd_service_name="crowd.odsbox.lan"
+    echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
         -b /home/openshift/tmp/jira_cookie_jar.txt \
         -c /home/openshift/tmp/jira_cookie_jar.txt \
-        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
+        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
         --insecure \
         --location \
@@ -597,14 +597,14 @@ function configure_bitbucket2crowd() {
     echo "Retrieved BitBucket xsrf atl_token ${atl_token}."
 
     # send crowd config data
-    local crowd_ip
-    crowd_ip=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" crowd)
-    echo "Assuming crowd service to listen at ${crowd_ip}:8095"
+    local crowd_service_name
+    crowd_service_name="crowd.odsbox.lan"
+    echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
         -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
         -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
-        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_ip}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
+        --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
         --insecure --location --silent \
         | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
