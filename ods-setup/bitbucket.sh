@@ -48,7 +48,7 @@ while [[ "$#" -gt 0 ]]; do
 
     -h|--help) usage; exit 0;;
 
-    -i|--insecure) INSECURE="yes";;
+    -i|--insecure) INSECURE="--insecure";;
 
     -b|--bitbucket) BITBUCKET_URL="$2"; shift;;
     -b=*|--bitbucket=*) BITBUCKET_URL="${1#*=}";;
@@ -90,12 +90,12 @@ if [ -z "${BITBUCKET_PWD}" ]; then
 fi
 
 # Create project OPENDEVSTACK if it does not exist yet
-httpCode=$(curl ${INSECURE:"--insecure"} -sS -o /dev/null -w "%{http_code}" \
+httpCode=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" \
     --user "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
     "${BITBUCKET_URL}/rest/api/1.0/projects/${BITBUCKET_ODS_PROJECT}")
 if [ "${httpCode}" == "404" ]; then
     echo_info "Creating project ${BITBUCKET_ODS_PROJECT} in Bitbucket"
-    curl ${INSECURE:"--insecure"} -sSf -X POST \
+    curl ${INSECURE} -sSf -X POST \
         --user "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
         -H "Content-Type: application/json" \
         -d "{\"key\":\"${BITBUCKET_ODS_PROJECT}\", \"name\": \"${BITBUCKET_ODS_PROJECT}\", \"description\": \"OpenDevStack\"}" \
@@ -111,12 +111,12 @@ fi
 # instance under the OPENDEVSTACK project. The list should be synced with the repo
 # list in ods-core/ods-setup/repos.sh.
 for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-generation-templates ods-configuration; do
-    httpCode=$(curl ${INSECURE:"--insecure"} -sS -o /dev/null -w "%{http_code}" \
+    httpCode=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" \
         --user "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
         "${BITBUCKET_URL}/rest/api/1.0/projects/${BITBUCKET_ODS_PROJECT}/repos/${repository}")
     if [ "${httpCode}" == "404" ]; then
         echo_info "Creating repository ${BITBUCKET_ODS_PROJECT}/${repository} on Bitbucket."
-        curl ${INSECURE:"--insecure"} -sSf -X POST \
+        curl ${INSECURE} -sSf -X POST \
             --user "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"${repository}\", \"scmId\": \"git\", \"forkable\": true}" \
