@@ -107,11 +107,6 @@ function check_system_setup() {
 
     git config --global user.email "openshift@odsbox.lan"
     git config --global user.name "OpenShift"
-
-    if [[ -f "${HOME}/Desktop/OpenShift.desktop" ]]
-    then
-        sed -i "s/__openshift_ip__/${public_hostname}/" "${HOME}/Desktop/OpenShift.desktop"
-    fi
 }
 
 #######################################
@@ -299,6 +294,11 @@ function startup_openshift_cluster() {
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "${ip_address}.nip.io" --public-hostname "${ip_address}.nip.io" --no-proxy="${ip_address}"
 
     oc login -u system:admin
+
+    if [[ -f "${HOME}/Desktop/OpenShift.desktop" ]]
+    then
+        sed -i "s/__openshift_ip__/${public_hostname}/" "${HOME}/Desktop/OpenShift.desktop"
+    fi
 }
 
 #######################################
@@ -1116,7 +1116,6 @@ function initialise_ods_repositories() {
 
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
-    chmod u+x ./repos.sh
     ./ods-core/ods-setup/repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
     ./ods-core/ods-setup/repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
     popd
