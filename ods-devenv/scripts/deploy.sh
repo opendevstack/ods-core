@@ -107,6 +107,11 @@ function check_system_setup() {
 
     git config --global user.email "openshift@odsbox.lan"
     git config --global user.name "OpenShift"
+
+    if [[ -f "${HOME}/Desktop/OpenShift.desktop" ]]
+    then
+        sed -i "s/__openshift_ip__/${public_hostname}/" "${HOME}/Desktop/OpenShift.desktop"
+    fi
 }
 
 #######################################
@@ -318,6 +323,9 @@ function setup_openshift_cluster() {
     ip_address="${public_hostname}"
 
     startup_openshift_cluster
+
+    local cluster_dir
+    cluster_dir="${HOME}/openshift.local.clusterup"
 
     echo -e "Create and replace old router cert"
     oc project default
