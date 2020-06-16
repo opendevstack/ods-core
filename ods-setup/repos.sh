@@ -191,11 +191,13 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-g
   git fetch ods
 
   if [ "${REPO}" == "ods-document-generation-templates" ]; then
-    echo_info "Syncing master, release branches and tags of ods-document-generation-templates"
-    while read -r branchToSync; do
-      git push origin refs/remotes/ods/${branchToSync}:refs/heads/${branchToSync}
-    done < <(git for-each-ref --format '%(refname:lstrip=3)' refs/remotes/ods | grep "^release/*\|^master$")
-    git push origin --tags
+    if [ "$INIT" == "n" ]; then
+      echo_info "Syncing master, release branches and tags of ods-document-generation-templates"
+      while read -r branchToSync; do
+        git push origin refs/remotes/ods/${branchToSync}:refs/heads/${branchToSync}
+      done < <(git for-each-ref --format '%(refname:lstrip=3)' refs/remotes/ods | grep "^release/*\|^master$")
+      git push origin --tags
+    fi
   else
 
     # Update local ref
