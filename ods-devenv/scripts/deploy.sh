@@ -1116,8 +1116,10 @@ function initialise_ods_repositories() {
 
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
-    ./ods-core/ods-setup/repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
-    ./ods-core/ods-setup/repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
+    curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/ods-setup/repos.sh
+    chmod u+x ./repos.sh
+    ./repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --verbose
+    ./repos.sh --sync --bitbucket "http://openshift:openshift@${public_hostname}:${atlassian_bitbucket_port}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
     popd
 }
 
