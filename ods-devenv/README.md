@@ -26,7 +26,16 @@ Next steps will be
 
 The following components will be installed
 - OpenShift 3.11
+    - Credentials: developer:(any password strategy) means: you can enter any password you like
     - ODS
+        - Provisioning app
+            - Credentials: openshift:openshift
+        - Nexus
+            - Credentials: admin:openshift
+        - Jenkins
+            - OpenShift credentials
+        - SonarQube
+            - Credentials: openshift:openshift
 - Atlassian Stack
     - Jira 8.3.5
         - 3H Atlassian timebomb licenses (https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/)
