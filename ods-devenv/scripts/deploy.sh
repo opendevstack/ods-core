@@ -695,7 +695,7 @@ function startup_atlassian_jira() {
         echo "replacing the previous value."
         sudo sed -i "s|^.*jira.odsbox.lan|${atlassian_jira_ip}    jira.odsbox.lan|" /etc/hosts
     else
-        echo "appending the new value... "
+        echo "appending the new value... ${atlassian_jira_ip}    jira.odsbox.lan"
         echo "${atlassian_jira_ip}    jira.odsbox.lan" | sudo tee -a /etc/hosts
     fi
     echo
@@ -1042,10 +1042,10 @@ function register_dns() {
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
     if grep -q "${service_name}" < /etc/hosts
     then
-        echo "replacing the previous value."
+        echo "replacing the previous value with ${ip}    ${service_name}.odsbox.lan."
         sudo sed -i "s|^.*${service_name}.odsbox.lan|${ip}    ${service_name}.odsbox.lan|" /etc/hosts
     else
-        echo "appending the new value... "
+        echo "appending the new value ${ip}    ${service_name}.odsbox.lan."
         echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
     fi
 }
@@ -1175,7 +1175,8 @@ function create_configuration() {
     git push --set-upstream origin master
     # base64('changeit') -> Y2hhbmdlbWUK
     sed -i "s|ODS_GIT_REF=.*$|ODS_GIT_REF=${ods_git_ref}|" ods-core.env
-    sed -i "s/cd.192.168.56.101.nip.io/ods.${public_hostname}.nip.io/" ods-core.env
+    # changes the URLs and hostnames for Nexus, Sonarqube
+    sed -i "s/cd.192.168.56.101.nip.io/ods.ocp.odsbox.lan/" ods-core.env
     sed -i "s|JIRA_URL=http://192.168.56.31:8080|JIRA_URL=http://${atlassian_jira_host}:${atlassian_jira_port_internal}|" ods-core.env
     sed -i "s|BITBUCKET_HOST=192.168.56.31:7990|BITBUCKET_HOST=${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}|" ods-core.env
     sed -i "s|BITBUCKET_URL=http://192.168.56.31:7990|BITBUCKET_URL=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}|" ods-core.env
@@ -1191,9 +1192,6 @@ function create_configuration() {
     sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
 
-    # SONARQUBE
-    sed -i "s|SONARQUBE_HOST=.*$|SONARQUBE_HOST=sonarqube-ods.${public_hostname}.nip.io|" ods-core.env
-    sed -i "s|SONARQUBE_URL=.*$|SONARQUBE_URL=https://sonarqube-ods.${public_hostname}.nip.io|" ods-core.env
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
@@ -1204,18 +1202,21 @@ function create_configuration() {
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
 
     # JENKINS
-    sed -i "s|APP_DNS=.*$|APP_DNS=${public_hostname}|" ods-core.env
+    sed -i "s|APP_DNS=.*$|APP_DNS=ocp.odsbox.lan|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
     sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
 
     sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
-    sed -i "s/192.168.56.101/${public_hostname}/" ods-core.env
 
     # provisioning app settings
     sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${odsbox_domain}/" ods-core.env
     sed -i "s/PROV_APP_CROWD_PASSWORD=.*$/PROV_APP_CROWD_PASSWORD=ods/" ods-core.env
     sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
+
+    # OpenShift
+    sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:443|" ods-core.env
+    sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN==.ocp.${odsbox_domain}|" ods-core.env
 
     git add -- .
     git commit -m "updated config for EDP box"
