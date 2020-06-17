@@ -468,6 +468,10 @@ function startup_atlassian_mysql() {
     local mysql_ip
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
+
+    inspect_mysql_ip
+    echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
+    register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
 }
 
 #######################################
@@ -1057,6 +1061,8 @@ function register_dns() {
         echo "appending the new value ${ip}    ${service_name}.odsbox.lan."
         echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
     fi
+
+    sudo systemctl restart dnsmasq.service
 }
 
 #######################################
