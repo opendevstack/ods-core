@@ -676,7 +676,7 @@ function startup_atlassian_jira() {
 
     echo -n "Preparing jira container for connection to local mysql database."
     prepare_jira_container "${download_dir}"
-    while ! (docker container exec -i jira bash -c "grep -q ${mysql_ip} dbconfig.xml")
+    while ! (docker container exec -i jira bash -c "grep -q ${atlassian_mysql_container_name}.${odsbox_domain} dbconfig.xml")
     do
         # this race condition of the container getting ready and writing to dbconfig.xml
         # normally works out. If it should fail on 1st try, try again ...
@@ -690,16 +690,8 @@ function startup_atlassian_jira() {
     rm -rf "${download_dir}"
     inspect_jira_ip
     echo "Atlassian jira-software is listening on ${atlassian_jira_host}, ${atlassian_jira_ip}:${atlassian_jira_port_internal} and ${public_hostname}:${atlassian_jira_port}"
-    echo -n "Configuring /etc/hosts with jira ip by "
-    if grep -q jira < /etc/hosts
-    then
-        echo "replacing the previous value."
-        sudo sed -i "s|^.*jira.odsbox.lan|${atlassian_jira_ip}    jira.odsbox.lan|" /etc/hosts
-    else
-        echo "appending the new value... ${atlassian_jira_ip}    jira.odsbox.lan"
-        echo "${atlassian_jira_ip}    jira.odsbox.lan" | sudo tee -a /etc/hosts
-    fi
-    echo
+
+    register_dns "${atlassian_jira_container_name}" "${atlassian_jira_ip}"
 }
 
 function prepare_jira_container() {
@@ -833,6 +825,8 @@ curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/
     echo
     echo "Atlassian Crowd installation is done and server listening on ${atlassian_crowd_host}:${atlassian_crowd_port_internal}, http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
     echo
+
+    register_dns "${atlassian_crowd_container_name}" "${atlassian_crowd_ip}"
 }
 
 # Helper function for local development of crowd setup
@@ -951,15 +945,7 @@ function startup_atlassian_bitbucket() {
     inspect_bitbucket_ip
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
-    if grep -q bitbucket < /etc/hosts
-    then
-        echo "replacing the previous value."
-        sudo sed -i "s|^.*bitbucket.odsbox.lan|${atlassian_bitbucket_ip}    bitbucket.odsbox.lan|" /etc/hosts
-    else
-        echo "appending the new value... "
-        echo "${atlassian_bitbucket_ip}    bitbucket.odsbox.lan" | sudo tee -a /etc/hosts
-    fi
-    echo
+    register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
 }
 
 #######################################
@@ -1240,7 +1226,7 @@ function create_configuration() {
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
 
-    sed -i "s|DOCKER_REGISTRY=.*$|OPENSHIFT_APPS_BASEDOMAIN=docker-registry-default.ocp.odsbox.lan:5000|" ods-core.env
+    sed -i "s|DOCKER_REGISTRY=.*$|DOCKER_REGISTRY=docker-registry-default.ocp.odsbox.lan:5000|" ods-core.env
 
     git add -- .
     git commit -m "updated config for EDP box"
