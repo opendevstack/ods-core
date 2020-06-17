@@ -5,6 +5,7 @@ set -eu
 odsbox_domain=odsbox.lan
 
 atlassian_mysql_container_name=atlassian_mysql
+atlassian_mysql_ip=
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
 atlassian_crowd_software_version=3.7.0
@@ -269,7 +270,8 @@ function install_docker() {
             }
         ],
         "insecure-registries": [
-            "172.30.0.0/16"
+            "172.30.0.0/16",
+            "docker-registry-default.ocp.odsbox.lan"
         ]
     }
 EOF
@@ -301,11 +303,6 @@ function startup_openshift_cluster() {
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
 
     oc login -u system:admin
-
-    if [[ -f "${HOME}/Desktop/OpenShift.desktop" ]]
-    then
-        sed -i "s|URL=.*$|URL=https://${public_hostname}.nip.io:8443/console|" "${HOME}/Desktop/OpenShift.desktop"
-    fi
 }
 
 #######################################
@@ -357,7 +354,7 @@ function setup_openshift_cluster() {
     echo -n "available!"; echo
 
     echo "Expose registry route"
-    oc create route edge --service=docker-registry --hostname="docker-registry-default.${ip_address}.nip.io" -n default
+    oc create route edge --service=docker-registry --hostname="docker-registry-default.ocp.odsbox.lan" -n default
 
     oc adm policy add-cluster-role-to-user cluster-admin developer
     # allow for OpenShifts to be resolved within OpenShift network
@@ -657,14 +654,14 @@ function startup_atlassian_jira() {
     cp Dockerfile.template Dockerfile
     sed -i "s|__version__|${atlassian_jira_software_version}|g" Dockerfile
     sed -i "s|__base-image__|jira-software|g" Dockerfile
-    docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-jira-docker:latest .
+    docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
         -dp ${atlassian_jira_port}:8080 \
-        -e "ATL_JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
+        -e "ATL_JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
         -e ATL_JDBC_USER=jira_user \
         -e ATL_JDBC_PASSWORD=jira_password \
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
@@ -704,7 +701,7 @@ function startup_atlassian_jira() {
 function prepare_jira_container() {
     local download_dir="${1:?null}"
     docker container cp "${download_dir}/mysql-connector-java-8.0.20.jar" jira:/opt/atlassian/jira/lib/
-    docker container exec -i jira bash -c "sed -i \"s|172.17.0.6|${mysql_ip}|\" dbconfig.xml"
+    docker container exec -i jira bash -c "sed -i \"s|172.17.0.6|${atlassian_mysql_container_name}.${odsbox_domain}|\" dbconfig.xml"
 }
 
 #######################################
@@ -927,15 +924,17 @@ function startup_atlassian_bitbucket() {
     cp Dockerfile.template Dockerfile
     sed -i "s|__version__|${atlassian_bitbucket_version}|g" Dockerfile
     sed -i "s|__base-image__|bitbucket-server|g" Dockerfile
-    docker image build --build-arg APP_DNS="docker-registry-default.${public_hostname}.nip.io" -t ods-bitbucket-docker:latest .
+    docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-bitbucket-docker:latest .
     popd
+
+    local
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
         -v "${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket" \
         -dp ${atlassian_bitbucket_port}:7990 \
-        -e "JDBC_URL=jdbc:mysql://${mysql_ip}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
+        -e "JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
         -e JDBC_DRIVER=com.mysql.jdbc.Driver \
         -e JDBC_USER=bitbucket_user \
         -e JDBC_PASSWORD=bitbucket_password \
@@ -978,6 +977,16 @@ function restart_atlassian_bitbucket() {
     inspect_bitbucket_ip
     echo "New BitBucket container got ip ${atlassian_bitbucket_ip}. Registering with dns svc..."
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
+}
+
+function restart_atlassian_mysql() {
+    echo "Restarting MySQL..."
+    # restart the container
+    docker container restart "${atlassian_mysql_container_name}"
+    # find new ip if changed
+    inspect_mysql_ip
+    echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
+    register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
 }
 
 #######################################
@@ -1144,6 +1153,10 @@ function inspect_crowd_ip() {
     atlassian_crowd_ip=$(docker container inspect --format '{{.NetworkSettings.IPAddress}}' "${atlassian_crowd_container_name}")
 }
 
+function inspect_mysql_ip() {
+    atlassian_mysql_ip=$(docker container inspect --format '{{.NetworkSettings.IPAddress}}' "${atlassian_mysql_container_name}")
+}
+
 #######################################
 # Creates a config file and uploads it into ods-configuration repository on
 # the local BitBucket instance.
@@ -1191,6 +1204,9 @@ function create_configuration() {
     sed -i "s|NEXUS_PASSWORD=.*$|NEXUS_PASSWORD=openshift|" ods-core.env
     sed -i "s|NEXUS_PASSWORD_B64=.*$|NEXUS_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
+    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=https://nexus-ods.ocp.odsbox.lan|" ods-core.env
+    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=nexus-ods.ocp.odsbox.lan|" ods-core.env
+
 
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
@@ -1202,7 +1218,7 @@ function create_configuration() {
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
 
     # JENKINS
-    sed -i "s|APP_DNS=.*$|APP_DNS=ocp.odsbox.lan|" ods-core.env
+    sed -i "s|APP_DNS=.*$|APP_DNS=ocp.odsbox.lan:8443|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
     sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
@@ -1215,8 +1231,10 @@ function create_configuration() {
     sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
 
     # OpenShift
-    sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:443|" ods-core.env
-    sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN==.ocp.${odsbox_domain}|" ods-core.env
+    sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
+    sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
+
+    sed -i "s|DOCKER_REGISTRY=.*$|OPENSHIFT_APPS_BASEDOMAIN=docker-registry-default.ocp.odsbox.lan:5000|" ods-core.env
 
     git add -- .
     git commit -m "updated config for EDP box"
@@ -1253,27 +1271,6 @@ function setup_nexus() {
     nexus_port=${nexus_port%-*} # truncate -tcp from 8081-tcp
 
     ./configure.sh --namespace ods --nexus="${nexus_url}" --insecure --verbose --admin-password openshift
-    popd
-
-    # TODO nexus route workaround nexus_url_internal can be switched back to
-    # nexus_route when:
-    # - nexus_route can be resolved within OpenShift network (done)
-    # - nexus ssl certificate gets accepted by all clients (e.g. scala) (open)
-    # -> jenkins-slave build pods cannot resolve OpenShift routes
-    local nexus_pod_name
-    nexus_pod_name=$(oc -n ods get pods | grep nexus | cut -f 1 -d " ")
-    local nexus_ip
-    nexus_ip=$(oc -n ods get pod "${nexus_pod_name}" -o jsonpath='{.status.podIP}')
-    local nexus_host_internal
-    nexus_host_internal="nexus-ods.${nexus_ip}.nip.io:${nexus_port}"
-    local nexus_url_internal
-    nexus_url_internal="http://${nexus_host_internal}"
-    # local nexus_route
-    # nexus_route="https://nexus-ods.${public_hostname}.nip.io"
-
-    pushd ../ods-configuration
-    sed -i "s|NEXUS_URL=.*$|NEXUS_URL=${nexus_url_internal}|" ods-core.env
-    sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=${nexus_host_internal}|" ods-core.env
     popd
 }
 
@@ -1485,6 +1482,35 @@ function setup_jenkins_slaves() {
     then
         echo "${fail_count} of the jenkins-slave builds failed."
     fi
+}
+
+function startup_ods() {
+    setup_dnsmasq
+
+    # restart and follow mysql
+    restart_atlassian_mysql
+    printf "Waiting for mysqld to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "mysqld up and running."
+
+    restart_atlassian_crowd
+    restart_atlassian_bitbucket &
+    restart_atlassian_jira &
+
+    startup_openshift_cluster
+}
+
+function stop_ods() {
+    docker container stop "${atlassian_mysql_container_name}"
+    docker container stop "${atlassian_bitbucket_container_name}"
+    docker container stop "${atlassian_jira_container_name}"
+    docker container stop "${atlassian_crowd_container_name}"
+    echo "Stopping ods cluster"
+    oc cluster down
 }
 
 #######################################
