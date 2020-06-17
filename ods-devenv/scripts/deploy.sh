@@ -147,7 +147,14 @@ function setup_dnsmasq() {
         echo "dnsmasq service up and running"
     fi
 
-    sudo cp "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
+    # if script runs for the 2nd time on a machine, backup dnsmasq.conf from orig
+    if [[ -f "${dnsmasq_conf_path}.orig" ]]
+    then
+        sudo cp "${dnsmasq_conf_path}.orig" "${dnsmasq_conf_path}"
+    else
+        sudo cp "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
+    fi
+
     sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#bogus-priv|bogus-priv|" "${dnsmasq_conf_path}"
     # might also want to add 172.31.0.2 as forward name server
@@ -290,7 +297,8 @@ function startup_openshift_cluster() {
     local cluster_dir
     cluster_dir="${HOME}/openshift.local.clusterup"
 
-    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "${ip_address}.nip.io" --public-hostname "${ip_address}.nip.io" --no-proxy="${ip_address}"
+    register_dns ocp.odsbox.lan "${ip_address}"
+    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
 
     oc login -u system:admin
 
@@ -329,7 +337,7 @@ function setup_openshift_cluster() {
     echo -e "Create and replace old router cert"
     oc project default
     oc get --export secret -o yaml router-certs > "${HOME}/old-router-certs-secret.yaml"
-    oc adm ca create-server-cert --signer-cert="${cluster_dir}/kube-apiserver/ca.crt" --signer-key="${cluster_dir}/kube-apiserver/ca.key" --signer-serial="${cluster_dir}/kube-apiserver/ca.serial.txt" --hostnames="kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.${ip_address}.nip.io,${ip_address},*.router.default.svc.cluster.local,router.default.svc.cluster.local" --cert=router.crt --key=router.key
+    oc adm ca create-server-cert --signer-cert="${cluster_dir}/kube-apiserver/ca.crt" --signer-key="${cluster_dir}/kube-apiserver/ca.key" --signer-serial="${cluster_dir}/kube-apiserver/ca.serial.txt" --hostnames="kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster,openshift.default.svc.cluster.local,127.0.0.1,172.17.0.1,172.30.0.1,*.ocp.odsbox.lan,ocp.odsbox.lan,*.router.default.svc.cluster.local,router.default.svc.cluster.local" --cert=router.crt --key=router.key
     cat router.crt "${cluster_dir}/kube-apiserver/ca.crt" router.key > router.pem
     oc create secret tls router-certs --cert=router.pem --key=router.key -o json --dry-run | oc replace -f -
     oc annotate service router service.alpha.openshift.io/serving-cert-secret-name- service.alpha.openshift.io/serving-cert-signed-by-
@@ -1544,7 +1552,6 @@ function basic_vm_setup() {
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
-    echo "source /etc/bash_completion.d/docker-compose"
     echo "source /etc/bash_completion.d/oc"
 }
 
