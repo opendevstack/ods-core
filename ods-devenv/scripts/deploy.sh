@@ -1226,8 +1226,6 @@ function create_configuration() {
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
 
-    sed -i "s|DOCKER_REGISTRY=.*$|DOCKER_REGISTRY=docker-registry-default.ocp.odsbox.lan:5000|" ods-core.env
-
     git add -- .
     git commit -m "updated config for EDP box"
     git push
