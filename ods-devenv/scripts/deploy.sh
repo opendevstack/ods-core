@@ -1206,7 +1206,7 @@ function create_configuration() {
     sed -i "s|SONAR_AUTH_CROWD=.*$|SONAR_AUTH_CROWD=true|" ods-core.env
 
     # JENKINS
-    sed -i "s|APP_DNS=.*$|APP_DNS=ocp.odsbox.lan:8443|" ods-core.env
+    sed -i "s|APP_DNS=.*$|APP_DNS=docker-registry-default.ocp.odsbox.lan|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET_B64=.*$|PIPELINE_TRIGGER_SECRET_B64=$(echo -n openshift | base64)|" ods-core.env
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
     sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
