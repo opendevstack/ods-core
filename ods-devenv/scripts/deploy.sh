@@ -421,7 +421,7 @@ function print_system_setup() {
 #######################################
 function prepare_atlassian_stack() {
     echo "Downloading data dumps for Atlassian stack."
-    pushd "/home/${USER}"
+    pushd "${HOME}"
     curl -LO ${atlassian_mysql_dump_url}
     curl -LO ${atlassian_jira_backup_url}
     curl -LO ${atlassian_bitbucket_backup_url}
@@ -429,7 +429,7 @@ function prepare_atlassian_stack() {
     for data_file in bitbucket_data jira_data mysql_data
     do
         # cleaning up (stale) files and folders
-        rm -rf "/home/${USER:?}/${data_file:?}"
+        rm -rf "${HOME:?}/${data_file:?}"
         # download and expand archives
         tar xzf "${data_file}.tar.gz"
         rm "${data_file}.tar.gz"
@@ -456,7 +456,7 @@ function startup_atlassian_mysql() {
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
-        -v "/home/${USER}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
+        -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \
@@ -532,8 +532,8 @@ function configure_jira2crowd() {
 
     # setting atl_token
     atl_token=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
-        -b /home/openshift/tmp/jira_cookie_jar.txt \
-        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
         --data "newDirectoryType=CROWD&next=Next" \
         --compressed \
         --insecure --location --silent | pup 'input[name="atl_token"] attr{value}')
@@ -541,8 +541,8 @@ function configure_jira2crowd() {
 
     # WebSudo authentication - sign in as admin
     curl 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
-        -b /home/openshift/tmp/jira_cookie_jar.txt \
-        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
         --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
         --compressed \
         --insecure --location -o /dev/null # | pup --color
@@ -553,8 +553,8 @@ function configure_jira2crowd() {
     echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
-        -b /home/openshift/tmp/jira_cookie_jar.txt \
-        -c /home/openshift/tmp/jira_cookie_jar.txt \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
         --insecure \
@@ -611,8 +611,8 @@ function configure_bitbucket2crowd() {
     echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
-        -b /home/openshift/tmp/bitbucket_cookie_jar.txt \
-        -c /home/openshift/tmp/bitbucket_cookie_jar.txt \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
         --compressed \
         --insecure --location --silent \
@@ -1122,13 +1122,13 @@ function delete_ods_repositories() {
 #   None
 #######################################
 function initialise_ods_repositories() {
-    local opendevstack_dir="/home/${USER}/opendevstack"
+    local opendevstack_dir="${HOME}/opendevstack"
 
     mkdir -p "${opendevstack_dir}"
     pushd "${opendevstack_dir}"
     curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/ods-setup/repos.sh
     chmod u+x ./repos.sh
-    ./repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --verbose
+    ./repos.sh --init --confirm --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --verbose
     ./repos.sh --sync --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
     popd
 }
@@ -1423,10 +1423,10 @@ function restart_atlassian_suite() {
 #   None
 #######################################
 function setup_jenkins_slaves() {
-    local opendevstack_dir="/home/${USER}/opendevstack"
+    local opendevstack_dir="${HOME}/opendevstack"
     local quickstarters_jenkins_slaves_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
     local ocp_config_folder="ocp-config"
-    local project_dir="/home/${USER}/projects"
+    local project_dir="${HOME}/projects"
 
     if [[ ! -d "${opendevstack_dir}/ods-configuration" ]]
     then
