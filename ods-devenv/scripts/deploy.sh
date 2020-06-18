@@ -366,6 +366,9 @@ function setup_openshift_cluster() {
     oc -o yaml new-app php~https://github.com/sandervanvugt/simpleapp --name=simpleapp > s2i.yaml
     oc create -f s2i.yaml
     rm s2i.yaml
+
+    # clean up filesystem
+    rm -f router.crt router.key router.pem "${HOME}/old-router-certs-secret.yaml"
 }
 
 #######################################
