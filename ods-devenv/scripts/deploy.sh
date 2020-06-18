@@ -1476,6 +1476,7 @@ function setup_jenkins_slaves() {
 
 function startup_ods() {
     # for sonarqube
+    echo "Setting vm.max_map_count=262144"
     sudo sysctl -w vm.max_map_count=262144
 
     setup_dnsmasq
@@ -1497,6 +1498,7 @@ function startup_ods() {
     startup_openshift_cluster
     # allow for OpenShifts to be resolved within OpenShift network
     sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    echo "set iptables"
 }
 
 function stop_ods() {
