@@ -3,7 +3,7 @@ set -eux
 set -o pipefail
 
 GO_VERSION="1.14.3"
-TAILOR_VERSION="1.1.0"
+TAILOR_VERSION="1.1.1"
 OC_VERSION="3.11.0"
 OC_EXACT_VERSION="${OC_VERSION}-0cbc58b"
 
