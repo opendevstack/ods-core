@@ -2,7 +2,12 @@
 
 ods_git_ref=feature/ods-devenv
 
-sudo yum install -y git
+# install modern git version as required by repos.sh
+if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
+sudo yum update -y
+sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
+sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.7-1.x86_64.rpm
+sudo yum -y install git
 
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -p "${opendevstack_dir}"
