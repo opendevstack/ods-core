@@ -1475,6 +1475,9 @@ function setup_jenkins_slaves() {
 }
 
 function startup_ods() {
+    # for sonarqube
+    sudo sysctl -w vm.max_map_count=262144
+
     setup_dnsmasq
 
     # restart and follow mysql
@@ -1492,6 +1495,8 @@ function startup_ods() {
     restart_atlassian_jira &
 
     startup_openshift_cluster
+    # allow for OpenShifts to be resolved within OpenShift network
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 }
 
 function stop_ods() {
