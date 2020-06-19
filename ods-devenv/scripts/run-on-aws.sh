@@ -6,7 +6,6 @@ install=
 target_git_ref=
 
 instance_type="t2.2xlarge"
-az="eu-west-1a"
 volume_size="100"
 ami_id=
 host=
@@ -29,8 +28,6 @@ function usage {
   printf "\n"
   printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
   printf "\t--security-group-id\tSecurity Group with SSH access allowed (required if neither --instance-id nor --host are given)\n"
-  printf "\t--availability-zone\tAZ (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${az}"
-  printf "\t--ami-id\t\tAMI ID (defaults to latest ubuntu-xenial-16.04, used if neither --instance-id nor --host are given)\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -57,12 +54,6 @@ while [[ "$#" -gt 0 ]]; do
 
   --keypair) keypair="$2"; shift;;
   --keypair=*) keypair="${1#*=}";;
-
-  --availability-zone) az="$2"; shift;;
-  --availability-zone=*) az="${1#*=}";;
-
-  --ami-id) ami_id="$2"; shift;;
-  --ami-id=*) ami_id="${1#*=}";;
 
   --install) install="yes";;
 
