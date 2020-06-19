@@ -101,12 +101,14 @@ if [ -z "${host}" ]; then
                 --owners 275438041116 \
                 --filters "Name=name,Values=EDP in a box 2020-05-30" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+            ec2_instance_name="ODS in a box Install $(date)"
             echo "You are in install mode using CentOS 7 image ${ami_id}."
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
                 --filters "Name=name,Values=ODS in a box" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+            ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in test mode using ODS in a box image ${ami_id}."
         fi
     fi
@@ -122,8 +124,7 @@ if [ -z "${host}" ]; then
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
     aws ec2 wait instance-running --instance-ids "$instance_id"
     echo "Instance with ID=${instance_id} running"
-
-    ec2_instance_name="ODS in a box $(date)"
+    
     aws ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
     echo "Starting new EC2 instance with name ${ec2_instance_name}"
 

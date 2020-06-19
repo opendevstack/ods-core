@@ -1525,9 +1525,9 @@ function startup_ods() {
         return 1
     fi
 
-    startup_openshift_cluster
     # allow for OpenShifts to be resolved within OpenShift network
     sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    startup_openshift_cluster
     echo "set iptables"
 }
 
