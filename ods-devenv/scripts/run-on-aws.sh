@@ -150,8 +150,11 @@ fi
 target_git_ref="${target_git_ref:-master}"
 
 if [ -n "${install}" ]; then
-    echo "Using rsync to upload local folder to AWS"
+    echo "Now installing ODS"
     rsync bootstrap.sh "openshift@${host}:/home/openshift/bin/bootstrap"
     echo "Running bootstrap on AWS EC2 instance to build ODS from branch ${target_git_ref}"
     ssh -t "openshift@${host}" -- '${HOME}/bin/bootstrap' "--branch ${target_git_ref}"
+else
+    echo "Now starting ODS"
+    ssh -t "openshift@${host}" -- '${HOME}/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'
 fi
