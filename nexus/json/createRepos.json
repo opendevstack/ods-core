@@ -16,6 +16,7 @@
   repository.createNpmProxy('npm-registry', 'https://registry.npmjs.org', 'default', true);
   repository.createNpmHosted('npm-private', 'npm-private', true, WritePolicy.ALLOW_ONCE);
   repository.createNpmGroup('npm-all', ['npm-registry', 'npm-private'], 'default');
+  repository.createNpmGroup('npmjs', ['npm-registry', 'npm-private'], 'default');
   repository.createPyPiProxy('pypi-registry', 'https://pypi.org/', 'default', false);
   repository.createPyPiHosted('pypi-private', 'pypi-private', true, WritePolicy.ALLOW_ONCE);
   repository.createPyPiGroup('pypi-all', ['pypi-registry', 'pypi-private'], 'default');
