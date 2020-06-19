@@ -88,6 +88,8 @@ function check_system_setup() {
     echo "alias ll='ls -AFhl --color=auto'"
     echo "alias dcip='docker inspect --format \"{{.NetworkSettings.IPAddress}}\"'"
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
+    echo "alias startup_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'"
+    echo "alias stop_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target stop_ods'"
 } >> ~/.bashrc
 
     # suppress sudo timeout
@@ -137,7 +139,11 @@ function setup_dnsmasq() {
         sudo kill -9 "${job_id}" || true
     done
 
-    sudo yum install dnsmasq
+    if ! >/dev/null command -v dnsmasq
+    then
+        sudo yum install dnsmasq
+    fi
+
     sudo systemctl start dnsmasq
     sleep 10
     if ! sudo systemctl status dnsmasq | grep -q active
@@ -175,7 +181,13 @@ function setup_dnsmasq() {
 
     sudo chattr -i /etc/resolv.conf
     sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
-    # TODO there must be a better way ...
+    
+    while ! grep "${public_hostname}" /etc/resolv.conf
+    do
+        echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
+        sleep 1
+    done
+    
     sudo chattr +i /etc/resolv.conf
     sudo systemctl restart dnsmasq.service
 }
@@ -1042,14 +1054,24 @@ function register_dns() {
 
     # register new ip with /etc/hosts
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
-    if grep -q "${service_name}" < /etc/hosts
-    then
-        echo "replacing the previous value with ${ip}    ${service_name}.odsbox.lan."
-        sudo sed -i "s|^.*${service_name}.odsbox.lan|${ip}    ${service_name}.odsbox.lan|" /etc/hosts
-    else
-        echo "appending the new value ${ip}    ${service_name}.odsbox.lan."
-        echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
-    fi
+
+    while ! grep -q "${ip}" /etc/hosts
+    do
+        if grep -q "${service_name}" < /etc/hosts
+        then
+            echo "replacing the previous value with ${ip}    ${service_name}.odsbox.lan."
+            sudo sed -i "s|^.*${service_name}.odsbox.lan|${ip}    ${service_name}.odsbox.lan|" /etc/hosts
+        else
+            echo "appending the new value ${ip}    ${service_name}.odsbox.lan."
+            echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
+        fi
+        if ! grep "${ip}" /etc/hosts
+        then
+            echo "WARN: Could not set $service_name in /etc/hosts. Trying again ..."
+            sleep 1
+        fi
+    done
+
 
     sudo systemctl restart dnsmasq.service
 }
@@ -1491,8 +1513,16 @@ function startup_ods() {
     echo "mysqld up and running."
 
     restart_atlassian_crowd
-    restart_atlassian_bitbucket &
-    restart_atlassian_jira &
+    restart_atlassian_bitbucket
+    restart_atlassian_jira
+
+    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    if ! grep "nameserver ${public_hostname}" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    then
+        echo "ERROR: could not update kubedns/resolv.con!"
+        return 1
+    fi
 
     startup_openshift_cluster
     # allow for OpenShifts to be resolved within OpenShift network
@@ -1593,5 +1623,6 @@ esac; shift; done
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
 ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
+target="${target:-display_usage}"
 echo "Will build ods box against git-ref ${ods_git_ref}"
 ${target}

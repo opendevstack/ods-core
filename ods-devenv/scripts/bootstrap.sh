@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 
-ods_git_ref=feature/ods-devenv
+ods_git_ref=
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+
+  --branch) ods_git_ref="$2"; shift;;
+
+esac; shift; done
+
+ods_git_ref="${ods_git_ref:-master}"
+echo "Will build ods box against git-ref ${ods_git_ref}"
 
 # install modern git version as required by repos.sh
 if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
