@@ -92,7 +92,7 @@ if [ -z "${host}" ]; then
                 --owners 275438041116 \
                 --filters "Name=name,Values=EDP in a box 2020-05-30" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
-            ec2_instance_name="ODS in a box Install $(date)"
+            ec2_instance_name="ODS in a box Install (${target_git_ref}) $(date)"
             echo "You are in install mode using CentOS 7 image ${ami_id}."
         else
             ami_id=$(aws ec2 describe-images \
