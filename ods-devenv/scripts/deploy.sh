@@ -311,7 +311,7 @@ function startup_openshift_cluster() {
     local cluster_dir
     cluster_dir="${HOME}/openshift.local.clusterup"
 
-    register_dns ocp.odsbox.lan "${ip_address}"
+    register_dns ocp "${ip_address}"
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
 
     oc login -u system:admin
