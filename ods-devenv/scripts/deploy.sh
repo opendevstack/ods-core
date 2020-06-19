@@ -76,6 +76,7 @@ function display_usage() {
 #   None
 #######################################
 function check_system_setup() {
+    PATH="${PATH}:$HOME/bin"
     mkdir -p "${HOME}/tmp"
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
     if ! grep -q vmx /proc/cpuinfo
