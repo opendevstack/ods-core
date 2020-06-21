@@ -6,7 +6,7 @@ install=
 target_git_ref=
 
 instance_type="t2.2xlarge"
-volume_size="100"
+volume_size=70
 ami_id=
 host=
 keypair=
@@ -15,7 +15,14 @@ security_group_id=
 wait=
 
 function usage {
-  printf "Run tests in AWS.\n\n"
+  printf "Setup and run ODS in a box on AWS.\n\n"
+  printf "To start ODS in a box from the prepared AMI run:\n"
+  printf "./run-on-aws.sh\n\n"
+  printf "To setup and start a fresh ODS in a box instance from master, run:\n"
+  printf "./run-on-aws.sh --install\n\n"
+  printf "To setup and start a fresh ODS in a box instance from a specific branch, run:\n"
+  printf "note: the given branch name must exist on ods-core, ods-jenkins-shared-library and ods-quickstarters\n"
+  printf "./run-on-aws.sh --install --target_git_ref my-branch-name\n\n"
   printf "Usage:\n\n"
   printf "\t--help\t\t\tPrint usage\n"
   printf "\t--verbose\t\tEnable verbose mode\n"
@@ -27,7 +34,8 @@ function usage {
   printf "\t--instance-id\t\tInstance ID (bypasses creating a new instance)\n"
   printf "\n"
   printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
-  printf "\t--security-group-id\tSecurity Group with SSH access allowed (required if neither --instance-id nor --host are given)\n"
+  printf "\n"
+  printf "\t--security-group-id\tSecurity Group with SSH access allowed - there is a reasonable default\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -100,7 +108,7 @@ if [ -z "${host}" ]; then
                 --filters "Name=name,Values=ODS in a box" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Startup $(date)"
-            echo "You are in test mode using ODS in a box image ${ami_id}."
+            echo "You are in startup mode using ODS in a box image ${ami_id}."
         fi
     fi
     echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} with security_group=${security_group_id} ..."
@@ -148,5 +156,5 @@ if [ -n "${install}" ]; then
     ssh -t "openshift@${host}" -- '${HOME}/bin/bootstrap' "--branch ${target_git_ref}"
 else
     echo "Now starting ODS"
-    ssh -t "openshift@${host}" -- '${HOME}/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'
+    ssh -t "openshift@${host}" -- '(export PATH="$PATH:/usr/sbin"; ${HOME}/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods)'
 fi
