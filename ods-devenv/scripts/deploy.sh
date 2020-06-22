@@ -1497,6 +1497,21 @@ function setup_jenkins_slaves() {
     fi
 }
 
+#######################################
+# Run tests to verify successful installation
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function run_smoke_tests() {
+    pushd tests
+    make test
+    popd
+}
+
 function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
@@ -1607,9 +1622,7 @@ function basic_vm_setup() {
 
     setup_jenkins_slaves
 
-    pushd tests
-    make test
-    popd
+    run_smoke_tests
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
