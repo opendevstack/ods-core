@@ -27,7 +27,7 @@ objects:
     - kubernetes.io/pvc-protection
     labels:
       app: ${NEXUS_NAME}
-    name: nexus-data-extended
+    name: nexus-data
   spec:
     accessModes:
     - ReadWriteOnce
