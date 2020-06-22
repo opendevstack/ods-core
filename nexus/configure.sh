@@ -105,14 +105,14 @@ if [ -z "${DEVELOPER_PASSWORD}" ]; then
         samplePassword=$(grep NEXUS_PASSWORD_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
         configuredPassword=$(grep NEXUS_PASSWORD_B64 "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
         if [ "${configuredPassword}" == "${samplePassword}" ]; then
-            echo_info "Admin password in ods-configuration/ods-core.env is the sample value"
+            echo_info "Developer password in ods-configuration/ods-core.env is the sample value"
         else
-            echo_info "Setting admin password from ods-configuration/ods-core.env"
+            echo_info "Setting developer password from ods-configuration/ods-core.env"
             DEVELOPER_PASSWORD=${configuredPassword}
         fi
     fi
     if [ -z "${DEVELOPER_PASSWORD}" ]; then
-        echo "Please enter Nexus admin password:"
+        echo "Please enter Nexus developer password:"
         read -r -e -s input
         DEVELOPER_PASSWORD=${input:-""}
     fi
