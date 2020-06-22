@@ -4,6 +4,8 @@ import (
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
+	"path"
+	"runtime"
 )
 
 func RemoveProject(projectName string) error {
@@ -31,6 +33,19 @@ func RemoveProject(projectName string) error {
 			break
 		}
 	}
+
+	return nil
+}
+
+func RemoveBuildConfigs(projectName string, buildConfigName string) error {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
+
+	RunCommandWithWorkDir("oc", []string{
+		"delete",
+		"bc",
+		"-n", projectName,
+		buildConfigName}, dir, []string{})
 
 	return nil
 }
