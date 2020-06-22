@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,7 +35,7 @@ func TestJenkinsFile(t *testing.T) {
 
 	request := utils.RequestBuild{
 		Repository: "ods-core",
-		Branch:     "cicdtests",
+		Branch:     values["ODS_GIT_REF"],
 		Project:    "opendevstack",
 		Env: []utils.EnvPair{
 			{
@@ -55,7 +56,7 @@ func TestJenkinsFile(t *testing.T) {
 			},
 			{
 				Name:  "ODS_GIT_REF",
-				Value: "cicdtests",
+				Value: values["ODS_GIT_REF"],
 			},
 			{
 				Name:  "ODS_IMAGE_TAG",
@@ -71,9 +72,11 @@ func TestJenkinsFile(t *testing.T) {
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	reponse, err := http.Post(
-		fmt.Sprintf("https://webhook-proxy-prov-cd.172.17.0.1.nip.io/build?trigger_secret=%s&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
-			values["PIPELINE_TRIGGER_SECRET"],
-			projectName),
+		fmt.Sprintf("https://%s%s/build?trigger_secret=%s&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
+		values["PROV_APP_WEBHOOKPROXY_HOST"],
+		values["OPENSHIFT_APPS_BASEDOMAIN"],
+		values["PIPELINE_TRIGGER_SECRET"],
+		projectName),
 		"application/json",
 		bytes.NewBuffer(body))
 
@@ -108,14 +111,14 @@ func TestJenkinsFile(t *testing.T) {
 	}
 
 	time.Sleep(10 * time.Second)
-	build, err := buildClient.Builds("prov-cd").Get(fmt.Sprintf("ods-corejob-create-project-%s-cicdtests-1", projectName), metav1.GetOptions{})
+	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, values["ODS_GIT_REF"]), metav1.GetOptions{})
 	count := 0
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
-		build, err = buildClient.Builds("prov-cd").Get(fmt.Sprintf("ods-corejob-create-project-%s-cicdtests-1", projectName), metav1.GetOptions{})
+		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")), metav1.GetOptions{})
 		time.Sleep(2 * time.Second)
 		if err != nil {
-			fmt.Printf("Build is still not available")
+			fmt.Printf("Build is still not available: %s", err)
 		} else {
 			fmt.Printf("Waiting for build. Current status: %s", build.Status.Phase)
 		}
@@ -125,7 +128,7 @@ func TestJenkinsFile(t *testing.T) {
 	stdout, stderr, _ := utils.RunScriptFromBaseDir(
 		"tests/scripts/utils/print-jenkins-log.sh",
 		[]string{
-			fmt.Sprintf("ods-corejob-create-project-%s-cicdtests-1", projectName),
+			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
 		}, []string{})
 
 	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
