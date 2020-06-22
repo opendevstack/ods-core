@@ -12,7 +12,7 @@ node {
 
 def conts = containerTemplate(
   name: 'jnlp',
-  image: "${dockerRegistry}/${odsNamespace}/jenkins-slave-base:${odsImageTag}",
+  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-base:${odsImageTag}",
   workingDir: '/tmp',
   alwaysPullImage: true,
   args: ''

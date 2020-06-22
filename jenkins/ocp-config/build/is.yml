@@ -16,11 +16,11 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: jenkins-slave-base
+    name: jenkins-agent-base
     labels:
       app: jenkins
   spec:
-    dockerImageRepository: jenkins-slave-base
+    dockerImageRepository: jenkins-agent-base
     lookupPolicy:
       local: false
 - apiVersion: v1

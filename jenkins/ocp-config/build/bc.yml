@@ -83,7 +83,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: jenkins-slave-base
+    name: jenkins-agent-base
     labels:
       app: jenkins
   spec:
@@ -92,7 +92,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: 'jenkins-slave-base:${ODS_IMAGE_TAG}'
+        name: 'jenkins-agent-base:${ODS_IMAGE_TAG}'
     postCommit: {}
     resources:
       limits:
@@ -103,7 +103,7 @@ objects:
         memory: "1Gi"
     runPolicy: Serial
     source:
-      contextDir: jenkins/slave-base
+      contextDir: jenkins/agent-base
       git:
         ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git

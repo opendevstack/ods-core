@@ -10,9 +10,9 @@ Run `make apply-jenkins-build`.
 
 Run `make start-jenkins-build-master`.
 
-== Building a new Jenkins Slave Base image
+== Building a new Jenkins Agent Base image
 
-Run `make start-jenkins-build-slave-base`.
+Run `make start-jenkins-build-agent-base`.
 
 == Building a new Jenkins Webhook Proxy image
 
