@@ -213,7 +213,7 @@ if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     fi
     echo_info "Delete default admin password file"
     if [ -z "${LOCAL_CONTAINER_ID}" ]; then
-        oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" rm "${DEFAULT_ADMIN_PASSWORD_FILE}"
+        oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" bash -c "rm ${DEFAULT_ADMIN_PASSWORD_FILE}"
     else
         docker exec -t "${LOCAL_CONTAINER_ID}" rm "${DEFAULT_ADMIN_PASSWORD_FILE}"
     fi
