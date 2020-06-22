@@ -86,6 +86,7 @@ function check_system_setup() {
     fi
 
 {
+    echo 'export GOPROXY="https://goproxy.io,direct"'
     echo "alias ll='ls -AFhl --color=auto'"
     echo "alias dcip='docker inspect --format \"{{.NetworkSettings.IPAddress}}\"'"
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
@@ -1497,6 +1498,8 @@ function setup_jenkins_slaves() {
 }
 
 function startup_ods() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
     # for sonarqube
     echo "Setting vm.max_map_count=262144"
     sudo sysctl -w vm.max_map_count=262144
