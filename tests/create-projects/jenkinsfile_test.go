@@ -33,6 +33,9 @@ func TestJenkinsFile(t *testing.T) {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
+	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
+		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
+
 	request := utils.RequestBuild{
 		Repository: "ods-core",
 		Branch:     values["ODS_GIT_REF"],
@@ -161,6 +164,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
 		"diff",
 		"--reveal-secrets",
+		"--exclude=rolebinding",
 		"-n", projectNameCd,
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),

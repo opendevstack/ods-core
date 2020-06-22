@@ -1603,6 +1603,10 @@ function basic_vm_setup() {
 
     setup_jenkins_slaves
 
+    pushd tests
+    make test
+    popd
+
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
