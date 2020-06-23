@@ -173,6 +173,7 @@ function setup_dnsmasq() {
     sudo sed -i "/#address=\/double-click.net\/127.0.0.1/a address=\/odsbox.lan\/${public_hostname}\naddress=\/odsbox.lan\/172.17.0.1\naddress=\/odsbox.lan\/127.0.0.1" "${dnsmasq_conf_path}"
     sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#domain=thekelleys.org.uk|domain=odsbox.lan|" "${dnsmasq_conf_path}"
+    echo "172.30.1.1     docker-registry.default.svc" | sudo tee -a /etc/hosts
 
     # dnsmasq logs on stderr (?!)
     if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
@@ -397,7 +398,7 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.1/tailor-linux-amd64"
+    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.2/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
     sudo mv tailor-linux-amd64 /usr/bin/tailor
 }
@@ -1223,7 +1224,6 @@ function create_configuration() {
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=https://nexus-ods.ocp.odsbox.lan|" ods-core.env
     sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=nexus-ods.ocp.odsbox.lan|" ods-core.env
 
-
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
     sed -i "s|SONAR_ADMIN_PASSWORD_B64=.*$|SONAR_ADMIN_PASSWORD_B64=$(echo -n openshift | base64)|" ods-core.env
@@ -1508,8 +1508,13 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
     pushd tests
     make test
+    popd
+
+    pushd ../ods-quickstarters/tests
+        make setup-tests test
     popd
 }
 
