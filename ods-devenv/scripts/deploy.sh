@@ -248,7 +248,7 @@ function setup_google_chrome() {
 #   None
 #######################################
 function setup_rdp() {
-    sudo yum install -y yum-utils epel-release https://centos7.iuscommunity.org/ius-release.rpm
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install xrdp
     sudo systemctl start xrdp
     sudo netstat -antup | grep xrdp
