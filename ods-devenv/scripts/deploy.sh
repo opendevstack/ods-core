@@ -1511,6 +1511,10 @@ function run_smoke_tests() {
     pushd tests
     make test
     popd
+
+    pushd ../ods-quickstarters/tests
+        make setup-tests test
+    popd
 }
 
 function startup_ods() {
