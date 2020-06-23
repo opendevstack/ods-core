@@ -54,7 +54,7 @@ apply-jenkins-deploy:
 .PHONY: apply-jenkins-deploy
 
 ## Start build of all Jenkins BuildConfig resources.
-start-jenkins-build: start-jenkins-build-master start-jenkins-build-slave-base start-jenkins-build-webhook-proxy
+start-jenkins-build: start-jenkins-build-master start-jenkins-build-agent-base start-jenkins-build-webhook-proxy
 .PHONY: jenkins-build
 
 ## Start build of BuildConfig "jenkins-master".
@@ -62,10 +62,10 @@ start-jenkins-build-master:
 	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master
 .PHONY: start-jenkins-build-master
 
-## Start build of BuildConfig "jenkins-slave-base".
-start-jenkins-build-slave-base:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base
-.PHONY: start-jenkins-build-slave-base
+## Start build of BuildConfig "jenkins-agent-base".
+start-jenkins-build-agent-base:
+	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-agent-base
+.PHONY: start-jenkins-build-agent-base
 
 ## Start build of BuildConfig "jenkins-webhook-proxy".
 start-jenkins-build-webhook-proxy:

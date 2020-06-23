@@ -14,8 +14,8 @@ jobs:
           ./.github/workflows/build-docker-image.sh \
           --imagename ods-jenkins-master-centos7 \
           --dockerdir jenkins/master
-  jenkins-slave-base:
-    name: Jenkins slave base tests
+  jenkins-agent-base:
+    name: Jenkins agent base tests
     runs-on: ubuntu-18.04
     steps:
       -
@@ -24,8 +24,8 @@ jobs:
       - name: Build docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-slave-base-centos7 \
-          --dockerdir jenkins/slave-base \
+          --imagename ods-jenkins-agent-base-centos7 \
+          --dockerdir jenkins/agent-base \
           --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.217.3/snyk-linux"
       - name: Push docker image
         if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
@@ -37,7 +37,7 @@ jobs:
           ./.github/workflows/push-docker-image.sh \
           --user "$DOCKER_USER" \
           --password "$DOCKER_PASS" \
-          --imagename ods-jenkins-slave-base-centos7
+          --imagename ods-jenkins-agent-base-centos7
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-18.04

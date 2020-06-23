@@ -1353,7 +1353,7 @@ function setup_jenkins() {
 
     echo "make start-jenkins-build:"
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose &
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-slave-base --verbose &
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-agent-base --verbose &
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose &
 
     local fail_count=0
@@ -1433,7 +1433,7 @@ function restart_atlassian_suite() {
 }
 
 #######################################
-# Sets up Jenkins slaves for various technologies, like:
+# Sets up Jenkins agents for various technologies, like:
 # airflow, golang, maven, nodejs/angular, nodejs12, python, scala
 #
 # Relies on initialise_ods_repositories' having run before to create and
@@ -1446,9 +1446,9 @@ function restart_atlassian_suite() {
 # Returns:
 #   None
 #######################################
-function setup_jenkins_slaves() {
+function setup_jenkins_agents() {
     local opendevstack_dir="${HOME}/opendevstack"
-    local quickstarters_jenkins_slaves_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
+    local quickstarters_jenkins_agents_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-agents"
     local ocp_config_folder="ocp-config"
     local project_dir="${HOME}/projects"
 
@@ -1462,8 +1462,8 @@ function setup_jenkins_slaves() {
     # create build configurations in parallel
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        pushd "${quickstarters_jenkins_slaves_dir}/${technology}/${ocp_config_folder}"
-        echo "Creating build configuration of jenkins-slave for technology ${technology}."
+        pushd "${quickstarters_jenkins_agents_dir}/${technology}/${ocp_config_folder}"
+        echo "Creating build configuration of jenkins-agent for technology ${technology}."
         tailor apply --verbose --force --non-interactive &
         popd
     done
@@ -1477,24 +1477,24 @@ function setup_jenkins_slaves() {
     done
     if [[ "${fail_count}" -gt 0 ]]
     then
-        echo "${fail_count} of the jenkins-slave build configurations failed."
+        echo "${fail_count} of the jenkins-agent build configurations failed."
     fi
 
     for technology in airflow golang maven nodejs10-angular nodejs12 python scala
     do
-        echo "Starting build of jenkins-slave for technology ${technology}."
-        oc start-build -n "${NAMESPACE}" "jenkins-slave-${technology}" --follow &
+        echo "Starting build of jenkins-agent for technology ${technology}."
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow &
     done
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-slave builds  ${job} to complete."
+        echo "Waiting for jenkins-agent builds  ${job} to complete."
         wait "${job}" || fail_count=$((fail_count + 1))
         echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
     done
     if [[ "${fail_count}" -gt 0 ]]
     then
-        echo "${fail_count} of the jenkins-slave builds failed."
+        echo "${fail_count} of the jenkins-agent builds failed."
     fi
 }
 
@@ -1621,7 +1621,7 @@ function basic_vm_setup() {
         # TODO fail if any job fails
     done
 
-    setup_jenkins_slaves
+    setup_jenkins_agents
 
     run_smoke_tests
 

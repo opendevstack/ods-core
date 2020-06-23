@@ -1,0 +1,21 @@
+= ODS Jenkins Agent base
+
+We have a base image for different jenkins agents.
+The concrete agent images are then configured as part of the quickstarters.
+
+The base image contains the following customizations:
+
+* http://repo1.maven.org/maven2/org/sonarsource/scanner[SonarQube Scanner]
+* https://github.com/lequal/sonar-cnes-report[SonarQube CNES Report Plugin]
+* https://github.com/opendevstack/tailor[Tailor]
+* https://github.com/containers/skopeo[Skopeo]
+* https://snyk.io[Snyk] - used to scan and monitor projects vulnerable third-party dependencies (only installed if `SNYK_DISTRIBUTION_URL` is configured)
+* Setting of enterprise proxy (based on `HTTP_PROXY` presence)
+* Support for custom certificates (based on `APP_DNS` presence)
+
+When the container image is built, it fetches automatically the OpenShift root CA certificate and stores it, so that the `oc`-cli tool
+can pick it up later and also adds the base domain wildcard certificate to the Java certificate store.
+
+The setting of the enterprise proxy takes care that Jenkins agent works also on OpenShift clusters in enterprises that use a web proxy.
+
+The base jenkins agent is used by all ODS https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents[builder agents]

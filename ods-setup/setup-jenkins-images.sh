@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#Builds all jenkins-master jenkins-slave-base and webhook-proxy
+# Builds all jenkins-master jenkins-agent-base and webhook-proxy
 
 set -ue
 
@@ -68,6 +68,6 @@ cd -
 
 ${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-master
 
-${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-slave-base
+${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-agent-base
 
 ${BASH_SOURCE%/*}/../ocp-scripts/start-and-follow-build.sh --build-config jenkins-webhook-proxy

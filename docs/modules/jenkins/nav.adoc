@@ -1,4 +1,4 @@
 * xref:index.adoc[Jenkins]
 ** xref:master.adoc[Jenkins Master]
-** xref:slave-base.adoc[Jenkins Slave Base]
+** xref:agent-base.adoc[Jenkins Agent Base]
 ** xref:webhook-proxy.adoc[Webhook Proxy]
