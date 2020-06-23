@@ -77,6 +77,7 @@ function display_usage() {
 #######################################
 function check_system_setup() {
     PATH="${PATH}:$HOME/bin"
+    export GOPROXY="https://goproxy.io,direct"
     mkdir -p "${HOME}/tmp"
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
     if ! grep -q vmx /proc/cpuinfo
@@ -86,6 +87,7 @@ function check_system_setup() {
     fi
 
 {
+    echo 'export GOPROXY="https://goproxy.io,direct"'
     echo "alias ll='ls -AFhl --color=auto'"
     echo "alias dcip='docker inspect --format \"{{.NetworkSettings.IPAddress}}\"'"
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
@@ -1496,7 +1498,24 @@ function setup_jenkins_slaves() {
     fi
 }
 
+#######################################
+# Run tests to verify successful installation
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function run_smoke_tests() {
+    pushd tests
+    make test
+    popd
+}
+
 function startup_ods() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
     # for sonarqube
     echo "Setting vm.max_map_count=262144"
     sudo sysctl -w vm.max_map_count=262144
@@ -1603,6 +1622,8 @@ function basic_vm_setup() {
     done
 
     setup_jenkins_slaves
+
+    run_smoke_tests
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
