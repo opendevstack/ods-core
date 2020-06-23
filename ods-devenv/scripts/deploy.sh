@@ -173,6 +173,7 @@ function setup_dnsmasq() {
     sudo sed -i "/#address=\/double-click.net\/127.0.0.1/a address=\/odsbox.lan\/${public_hostname}\naddress=\/odsbox.lan\/172.17.0.1\naddress=\/odsbox.lan\/127.0.0.1" "${dnsmasq_conf_path}"
     sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#domain=thekelleys.org.uk|domain=odsbox.lan|" "${dnsmasq_conf_path}"
+    echo "172.30.1.1     docker-registry.default.svc" | sudo tee -a /etc/hosts
 
     # dnsmasq logs on stderr (?!)
     if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
@@ -1222,9 +1223,6 @@ function create_configuration() {
     sed -i "s|NEXUS_AUTH=.*$|NEXUS_AUTH=admin:openshift|" ods-core.env
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=https://nexus-ods.ocp.odsbox.lan|" ods-core.env
     sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=nexus-ods.ocp.odsbox.lan|" ods-core.env
-
-    # Docker registry
-    sed -i "s|DOCKER_REGISTRY=.*$|DOCKER_REGISTRY=docker-registry.default.svc.cluster.local:5000|" ods-core.env
 
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
