@@ -1508,6 +1508,7 @@ function setup_jenkins_slaves() {
 #   None
 #######################################
 function run_smoke_tests() {
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
     pushd tests
     make test
     popd
