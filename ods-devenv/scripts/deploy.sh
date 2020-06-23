@@ -397,7 +397,7 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.1/tailor-linux-amd64"
+    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.2/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
     sudo mv tailor-linux-amd64 /usr/bin/tailor
 }
@@ -1223,6 +1223,8 @@ function create_configuration() {
     sed -i "s|NEXUS_URL=.*$|NEXUS_URL=https://nexus-ods.ocp.odsbox.lan|" ods-core.env
     sed -i "s|NEXUS_HOST=.*$|NEXUS_HOST=nexus-ods.ocp.odsbox.lan|" ods-core.env
 
+    # Docker registry
+    sed -i "s|DOCKER_REGISTRY=.*$|DOCKER_REGISTRY=docker-registry.default.svc.cluster.local:5000|" ods-core.env
 
     # SONAR_ADMIN_USERNAME appears to have to be admin
     # sed -i "s|SONAR_ADMIN_USERNAME=.*$|SONAR_ADMIN_USERNAME=openshift|" ods-core.env
