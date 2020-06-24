@@ -202,7 +202,6 @@ objects:
 
       # idmanager
       provision.auth.provider=crowd
-      spring.profiles.active=crowd
       idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
       idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
 
