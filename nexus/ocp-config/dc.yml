@@ -68,7 +68,7 @@ objects:
         volumes:
         - name: volume-fmcqy
           persistentVolumeClaim:
-           claimName: nexus-data-extended
+           claimName: nexus-data
         - name: volume-8dv8t
           persistentVolumeClaim:
             claimName: nexus-db-backup
