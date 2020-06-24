@@ -6,13 +6,15 @@ install=
 target_git_ref=
 
 instance_type="t2.2xlarge"
-volume_size=70
+volume_size=100
 ami_id=
 host=
 keypair=
 instance_id=
 security_group_id=
 wait=
+subnet_id=
+iam_instance_profile=
 
 function usage {
   printf "Setup and run ODS in a box on AWS.\n\n"
@@ -30,10 +32,13 @@ function usage {
   printf "\t--target-git-ref\tThe git branch to build against, defaults to master\n"
   printf "\n"
   printf "\t--keypair\t\tName of keypair (required)\n"
+  printf "\t--ami-id\t\tIf you brought your own CentOS 7 base image, specify its image-id here\n"
   printf "\t--host\t\t\tHost (bypasses launching a new instance)\n"
   printf "\t--instance-id\t\tInstance ID (bypasses creating a new instance)\n"
   printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
   printf "\t--security-group-id\tSecurity Group with SSH access allowed - there is a reasonable default\n"
+  printf "\t--subnet-id\tThe AWS subnet the EC2 instance shall be deployed in. This also implicitly determines the VPC.\n"
+  printf "\t--iam-instance-profile\tSpecify the Arn if you want to connect to the EC2 instance using an AWS SSM session manager\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -55,11 +60,20 @@ while [[ "$#" -gt 0 ]]; do
   --security-group-id) security_group_id="$2"; shift;;
   --security-group-id=*) security_group_id="${1#*=}";;
 
+  --subnet-id) subnet_id="$2"; shift;;
+  --subnet-id=*) subnet_id="${1#*=}";;
+
+  --iam-instance-profile) iam_instance_profile="$2"; shift;;
+  --iam-instance-profile=*) iam_instance_profile="${1#*=}";;
+
   --host) host="$2"; shift;;
   --host=*) host="${1#*=}";;
 
   --keypair) keypair="$2"; shift;;
   --keypair=*) keypair="${1#*=}";;
+
+  --ami-id) ami_id="$2"; shift;;
+  --ami-id=*) ami_id="${1#*=}";;
 
   --install) install="yes";;
 
@@ -96,14 +110,14 @@ if [ -z "${host}" ]; then
         then
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=EDP in a box 2020-05-30" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=import-ami-09d321665aa3054e4" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Install (${target_git_ref}) $(date)"
             echo "You are in install mode using CentOS 7 image ${ami_id}."
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=ODS in a box" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=ODS in a box 2020-06-24" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in startup mode using ODS in a box image ${ami_id}."
@@ -111,11 +125,27 @@ if [ -z "${host}" ]; then
     fi
     echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} with security_group=${security_group_id} ..."
     echo "Boot instance"
+
+    arg_list=
+    if [[ -n "${subnet_id}" ]]
+    then
+        arg_list="--subnet-id ${subnet_id} "
+    fi
+    if [[ -n "${iam_instance_profile}" ]]
+    then
+        arg_list="${arg_list} --iam-instance-profile Arn=${iam_instance_profile} "
+    elif [[ -n "${security_group_id}" ]]
+    then
+        arg_list="${arg_list} --security-group-ids ${security_group_id} "
+    fi
+
+    echo "arg_list is ${arg_list}"
+
     instance_id=$(aws ec2 run-instances --image-id "$ami_id" \
+    ${arg_list} \
     --count 1 \
     --instance-type "${instance_type}" \
     --key-name "${keypair}" \
-    --security-group-ids "$security_group_id" \
     --block-device-mappings "[{ \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": ${volume_size} } }]" \
     | jq -r '.Instances[0].InstanceId')
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."

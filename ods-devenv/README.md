@@ -1,29 +1,86 @@
-# EDP / ODS Development Environment
-This project provides scripts to setup a development environment for EDP/ODS, aka EDP in a box.
+# EDP / ODS box
 
-The EDP box is intended to run in various environments:
-- As an EC2 virtual machine on AWS
-- Locally as a virtual machine powered by
-  - VMWare or
-  - VirtualBox
+## Quickstart
+### Provision an ODS box on AWS
+The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and conveniently provision a new ODS box EC2 instance on AWS. There are several options to choose from to support the most frequent use cases:
+```
+# to startup a vanilla ODS box
+# startup time about 5 minutes
+./run-on-aws.sh
 
-The core script is ods-core/ods-devenv/scripts/deploy.sh. It is intended to be run by an unprivileged user on the target system (see installation instructions below).
-The script implements a set of functions that can be executed en-suite or single file as needed.
+# to setup a bleeding edge ODS box from current master
+# startup time about 45 minutes
+./run-on-aws.sh --install
+
+# To setup and start a fresh ODS in a box instance from a specific branch
+# startup time about 45 minutes
+# note: the given branch must exist on ods-core, ods-jenkins-shared-library and ods-quickstarters
+./run-on-aws.sh --install --target-git-ref my-branch-name
+
+# To deploy the ODS box in a specific VPC, specifiy the corresponding subnet
+# To connect to the machine, port forwarding using the AWS SSM Agent may be required
+./run-on-aws.sh --iam-instance-profile arn:aws:iam::############:instance-profile/AmazonSSMManagedInstanceCore-profilename --subnet-id subnet-#################
+```
+
+## Connecting to the ODS box
+### via RDP / SSH
+If the ODS box is deployed in a public facing VPC, then direct access via SSH and RDP is possible. The correspoding ssh and rdp services are running on the ODS box per default.
+
+After having started the ODS box using run-on-aws.sh retrieve the public DNS from the AWS console and run
+E.g.
+```
+    ssh openshift@public_dns
+```
+Or configure the RDP client with the public DNS to connect to the ODS box.
+
+Note: in the default configuration, run-on-aws.sh will configure a security group that allows access to ports 22 and 3389. If a different security group or a more restrictive VPC is used, this simple and insecure approach will most probably not work any more and different means are required. E.g. see AWS SSM below.
+### via AWS SSM
+All ODS box instances derived from the custom ODS CentOS 7.8 2003 base image come with the AWS Systems Manager Agent installed. AWS SSM can be used to do port forwarding from the local workstation to the ODS box on AWS EC2. RDP or ssh sessions can be tunneled through that way.
+
+Prerequisites:
+-   Access to the AWS account hosting the EC2 instance
+-   Locally install the AWS CLI - https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html
+-   Locally install the Session Manager Plugin for the AWS CLI -
+https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
+-   Retrieve an access key from AWS IAM - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html - and configure the AWS CLI
+
+When the ODS box is deployed in the correct VPC / subnet, an SSH tunnel can be established like so:
+```
+# sample code for establishing an SSH tunnel to ssh into an ODS box, where
+#   --target the instance-id of the EC2 instance running the ODS box
+#   --document-name reference to a document containins specificas about the required session
+#   --parameters port numbers for the port forwarding
+aws ssm start-session \
+--target i-0306756a7e96f8e24 \
+--document-name AWS-StartPortForwardingSession \
+--parameters '{"portNumber":["22"], "localPortNumber":["22"]}'
+```
+
+# Resources
+## AMI - machine images
+This project provides images from which ODS boxes can be derived or instantiated.
+- ami-0169ff0d4d60f016b - a CentOS 7.8 2003 base image. Running the script ods-core/ods-devenv/scripts/bootstrap.sh on this box will yield a fresh ODS box built from master / configurable branch.
+- ami-061fc2eadfeaa4e59 - this image contains a complete ODS setup and only needs to be started up, e.g. using by running ```bash ods-devenv/scripts/deploy.sh --target startup_ods``` from the ods-core folder.
+
+## Scripts
+### bootstrap.sh
+Can be used to convert a CentOS 7.8 2003 box into an ODS box.
+### deploy.sh
+Contains a bunch of targets that can be called single file or by running bootstrap.sh to configure a CentOS 7.8 2003 box towards an ODS box.
 
 The functions can be called like this:
 ```
-bash deploy.sh basic_vm_setup       # basic_vm_setup is a utility function that will
-                                    # call other functions to perform the complete
-                                    # EDP/ODS setup.
-bash deploy.sh install_docker       # will install the docker infrastructure
-bash deploy.sh setup_rdp            # will install remote desktop infrastructure
+# basic_vm_setup is a utility function that will
+# call other functions to perform the complete
+# EDP/ODS setup.
+bash deploy.sh --target basic_vm_setup --branch master
+
+# will install the docker infrastructure
+bash deploy.sh install_docker
+
+# will install remote desktop infrastructure
+bash deploy.sh setup_rdp
 ```
-
-Currently, the script will setup a fresh VM with an OpenShift cluster, a docker installation and some means of communication with clients.
-Next steps will be
-- Install ODS in OpenShift
-- Integrate provisioning-app
-
 The following components will be installed
 - OpenShift 3.11
     - Credentials: developer:(any password strategy) means: you can enter any password you like
@@ -48,15 +105,13 @@ The following components will be installed
         - Credentials: openshift:openshift
     - MySQL DB for the Atlassian Suite
         - credentials: root:jiradbrpwd
-- Tailor 1.1.0
+- Tailor 1.1.2
 
 ## Installation Instructions
 ### Local Deployment
 For local deployment create a VMWare (recommended) or VirtualBox virtual machine from CentOS-7.8 2003 using this configuration:
-(note: these steps will be automated using Packer)
 
-All of the prerequisites listed below are essentials for the setup to work. E.g. failing to add the Linux user to the groups docker and wheel will prevent the setup script from working.
-
+### VMWAre Machine Configuration
 - VMWare Machine Configuration
     - At least 4 processor cores. The setup has also been tested with 2 cores but the usability is very limited in this configuration
     - At least 16 GB RAM. The basic setup running OpenShift, Atlassian BitBucket, Atlassian Jira, Sonatype Nexus, SonarQube, Jenkins and a Webhook Proxy will require 16 GB of RAM. Deploying additional applications and running pipelines will require additional memory.
@@ -73,6 +128,9 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
     - Set root user password
     - Update the system (yum update)
 - Desktop Configuration
+    - Install Amazon SSM Agent
+        - https://docs.aws.amazon.com/systems-manager/latest/userguide/agent-install-centos.html
+        - https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html
     - Enable RDP
     - Turn off screen-lock
     - The following steps need to be executed as openshift user
@@ -83,6 +141,9 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
         - ```chmod u+x bin/bootstrap```
         - ```bootstrap```
         - The bootstrap script will clone the ods-core project from github and run the ods-devenv setup script
+        - Software
+          - Google Chrome
+          - Visual Studio Code
     - Provide shortcuts for
       - OpenShift Webconsole
       - BitBucket
@@ -90,92 +151,3 @@ All of the prerequisites listed below are essentials for the setup to work. E.g.
       - System Tools
       - Chrome
       - Terminal
-
-### AWS deployment
-Use the provided AWS AMI to launch an instance of the ODS development environment
-(note: these steps will be automated using Packer)
-- Login to the AWS Management Console
-- Select the EC2 Service from the Services -> Compute -> EC2
-- Click the button "Launch instance"
-- Select AMI-ID ami-0cc2581d5cf49754b
-    - CentOS 7.8 2003
-    - User openshift in groups wheel and docker
-    - bootstrap script pre-installed
-- Choose an Instance Type with at least 20GiB Memory and at least 4 vCPUs (e.g. t2.2xlarge)
-- Configure 70GiB disk size (should be suggested as a default for the given AMI)
-- Create a key pair required to log into the EC2 instance and store the pem file locally
-- The security group ods-dev-env-security-group or equivalent should be used
-    - Opens port 22 for ssh connections
-    - Opens port range 3389 for VNC connections to support RDP
-    - Opens 8080 (for Jira)
-- Launch the EC2 instance
-- Review the EC2 instance details and take note of
-    - The path to the key pem file PATH_TO_PEM_FILE
-    - The public DNS of the new EC2 instance EC2_PUBLIC_DNS
-- When the EC2 instance has become available log into the vm
-    - ssh: ssh -i PATH_TO_PEM_FILE.pem openshift@EC2_PUBLIC_DNS
-    - MS Remote Desktop Client -> EC2_PUBLIC_DNS
-- When logged into the EC2 instance as user openshift, run the command ```bootstrap```
-
-## Misc
-To find the AMI for the latest version of Cent OS 7:
-```
-aws ec2 describe-images \
-  --owners 679593333241 \
-  --filters \
-      Name=name,Values='CentOS Linux 7 x86_64 HVM EBS*' \
-      Name=architecture,Values=x86_64 \
-      Name=root-device-type,Values=ebs \
-  --query 'sort_by(Images, &Name)[-1].ImageId' \
-  --output text
-```
-
-# Containerized Jira setup including license
-
-## Setup strategy
-Atlassian recommends for unattended Jira installation to manually create a Jira instance, configure it and add add a license, then to backup the file <installation-directory>/.install4j/response.varfile, and use it to configure new Jira instances as in
-```
-$ atlassian-jira-software-X.X.X-x64.bin -q -varfile response.varfile
-```
-
-For automated license management the community recommends to backup the Jira database - or at least the table **productlicense** and import it into the Jira schema of new instances.
-
-## Atlassian licenses
-The EDP/ODS development environment makes use of the Atlassian timebomb licenses as available on https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/.
-
-### Jira License - 3 hour expiration for all Atlassian host products*
-AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
-yg9ZvLN+HuM/e1BUHdGlNvuuEHQ73X73Y4bR4nbbgU9ZwFiD2IchcPH+8T7vXzuej9eXp68YSv45
-UwoASYhOeYwxTsIE7RIxtNHhwh+SP3a33D0XnntuxHsIeM5CIdwtvYxUXQPoRIF6KaC0FUGVlEB3
-v0hOAOWYiH9abFbgZith3i34nwOO65gsAGmZBhUbNC/nIpjhBWEcefJWelzqIDPWz/OtjmXRYv2X
-yqwnwueFkT57x8e4cLmbCD1QnX0UoKQoRc4EUgiaK4oZ2ECUrlZeay75sLNs2JDmZtWR8oPCfWZG
-wHAtjzXgIo0SqmZiKYJmsfz8QI5aI+zApuq6fqJKVPAMCPnNpk4LPW6kBWgkZb+kQAzzzS2g6Dnt
-e69Tqvsr4SOskIqEFOeggz1v4zrHbr0yLJR8rU64FpQpVtBy1mZxM4CnHC9Faf8tKMnTF1AiXORF
-ixyQaWto3RZ+ncWLXtMg6EnKZZRpmQNb2R8tnJXFulCfXmXLry7TrHBWn2HNVyH8WYxj9AzmsxiN
-L/R88Xg6rA1lVs4QpO5titxhplJcCY2mFFZLutAZVhKipm15/VhJx36YVqyN8YP7IaGC1+lwnJ7Q
-5pJpNmxk5hP3qovutY8Pi4E2WIJ59esnr1p+T6eD67teBVCHf+ga+ho4/4D9YItZDAsAhQ5qQ6pA
-SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6
-
-## Resources
-- Jira 8.5 unattended installation: https://confluence.atlassian.com/adminjiraserver085/unattended-installation-981154569.html
-- Automated license management: https://community.atlassian.com/t5/Jira-questions/Fully-automated-installation-configuration-of-JIRA/qaq-p/147413
-- Configure Jira against mysql db: https://confluence.atlassian.com/adminjiraserver/connecting-jira-applications-to-mysql-5-7-966063305.html
-- MySQL on Docker Hub: https://hub.docker.com/_/mysql
-- Jira on Docker Hub: https://hub.docker.com/r/atlassian/jira-software
-- RDP on CentOS 7 
-  - https://www.itzgeek.com/how-tos/linux/centos-how-tos/install-xrdp-on-centos-7-rhel-7.html
-  - https://darrenoneill.eu/?p=421
-
-# Dealing with exceptional situations and error
-## yum lock
-### Error Message:
-```
-Existing lock /var/run/yum.pid: another copy is running as pid 3665.
-Another app is currently holding the yum lock; waiting for it to exit...
-  The other application is: PackageKit
-    Memory :  38 M RSS (1.4 GB VSZ)
-    Started: Sat May 30 19:46:42 2020 - 00:05 ago
-    State  : Sleeping, pid: 3665
-```
-### Resolution
-PackageKit holds a yum lock. Normally, script execution will continue as soon as PackageKit releases the lock.
