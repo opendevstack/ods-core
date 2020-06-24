@@ -117,7 +117,7 @@ if [ -z "${host}" ]; then
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=ODS in a box" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=ODS in a box 2020-06-24" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in startup mode using ODS in a box image ${ami_id}."
