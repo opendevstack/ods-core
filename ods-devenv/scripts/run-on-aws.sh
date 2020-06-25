@@ -122,6 +122,8 @@ if [ -z "${host}" ]; then
             ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in startup mode using ODS in a box image ${ami_id}."
         fi
+    else
+      ec2_instance_name="ODS in a box Startup $(date)"
     fi
     echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} with security_group=${security_group_id} ..."
     echo "Boot instance"
