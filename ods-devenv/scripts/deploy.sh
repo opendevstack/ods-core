@@ -1446,7 +1446,7 @@ function restart_atlassian_suite() {
 #######################################
 function setup_jenkins_agents() {
     local opendevstack_dir="${HOME}/opendevstack"
-    local quickstarters_jenkins_agents_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-slaves"
+    local quickstarters_jenkins_agents_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-agents"
     local ocp_config_folder="ocp-config"
     local project_dir="${HOME}/projects"
 
