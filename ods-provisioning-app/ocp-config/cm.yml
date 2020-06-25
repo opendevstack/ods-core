@@ -202,7 +202,6 @@ objects:
 
       # idmanager
       provision.auth.provider=crowd
-      spring.profiles.active=crowd
       idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
       idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
 
@@ -265,19 +264,19 @@ objects:
       jenkinspipeline.quickstarter.be-gateway-nginx.desc=Backend - Gateway/Nginx
       jenkinspipeline.quickstarter.be-gateway-nginx.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
-      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
-
       jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
       jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
+      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
       jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
-      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.be-scala-play.desc=Backend - Scala/Play
+      jenkinspipeline.quickstarter.be-scala-play.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
+      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - TypeScript/Express
       jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
 
       # Data Science quickstarters
@@ -294,28 +293,23 @@ objects:
       jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
       jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
-      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
-      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
-
       jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
-      #Other quickstarters
+      # Other quickstarters
+      jenkinspipeline.quickstarter.fe-be-mono-repo-plain.desc=FE/BE MonoRepo
+      jenkinspipeline.quickstarter.fe-be-mono-repo-plain.repo=ods-quickstarters
+
       jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
       jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
-      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
-      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
       jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
       jenkinspipeline.quickstarter.release-manager.create-webhook=false
+
+      # E2E quickstarters
+      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
+      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
       jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters

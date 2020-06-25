@@ -1239,8 +1239,6 @@ function create_configuration() {
     sed -i "s|PIPELINE_TRIGGER_SECRET=.*$|PIPELINE_TRIGGER_SECRET=openshift|" ods-core.env
     sed -i "s|SHARED_LIBRARY_REPOSITORY=.*$|SHARED_LIBRARY_REPOSITORY=http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/scm/opendevstack/ods-jenkins-shared-library.git|" ods-core.env
 
-    sed -i "s|IDP_DNS=[.0-9a-z]*$|IDP_DNS=|" ods-core.env
-
     # provisioning app settings
     sed -i "s/PROV_APP_ATLASSIAN_DOMAIN=.*$/PROV_APP_ATLASSIAN_DOMAIN=${odsbox_domain}/" ods-core.env
     sed -i "s/PROV_APP_CROWD_PASSWORD=.*$/PROV_APP_CROWD_PASSWORD=ods/" ods-core.env
