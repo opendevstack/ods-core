@@ -63,6 +63,7 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-pyth
 ADD https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala-plugin-1.5.0.315.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plugin-3.3.0.5166.jar /opt/configuration/sonarqube/plugins/
+ADD https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-8.6.1.17183.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.6/sonar-groovy-plugin-1.6.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
