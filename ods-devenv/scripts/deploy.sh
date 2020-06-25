@@ -1493,6 +1493,7 @@ function setup_jenkins_agents() {
     if [[ "${fail_count}" -gt 0 ]]
     then
         echo "${fail_count} of the jenkins-agent builds failed."
+        return 1
     fi
 }
 
@@ -1506,6 +1507,7 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
     pushd tests
     make test
