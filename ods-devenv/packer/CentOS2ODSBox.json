@@ -18,7 +18,13 @@
             "instance_type": "t2.2xlarge",
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
-            "ami_name": "{{user `ami_name`}}"
+            "ami_name": "{{user `ami_name` | clean_resource_name}}",
+            "run_tags": {
+                "Name": "ODS Box Packer Builder {{isotime | clean_resource_name}}"
+            },
+            "tags": {
+                "Name": "{{user `ami_name` | clean_resource_name}} tag"
+            }
         }
     ],
     "provisioners": [
@@ -29,7 +35,8 @@
         },
         {
             "type": "shell",
-            "script": "ods-devenv/scripts/bootstrap.sh"
+            "script": "ods-devenv/scripts/bootstrap.sh",
+            "execute_command": "{{ .Path }}  --branch feature/ods-devenv"
         },
         {
             "type": "shell",
