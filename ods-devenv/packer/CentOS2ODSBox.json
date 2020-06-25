@@ -1,0 +1,40 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "eu-west-1",
+            "source_ami_filter": {
+                "filters": {
+                    "image-id": "ami-0169ff0d4d60f016b"
+                },
+                "owners": "275438041116"
+            },
+            "instance_type": "t2.2xlarge",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "ami_name": "{{user `ami_name`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_less_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/scripts/bootstrap.sh"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        }
+    ]
+}

@@ -752,7 +752,7 @@ function startup_atlassian_crowd() {
 
     echo
     echo "...change permission of config in container"
-    docker exec -it crowd bash -c 'chown crowd:crowd /var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml; ls -lart /var/atlassian/application-data/crowd/shared/'
+    docker container exec -i crowd bash -c 'chown crowd:crowd /var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml; ls -lart /var/atlassian/application-data/crowd/shared/'
 
     sleep 1
 
@@ -862,7 +862,7 @@ function crowd_echo_backup_cmd() {
     echo "1. copy this docker command:"
     echo "docker cp crowd:/var/atlassian/application-data/crowd/shared/backups/<BACKUP_FILE_NAME>.xml ."
     echo "2. replace 'BACKUP_FILE_NAME' with one backup file from this list:"
-    docker exec -it crowd bash -c "cd /var/atlassian/application-data/crowd/shared/backups/; ls"
+    docker container exec -i crowd bash -c "cd /var/atlassian/application-data/crowd/shared/backups/; ls"
     echo "3. and run the command"
 }
 
