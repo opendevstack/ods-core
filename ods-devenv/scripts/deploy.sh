@@ -738,6 +738,17 @@ function startup_atlassian_crowd() {
 
     echo "Starting Atlassian Crowd ${atlassian_crowd_software_version} installation"
     docker volume create --name odsCrowdVolume
+
+    # occasionally, atlassian_crowd_port is take by some ephemeral process
+    local rogue_process
+    rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep -q "${atlassian_crowd_port}")
+    while [[ -n "${rogue_process}" ]]
+    do
+        echo "configured crowd port ${atlassian_crowd_port} is taken by: ${rogue_process}"
+        sleep 1
+        rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep -q "${atlassian_crowd_port}")
+    done
+
     docker container run \
         -v odsCrowdVolume:/var/atlassian/application-data/crowd \
         --name="crowd" \
