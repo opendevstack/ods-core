@@ -200,6 +200,12 @@ objects:
       # Data for confluence space creation
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
 
+      # Spring active profile is default.
+      # This allow just 2 layers of configuration
+      # First layer is the application.properties in classpath. It provides all defaults
+      # Second layer: the config maps defined in this file which overrides all required properties from first layer
+      spring.profiles.active=default
+
       # idmanager
       provision.auth.provider=crowd
       idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
