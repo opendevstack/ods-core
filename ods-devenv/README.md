@@ -31,7 +31,7 @@ sudo shutdown -h now
 # To restart ODS services on a rebooted ODS box, run this command from the ODS box terminal
 startup_ods
 
-# When using Atlassian timebomb licenses: to restart the Atlassian suite run this command from the ODS box terminal
+# When using Atlassian timebomb licenses: to reset the 3 hours validity window of the Atlassian suite's timebomb licenses run this command from the ODS box terminal
 restart_atlassian_suite
 ```
 
