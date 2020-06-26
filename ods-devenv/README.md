@@ -25,13 +25,14 @@ The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and 
 ./run-on-aws.sh --iam-instance-profile arn:aws:iam::############:instance-profile/AmazonSSMManagedInstanceCore-profilename --subnet-id subnet-#################
 
 # To stop an ODS box, e.g. for the weekend, run this sequence of commands from the ODS box terminal
-cd "${HOME}/opendevstack/ods-core"
-bash ods-devenv/scripts/deploy.sh --target stop_ods
+stop_ods
 sudo shutdown -h now
 
-# To restart ODS services on a rebooted ODS box, run this sequence of commands from the ODS box terminal
-cd "${HOME}/opendevstack/ods-core"
-bash ods-devenv/scripts/deploy.sh --target startup_ods
+# To restart ODS services on a rebooted ODS box, run this command from the ODS box terminal
+startup_ods
+
+# When using Atlassian timebomb licenses: to restart the Atlassian suite run this command from the ODS box terminal
+restart_atlassian_suite
 ```
 
 ## Connecting to the ODS box
@@ -58,6 +59,11 @@ https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-wor
 
 When the ODS box is deployed in the correct VPC / subnet, an SSH tunnel can be established like so:
 ```
+# Run the following commands to verify that the Session Manager plugin installed successfully on your local machine:
+session-manager-plugin
+# The following message should be returned:
+# The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
+
 # sample code for establishing an SSH tunnel to ssh into an ODS box, where
 #   --target the instance-id of the EC2 instance running the ODS box
 #   --document-name reference to a document containins specificas about the required session

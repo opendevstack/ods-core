@@ -93,6 +93,7 @@ function check_system_setup() {
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
     echo "alias startup_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'"
     echo "alias stop_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target stop_ods'"
+    echo "alias restart_atlassian_suite='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_atlassian_suite'"
 } >> ~/.bashrc
 
     # suppress sudo timeout
@@ -968,6 +969,24 @@ function startup_atlassian_bitbucket() {
 }
 
 #######################################
+# Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
+# This utility function can be used to restart the Atlassian services.
+# Depending on the number of available cores the restart can take a while.
+# Restart can be monitored using glances.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_suite() {
+    restart_atlassian_crowd
+    restart_atlassian_bitbucket
+    restart_atlassian_jira
+}
+
+#######################################
 # Restart bitbucket.
 # Will register new container ip with /etc/hosts for dns resolution
 # Globals:
@@ -1415,22 +1434,6 @@ function setup_docgen() {
 }
 
 #######################################
-# Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
-# This utility function can be used to restart the Atlassian services.
-# Depending on the number of available cores the restart can take a while.
-# Restart can be monitored using glances.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function restart_atlassian_suite() {
-    docker container restart ${atlassian_jira_container_name} ${atlassian_bitbucket_container_name}
-}
-
-#######################################
 # Sets up Jenkins agents for various technologies, like:
 # airflow, golang, maven, nodejs/angular, nodejs12, python, scala
 #
@@ -1537,9 +1540,7 @@ function startup_ods() {
     done
     echo "mysqld up and running."
 
-    restart_atlassian_crowd
-    restart_atlassian_bitbucket
-    restart_atlassian_jira
+    restart_atlassian_suite
 
     echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
     sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
