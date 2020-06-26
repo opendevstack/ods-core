@@ -117,7 +117,7 @@ if [ -z "${host}" ]; then
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=ODS in a box 2020-06-24" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=ODS in a Box feature/ods-devenv 2020-06-26T12-34-28Z" "Name=root-device-type,Values=ebs" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in startup mode using ODS in a box image ${ami_id}."
@@ -188,3 +188,5 @@ else
     echo "Now starting ODS"
     ssh -t "openshift@${host}" -- '(export PATH="$PATH:/usr/sbin"; ${HOME}/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods)'
 fi
+
+echo ODS Box is available in EC2 instance "${instance_id}" at "$(aws ec2 describe-instances --instance-ids "${instance_id}" | jq -r ".Reservations[].Instances[].PublicDnsName")"

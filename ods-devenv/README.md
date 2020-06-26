@@ -9,7 +9,7 @@ The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and 
 ./run-on-aws.sh
 
 # to startup from a specific ODS AMI, also using a specific security group
-./run-on-aws.sh --ami-id i-############ --security-group-id groupid
+./run-on-aws.sh --ami-id i-############ --security-group-id sg-006935bec03a154a1
 
 # to setup a bleeding edge ODS box from current master
 # startup time about 45 minutes
@@ -23,6 +23,15 @@ The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and 
 # To deploy the ODS box in a specific VPC, specifiy the corresponding subnet
 # To connect to the machine, port forwarding using the AWS SSM Agent may be required
 ./run-on-aws.sh --iam-instance-profile arn:aws:iam::############:instance-profile/AmazonSSMManagedInstanceCore-profilename --subnet-id subnet-#################
+
+# To stop an ODS box, e.g. for the weekend, run this sequence of commands from the ODS box terminal
+cd "${HOME}/opendevstack/ods-core"
+bash ods-devenv/scripts/deploy.sh --target stop_ods
+sudo shutdown -h now
+
+# To restart ODS services on a rebooted ODS box, run this sequence of commands from the ODS box terminal
+cd "${HOME}/opendevstack/ods-core"
+bash ods-devenv/scripts/deploy.sh --target startup_ods
 ```
 
 ## Connecting to the ODS box
