@@ -5,6 +5,7 @@
     String[] hostAndPort = httpProxy.split (':');
     int httpProxyPort = httpProxy.contains(':') ? hostAndPort[1] as int : 80;
     core.httpProxy(hostAndPort[0], httpProxyPort);
+    log.info("HTTP Proxy: ${hostAndPort[0]}:${httpProxyPort}")
   }",
  "type":"groovy"
 }
