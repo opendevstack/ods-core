@@ -42,8 +42,6 @@ DEV_USER_NAME="developer"
 DEV_USER_PWD="geHeim"
 
 echo "Run ./configure.sh"
-export HTTPS_PROXY=testHttpsProxy:500
-export NO_PROXY=hosta,.domainB
 ./configure.sh \
     --admin-password="${ADMIN_USER_PWD}" \
     --developer-password="${DEV_USER_PWD}" \

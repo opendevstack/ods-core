@@ -248,7 +248,7 @@ else
 fi
 
 if [ ! -z "${HTTPS_PROXY}" ]; then
-	echo_info "Configure HTTPS proxy with: ${HTTP_PROXY}"
+	echo_info "Configure HTTPS proxy with: ${HTTPS_PROXY}"
 	sed "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsHTTPS.json > json/createProxySettingsWithProxyHTTPS.json
 	cat json/createProxySettingsWithProxyHTTPS.json
 	runJsonScript "createProxySettingsHTTPS" "-d @json/createProxySettingsWithProxyHTTPS.json"
