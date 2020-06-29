@@ -7,14 +7,10 @@
     core.httpProxy(hostAndPort[0], httpProxyPort);
   }
   String httpsProxy = '@https_proxy@';
-  if (httpsProxy.trim().length()) > 0) {
+  if (httpsProxy.trim().length() > 0) {
     String[] hostAndPortS = httpsProxy.split (':');
     int httpsProxyPort = httpsProxy.contains(':') ? hostAndPortS[1] as int : 443;
-    core.httpsProxy(hostAndPortS[0], httpsProxyPort);
-  }
-  String noProxyHosts = '@no_proxy@';
-  if (noProxyHosts.trim().length()) > 0) {
-    core.nonProxyHosts(noProxyHosts.split(','));
+    //core.httpsProxy(hostAndPortS[0], httpsProxyPort);
   }",
  "type":"groovy"
 }
