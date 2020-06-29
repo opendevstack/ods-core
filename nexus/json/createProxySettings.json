@@ -2,9 +2,8 @@
   "name":"createProxySettings",
   "content":"String httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) {
-  	httpProxy = httpProxy.trim() 
     String[] hostAndPort = httpProxy.split (':');
-    int httpProxyPort = 80;
+    def httpProxyPort = 80;
     String httpProxyName = hostAndPort[0];
     if (httpProxy.contains(':')) {
     }
