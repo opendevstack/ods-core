@@ -1,8 +1,8 @@
 {
   "name":"createProxySettings",
-  "content":"def httpProxy = System.getenv('HTTP_PROXY');
-  core.removeHTTPProxy();
-  if (httpProxy) {
+  "content":"def httpProxy = '@http_proxy@';
+  if (httpProxy.trim().length() > 0) { 
+    core.removeHTTPProxy();
     httpProxy = httpProxy.minus(~/^https?:\/\//);
     List hostAndPort = httpProxy.split (':');
     def httpProxyPort = 80;
@@ -15,9 +15,9 @@
   } else {
     println 'No HTTP Proxy configured';
   }
-  def httpsProxy = System.getenv('HTTPS_PROXY');
-  core.removeHTTPSProxy();
-  if (httpsProxy) {
+  def httpsProxy = '@https_proxy@';
+  if (httpsProxy.trim().length() > 0) {
+    core.removeHTTPSProxy();
     httpsProxy = httpsProxy.minus(~/^https?:\/\//);
     List hostAndPortS = httpsProxy.split (':');
     def httpsProxyPort = 443;
@@ -30,8 +30,8 @@
   } else {
     println 'No HTTPS Proxy configured';
   }
-  String noProxyHosts = System.getenv('NO_PROXY');
-  if (noProxyHosts) {
+  String noProxyHosts = '@no_proxy@';
+  if (noProxyHosts.trim().length() > 0) {
     core.nonProxyHosts();
     core.nonProxyHosts(noProxyHosts.split(','));
     println "${nonProxyHosts.split(',')}";

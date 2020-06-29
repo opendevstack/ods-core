@@ -30,6 +30,10 @@ NAMESPACE="ods"
 NEXUS_DC="nexus"
 INSECURE=""
 
+HTTP_PROXY=
+HTTPS_PROXY=
+NO_PROXY=
+
 function usage {
     printf "Setup Nexus.\n\n"
     printf "This script will ask interactively for parameters by default.\n"
@@ -194,8 +198,14 @@ waitForReady
 DEFAULT_ADMIN_PASSWORD_FILE="/nexus-data/admin.password"
 if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     ADMIN_DEFAULT_PASSWORD=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo HTTP_PROXY")
+    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo HTTPS_PROXY")
+    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    HTTP_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo HTTP_PROXY")
+    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo HTTPS_PROXY")
+    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo NO_PROXY")
 fi
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
@@ -228,7 +238,11 @@ echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
 
 echo_info "Configure proxy if applicable"
-runJsonScript "createProxySettings"
+sed "s|@http_proxy@|${HTTP_PROXY}|g" json/createProxySettings.json > json/createProxySettingsWithProxy.json
+sed -i "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsWithProxy.json
+sed -i "s|@no_proxy@|${NO_PROXY}|g" json/createProxySettingsWithProxy.json
+cat json/createProxySettingsWithProxy.json
+runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"
