@@ -3,9 +3,8 @@
   "content":"def httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) { 
     def httpProxyPort = 80;
-    def hostAndPort = httpProxy.split (':');
-    core.httpProxy('test', httpProxyPort as int);
-    //log.info "done"
+    core.httpProxy(httpProxy, httpProxyPort as int);
+    log.info "done"
   }",
  "type":"groovy"
 }
