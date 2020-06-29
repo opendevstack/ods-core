@@ -1,0 +1,27 @@
+{
+    "variables": {
+        "centos_version": "CentOS-7-x86_64-DVD-2003.iso",
+        "centos_iso_location": "",
+        "centos_iso_sha": "087a5743dc6fd6706d9b961b8147423ddc029451b938364c760d75440eb7be14",
+        "ssh_username": "root",
+        "ssh_password": ""
+    },
+    "builders": [
+        {
+            "type": "vmware-iso",
+            "boot_command": [
+                "<tab><wait>",
+                " ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/kickstart.cfg<enter>"
+            ],
+            "http_directory": "ods-devenv/packer",
+            "disk_size": 100000,
+            "cpus": 4,
+            "memory": 8000,
+            "iso_url": "{{user `centos_iso_location`}}",
+            "iso_checksum": "{{user `centos_iso_sha`}}",
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "shutdown_command": "shutdown --poweroff now"
+        }
+    ]
+}
