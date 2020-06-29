@@ -4,7 +4,7 @@
   if (httpProxy.trim().length() > 0) { 
     core.removeHTTPProxy();
     httpProxy = httpProxy.minus(~/^https?:\/\//);
-    List hostAndPort = httpProxy.split (':');
+    def hostAndPort = httpProxy.split (':');
     def httpProxyPort = 80;
     def httpProxyName = hostAndPort[0];
     if (hostAndPort.size == 2) {
@@ -19,7 +19,7 @@
   if (httpsProxy.trim().length() > 0) {
     core.removeHTTPSProxy();
     httpsProxy = httpsProxy.minus(~/^https?:\/\//);
-    List hostAndPortS = httpsProxy.split (':');
+    def hostAndPortS = httpsProxy.split (':');
     def httpsProxyPort = 443;
     def httpsProxyName = hostAndPortS[0];
     if (hostAndPortS.size == 2) {
