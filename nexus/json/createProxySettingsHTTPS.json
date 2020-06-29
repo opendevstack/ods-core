@@ -1,0 +1,10 @@
+{
+  "name":"createProxySettingsHTTPS",
+  "content":"String httpProxy = '@https_proxy@';
+  if (httpProxy.trim().length() > 0) {
+    String[] hostAndPort = httpProxy.split (':');
+    int httpProxyPort = httpProxy.contains(':') ? hostAndPort[1] as int : 443;
+    core.httpProxy(hostAndPort[0], httpProxyPort);
+  }",
+  "type":"groovy"
+}
