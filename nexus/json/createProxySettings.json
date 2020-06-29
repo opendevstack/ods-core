@@ -1,5 +1,19 @@
 {
   "name":"createProxySettings",
-  "content":"def httpProxy = '@http_proxy@';",
-  "type":"groovy"
+  "content":"def httpProxy = '@http_proxy@';
+  if (httpProxy.trim().length() > 0) { 
+    core.removeHTTPProxy();
+    httpProxy = httpProxy.minus(~/^https?:\/\//);
+    def hostAndPort = httpProxy.split (':');
+    def httpProxyPort = 80;
+    def httpProxyName = hostAndPort[0];
+    if (hostAndPort.size == 2) {
+      httpProxyPort = hostAndPort[1];
+    }
+    core.httpProxy(httpProxyName, httpProxyPort as int);
+    println "HTTPProxy: ${hostAndPort}";
+  } else {
+    println 'No HTTP Proxy configured';
+  }",
+ "type":"groovy"
 }
