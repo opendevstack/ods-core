@@ -8,7 +8,7 @@
   }
   String httpsProxy = '@https_proxy@';
   if (httpsProxy.trim().length() > 0) {
-    String[] hostAndPortS = httpsProxy.split (':');
+    String[] sHostAndPort = httpsProxy.split (':');
   }",
  "type":"groovy"
 }
