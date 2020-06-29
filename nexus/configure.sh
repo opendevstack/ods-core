@@ -198,14 +198,14 @@ waitForReady
 DEFAULT_ADMIN_PASSWORD_FILE="/nexus-data/admin.password"
 if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     ADMIN_DEFAULT_PASSWORD=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
-    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo HTTP_PROXY")
-    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo HTTPS_PROXY")
-    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo NO_PROXY")
+    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo $HTTP_PROXY")
+    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo $HTTPS_PROXY")
+    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo $NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
-    HTTP_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo HTTP_PROXY")
-    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo HTTPS_PROXY")
-    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo NO_PROXY")
+    HTTP_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo $HTTP_PROXY")
+    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo $HTTPS_PROXY")
+    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo $NO_PROXY")
 fi
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
