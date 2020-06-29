@@ -7,5 +7,5 @@
     core.httpProxy(hostAndPort[0], httpProxyPort);
   }
   String httpsProxy = '@https_proxy@';",
- "type":"groovy"
+  "type":"groovy"
 }
