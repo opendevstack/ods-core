@@ -152,7 +152,7 @@ function runJsonScript {
     # shellcheck disable=SC2124
     local runParams="$@"
     echo "uploading ${jsonScriptName}.json"
-    curl ${INSECURE} -v -X POST -sSf \
+    curl ${INSECURE} -v -w -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/"${jsonScriptName}".json
@@ -212,7 +212,7 @@ if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
         "${NEXUS_URL}/service/metrics/ping")
     if [ "${pong}" == "pong" ]; then
         echo_info "Change admin password"
-        curl ${INSECURE} -w -X POST -sSf \
+        curl ${INSECURE} -X POST -sSf \
             --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
             --header 'Content-Type: application/json' \
             "${NEXUS_URL}/service/rest/v1/script" -d @json/changeAdminPassword.json
