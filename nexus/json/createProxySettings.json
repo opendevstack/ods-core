@@ -1,5 +1,9 @@
 {
   "name":"createProxySettings",
-  "content":"core.httpProxy('test', 80);",
- "type":"groovy" 
+  "content":"def httpProxy = '@http_proxy@';
+  if (httpProxy.trim().length() > 0) { 
+    def httpProxyPort = 80;
+    core.httpProxy('test', httpProxyPort as int);
+  }",
+ "type":"groovy"
 }
