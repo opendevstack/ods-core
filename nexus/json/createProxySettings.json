@@ -6,7 +6,7 @@
     int httpProxyPort = 80;
     String httpProxyName = hostAndPort[0];
     if (hostAndPort.length == 2) {
-      httpProxyPort = hostAndPort[1];
+//      httpProxyPort = hostAndPort[1] as int;
     }
     core.httpProxy(httpProxyName, httpProxyPort as int);
   }",
