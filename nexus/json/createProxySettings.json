@@ -23,7 +23,7 @@
     def httpsProxyPort = 443;
     def httpsProxyName = hostAndPortS[0];
     if (hostAndPortS.size == 2) {
-      httpProxyPortS = hostAndPortS[1];
+      httpsProxyPort = hostAndPortS[1];
     }
     core.httpsProxy(httpsProxyName, httpsProxyPort as int);
     println "HTTPSProxy: ${hostAndPortS}"
