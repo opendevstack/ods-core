@@ -6,8 +6,7 @@
     String[] hostAndPort = httpProxy.split (':');
     int httpProxyPort = 80;
     String httpProxyName = hostAndPort[0];
-    // if (hostAndPort.size() == 2) { ---- does not work in NEXUS - WTF!
-    if (httpProxy.contains(':') {
+    if (httpProxy.contains(':')) {
     }
     core.httpProxy(httpProxyName, httpProxyPort as int);
   }",
