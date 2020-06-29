@@ -224,6 +224,9 @@ fi
 echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
 
+echo_info "Configure proxy if applicable"
+runJsonScript "createProxySettings"
+
 echo_info "Install Repositories"
 runJsonScript "createRepos"
 
