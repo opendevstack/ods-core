@@ -4,7 +4,7 @@
   if (httpProxy.trim().length() > 0) {
     core.httpsProxy();
     String[] hostAndPort = httpProxy.split (':');
-    int httpProxyPort = hostAndPort.length() == 2 ? hostAndPort[1] as int : 443;
+    int httpProxyPort = hostAndPort.contains(':') ? hostAndPort[1] as int : 443;
     core.httpsProxy(hostAndPort[0], httpProxyPort);
   }",
   "type":"groovy"
