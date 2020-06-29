@@ -93,6 +93,7 @@ function check_system_setup() {
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
     echo "alias startup_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'"
     echo "alias stop_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target stop_ods'"
+    echo "alias restart_atlassian_suite='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_atlassian_suite'"
 } >> ~/.bashrc
 
     # suppress sudo timeout
@@ -737,6 +738,17 @@ function startup_atlassian_crowd() {
 
     echo "Starting Atlassian Crowd ${atlassian_crowd_software_version} installation"
     docker volume create --name odsCrowdVolume
+
+    # occasionally, atlassian_crowd_port is take by some ephemeral process
+    local rogue_process
+    rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "${atlassian_crowd_port}") || true
+    while [[ -n "${rogue_process}" ]]
+    do
+        echo "configured crowd port ${atlassian_crowd_port} is taken by: ${rogue_process}"
+        sleep 1
+        rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "${atlassian_crowd_port}") || true
+    done
+
     docker container run \
         -v odsCrowdVolume:/var/atlassian/application-data/crowd \
         --name="crowd" \
@@ -752,7 +764,7 @@ function startup_atlassian_crowd() {
 
     echo
     echo "...change permission of config in container"
-    docker exec -it crowd bash -c 'chown crowd:crowd /var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml; ls -lart /var/atlassian/application-data/crowd/shared/'
+    docker container exec -i crowd bash -c 'chown crowd:crowd /var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml; ls -lart /var/atlassian/application-data/crowd/shared/'
 
     sleep 1
 
@@ -862,7 +874,7 @@ function crowd_echo_backup_cmd() {
     echo "1. copy this docker command:"
     echo "docker cp crowd:/var/atlassian/application-data/crowd/shared/backups/<BACKUP_FILE_NAME>.xml ."
     echo "2. replace 'BACKUP_FILE_NAME' with one backup file from this list:"
-    docker exec -it crowd bash -c "cd /var/atlassian/application-data/crowd/shared/backups/; ls"
+    docker container exec -i crowd bash -c "cd /var/atlassian/application-data/crowd/shared/backups/; ls"
     echo "3. and run the command"
 }
 
@@ -965,6 +977,24 @@ function startup_atlassian_bitbucket() {
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
+}
+
+#######################################
+# Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
+# This utility function can be used to restart the Atlassian services.
+# Depending on the number of available cores the restart can take a while.
+# Restart can be monitored using glances.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function restart_atlassian_suite() {
+    restart_atlassian_crowd
+    restart_atlassian_bitbucket
+    restart_atlassian_jira
 }
 
 #######################################
@@ -1415,22 +1445,6 @@ function setup_docgen() {
 }
 
 #######################################
-# Timebomb licenses will invalidate after 3 hours uptime of the Atlassian services.
-# This utility function can be used to restart the Atlassian services.
-# Depending on the number of available cores the restart can take a while.
-# Restart can be monitored using glances.
-# Globals:
-#   n/a
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function restart_atlassian_suite() {
-    docker container restart ${atlassian_jira_container_name} ${atlassian_bitbucket_container_name}
-}
-
-#######################################
 # Sets up Jenkins agents for various technologies, like:
 # airflow, golang, maven, nodejs/angular, nodejs12, python, scala
 #
@@ -1493,6 +1507,7 @@ function setup_jenkins_agents() {
     if [[ "${fail_count}" -gt 0 ]]
     then
         echo "${fail_count} of the jenkins-agent builds failed."
+        return 1
     fi
 }
 
@@ -1506,6 +1521,7 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
     pushd tests
     make test
@@ -1535,9 +1551,7 @@ function startup_ods() {
     done
     echo "mysqld up and running."
 
-    restart_atlassian_crowd
-    restart_atlassian_bitbucket
-    restart_atlassian_jira
+    restart_atlassian_suite
 
     echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
     sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"

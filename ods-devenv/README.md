@@ -4,9 +4,12 @@
 ### Provision an ODS box on AWS
 The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and conveniently provision a new ODS box EC2 instance on AWS. There are several options to choose from to support the most frequent use cases:
 ```
-# to startup a vanilla ODS box
+# to startup a vanilla ODS box, using default ODS AMI and security group in public facing VPC
 # startup time about 5 minutes
 ./run-on-aws.sh
+
+# to startup from a specific ODS AMI, also using a specific security group
+./run-on-aws.sh --ami-id i-############ --security-group-id sg-006935bec03a154a1
 
 # to setup a bleeding edge ODS box from current master
 # startup time about 45 minutes
@@ -20,6 +23,16 @@ The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and 
 # To deploy the ODS box in a specific VPC, specifiy the corresponding subnet
 # To connect to the machine, port forwarding using the AWS SSM Agent may be required
 ./run-on-aws.sh --iam-instance-profile arn:aws:iam::############:instance-profile/AmazonSSMManagedInstanceCore-profilename --subnet-id subnet-#################
+
+# To stop an ODS box, e.g. for the weekend, run this sequence of commands from the ODS box terminal
+stop_ods
+sudo shutdown -h now
+
+# To restart ODS services on a rebooted ODS box, run this command from the ODS box terminal
+startup_ods
+
+# When using Atlassian timebomb licenses: to reset the 3 hours validity window of the Atlassian suite's timebomb licenses run this command from the ODS box terminal
+restart_atlassian_suite
 ```
 
 ## Connecting to the ODS box
@@ -46,6 +59,11 @@ https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-wor
 
 When the ODS box is deployed in the correct VPC / subnet, an SSH tunnel can be established like so:
 ```
+# Run the following commands to verify that the Session Manager plugin installed successfully on your local machine:
+session-manager-plugin
+# The following message should be returned:
+# The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
+
 # sample code for establishing an SSH tunnel to ssh into an ODS box, where
 #   --target the instance-id of the EC2 instance running the ODS box
 #   --document-name reference to a document containins specificas about the required session

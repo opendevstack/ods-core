@@ -1,0 +1,51 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "eu-west-1",
+            "source_ami_filter": {
+                "filters": {
+                    "image-id": "ami-0169ff0d4d60f016b"
+                },
+                "owners": "275438041116"
+            },
+            "instance_type": "t2.2xlarge",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "run_tags": {
+                "Name": "ODS Box Packer Builder {{isotime | clean_resource_name}}"
+            },
+            "tags": {
+                "Name": "{{user `ami_name` | clean_resource_name}} tag"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_less_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/scripts/bootstrap.sh",
+            "execute_command": "{{ .Path }}  --branch {{user `ods_branch`}}"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/stop_ods.sh"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        }
+    ]
+}
