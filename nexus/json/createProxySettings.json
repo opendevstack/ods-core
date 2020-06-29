@@ -2,8 +2,14 @@
   "name":"createProxySettings",
   "content":"String httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) { 
-    def httpProxyPort = 80;
-    core.httpProxy(httpProxy, httpProxyPort as int);
+    httpProxy = httpProxy.minus(~/^https?:\/\//);
+    String[] hostAndPort = httpProxy.split (':');
+    int httpProxyPort = 80;
+    String httpProxyName = hostAndPort[0];
+    if (hostAndPort.size == 2) {
+      httpProxyPort = hostAndPort[1];
+    }
+    core.httpProxy(httpProxyName, httpProxyPort as int);
   }",
  "type":"groovy"
 }
