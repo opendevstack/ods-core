@@ -2,7 +2,7 @@
   "name":"createProxySettings",
   "content":"def httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) { 
-    core.removeHTTPProxy();
+//    core.removeHTTPProxy();
     httpProxy = httpProxy.minus(~/^https?:\/\//);
     def hostAndPort = httpProxy.split (':');
     def httpProxyPort = 80;
@@ -15,7 +15,7 @@
   } else {
     println 'No HTTP Proxy configured';
   }
-  def httpsProxy = '@https_proxy@';
+/*  def httpsProxy = '@https_proxy@';
   if (httpsProxy.trim().length() > 0) {
     core.removeHTTPSProxy();
     httpsProxy = httpsProxy.minus(~/^https?:\/\//);
@@ -37,6 +37,6 @@
     println "${noProxyHosts.split(',')}";
   } else {
     println 'No non Proxy hosts configured';
-  }",
+  }*/",
  "type":"groovy"
 }
