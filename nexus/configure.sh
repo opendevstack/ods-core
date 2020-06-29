@@ -157,7 +157,7 @@ function runJsonScript {
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/"${jsonScriptName}".json
     echo "running ${jsonScriptName}"
-    curl ${INSECURE} -v -X POST -sSf \
+    curl ${INSECURE} -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: text/plain' \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}/run" ${runParams} > /dev/null
@@ -238,22 +238,35 @@ echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
 
 echo_info "Configure HTTP proxy if applicable"
-sed "s|@http_proxy@|${HTTP_PROXY}|g" json/createProxySettings.json > json/createProxySettingsWithProxy.json
-sed -i "s|@no_proxy@|${NO_PROXY}|g" json/createProxySettingsWithProxy.json
-runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
-rm json/createProxySettingsWithProxy.json
+if [ ! -z "${HTTP_PROXY}" ]; then
+	sed "s|@http_proxy@|${HTTP_PROXY}|g" json/createProxySettings.json > json/createProxySettingsWithProxy.json
+	cat json/createProxySettingsWithProxy.json
+	runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
+	rm json/createProxySettingsWithProxy.json
+elif 
+	echo_info "NO HTTP PROXY configured"
+fi
 
 echo_info "Configure HTTPS proxy if applicable"
-sed "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsHTTPS.json > json/createProxySettingsWithProxyHTTPS.json
-cat json/createProxySettingsWithProxyHTTPS.json
-runJsonScript "createProxySettingsHTTPS" "-d @json/createProxySettingsWithProxyHTTPS.json"
-rm json/createProxySettingsWithProxyHTTPS.json
+if [ ! -z "${HTTPS_PROXY}" ]; then
+	sed "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsHTTPS.json > json/createProxySettingsWithProxyHTTPS.json
+	cat json/createProxySettingsWithProxyHTTPS.json
+	runJsonScript "createProxySettingsHTTPS" "-d @json/createProxySettingsWithProxyHTTPS.json"
+	rm json/createProxySettingsWithProxyHTTPS.json
+elif 
+	echo_info "NO HTTPS PROXY configured"
+fi
 
 echo_info "Configure no proxy exclusions if applicable"
-sed "s|@no_proxy@|${NO_PROXY}|g" json/createNoProxySettings.json > json/createNoProxySettingsWithProxy.json
-cat json/createNoProxySettingsWithProxy.json
-runJsonScript "createNoProxySettings" "-d @json/createNoProxySettingsWithProxy.json"
-rm json/createNoProxySettingsWithProxy.json
+
+if [ ! -z "${NO_PROXY}" ]; then
+	sed "s|@no_proxy@|${NO_PROXY}|g" json/createNoProxySettings.json > json/createNoProxySettingsWithProxy.json
+	cat json/createNoProxySettingsWithProxy.json
+	runJsonScript "createNoProxySettings" "-d @json/createNoProxySettingsWithProxy.json"
+	rm json/createNoProxySettingsWithProxy.json
+elif 
+	echo_info "NO proxy exclusions configured"
+fi
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"
