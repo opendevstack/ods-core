@@ -34,7 +34,7 @@
   if (noProxyHosts.trim().length() > 0) {
     core.nonProxyHosts();
     core.nonProxyHosts(noProxyHosts.split(','));
-    println "${nonProxyHosts.split(',')}";
+    println "${noProxyHosts.split(',')}";
   } else {
     println 'No non Proxy hosts configured';
   }",
