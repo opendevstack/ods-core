@@ -5,8 +5,6 @@
     String[] hostAndPort = httpProxy.split (':');
     int httpProxyPort = 80;
     String httpProxyName = hostAndPort[0];
-    if (httpProxy.contains(':')) {
-    }
     core.httpProxy(httpProxyName, httpProxyPort);
   }",
  "type":"groovy"
