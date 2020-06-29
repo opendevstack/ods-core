@@ -8,7 +8,7 @@
     if (hostAndPort.size() == 2) {
       httpProxyPort = hostAndPort[1];
     }
-    core.httpProxy(httpProxyName, httpProxyPort as int);
+    core.httpProxy(httpProxyName, 80);
   }",
  "type":"groovy"
 }
