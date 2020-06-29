@@ -100,7 +100,11 @@ function check_system_setup() {
     sudo sed -i "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
 
     # remove obsolete version of git
-    if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
+    if [[ -n $(command -v git) ]]
+    then
+        sudo yum remove -y git*
+    fi
+
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
@@ -145,7 +149,7 @@ function setup_dnsmasq() {
 
     if ! >/dev/null command -v dnsmasq
     then
-        sudo yum install dnsmasq
+        sudo yum install -y dnsmasq
     fi
 
     sudo systemctl start dnsmasq
@@ -195,6 +199,7 @@ function setup_dnsmasq() {
     
     sudo chattr +i /etc/resolv.conf
     sudo systemctl restart dnsmasq.service
+    sudo systemctl enable --now dnsmasq.service
 }
 
 #######################################

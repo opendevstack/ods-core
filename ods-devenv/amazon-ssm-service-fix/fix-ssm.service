@@ -1,0 +1,11 @@
+[Unit]
+Description=startup dnsmasq and restart amazon-ssm-service to fix amazon-ssm-service on custom CentOS box
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/fixSsm.sh
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

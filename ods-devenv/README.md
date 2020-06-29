@@ -48,7 +48,7 @@ Or configure the RDP client with the public DNS to connect to the ODS box.
 
 Note: in the default configuration, run-on-aws.sh will configure a security group that allows access to ports 22 and 3389. If a different security group or a more restrictive VPC is used, this simple and insecure approach will most probably not work any more and different means are required. E.g. see AWS SSM below.
 ### via AWS SSM
-All ODS box instances derived from the custom ODS CentOS 7.8 2003 base image come with the AWS Systems Manager Agent installed. AWS SSM can be used to do port forwarding from the local workstation to the ODS box on AWS EC2. RDP or ssh sessions can be tunneled through that way.
+All ODS box instances derived from the custom ODS CentOS 7.8 2003 base image come with the AWS Systems Manager Agent pre-installed. AWS SSM can be used to do port forwarding from the local workstation to the ODS box on AWS EC2. RDP or ssh sessions can be tunneled through that way.
 
 Prerequisites:
 -   Access to the AWS account hosting the EC2 instance
@@ -72,13 +72,16 @@ aws ssm start-session \
 --target i-0306756a7e96f8e24 \
 --document-name AWS-StartPortForwardingSession \
 --parameters '{"portNumber":["22"], "localPortNumber":["22"]}'
+
+# Check whether the Amazon SSM agent is running on the ODS box
+sudo systemctl status amazon-ssm-agent
 ```
 
 # Resources
 ## AMI - machine images
 This project provides images from which ODS boxes can be derived or instantiated.
 - ami-0169ff0d4d60f016b - a CentOS 7.8 2003 base image. Running the script ods-core/ods-devenv/scripts/bootstrap.sh on this box will yield a fresh ODS box built from master / configurable branch.
-- ami-061fc2eadfeaa4e59 - this image contains a complete ODS setup and only needs to be started up, e.g. using by running ```bash ods-devenv/scripts/deploy.sh --target startup_ods``` from the ods-core folder.
+- ami-058369867e8b7aa74 - this image contains a complete ODS setup and only needs to be started up, e.g. using by running ```bash ods-devenv/scripts/deploy.sh --target startup_ods``` from the ods-core folder.
 
 ## Scripts
 ### bootstrap.sh
