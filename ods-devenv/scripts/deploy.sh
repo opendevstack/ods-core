@@ -190,13 +190,13 @@ function setup_dnsmasq() {
 
     sudo chattr -i /etc/resolv.conf
     sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
-    
+
     while ! grep "${public_hostname}" /etc/resolv.conf
     do
         echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
         sleep 1
     done
-    
+
     sudo chattr +i /etc/resolv.conf
     sudo systemctl restart dnsmasq.service
     sudo systemctl enable --now dnsmasq.service
@@ -1451,7 +1451,7 @@ function setup_docgen() {
 
 #######################################
 # Sets up Jenkins agents for various technologies, like:
-# airflow, golang, maven, nodejs/angular, nodejs12, python, scala
+# golang, maven, nodejs/angular, nodejs12, python, scala
 #
 # Relies on initialise_ods_repositories' having run before to create and
 # initialise the opendevstack project folder with its repositories.
@@ -1477,7 +1477,7 @@ function setup_jenkins_agents() {
     fi
 
     # create build configurations in parallel
-    for technology in airflow golang maven nodejs10-angular nodejs12 python scala
+    for technology in golang maven nodejs10-angular nodejs12 python scala
     do
         pushd "${quickstarters_jenkins_agents_dir}/${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
@@ -1497,7 +1497,7 @@ function setup_jenkins_agents() {
         echo "${fail_count} of the jenkins-agent build configurations failed."
     fi
 
-    for technology in airflow golang maven nodejs10-angular nodejs12 python scala
+    for technology in golang maven nodejs10-angular nodejs12 python scala
     do
         echo "Starting build of jenkins-agent for technology ${technology}."
         oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow &
