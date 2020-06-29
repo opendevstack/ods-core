@@ -237,18 +237,23 @@ fi
 echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
 
-echo_info "Configure proxy if applicable"
+echo_info "Configure HTTP proxy if applicable"
 sed "s|@http_proxy@|${HTTP_PROXY}|g" json/createProxySettings.json > json/createProxySettingsWithProxy.json
 sed -i "s|@no_proxy@|${NO_PROXY}|g" json/createProxySettingsWithProxy.json
 runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
 rm json/createProxySettingsWithProxy.json
 
-echo_info "Configure proxy if applicable"
+echo_info "Configure HTTPS proxy if applicable"
 sed "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsHTTPS.json > json/createProxySettingsWithProxyHTTPS.json
-sed -i "s|@no_proxy@|${NO_PROXY}|g" json/createProxySettingsWithProxyHTTPS.json
 cat json/createProxySettingsWithProxyHTTPS.json
 runJsonScript "createProxySettingsHTTPS" "-d @json/createProxySettingsWithProxyHTTPS.json"
 rm json/createProxySettingsWithProxyHTTPS.json
+
+echo_info "Configure no proxy exclusions if applicable"
+sed "s|@no_proxy@|${NO_PROXY}|g" json/createNoProxySettings.json > json/createNoProxySettingsWithProxy.json
+cat json/createNoProxySettingsWithProxy.json
+runJsonScript "createNoProxySettings" "-d @json/createNoProxySettingsWithProxy.json"
+rm json/createNoProxySettingsWithProxy.json
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"

@@ -1,0 +1,9 @@
+{
+  "name":"createNoProxySettings",
+  "content":"  String noProxyHosts = '@no_proxy@';
+  if (noProxyHosts.trim().length() > 0) {
+    core.nonProxyHosts();
+    core.nonProxyHosts(noProxyHosts.split(','));
+  }",
+  "type":"groovy"
+}
