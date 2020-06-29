@@ -3,11 +3,11 @@
   "content":"String httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) {
     String[] hostAndPort = httpProxy.split (':');
-    def httpProxyPort = 80;
+    int httpProxyPort = 80;
     String httpProxyName = hostAndPort[0];
     if (httpProxy.contains(':')) {
     }
-    core.httpProxy(httpProxyName, httpProxyPort as int);
+    core.httpProxy(httpProxyName, httpProxyPort);
   }",
  "type":"groovy"
 }
