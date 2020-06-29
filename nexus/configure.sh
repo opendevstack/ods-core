@@ -204,8 +204,8 @@ if [ -z "${LOCAL_CONTAINER_ID}" ]; then
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
     HTTP_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo -n $HTTP_PROXY")
-    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo $HTTPS_PROXY")
-    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo $NO_PROXY")
+    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo -n $HTTPS_PROXY")
+    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "echo -n $NO_PROXY")
 fi
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
@@ -243,6 +243,7 @@ sed -i "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsWithProxy.json
 sed -i "s|@no_proxy@|${NO_PROXY}|g" json/createProxySettingsWithProxy.json
 cat json/createProxySettingsWithProxy.json
 runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
+rm json/createProxySettingsWithProxy.json
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"
