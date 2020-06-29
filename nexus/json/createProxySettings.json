@@ -1,42 +1,42 @@
 {
   "name":"createProxySettings",
   "content":"def httpProxy = System.getenv('HTTP_PROXY');
-  core.removeHTTPProxy()
+  core.removeHTTPProxy();
   if (httpProxy) {
-    httpProxy = httpProxy.minus(~/^https?:\/\//)
-    List hostAndPort = httpProxy.split (':')
-    def httpProxyPort = 80
-    def httpProxyName = hostAndPort[0]
+    httpProxy = httpProxy.minus(~/^https?:\/\//);
+    List hostAndPort = httpProxy.split (':');
+    def httpProxyPort = 80;
+    def httpProxyName = hostAndPort[0];
     if (hostAndPort.size == 2) {
-      httpProxyPort = hostAndPort[1]
+      httpProxyPort = hostAndPort[1];
     }
-    core.httpProxy(httpProxyName, httpProxyPort as int)
-    println "HTTPProxy: ${hostAndPort}"
+    core.httpProxy(httpProxyName, httpProxyPort as int);
+    println "HTTPProxy: ${hostAndPort}";
   } else {
-    println 'No HTTP Proxy configured'
+    println 'No HTTP Proxy configured';
   }
   def httpsProxy = System.getenv('HTTPS_PROXY');
-  core.removeHTTPSProxy()
+  core.removeHTTPSProxy();
   if (httpsProxy) {
-    httpsProxy = httpsProxy.minus(~/^https?:\/\//)
-    List hostAndPortS = httpsProxy.split (':')
-    def httpsProxyPort = 443
-    def httpsProxyName = hostAndPortS[0]
+    httpsProxy = httpsProxy.minus(~/^https?:\/\//);
+    List hostAndPortS = httpsProxy.split (':');
+    def httpsProxyPort = 443;
+    def httpsProxyName = hostAndPortS[0];
     if (hostAndPortS.size == 2) {
-      httpProxyPortS = hostAndPortS[1]
+      httpProxyPortS = hostAndPortS[1];
     }
-    core.httpsProxy(httpsProxyName, httpsProxyPort as int)
+    core.httpsProxy(httpsProxyName, httpsProxyPort as int);
     println "HTTPSProxy: ${hostAndPortS}"
   } else {
-    println 'No HTTPS Proxy configured'
+    println 'No HTTPS Proxy configured';
   }
-  String noProxyHosts = System.getenv('NO_PROXY')
+  String noProxyHosts = System.getenv('NO_PROXY');
   if (noProxyHosts) {
-    core.nonProxyHosts()
-    core.nonProxyHosts(noProxyHosts.split(','))
-    println "${noProxyHosts.split(',')}"
+    core.nonProxyHosts();
+    core.nonProxyHosts(noProxyHosts.split(','));
+    println "${nonProxyHosts.split(',')}";
   } else {
-    println 'No non Proxy hosts configured'
+    println 'No non Proxy hosts configured';
   }",
  "type":"groovy"
 }

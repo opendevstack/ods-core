@@ -147,14 +147,17 @@ function runJsonScript {
     shift 1
     # shellcheck disable=SC2124
     local runParams="$@"
-    curl ${INSECURE} -X POST -sSf \
+    echo "uploading ${jsonScriptName}.json"
+    curl ${INSECURE} -v -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/"${jsonScriptName}".json
-    curl ${INSECURE} -X POST -sSf \
+    echo "running ${jsonScriptName}"
+    curl ${INSECURE} -v -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: text/plain' \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}/run" ${runParams} > /dev/null
+    echo "deleting ${jsonScriptName}"
     curl ${INSECURE} -X DELETE -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}"
