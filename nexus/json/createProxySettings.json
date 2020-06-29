@@ -1,5 +1,5 @@
 {
   "name":"createProxySettings",
   "content":"core.httpProxy('test', 80);",
- "type":"groovy"
+ "type":"groovy" 
 }
