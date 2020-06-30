@@ -2,6 +2,7 @@
   "name":"createProxySettings",
   "content":"String httpProxy = '@http_proxy@';
   if (httpProxy.trim().length() > 0) {
+    log.info("Configuring HTTP proxy from ${httpProxy}");
     httpProxy = httpProxy.trim().replace('http://', '').replace('https://', '');
     String[] hostAndPort = httpProxy.split (':');
     int httpProxyPort = httpProxy.contains(':') ? hostAndPort[1] as int : 80;
