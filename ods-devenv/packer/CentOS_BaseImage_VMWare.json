@@ -38,6 +38,8 @@
         {
             "type": "shell",
             "inline": [
+                "whoami",
+                "pwd",
                 "mkdir -p bin",
                 "mkdir -p tmp",
                 "touch bin/bootstrap",
@@ -62,18 +64,20 @@
         {
             "type": "shell",
             "inline": [
-                "echo openshift | sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+                "echo Installing Amazon SSM Agent",
+                "echo openshift | sudo -S yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
                 "sudo systemctl enable --now amazon-ssm-agent",
-                "sudo systemctl status amazon-ssm-agent | grep -q activate"
+                "sudo systemctl status amazon-ssm-agent",
+                "# sudo systemctl status amazon-ssm-agent | grep -q activate"
             ]
         },
         {
             "type": "shell",
             "inline": [
                 "pwd",
-                "echo openshift | sudo -S cp tmp/fixSsm.sh /usr/local/sbin/fixSsm.sh",
+                "echo openshift | sudo -S cp /home/openshift/tmp/fixSsm.sh /usr/local/sbin/fixSsm.sh",
                 "sudo chmod +x /usr/local/sbin/fixSsm.sh",
-                "sudo cp tmp/fix-ssm.service /etc/systemd/system/fix-ssm.service",
+                "sudo cp /home/openshift/tmp/fix-ssm.service /etc/systemd/system/fix-ssm.service",
                 "sudo systemctl daemon-reload",
                 "sudo systemctl enable --now fix-ssm.service"
             ]
