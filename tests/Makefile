@@ -10,10 +10,9 @@ test: create-projects/create-projects_test.go create-projects/create-projects_te
 prep-verify:
 	go get github.com/jstemmer/go-junit-report
 
-verify: ods-verify/verify-ods-core-env-available_test.go ods-verify/verify-ods-namespace-images_test.go go.mod go.sum utils/* validate/*
+verify: go.mod go.sum ods-verify/* utils/* validate/*
 	@(echo "Verifying ODS installation")
-	@(go test -v -timeout 30s github.com/opendevstack/ods-core/tests/ods-verify 2>&1 > test-results.txt)
-	@(cat test-results.txt | go-junit-report > test-report.xml)
+	@(./verify.sh)
 
 
 lint:
