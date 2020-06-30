@@ -203,8 +203,11 @@ if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    # shellcheck disable=SC2046,SC2005
     HTTP_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '\n')
+    # shellcheck disable=SC2046,SC2005
     HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '\n')
+    # shellcheck disable=SC2046,SC2005
     NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '\n')
     environment=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "env")
     echo "docker env: ${environment} proxy: ${HTTP_PROXY}" 
