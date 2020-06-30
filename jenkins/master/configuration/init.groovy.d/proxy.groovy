@@ -2,12 +2,18 @@ import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.getInstance()
 
+String httpProxy = System.getenv('HTTP_PROXY')
+
+if (!httpProxy) {
+  println("No proxy config found - returning..")
+  return
+}
+
 if (jenkins.proxy) {
   println("Proxy ALREADY set to: ${jenkins.proxy.name}:${jenkins.proxy.port} - leaving ..")
   return
 } 
 
-String httpProxy = System.getenv('HTTP_PROXY')
 httpProxy = httpProxy.minus(~/^https?:\/\//)
 println (httpProxy)
 String httpNOProxyHosts = System.getenv('NO_PROXY')
