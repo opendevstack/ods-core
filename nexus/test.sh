@@ -131,10 +131,4 @@ else
     echo "Developer access possible"
 fi
 
-proxySetting=$(curl -sSf \
-    --user "${DEV_USER_NAME}:${DEV_USER_PWD}" \
-    ${NEXUS_URL}/api/v2/config/httpProxyServer)
-
-echo "Proxy: ${proxySetting}"
-
 echo "Success"
