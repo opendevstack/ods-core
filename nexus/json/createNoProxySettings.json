@@ -1,6 +1,8 @@
 {
   "name":"createNoProxySettings",
-  "content":"  String noProxyHosts = '@no_proxy@';
+  "content":"import groovy.json.JsonSlurper;
+  def request = new JsonSlurper().parseText(args);
+  def noProxyHosts = request.noProxy;
   if (noProxyHosts.trim().length() > 0) {
     core.nonProxyHosts();
     core.nonProxyHosts(noProxyHosts.split(','));

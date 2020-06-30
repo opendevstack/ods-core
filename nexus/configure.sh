@@ -209,8 +209,6 @@ else
     HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '"\r\n')
     # shellcheck disable=SC2046,SC2005
     NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '"\r\n')
-    environment=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "env")
-    echo "docker env: ${environment} proxy:${HTTP_PROXY}:" 
 fi
 
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
@@ -243,23 +241,14 @@ fi
 echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
 
+echo "{\"httpProxy\": \"${HTTP_PROXY}\", \"httpsProxy\": \"${HTTPS_PROXY}\", \"noProxy\": \"${NO_PROXY}\"}" > json/http-proxy-settings.json
 echo_info "Configure HTTP proxy with: ${HTTP_PROXY}"
-sed "s|@http_proxy@|${HTTP_PROXY}|g" json/createProxySettings.json > json/createProxySettingsWithProxy.json
-cat json/createProxySettingsWithProxy.json
-runJsonScript "createProxySettings" "-d @json/createProxySettingsWithProxy.json"
-rm json/createProxySettingsWithProxy.json
-
+runJsonScript "createProxySettings" "-d @json/http-proxy-settings.json"
 echo_info "Configure HTTPS proxy with: ${HTTPS_PROXY}"
-sed "s|@https_proxy@|${HTTPS_PROXY}|g" json/createProxySettingsHTTPS.json > json/createProxySettingsWithProxyHTTPS.json
-cat json/createProxySettingsWithProxyHTTPS.json
-runJsonScript "createProxySettingsHTTPS" "-d @json/createProxySettingsWithProxyHTTPS.json"
-rm json/createProxySettingsWithProxyHTTPS.json
-
+runJsonScript "createProxySettingsHTTPS" "-d @json/http-proxy-settings.json"
 echo_info "Configure no proxy exclusions with: ${NO_PROXY}"
-sed "s|@no_proxy@|${NO_PROXY}|g" json/createNoProxySettings.json > json/createNoProxySettingsWithProxy.json
-cat json/createNoProxySettingsWithProxy.json
-runJsonScript "createNoProxySettings" "-d @json/createNoProxySettingsWithProxy.json"
-rm json/createNoProxySettingsWithProxy.json
+runJsonScript "createNoProxySettings" "-d @json/http-proxy-settings.json"
+rm json/http-proxy-settings.json
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"

@@ -1,4 +1,2 @@
-createProxySettingsWithProxy.json
-createProxySettingsWithProxyHTTPS.json
-createNoProxySettingsWithProxy.json
-developer-user-with-password.json 
+http-proxy-settings.json
+developer-user-with-password.json
