@@ -9,19 +9,29 @@
     "builders": [
         {
             "type": "vmware-iso",
+            "http_directory": "ods-devenv/packer",
             "boot_command": [
                 "<tab><wait>",
                 " ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/kickstart.cfg<enter>"
             ],
-            "http_directory": "ods-devenv/packer",
             "disk_size": 100000,
+            "disk_type_id": 0,
             "cpus": 4,
-            "memory": 8000,
+            "memory": 8192,
             "iso_url": "{{user `centos_iso_location`}}",
             "iso_checksum": "{{user `centos_iso_sha`}}",
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_password": "{{user `ssh_password`}}",
-            "shutdown_command": "shutdown --poweroff now"
+            "shutdown_command": "shutdown --poweroff now",
+            "vmx_data": {
+                "vhv.enable": "TRUE",
+                "virtualHW.version": "14",
+                "guestOS": "centos7-64",
+                "sound.present": "TRUE",
+                "vcpu.hotadd": "TRUE",
+                "mem.hotadd": "TRUE"
+            },
+            "ssh_timeout": "30m"
         }
     ]
 }
