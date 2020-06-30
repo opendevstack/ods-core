@@ -2,6 +2,7 @@
   "name":"createProxySettingsHTTPS",
   "content":"String httpProxy = '@https_proxy@';
   if (httpProxy.trim().length() > 0) {
+    httpProxy = httpProxy.trim().replace('http://', '').replace('https://', '');
     String[] hostAndPort = httpProxy.split (':');
     int httpProxyPort = httpProxy.contains(':') ? hostAndPort[1] as int : 443;
     core.httpsProxy(hostAndPort[0], httpProxyPort);
