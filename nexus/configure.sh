@@ -203,12 +203,13 @@ if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
-    HTTP_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '\n'
-    HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '\n'
-    NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '\n'
+    HTTP_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '\n')
+    HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '\n')
+    NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '\n')
     environment=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "env")
     echo "docker env: ${environment} proxy: ${HTTP_PROXY}" 
 fi
+
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
         "${NEXUS_URL}/service/metrics/ping")
