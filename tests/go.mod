@@ -9,6 +9,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
+	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
