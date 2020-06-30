@@ -26,8 +26,12 @@ esac; shift; done
 CONTAINER_IMAGE="sonatype/nexus3:${NEXUS_VERSION}"
 HOST_PORT="8081"
 
+HTTP_PROXY="someproxy.local"
+HTTPS_PROXY="someproxy.local"
+NO_PROXY=".local,.svc"
+
 echo "Run container using image ${CONTAINER_IMAGE}"
-containerId=$(docker run -d -p "${HOST_PORT}:8081" "${CONTAINER_IMAGE}")
+containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY "${HTTP_PROXY}" -e HTTPS_PROXY "${HTTPS_PROXY}" -e NO_PROXY "${NO_PROXY}" "${CONTAINER_IMAGE}")
 
 function cleanup {
     echo "Cleanup"
@@ -126,5 +130,11 @@ if curl -sSf \
 else
     echo "Developer access possible"
 fi
+
+proxySetting=$(curl -sSf \
+    --user "${DEV_USER_NAME}:${DEV_USER_PWD}" \
+    ${NEXUS_URL}/api/v2/config/httpProxyServer)
+
+echo "Proxy: ${proxySetting}"
 
 echo "Success"
