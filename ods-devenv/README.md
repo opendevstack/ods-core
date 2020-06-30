@@ -4,9 +4,12 @@
 ### Provision an ODS box on AWS
 The script ods-core/ods-devenv/scripts/run-on-aws.sh can be used to quickly and conveniently provision a new ODS box EC2 instance on AWS. There are several options to choose from to support the most frequent use cases:
 ```
-# to startup a vanilla ODS box, using default ODS AMI and security group in public facing VPC
+# to startup a vanilla ODS box from a pre-built ODS Box master AMI, using default ODS AMI and security group in a public facing VPC
 # startup time about 5 minutes
 ./run-on-aws.sh
+
+# to startup an ODS box from a pre-built ODS Box for the given branch, otherwise like above
+./run-on-aws.sh --target-git-ref feature/ods-devenv
 
 # to startup from a specific ODS AMI, also using a specific security group
 ./run-on-aws.sh --ami-id i-############ --security-group-id sg-006935bec03a154a1
