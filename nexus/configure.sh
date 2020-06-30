@@ -207,7 +207,7 @@ else
     HTTPS_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY)
     NO_PROXY=$(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY)
     environment=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "env")
-    echo "docker env: ${environment} \rproxy: ${HTTP_PROXY} " 
+    echo "docker env: ${environment} proxy: ${HTTP_PROXY}" 
 fi
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
