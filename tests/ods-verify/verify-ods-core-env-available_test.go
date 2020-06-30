@@ -7,5 +7,6 @@ import (
 )
 
 func TestVerifyOdsCoreEnvAvailable(t *testing.T) {
-	validate.OdsNamespaceVariableOrFail(t)
+	validate.OdsCoreEnvVariableOrFail(t, validate.ODS_NAMESPACE)
+	validate.OdsCoreEnvVariableOrFail(t, validate.ODS_IMAGE_TAG)
 }
