@@ -2,18 +2,18 @@ package utils
 
 import (
 	"fmt"
-	coreUtils "github.com/opendevstack/ods-core/tests/utils"
+	"strings"
+
 	v1 "k8s.io/api/core/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"strings"
 )
 
 func FindService(services *v1.ServiceList, serviceName string) error {
 	for _, service := range services.Items {
 		if service.Name == serviceName {
 
-			config, err := coreUtils.GetOCClient()
+			config, err := GetOCClient()
 			clientset, err := kubernetes.NewForConfig(config)
 
 			if err != nil {

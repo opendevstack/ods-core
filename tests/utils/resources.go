@@ -1,15 +1,14 @@
 package utils
 
 import (
-	coreUtils "github.com/opendevstack/ods-core/tests/utils"
+	"testing"
+
 	appsClientV1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildClientV1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imageClientV1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"log"
-	"testing"
 )
 
 func CheckImageTags(namespace string, imageTags []ImageTag, config *rest.Config, t *testing.T) {
@@ -59,12 +58,12 @@ func CheckBuildConfigs(namespace string, buildConfigs []string, config *rest.Con
 
 	buildClient, err := buildClientV1.NewForConfig(config)
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
 
 	buildConfigList, err := buildClient.BuildConfigs(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
 
 	for _, buildConfig := range buildConfigs {
@@ -82,12 +81,12 @@ func CheckDeploymentConfigs(namespace string, deploymentConfigs []string, config
 
 	appsClient, err := appsClientV1.NewForConfig(config)
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
 
 	deploymentsConfigs, err := appsClient.DeploymentConfigs(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
 
 	for _, deploymentsConfig := range deploymentConfigs {
@@ -121,7 +120,7 @@ func CheckServices(namespace string, services []string, config *rest.Config, t *
 
 func CheckResources(resources Resources, t *testing.T) {
 
-	config, err := coreUtils.GetOCClient()
+	config, err := GetOCClient()
 	if err != nil {
 		t.Fatal(err)
 	}
