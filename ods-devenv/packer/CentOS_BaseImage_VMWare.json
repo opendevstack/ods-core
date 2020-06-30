@@ -22,7 +22,7 @@
             "iso_checksum": "{{user `centos_iso_sha`}}",
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_password": "{{user `ssh_password`}}",
-            "shutdown_command": "shutdown --poweroff now",
+            "shutdown_command": "echo openshift | sudo -S shutdown --poweroff now",
             "vmx_data": {
                 "vhv.enable": "TRUE",
                 "virtualHW.version": "14",
@@ -32,6 +32,51 @@
                 "mem.hotadd": "TRUE"
             },
             "ssh_timeout": "30m"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "mkdir -p bin",
+                "mkdir -p tmp",
+                "touch bin/bootstrap",
+                "chmod u+x bin/bootstrap"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "ods-devenv/amazon-ssm-service-fix/fix-ssm.service",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "ods-devenv/amazon-ssm-service-fix/fixSsm.sh",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "ods-devenv/scripts/bootstrap.sh",
+            "destination": "/home/openshift/bin/bootstrap"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo openshift | sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+                "sudo systemctl enable --now amazon-ssm-agent",
+                "sudo systemctl status amazon-ssm-agent | grep -q activate"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "pwd",
+                "echo openshift | sudo -S cp tmp/fixSsm.sh /usr/local/sbin/fixSsm.sh",
+                "sudo chmod +x /usr/local/sbin/fixSsm.sh",
+                "sudo cp tmp/fix-ssm.service /etc/systemd/system/fix-ssm.service",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl enable --now fix-ssm.service"
+            ]
         }
     ]
 }
