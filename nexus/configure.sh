@@ -204,13 +204,13 @@ if [ -z "${LOCAL_CONTAINER_ID}" ]; then
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
     # shellcheck disable=SC2046,SC2005
-    HTTP_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '\n')
+    HTTP_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '"\r\n')
     # shellcheck disable=SC2046,SC2005
-    HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '\n')
+    HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '"\r\n')
     # shellcheck disable=SC2046,SC2005
-    NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '\n')
+    NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '"\r\n')
     environment=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "env")
-    echo "docker env: ${environment} proxy: ${HTTP_PROXY}" 
+    echo "docker env: ${environment} proxy:${HTTP_PROXY}:" 
 fi
 
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
