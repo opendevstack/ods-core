@@ -33,6 +33,12 @@ startup_ods
 
 # When using Atlassian timebomb licenses: to reset the 3 hours validity window of the Atlassian suite's timebomb licenses run this command from the ODS box terminal
 restart_atlassian_suite
+
+# Using packer to build ODS Box AMI on AWS
+time packer build -on-error=ask -var 'aws_access_key=#####' -var 'aws_secret_key=#####' -var 'username=openshift' -var 'password=openshift' -var "name_tag=ODS Box $(date)" -var 'ods_branch=feature/ods-devenv' ods-devenv/packer/CentOS2ODSBox.json
+
+# Using packer to build CentOS base image locally on VMWare (Fusion)
+packer build -on-error=ask -var centos_iso_location=file:///Users/georg/Software/centos/CentOS-7-x86_64-DVD-2003.iso -var ssh_username=openshift -var ssh_password=openshift ./ods-devenv/packer/CentOS_BaseImage.json
 ```
 
 ## Connecting to the ODS box
