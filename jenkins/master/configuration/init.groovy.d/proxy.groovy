@@ -1,7 +1,11 @@
 import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.getInstance()
-println("CurrentProxy: ${jenkins.proxy}")
+
+if (jenkins.proxy) {
+  println("Proxy ALREADY set to: ${jenkins.proxy.name}:${jenkins.proxy.port} - leaving ..")
+  return
+} 
 
 String httpProxy = System.getenv('HTTP_PROXY')
 httpProxy = httpProxy.minus(~/^https?:\/\//)
