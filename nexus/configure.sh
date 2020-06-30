@@ -30,6 +30,10 @@ NAMESPACE="ods"
 NEXUS_DC="nexus"
 INSECURE=""
 
+HTTP_PROXY=
+HTTPS_PROXY=
+NO_PROXY=
+
 function usage {
     printf "Setup Nexus.\n\n"
     printf "This script will ask interactively for parameters by default.\n"
@@ -147,14 +151,17 @@ function runJsonScript {
     shift 1
     # shellcheck disable=SC2124
     local runParams="$@"
+    echo "uploading ${jsonScriptName}.json"
     curl ${INSECURE} -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: application/json' \
         "${NEXUS_URL}/service/rest/v1/script" -d @json/"${jsonScriptName}".json
+    echo "running ${jsonScriptName}"
     curl ${INSECURE} -X POST -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         --header 'Content-Type: text/plain' \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}/run" ${runParams} > /dev/null
+    echo "deleting ${jsonScriptName}"
     curl ${INSECURE} -X DELETE -sSf \
         --user "${ADMIN_USER}:${ADMIN_PASSWORD}" \
         "${NEXUS_URL}/service/rest/v1/script/${jsonScriptName}"
@@ -191,9 +198,19 @@ waitForReady
 DEFAULT_ADMIN_PASSWORD_FILE="/nexus-data/admin.password"
 if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     ADMIN_DEFAULT_PASSWORD=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $HTTP_PROXY")
+    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $HTTPS_PROXY")
+    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
+    # shellcheck disable=SC2046,SC2005
+    HTTP_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTP_PROXY) | tr -d '"\r\n')
+    # shellcheck disable=SC2046,SC2005
+    HTTPS_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv HTTPS_PROXY) | tr -d '"\r\n')
+    # shellcheck disable=SC2046,SC2005
+    NO_PROXY=$(echo $(docker exec -t "${LOCAL_CONTAINER_ID}" printenv NO_PROXY) | tr -d '"\r\n')
 fi
+
 if [ -n "${ADMIN_DEFAULT_PASSWORD}" ]; then
     pong=$(curl ${INSECURE} -sS --user "${ADMIN_USER}:${ADMIN_DEFAULT_PASSWORD}" \
         "${NEXUS_URL}/service/metrics/ping")
@@ -223,6 +240,15 @@ fi
 
 echo_info "Install Blob Stores"
 runJsonScript "createBlobStores"
+
+echo "{\"httpProxy\": \"${HTTP_PROXY}\", \"httpsProxy\": \"${HTTPS_PROXY}\", \"noProxy\": \"${NO_PROXY}\"}" > json/http-proxy-settings.json
+echo_info "Configure HTTP proxy with: ${HTTP_PROXY}"
+runJsonScript "createProxySettings" "-d @json/http-proxy-settings.json"
+echo_info "Configure HTTPS proxy with: ${HTTPS_PROXY}"
+runJsonScript "createProxySettingsHTTPS" "-d @json/http-proxy-settings.json"
+echo_info "Configure no proxy exclusions with: ${NO_PROXY}"
+runJsonScript "createNoProxySettings" "-d @json/http-proxy-settings.json"
+rm json/http-proxy-settings.json
 
 echo_info "Install Repositories"
 runJsonScript "createRepos"
