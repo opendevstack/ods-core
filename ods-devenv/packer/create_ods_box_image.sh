@@ -97,7 +97,7 @@ function import_centos_image_to_aws() {
     then
         aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
     fi
-    aws s3 cp "${artefact_folder}/disk.vmdk" "s3://${s3_bucket_name}/${s3_upload_folder}/"
+    aws s3 cp "${artefact_folder}/disk.vmdk" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/"
 
     local jq_query
     jq_query=$(cat <<- EOF
