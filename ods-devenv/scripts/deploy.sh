@@ -1487,10 +1487,12 @@ function setup_jenkins_agents() {
         cp -R "${project_dir}/ods-configuration" "${opendevstack_dir}"
     fi
 
+    pushd "${quickstarters_jenkins_agents_dir}"
     # create build configurations in parallel
-    for technology in golang maven nodejs10-angular nodejs12 python scala
+    for technology in $(ls -d -- */)
     do
-        pushd "${quickstarters_jenkins_agents_dir}/${technology}/${ocp_config_folder}"
+        technology=${technology%/*}
+        pushd "${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
         tailor apply --verbose --force --non-interactive &
         popd
@@ -1508,11 +1510,13 @@ function setup_jenkins_agents() {
         echo "${fail_count} of the jenkins-agent build configurations failed."
     fi
 
-    for technology in golang maven nodejs10-angular nodejs12 python scala
+    for technology in $(ls -d -- */)
     do
+        technology=${technology%/*}
         echo "Starting build of jenkins-agent for technology ${technology}."
         oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow &
     done
+    popd
 
     for job in $(jobs -p)
     do
