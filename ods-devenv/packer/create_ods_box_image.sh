@@ -120,9 +120,17 @@ EOF
     jq "${jq_query}" "${absolute_path2here}/containers.template" > "${absolute_path2here}/containers.json"
     echo "Created containers.json"
     jq . < "${absolute_path2here}/containers.json"
-    echo "Importing CentOS image to AMI ..."
-    aws ec2 import-image --description "My server VM" --disk-containers "file:///${absolute_path2here}/containers.json"
-    echo "Clenaing up containers.json"
+    echo "Importing CentOS image to AMI"
+    local import_task_id
+    import_task_id=$(aws ec2 import-image --description "My server VM" --disk-containers "file:///${absolute_path2here}/containers.json" | jq -r ".ImportTaskId")
+    echo -n "Waiting for CentOS AMI for import task ID ${import_task_id} to become available."
+    while ! aws ec2 describe-import-image-tasks --import-task-ids "${import_task_id}" | jq -r ".ImportImageTasks[0].Status" | grep -iq completed
+    do
+        echo -n '.'
+        sleep 20
+    done
+    echo "is available."
+    echo "Cleaning up containers.json"
     rm -v "${absolute_path2here}/containers.json"
 }
 
