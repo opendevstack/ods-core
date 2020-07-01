@@ -93,21 +93,21 @@ function create_local_centos_image() {
 function import_centos_image_to_aws() {
     echo "Uploading local image to AWS S3 and importing it as AMI"
     # rm artefacts from last upload
-    if aws s3 ls "s3://${s3_bucket_name}" | grep -q "${s3_upload_folder}"
-    then
-        aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
-    fi
+    # if aws s3 ls "s3://${s3_bucket_name}" | grep -q "${s3_upload_folder}"
+    # then
+    #     aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
+    # fi
 
-    pushd "${artefact_folder}" || return
-    ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
-    popd || return
+    # pushd "${artefact_folder}" || return
+    # ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
+    # popd || return
 
-    aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
+    # aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
 
     local jq_query
     jq_query=$(cat <<- EOF
         .[0].Description = "CentOS base image $(date '+%Y%m%d %H%M')" |
-        .[0].Format = "vmdk" |
+        .[0].Format = "ova" |
         .[0].UserBucket.S3Bucket = "${s3_bucket_name}" |
         .[0].UserBucket.S3Key = "${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
 EOF

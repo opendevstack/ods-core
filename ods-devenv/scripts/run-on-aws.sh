@@ -99,8 +99,8 @@ target_git_ref="${target_git_ref:-master}"
 
 if [[ -z "${host}" ]]; then
   if [[ -z "${instance_id}" ]]; then
-    if [[ -z "${security_group_id}" ]]; then
-      echo "--security-group-id not given. Using default sg-006935bec03a154a1"
+    if [[ -z "${security_group_id}" ]] && [[ -z "${iam_instance_profile}" ]]; then
+      echo "Neither --security-group-id nor --iam-instance-profile specified. Using default sg-006935bec03a154a1"
       security_group_id=sg-006935bec03a154a1
     fi
     if [[ -z "${keypair}" ]]; then
@@ -147,7 +147,8 @@ if [[ -z "${host}" ]]; then
     if [[ -n "${iam_instance_profile}" ]]
     then
         arg_list="${arg_list} --iam-instance-profile Arn=${iam_instance_profile} "
-    elif [[ -n "${security_group_id}" ]]
+    fi
+    if [[ -n "${security_group_id}" ]]
     then
         arg_list="${arg_list} --security-group-ids ${security_group_id} "
     fi
