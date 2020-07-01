@@ -131,6 +131,8 @@ In `ods-core` run:
 make install-ods-project
 ----
 
+TIP: In certain situations, you may want to pick a different name for the central namespace, e.g. for testing purposes or trying two versions of ODS next to each other. To do so, you need to run this and the following commands with `make NAMESPACE=foo <target>`.
+
 
 === Nexus
 
