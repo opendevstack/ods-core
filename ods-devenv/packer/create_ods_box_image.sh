@@ -23,6 +23,12 @@ while [[ "$#" -gt 0 ]]; do
   --centos-iso-location) centos_iso_location="$2"; shift;;
   --centos-iso-location=*) centos_iso_location="${1#*=}";;
 
+  --aws-access-key) aws_access_key="$2"; shift;;
+  --aws-access-key=*) aws_access_key="${1#*=}";;
+
+  --aws-secret-key) aws_secret_key="$2"; shift;;
+  --aws-secret-key=*) aws_secret_key="${1#*=}";;
+
   --target) target="$2"; shift;;
 
   *) echo "Unknown parameter passed: $1"; exit 1;;
@@ -42,15 +48,24 @@ function display_usage() {
     echo
     echo "Target Section        lists the use cases that can be executed and their parameters."
     echo "--target              Specify the use case you want to execute. E.g. create_local_centos_image"
+    echo
     echo "  create_local_centos_image"
     echo "  Build a CentOS 7.8 2003 base image locally using VMware infrastructure"
-    echo "      --centos_iso_location   absolute path to the CentOS installer iso file in the format"
+    echo "      --centos-iso-location   absolute path to the CentOS installer iso file in the format"
     echo "                              file:///absolute_path/CentOS-7-x86_64-DVD-2003.iso"
+    echo
     echo "  import_centos_image_to_aws"
     echo "  Upload a locally available vmdk or other image file to AWS EC2 for later import to AMI."
     echo "      --s3-bucket-name        name of your AWS S3 bucket to upload the image to"
     echo "      --artefact-folder       folder where the disk.vmdk file of the CentOS VM resides"
     echo "                              defaults to output-vmware-iso, as created by packer"
+    echo
+    echo "  create_ods_box_ami"
+    echo "  Build an ODS Box AMI based on the previously uploaded CentOS box on AWS"
+    echo "      --aws-access-key        AWS credentials"
+    echo "      --aws-secret-key        AWS credentials"
+    echo "      --ods_branch            branch to build ODS box against, e.g master"
+    echo
 }
 
 #######################################
@@ -122,12 +137,6 @@ function create_ods_box_ami() {
         -var "name_tag=ODS Box $(date)" \
         -var "ods_branch=${ods_branch}" \
         ods-devenv/packer/CentOS2ODSBox.json
-}
-
-# creates a local ODS box image for VMware
-function create_ods_box_vmdk() {
-    # implement if ever used ...
-    :
 }
 
 target="${target:-display_usage}"
