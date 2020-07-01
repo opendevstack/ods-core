@@ -97,14 +97,19 @@ function import_centos_image_to_aws() {
     then
         aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
     fi
-    aws s3 cp "${artefact_folder}/disk.vmdk" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/"
+
+    pushd "${artefact_folder}" || return
+    ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
+    popd || return
+
+    aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
 
     local jq_query
     jq_query=$(cat <<- EOF
         .[0].Description = "CentOS base image $(date '+%Y%m%d %H%M')" |
         .[0].Format = "vmdk" |
         .[0].UserBucket.S3Bucket = "${s3_bucket_name}" |
-        .[0].UserBucket.S3Key = "${s3_upload_folder}/$(date '+%Y%m%d')/disk.vmdk"
+        .[0].UserBucket.S3Key = "${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
 EOF
     )
     echo "built jq query string to build containers.json file: ${jq_query}"
