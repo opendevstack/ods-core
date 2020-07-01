@@ -82,7 +82,7 @@ function check_system_setup() {
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
     if ! grep -q vmx /proc/cpuinfo
     then
-        echo "WARNING: The VM needs to be configured to enable hypervisor applications."
+        echo "WARN: The VM needs to be configured to enable hypervisor applications."
         echo "If you are on an AWS ECS instance you can ignore this warning."
     fi
 
@@ -749,7 +749,7 @@ function startup_atlassian_crowd() {
     rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "${atlassian_crowd_port}") || true
     while [[ -n "${rogue_process}" ]]
     do
-        echo "configured crowd port ${atlassian_crowd_port} is taken by: ${rogue_process}"
+        echo "WARN: configured crowd port ${atlassian_crowd_port} is taken by: ${rogue_process}"
         sleep 1
         rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "${atlassian_crowd_port}") || true
     done
@@ -926,7 +926,18 @@ function download_file_to_folder() {
 
     mkdir -p "${download_dir}"
     pushd "${download_dir}"
-        curl -LO "${download_url}"
+    local counter=0
+    local wait_interval=5
+    while ! curl -LO "${download_url}" && [[ counter -lt 10 ]]
+    do
+        if [[ counter -eq 9 ]]
+        then
+            echo "ERROR: Having difficulties to download ${download_url} today. Please look into it."
+            echo "Will stop script execution now."
+            exit 1
+        fi
+        echo "WARN: Download of ${download_url} failed. Will try again in ${wait_interval} seconds."
+    done
     popd
 }
 

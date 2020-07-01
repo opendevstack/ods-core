@@ -15,7 +15,7 @@
                 },
                 "owners": "275438041116"
             },
-            "instance_type": "t2.2xlarge",
+            "instance_type": "m5ad.4xlarge",
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
             "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
