@@ -112,7 +112,7 @@ func CheckServices(namespace string, services []string, config *rest.Config, t *
 	serviceList, err := serviceClient.List(metav1.ListOptions{})
 
 	for _, service := range services {
-		if err = FindService(serviceList, service); err != nil {
+		if err = FindServiceHasPods(serviceList, service); err != nil {
 			t.Error(err)
 		}
 	}

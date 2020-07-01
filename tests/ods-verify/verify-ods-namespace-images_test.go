@@ -25,22 +25,14 @@ func TestVerifyOdsNamespaceImages(t *testing.T) {
 			{Name: "jenkins-agent-nodejs12", Tag: odsImageTag},
 			{Name: "jenkins-agent-python", Tag: odsImageTag},
 			{Name: "jenkins-agent-scala", Tag: odsImageTag},
-			// TODO: ods-doc-gen-svc?
+			{Name: "ods-doc-gen-svc", Tag: odsImageTag},
 			{Name: "ods-provisioning-app", Tag: odsImageTag},
 			{Name: "sonarqube", Tag: odsImageTag},
 		},
-		// TODO should we also test bc and dc's?
 		BuildConfigs:      []string{},
 		DeploymentConfigs: []string{},
-		Services: []string{
-			"webhook-proxy",
-			"jenkins",
-			"sonarqube",
-			"nexus",
-			"ods-provisioning-app",
-			"sonarqube",
-		},
-		ImageStreams: []string{},
+		Services:          []string{}, // tested in its own test.
+		ImageStreams:      []string{},
 	}
 
 	utils.CheckResources(resourcesInTest, t)
