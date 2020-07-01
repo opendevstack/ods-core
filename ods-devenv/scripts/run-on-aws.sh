@@ -188,7 +188,11 @@ if [[ -n "${wait}" ]]; then
     echo "available."
 fi
 
+<<<<<<< HEAD
 if [[ -n "${install}" ]]; then
+=======
+if [ -n "${install}" ]; then
+>>>>>>> origin/master
     echo "Now installing ODS"
     rsync bootstrap.sh "openshift@${host}:/home/openshift/bin/bootstrap"
     echo "Running bootstrap on AWS EC2 instance to build ODS from branch ${target_git_ref}"

@@ -1,0 +1,13 @@
+{
+  "name":"createProxySettingsHTTPS",
+  "content":"import groovy.json.JsonSlurper;
+  def request = new JsonSlurper().parseText(args);
+  def httpsProxy = request.httpsProxy;
+  if (httpsProxy.trim().length() > 0) {
+    httpsProxy = httpsProxy.trim().replace('http://', '').replace('https://', '');
+    String[] hostAndPort = httpsProxy.split (':');
+    int httpsProxyPort = httpsProxy.contains(':') ? hostAndPort[1] as int : 443;
+    core.httpsProxy(hostAndPort[0], httpsProxyPort);
+  }",
+  "type":"groovy"
+}
