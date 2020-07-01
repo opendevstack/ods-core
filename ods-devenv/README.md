@@ -126,7 +126,7 @@ The following components will be installed
         - Credentials: openshift:openshift
     - MySQL DB for the Atlassian Suite
         - credentials: root:jiradbrpwd
-- Tailor 1.1.2
+- Tailor 1.1.3
 
 ## Installation Instructions
 ### Local Deployment
