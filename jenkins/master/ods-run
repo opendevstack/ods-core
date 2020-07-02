@@ -50,5 +50,20 @@ sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
+echo "On RHEL, forcing any plugins shipped by the base image to versions defined in there ..."
+if [ "$(ls /usr/lib/jenkins/*.hpi 2>/dev/null)" ]; then
+  # if rhel
+  if [ -d "/var/lib/jenkins/plugins" ]; then
+    for FILENAME in /usr/lib/jenkins/*.hpi ; do
+      basefilename=`basename $FILENAME .hpi`
+      plugin_image_volume_location="${JENKINS_HOME}/plugins/${basefilename}.jpi"
+      echo "Force linking ${FILENAME} to ${plugin_image_volume_location}"
+      ln -sf $FILENAME $plugin_image_volume_location
+      # also need to nuke the metadir; it will get properly populated on jenkins startup
+      rm -rf "${JENKINS_HOME}/plugins/${basefilename}"
+    done
+  fi
+fi
+
 echo "Booting Jenkins ..."
 /usr/libexec/s2i/run
