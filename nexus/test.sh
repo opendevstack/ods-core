@@ -43,7 +43,7 @@ while [[ "$#" -gt 0 ]]; do
     -s|--nexus-version) NEXUS_VERSION="$2"; shift;;
     -s=*|--nexus-version=*) NEXUS_VERSION="${1#*=}";;
 
-    *) echo_error "Unknown parameter passed: $1"; exit 1;;
+    *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 if ! $VERIFY_ONLY; then

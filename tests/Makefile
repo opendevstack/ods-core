@@ -1,6 +1,6 @@
 .PHONY: test lint verify prep-verify
 
-test: create-projects/create-projects_test.go create-projects/create-projects_test.go go.mod go.sum
+test: verify create-projects/create-projects_test.go create-projects/create-projects_test.go go.mod go.sum
 	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateJenkins)"
 	sleep 5
 	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateProject)"
@@ -10,7 +10,7 @@ test: create-projects/create-projects_test.go create-projects/create-projects_te
 prep-verify:
 	go get github.com/jstemmer/go-junit-report
 
-verify: go.mod go.sum ods-verify/* utils/* validate/*
+verify: prep-verify go.mod go.sum ods-verify/* utils/* validate/*
 	@(echo "Verifying ODS installation")
 	@(./verify.sh)
 

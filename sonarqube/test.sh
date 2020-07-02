@@ -39,7 +39,7 @@ while [[ "$#" -gt 0 ]]; do
     -s|--sq-version) SONAR_VERSION="$2"; shift;;
     -s=*|--sq-version=*) SONAR_VERSION="${1#*=}";;
 
-    *) echo_error "Unknown parameter passed: $1"; exit 1;;
+    *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 if [ -z "${SONAR_VERSION}" ]; then
