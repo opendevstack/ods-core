@@ -1,18 +1,19 @@
 import jenkins.model.Jenkins
+import hudson.ProxyConfiguration
 
 Jenkins jenkins = Jenkins.getInstance()
 
 String httpProxy = System.getenv('HTTP_PROXY')
 
 if (!httpProxy) {
-  println("No proxy config found - returning..")
+  println("No proxy config found")
   return
 }
 
 if (jenkins.proxy) {
-  println("Proxy ALREADY set to: ${jenkins.proxy.name}:${jenkins.proxy.port} - leaving ..")
+  println("Proxy ALREADY set to: ${jenkins.proxy.name}:${jenkins.proxy.port}")
   return
-} 
+}
 
 httpProxy = httpProxy.minus(~/^https?:\/\//)
 println (httpProxy)
@@ -24,12 +25,14 @@ String noProxyAmended = httpNOProxyHosts.replace(',','\r')
 ProxyConfiguration proxy
 
 if (httpProxySplit.size() == 2) {
-    proxy = new ProxyConfiguration(
-        httpProxySplit[0], httpProxySplit[1] as int, null, null, noProxyAmended) 
+  proxy = new ProxyConfiguration(
+    httpProxySplit[0], httpProxySplit[1] as int, null, null, noProxyAmended
+  )
 } else {
-    proxy = new ProxyConfiguration(
-        httpProxySplit[0], 80, null, null, noProxyAmended) 
-}   
+  proxy = new ProxyConfiguration(
+    httpProxySplit[0], 80, null, null, noProxyAmended
+  )
+}
 
 jenkins.proxy = proxy
 
