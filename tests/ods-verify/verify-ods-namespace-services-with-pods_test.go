@@ -21,7 +21,6 @@ func TestVerifyOdsNamespaceServicesWithPodsRunning(t *testing.T) {
 		Services: []string{
 			"webhook-proxy",
 			"jenkins",
-			"sonarqube",
 			"nexus",
 			"ods-provisioning-app",
 			"sonarqube",
