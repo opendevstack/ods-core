@@ -188,4 +188,23 @@ else
     echo "Developer access possible"
 fi
 
+
+artifact_url="${NEXUS_URL}/repository/jcenter/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
+
+echo "Downloading sample artifact: $artifact_url"
+# retrieves an xml doc.
+http_code=$(curl -sSf --location -o /dev/null -w "%{http_code}" \
+    --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
+    "$artifact_url")
+exit_code=$?
+if [ $exit_code -ne 0 ]; then
+    echo "curl exit code $exit_code"
+    exit 1
+fi
+if [ "$http_code" -ne 200 ]; then
+    echo "http code not OK: $http_code"
+    exit 1
+fi
+echo "Downloading spring-boot-2.3.0.RELEASE.pom succeeded."
+
 echo "Success"
