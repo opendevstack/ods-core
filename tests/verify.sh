@@ -10,6 +10,6 @@ go test -v -timeout 30s github.com/opendevstack/ods-core/tests/ods-verify | tee 
 exitcode=$?
 if [ -f test-results.txt ]; then
     set -e
-    cat test-results.txt | go-junit-report > test-report.xml
+    go-junit-report < test-results.txt > test-report.xml
 fi
 exit $exitcode

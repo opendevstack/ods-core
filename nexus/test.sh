@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck source=/dev/null
 set -ue
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -85,7 +86,7 @@ else
     #   cause the sscript to exit
     # - ods-core.env contains some passwords which makes a plain source
     #   hickup, therfore we are filtering this to only NEXUS variables.
-    source <( cat "$ods_core_env_file" | grep NEXUS)
+    source <( grep NEXUS "$ods_core_env_file")
 
     NEXUS_USERNAME=${NEXUS_USERNAME-"developer"}
     NEXUS_ADMIN_USERNAME=${NEXUS_ADMIN_USERNAME-"admin"}
