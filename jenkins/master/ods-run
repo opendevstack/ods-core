@@ -30,7 +30,7 @@ if [ -d "$target_init_groovy_dir" ] ; then
         cp "${source_init_groovy_dir}/${fileName}" "${target_init_groovy_dir}/${fileName}"
     done
     echo "Remove legacy init.groovy.d files ..."
-    rm "${target_init_groovy_dir}/ods-mro-jenkins-shared-library.groovy" || true
+    rm "${target_init_groovy_dir}/ods-mro-jenkins-shared-library.groovy" &> /dev/null || true
 fi
 
 echo "Copy grape config and amending with Nexus ..."
