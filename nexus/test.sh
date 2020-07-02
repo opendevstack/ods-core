@@ -205,6 +205,6 @@ if [ "$http_code" -ne 200 ]; then
     echo "http code not OK: $http_code"
     exit 1
 fi
-echo "Downloading spring-boot-2.3.0.RELEASE.pom succeeded."
+echo "Downloading sample artifact succeeded."
 
 echo "Success"
