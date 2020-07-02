@@ -90,24 +90,24 @@ if ! which jq &> /dev/null; then
   exit 1
 fi
 
-if [  -z "$keypair" ]; then
+if [[  -z "$keypair" ]]; then
     echo "--key-name not given, setting to default edp_dublin_keypair."
     keypair=edp_dublin_keypair
 fi
 
 target_git_ref="${target_git_ref:-master}"
 
-if [ -z "${host}" ]; then
-  if [ -z "${instance_id}" ]; then
-    if [ -z "${security_group_id}" ]; then
-      echo "--security-group-id not given. Using default sg-006935bec03a154a1"
+if [[ -z "${host}" ]]; then
+  if [[ -z "${instance_id}" ]]; then
+    if [[ -z "${security_group_id}" ]] && [[ -z "${iam_instance_profile}" ]]; then
+      echo "Neither --security-group-id nor --iam-instance-profile specified. Using default sg-006935bec03a154a1"
       security_group_id=sg-006935bec03a154a1
     fi
-    if [ -z "${keypair}" ]; then
+    if [[ -z "${keypair}" ]]; then
       echo "ERROR: --key-name not given."
       exit 1
     fi
-    if [ -z "${ami_id}" ]; then
+    if [[ -z "${ami_id}" ]]; then
         if [[ -n "${install}" ]]
         then
             ami_id=$(aws ec2 describe-images \
@@ -127,6 +127,15 @@ if [ -z "${host}" ]; then
     else
       ec2_instance_name="ODS in a box Startup $(date)"
     fi
+
+    if [[ -z "${ami_id}" ]] || [[ "${ami_id}" == "null" ]]
+    then
+      echo "It looks like we have no AMI image ready for the git ref ${target_git_ref}!"
+      echo "You may want to specify a branch name with --target-git-ref some-branch-name"
+      echo "Stopping script execution now."
+      exit 1
+    fi
+
     echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} with security_group=${security_group_id} ..."
     echo "Boot instance"
 
@@ -138,12 +147,13 @@ if [ -z "${host}" ]; then
     if [[ -n "${iam_instance_profile}" ]]
     then
         arg_list="${arg_list} --iam-instance-profile Arn=${iam_instance_profile} "
-    elif [[ -n "${security_group_id}" ]]
+    fi
+    if [[ -n "${security_group_id}" ]]
     then
         arg_list="${arg_list} --security-group-ids ${security_group_id} "
     fi
 
-    echo "arg_list is ${arg_list}"
+    echo "using arguments ${arg_list}"
 
     instance_id=$(aws ec2 run-instances --image-id "$ami_id" \
     ${arg_list} \
@@ -157,7 +167,7 @@ if [ -z "${host}" ]; then
     echo "Instance with ID=${instance_id} running"
     
     aws ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
-    echo "Starting new EC2 instance with name ${ec2_instance_name}"
+    echo "Started new EC2 instance with name ${ec2_instance_name}"
 
     wait="yes"
   fi
@@ -167,7 +177,7 @@ if [ -z "${host}" ]; then
   echo "Instance has address=${host}"
 fi
 
-if [ -n "${wait}" ]; then
+if [[ -n "${wait}" ]]; then
     echo -n "Waiting for ODS Box instance ${instance_id} to become available."
     instance_state=$(aws ec2 describe-instance-status --instance-ids  "${instance_id}" | jq ".InstanceStatuses[].SystemStatus.Details[].Status")
     while [[ ${instance_state} != \"passed\" ]]
@@ -179,7 +189,7 @@ if [ -n "${wait}" ]; then
     echo "available."
 fi
 
-if [ -n "${install}" ]; then
+if [[ -n "${install}" ]]; then
     echo "Now installing ODS"
     rsync bootstrap.sh "openshift@${host}:/home/openshift/bin/bootstrap"
     echo "Running bootstrap on AWS EC2 instance to build ODS from branch ${target_git_ref}"

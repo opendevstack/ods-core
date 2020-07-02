@@ -15,3 +15,5 @@
 /infrastructure-setup/deployment_token.txt
 ods-core.iml
 .DS_Store
+packer_cache
+output-vmware-iso
