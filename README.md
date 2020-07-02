@@ -7,6 +7,8 @@ OpenDevStack (ODS) Core houses the all the central infrastructure components.
 
 All the contained components except Atlassian tools are built in the Openshift central `ods` namespace.
 
+The extended, most up to date, user friendly documentation can be found @ [opendevstack.org](https://www.opendevstack.org/ods-documentation/)
+
 ## Contents
 1. [Jenkins master](jenkins/master) & base agent - the basis of the ODS build engine<br>
 The [base agent](jenkins/agent-base) provides plugins for Sonarqube, optionally Snyk, CNES and is HTTP proxy aware.
