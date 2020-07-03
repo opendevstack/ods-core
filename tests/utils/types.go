@@ -19,6 +19,15 @@ type RoleBinding struct {
 }
 
 type ImageTag struct {
-	ImageName string
-	ImageTag  string
+	Name string
+	Tag  string
+}
+
+type Resources struct {
+	Namespace         string
+	ImageTags         []ImageTag
+	BuildConfigs      []string
+	DeploymentConfigs []string
+	Services          []string
+	ImageStreams      []string
 }

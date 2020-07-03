@@ -6,10 +6,12 @@
     "nx-repository-admin-maven2-candidates-browse",
     "nx-repository-admin-maven2-candidates-edit",
     "nx-repository-admin-maven2-candidates-read",
+    "nx-repository-admin-raw-leva-documentation-edit",
     "nx-repository-view-maven2-*-*",
     "nx-repository-view-maven2-candidates-*",
     "nx-repository-view-npm-*-*",
-    "nx-repository-view-pypi-*-*"
+    "nx-repository-view-pypi-*-*",
+    "nx-repository-view-raw-*-*"
   ],
   "roleIds": []
 }
