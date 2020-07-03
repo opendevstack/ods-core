@@ -17,12 +17,15 @@ function usage {
     printf "\t-a|--admin-password\t\tUse given admin password.\n"
     printf "\t-d|--developer-password\t\tUse given developer password.\n"
     printf "\t-s|--nexus-version\t\tNexus version, e.g. '3.22.0' (defaults to %s)\n" "${NEXUS_VERSION}"
+    printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
 }
 
 VERIFY_ONLY=false
 ADMIN_PASSWORD=
 DEVELOPER_PASSWORD=
 PROMPTS=true
+INSECURE=""
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
 
@@ -31,6 +34,8 @@ while [[ "$#" -gt 0 ]]; do
     -h|--help) usage; exit 0;;
 
     --verify) VERIFY_ONLY=true;;
+
+    -i|--insecure) INSECURE="--insecure";;
 
     -n|--no-prompts) PROMPTS=false;;
 
@@ -113,7 +118,7 @@ if [ -n "${NEXUS_ADMIN_PASSWORD-}" ]; then
                         "pypi-private"
                         "leva-documentation" )
 
-    actualBlobstores=$(curl -sSf \
+    actualBlobstores=$(curl -sSf ${INSECURE} \
         --user "${NEXUS_ADMIN_USERNAME}:${NEXUS_ADMIN_PASSWORD}" \
         ${NEXUS_URL}/service/rest/beta/blobstores)
 
@@ -143,7 +148,7 @@ if [ -n "${NEXUS_ADMIN_PASSWORD-}" ]; then
                     "pypi-all:group"
                     "leva-documentation:hosted")
 
-    actualRepos=$(curl -sSf \
+    actualRepos=$(curl -sSf ${INSECURE} \
         --user "${NEXUS_ADMIN_USERNAME}:${NEXUS_ADMIN_PASSWORD}" \
         ${NEXUS_URL}/service/rest/v1/repositories)
 
@@ -170,7 +175,7 @@ else
 fi
 
 echo "Check if anonymous access is still possible"
-if curl -sSf \
+if curl -sSf ${INSECURE} \
     ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length > 0" > /dev/null; then
     echo "Anonymous access still possible"
     exit 1
@@ -193,7 +198,7 @@ artifact_url="${NEXUS_URL}/repository/jcenter/org/springframework/boot/spring-bo
 
 echo "Downloading sample artifact: $artifact_url"
 # retrieves an xml doc.
-http_code=$(curl -sSf --location -o /dev/null -w "%{http_code}" \
+http_code=$(curl -sSf ${INSECURE} --location -o /dev/null -w "%{http_code}" \
     --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
     "$artifact_url")
 exit_code=$?
