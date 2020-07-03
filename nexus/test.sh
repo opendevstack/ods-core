@@ -57,7 +57,7 @@ if ! $VERIFY_ONLY; then
 
     HTTP_PROXY="someproxy.local"
     HTTPS_PROXY="someproxy.local:99"
-    NO_PROXY=".local,.svc"
+    NO_PROXY=".local,.svc,jcenter.bintray.com"
 
     echo "Run container using image ${CONTAINER_IMAGE}"
     containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" "${CONTAINER_IMAGE}")
