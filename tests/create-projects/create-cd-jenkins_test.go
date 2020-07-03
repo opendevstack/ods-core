@@ -26,7 +26,7 @@ func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 			stderr)
 	}
 
-	values, err := utils.ReadConfiguration()
+	values, err = utils.ReadConfiguration()
 	if err != nil {
 		t.Fatalf(
 			"Could not read ods-core.env")
