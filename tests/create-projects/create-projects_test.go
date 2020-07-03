@@ -10,7 +10,7 @@ import (
 	rbacv1client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 )
 
-func TestCreateProject(t *testing.T) {
+func TestCreateNakedOCPProjectsThruShellScripts(t *testing.T) {
 	err := utils.RemoveAllTestOCProjects()
 	if err != nil {
 		t.Fatal("Unable to remove test projects")

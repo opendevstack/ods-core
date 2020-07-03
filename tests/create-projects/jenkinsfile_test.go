@@ -19,7 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestJenkinsFile(t *testing.T) {
+func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	projectName := utils.PROJECT_NAME
 	projectNameCd := utils.PROJECT_NAME_CD
 
@@ -33,13 +33,13 @@ func TestJenkinsFile(t *testing.T) {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
-	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
+	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"],
 		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
 
 	request := utils.RequestBuild{
 		Repository: "ods-core",
 		Branch:     values["ODS_GIT_REF"],
-		Project:    "opendevstack",
+		Project:    values["ODS_BITBUCKET_PROJECT"],
 		Env: []utils.EnvPair{
 			{
 				Name:  "PROJECT_ID",
@@ -119,11 +119,11 @@ func TestJenkinsFile(t *testing.T) {
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
 		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")), metav1.GetOptions{})
-		time.Sleep(2 * time.Second)
+		time.Sleep(20 * time.Second)
 		if err != nil {
-			fmt.Printf("Build is still not available: %s", err)
+			fmt.Printf("Build is still not available: %s\r", err)
 		} else {
-			fmt.Printf("Waiting for build. Current status: %s", build.Status.Phase)
+			fmt.Printf("Waiting for build. Current status: %s\r", build.Status.Phase)
 		}
 		count++
 	}
@@ -134,8 +134,9 @@ func TestJenkinsFile(t *testing.T) {
 			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
 		}, []string{})
 
-	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
+	fmt.Printf("Jenkins Build log: \r%s", stdout)
 
+	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {
 			t.Fatalf(
 				"Timeout during build: \nStdOut: %s\nStdErr: %s",
@@ -147,7 +148,6 @@ func TestJenkinsFile(t *testing.T) {
 				stdout,
 				stderr)
 		}
-
 	}
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
