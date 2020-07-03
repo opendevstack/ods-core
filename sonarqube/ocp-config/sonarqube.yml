@@ -442,7 +442,6 @@ objects:
 - apiVersion: v1
   data:
     admin-password: ${SONAR_ADMIN_PASSWORD_B64}
-    auth-token: ${SONAR_AUTH_TOKEN_B64}
     crowd-password: ${SONAR_CROWD_PASSWORD_B64}
   kind: Secret
   metadata:
