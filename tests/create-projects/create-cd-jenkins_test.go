@@ -12,7 +12,15 @@ func TestCreateJenkins(t *testing.T) {
 	if err != nil {
 		t.Fatal("Unable to remove test projects")
 	}
-	odsNamespace := "ods"
+
+	values, err := utils.ReadConfiguration()
+	if err != nil {
+		t.Fatalf("Error reading ods-core.env: %s", err)
+	}
+
+	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
+		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
+
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{fmt.Sprintf("--project=%s", utils.PROJECT_NAME)}, []string{})
 	if err != nil {
 		t.Fatalf(
@@ -33,7 +41,7 @@ func TestCreateJenkins(t *testing.T) {
 	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{
 		"--verbose",
 		"--non-interactive",
-		fmt.Sprintf("--ods-namespace=%s", odsNamespace),
+		fmt.Sprintf("--ods-namespace=%s", values["ODS_NAME_SPACE"]),
 		fmt.Sprintf("--ods-image-tag=%s", "cicdtests"),
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
 		fmt.Sprintf("--cd-user-type=%s", "general"),
@@ -48,5 +56,5 @@ func TestCreateJenkins(t *testing.T) {
 			stdout,
 			stderr)
 	}
-	//CheckJenkinsWithTailor(values, utils.PROJECT_NAME_CD, utils.PROJECT_NAME, t)
+	CheckJenkinsWithTailor(values, utils.PROJECT_NAME_CD, utils.PROJECT_NAME, t)
 }

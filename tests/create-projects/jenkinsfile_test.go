@@ -39,7 +39,7 @@ func TestJenkinsFile(t *testing.T) {
 	request := utils.RequestBuild{
 		Repository: "ods-core",
 		Branch:     values["ODS_GIT_REF"],
-		Project:    "opendevstack",
+		Project:    values["ODS_BITBUCKET_PROJECT"],
 		Env: []utils.EnvPair{
 			{
 				Name:  "PROJECT_ID",

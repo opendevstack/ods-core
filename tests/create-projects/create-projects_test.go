@@ -16,6 +16,14 @@ func TestCreateProject(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 
+	values, err := utils.ReadConfiguration()
+	if err != nil {
+		t.Fatalf("Error reading ods-core.env: %s", err)
+	}
+
+	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
+		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
+
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
 	}, []string{})
