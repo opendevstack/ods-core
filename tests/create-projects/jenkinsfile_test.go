@@ -119,11 +119,11 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
 		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")), metav1.GetOptions{})
-		time.Sleep(2 * time.Second)
+		time.Sleep(20 * time.Second)
 		if err != nil {
-			fmt.Printf("Build is still not available: %s", err)
+			fmt.Printf("Build is still not available: %s\r", err)
 		} else {
-			fmt.Printf("Waiting for build. Current status: %s", build.Status.Phase)
+			fmt.Printf("Waiting for build. Current status: %s\r", build.Status.Phase)
 		}
 		count++
 	}
@@ -134,7 +134,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
 		}, []string{})
 
-	fmt.Printf("Jenkins Build log: \r%s", stdout)
+	fmt.Println("Jenkins Build log: \r%s", stdout)
 
 	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {

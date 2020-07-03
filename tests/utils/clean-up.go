@@ -46,7 +46,8 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 		"bc",
 		"-n", projectName,
 		buildConfigName}, dir, []string{})
-
+	// we need time here - as jenkins needs to sync.
+	time.Sleep(20 * time.Second)
 	return nil
 }
 
