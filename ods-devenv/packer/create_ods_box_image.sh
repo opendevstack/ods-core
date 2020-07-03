@@ -7,6 +7,7 @@ ods_branch=
 s3_bucket_name=
 s3_upload_folder=image_upload
 artefact_folder=output-vmware-iso
+instance_type=m5ad.4xlarge
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -28,6 +29,9 @@ while [[ "$#" -gt 0 ]]; do
 
     --aws-secret-key) aws_secret_key="$2"; shift;;
     --aws-secret-key=*) aws_secret_key="${1#*=}";;
+
+    --instance-type) instance_type="$2"; shift;;
+    --instance-type=*) instance_type="${1#*=}";;
 
     --target) target="$2"; shift;;
 
@@ -95,16 +99,16 @@ function create_local_centos_image() {
 function import_centos_image_to_aws() {
     echo "Uploading local image to AWS S3 and importing it as AMI"
     # rm artefacts from last upload
-    # if aws s3 ls "s3://${s3_bucket_name}" | grep -q "${s3_upload_folder}"
-    # then
-    #     aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
-    # fi
+    if aws s3 ls "s3://${s3_bucket_name}" | grep -q "${s3_upload_folder}"
+    then
+        aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
+    fi
 
-    # pushd "${artefact_folder}" || return
-    # ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
-    # popd || return
+    pushd "${artefact_folder}" || return
+    ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
+    popd || return
 
-    # aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
+    aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
 
     local jq_query
     jq_query=$(cat <<- EOF
@@ -142,6 +146,7 @@ EOF
 #   aws_access_key
 #   aws_secret_key
 #   ods_branch
+#   instance_type
 #######################################
 function create_ods_box_ami() {
     time packer build -on-error=ask \
@@ -151,6 +156,7 @@ function create_ods_box_ami() {
         -var 'password=openshift' \
         -var "name_tag=ODS Box $(date)" \
         -var "ods_branch=${ods_branch}" \
+        -var "instance_type=${instance_type}" \
         ods-devenv/packer/CentOS2ODSBox.json
 }
 
