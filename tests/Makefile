@@ -8,6 +8,7 @@ test: verify create-projects/create-projects_test.go create-projects/create-proj
 	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestJenkinsFile)"
 
 prep-verify:
+	go get github.com/googleapis/gnostic@v0.4.0
 	go get github.com/jstemmer/go-junit-report
 
 verify: prep-verify go.mod go.sum ods-verify/* utils/* validate/*
