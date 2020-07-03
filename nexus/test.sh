@@ -130,49 +130,49 @@ if [ -n "${NEXUS_ADMIN_PASSWORD-}" ]; then
             exit 1
         fi
     done
-
-    echo "Check for repositories"
-    expectedRepos=( "candidates:hosted"
-                    "releases:hosted"
-                    "atlassian_public:proxy"
-                    "jcenter:proxy"
-                    "jenkins-ci-releases:proxy"
-                    "sbt-plugins:proxy"
-                    "sbt-releases:proxy"
-                    "typesafe-ivy-releases:proxy"
-                    "ivy-releases:group"
-                    "npm-registry:proxy"
-                    "npm-private:hosted"
-                    "pypi-registry:proxy"
-                    "pypi-private:hosted"
-                    "pypi-all:group"
-                    "leva-documentation:hosted")
-
-    actualRepos=$(curl -sSf ${INSECURE} \
-        --user "${NEXUS_ADMIN_USERNAME}:${NEXUS_ADMIN_PASSWORD}" \
-        ${NEXUS_URL}/service/rest/v1/repositories)
-
-    for repo in "${expectedRepos[@]}"; do
-        repoName=${repo%%:*}
-        repoType=${repo#*:}
-        if echo "${actualRepos}" | jq -e ".[] | select(.name == \"${repoName}\")" > /dev/null; then
-            actualType=$(echo "${actualRepos}" | jq -r ".[] | select(.name == \"${repoName}\") | .type")
-            if [ "${actualType}" == "${repoType}" ]; then
-                echo "Repo '${repoName}' is available and has expected type '${repoType}'"
-            else
-                echo "Repo '${repoName}' is available, but has wrong type. Want: '${repoType}', got: '${actualType}'"
-                exit 1
-            fi
-        else
-            echo "Repo '${repoName}' is missing"
-            exit 1
-        fi
-    done
 else
-    echo "Skip checking for blobstores and repositories. This requires an admin password."
+    echo "Skip checking for blobstores. This requires an admin password."
     echo "  See help on how to specify the admin-password."
     echo "  Alternatively env variable NEXUS_ADMIN_PASSWORD can be set or stored in ods-core.env"
 fi
+
+echo "Check for repositories"
+expectedRepos=( "candidates:hosted"
+                "releases:hosted"
+                "atlassian_public:proxy"
+                "jcenter:proxy"
+                "jenkins-ci-releases:proxy"
+                "sbt-plugins:proxy"
+                "sbt-releases:proxy"
+                "typesafe-ivy-releases:proxy"
+                "ivy-releases:group"
+                "npm-registry:proxy"
+                "npm-private:hosted"
+                "pypi-registry:proxy"
+                "pypi-private:hosted"
+                "pypi-all:group"
+                "leva-documentation:hosted")
+
+actualRepos=$(curl -sSf ${INSECURE} \
+    --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
+    ${NEXUS_URL}/service/rest/v1/repositories)
+
+for repo in "${expectedRepos[@]}"; do
+    repoName=${repo%%:*}
+    repoType=${repo#*:}
+    if echo "${actualRepos}" | jq -e ".[] | select(.name == \"${repoName}\")" > /dev/null; then
+        actualType=$(echo "${actualRepos}" | jq -r ".[] | select(.name == \"${repoName}\") | .type")
+        if [ "${actualType}" == "${repoType}" ]; then
+            echo "Repo '${repoName}' is available and has expected type '${repoType}'"
+        else
+            echo "Repo '${repoName}' is available, but has wrong type. Want: '${repoType}', got: '${actualType}'"
+            exit 1
+        fi
+    else
+        echo "Repo '${repoName}' is missing"
+        exit 1
+    fi
+done
 
 echo "Check if anonymous access is still possible"
 if curl -sSf ${INSECURE} \
@@ -192,7 +192,6 @@ if curl -sSf \
 else
     echo "Developer access possible"
 fi
-
 
 artifact_url="${NEXUS_URL}/repository/jcenter/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
 
