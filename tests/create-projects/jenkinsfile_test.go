@@ -19,7 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestJenkinsFile(t *testing.T) {
+func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	projectName := utils.PROJECT_NAME
 	projectNameCd := utils.PROJECT_NAME_CD
 
@@ -33,7 +33,7 @@ func TestJenkinsFile(t *testing.T) {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
-	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
+	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"],
 		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
 
 	request := utils.RequestBuild{

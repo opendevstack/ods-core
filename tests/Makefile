@@ -1,11 +1,11 @@
 .PHONY: test lint verify prep-verify
 
 test: verify create-projects/create-projects_test.go create-projects/create-projects_test.go go.mod go.sum
-	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateJenkins)"
+	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateNakedOCPProjectsThruShellScripts)"
 	sleep 5
-	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateProject)"
+	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateODSJenkinsThruShellScripts)"
 	sleep 5
-	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestJenkinsFile)"
+	go test -v github.com/opendevstack/ods-core/tests/create-projects -run "^(TestCreateProjectThruWebhookProxyJenkinsFile)"
 
 prep-verify:
 	go get github.com/googleapis/gnostic@v0.4.0

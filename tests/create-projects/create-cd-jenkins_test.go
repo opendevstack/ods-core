@@ -7,7 +7,7 @@ import (
 	"github.com/opendevstack/ods-core/tests/utils"
 )
 
-func TestCreateJenkins(t *testing.T) {
+func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 	err := utils.RemoveAllTestOCProjects()
 	if err != nil {
 		t.Fatal("Unable to remove test projects")
@@ -17,9 +17,6 @@ func TestCreateJenkins(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
-
-	err = utils.RemoveBuildConfigs(values["ODS_NAME_SPACE"],
-		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
 
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{fmt.Sprintf("--project=%s", utils.PROJECT_NAME)}, []string{})
 	if err != nil {
@@ -41,7 +38,7 @@ func TestCreateJenkins(t *testing.T) {
 	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{
 		"--verbose",
 		"--non-interactive",
-		fmt.Sprintf("--ods-namespace=%s", values["ODS_NAME_SPACE"]),
+		fmt.Sprintf("--ods-namespace=%s", values["ODS_NAMESPACE"]),
 		fmt.Sprintf("--ods-image-tag=%s", "cicdtests"),
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
 		fmt.Sprintf("--cd-user-type=%s", "general"),
