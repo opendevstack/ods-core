@@ -134,8 +134,9 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
 		}, []string{})
 
-	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
+	fmt.Printf("Jenkins Build log: \r%s", stdout)
 
+	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {
 			t.Fatalf(
 				"Timeout during build: \nStdOut: %s\nStdErr: %s",
@@ -147,7 +148,6 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stdout,
 				stderr)
 		}
-
 	}
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
