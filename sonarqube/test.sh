@@ -13,6 +13,7 @@ function usage {
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
     printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' or '8.2.0.32929' (defaults to %s)\n" "${SONAR_VERSION}"
+    printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
     printf "\t--verify\t\tSkips setup of local docker container and instead checks existing sonarqube setup based on ods-core.env\n"
     printf "\t -n|--no-prompts\t\tDo not prompt for unknown passwords. Only used with --verify.\n"
     printf "\t -a|--admin-password\t\tUse given admin password. Only used with --verify.\n"
@@ -21,6 +22,7 @@ function usage {
 VERIFY_ONLY=false
 ADMIN_PASSWORD=
 PROMPTS=true
+INSECURE=""
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -30,6 +32,8 @@ while [[ "$#" -gt 0 ]]; do
     -h|--help) usage; exit 0;;
 
     --verify) VERIFY_ONLY=true;;
+
+    -i|--insecure) INSECURE="--insecure";;
 
     -n|--no-prompts) PROMPTS=false;;
 
@@ -90,7 +94,7 @@ if ! $VERIFY_ONLY; then
     set +e
     n=0
     until [ $n -ge 20 ]; do
-        health=$(curl -sS --user "${SONAR_ADMIN_USERNAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
+        health=$(curl -sS ${INSECURE} --user "${SONAR_ADMIN_USERNAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
             "${SONARQUBE_URL}/api/system/health" | jq -r .health)
         if [ "${health}" == "GREEN" ]; then
             echo "SonarQube is up"
@@ -104,7 +108,7 @@ if ! $VERIFY_ONLY; then
     set -e
 
     echo "Create fake cd_user"
-    curl -X POST -sSf --user "${SONAR_ADMIN_USERNAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
+    curl -X POST -sSf ${INSECURE} --user "${SONAR_ADMIN_USERNAME}:${ADMIN_USER_DEFAULT_PASSWORD}" \
         "${SONARQUBE_URL}/api/users/create?login=${PIPELINE_USER_NAME}&name=${PIPELINE_USER_NAME}&local=true&password=${PIPELINE_USER_PWD}" > /dev/null
 
     echo "Run ./configure.sh"
@@ -144,7 +148,7 @@ else
 fi
 
 echo "Check if login with default password is possible"
-if curl -X POST -sSf \
+if curl -X POST ${INSECURE} -sSf \
     "${SONARQUBE_URL}/api/authentication/login?login=${SONAR_ADMIN_USERNAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
     echo "Default password for '${SONAR_ADMIN_USERNAME}' has not been changed"
     exit 1
@@ -161,7 +165,7 @@ echo "Check if unauthenticated access is possible"
 # Ideally we'd check a page that needs privileged access, but that always
 # returns a loading page with status code 200. Therefore, we have to check for
 # the value of the setting.
-forceAuthentication=$(curl -sS \
+forceAuthentication=$(curl -sS ${INSECURE} \
     --user "${CURL_TOKEN_AUTH-$CURL_ADMIN_AUTH}" \
     "${SONARQUBE_URL}/api/settings/values?keys=sonar.forceAuthentication" | jq -r ".settings[0].value")
 if [ "${forceAuthentication}" != "true" ]; then
@@ -184,7 +188,7 @@ expectedPlugins=( "crowd:2.1.3"
                   "csharp:8.6.1.17183"
                   "groovy:1.6" )
 
-actualPlugins=$(curl -sSf \
+actualPlugins=$(curl -sSf ${INSECURE} \
     --user "$CURL_ADMIN_AUTH" \
     "${SONARQUBE_URL}/api/system/info" | jq '.Statistics.plugins')
 
@@ -201,7 +205,7 @@ for plugin in "${expectedPlugins[@]}"; do
 done
 
 echo "Check if system status is UP"
-response=$(curl -sSf --user "${CURL_TOKEN_AUTH-$CURL_ADMIN_AUTH}" "${SONARQUBE_URL}/api/system/status")
+response=$(curl -sSf ${INSECURE} --user "${CURL_TOKEN_AUTH-$CURL_ADMIN_AUTH}" "${SONARQUBE_URL}/api/system/status")
 systemUp=$(echo "$response" | jq ".status")
 if [ "${systemUp}" == "\"UP\"" ]; then
     echo "Sonarcube system status is $systemUp"
