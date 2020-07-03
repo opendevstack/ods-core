@@ -25,6 +25,7 @@ func verifyWithTestScript(what string, t *testing.T) {
 	stdout, stderr, err := utils.RunCommandWithWorkDir(test, []string{
 		"--verify",
 		"--no-prompts",
+		"--insecure",
 	}, dir, []string{})
 	if err != nil {
 		t.Fatalf(
