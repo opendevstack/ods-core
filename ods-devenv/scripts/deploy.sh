@@ -76,7 +76,7 @@ function display_usage() {
 #   None
 #######################################
 function check_system_setup() {
-    PATH="${PATH}:$HOME/bin"
+    PATH="${PATH}:${HOME}/bin:${HOME}/go/bin"
     export GOPROXY="https://goproxy.io,direct"
     mkdir -p "${HOME}/tmp"
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
@@ -88,6 +88,8 @@ function check_system_setup() {
 
 {
     echo 'export GOPROXY="https://goproxy.io,direct"'
+    # shellcheck disable=SC2016
+    echo 'export PATH="${PATH}:${HOME}/bin:${HOME}/go/bin"'
     echo "alias ll='ls -AFhl --color=auto'"
     echo "alias dcip='docker inspect --format \"{{.NetworkSettings.IPAddress}}\"'"
     echo "alias lsop='sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN'"
@@ -1544,9 +1546,16 @@ function setup_jenkins_agents() {
 function run_smoke_tests() {
     oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    pushd ods-provisioning-app/ocp-config
+    # add flag to suppress confluence adapter
+    sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+    popd
+
     pushd tests
     make test
     popd
+    git reset --hard
 
     pushd ../ods-quickstarters/tests
         make setup-tests test

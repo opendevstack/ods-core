@@ -9,29 +9,31 @@ s3_upload_folder=image_upload
 artefact_folder=output-vmware-iso
 
 while [[ "$#" -gt 0 ]]; do
-  case $1 in
+    case $1 in
 
-  --ods-branch) ods_branch="$2"; shift;;
-  --ods-branch=*) ods_branch="${1#*=}";;
+    --ods-branch) ods_branch="$2"; shift;;
+    --ods-branch=*) ods_branch="${1#*=}";;
 
-  --s3-bucket-name) s3_bucket_name="$2"; shift;;
-  --s3-bucket-name=*) s3_bucket_name="${1#*=}";;
+    --s3-bucket-name) s3_bucket_name="$2"; shift;;
+    --s3-bucket-name=*) s3_bucket_name="${1#*=}";;
 
-  --s3-upload-folder) s3_upload_folder="$2"; shift;;
-  --s3-upload-folder=*) s3_upload_folder="${1#*=}";;
+    --s3-upload-folder) s3_upload_folder="$2"; shift;;
+    --s3-upload-folder=*) s3_upload_folder="${1#*=}";;
 
-  --centos-iso-location) centos_iso_location="$2"; shift;;
-  --centos-iso-location=*) centos_iso_location="${1#*=}";;
+    --centos-iso-location) centos_iso_location="$2"; shift;;
+    --centos-iso-location=*) centos_iso_location="${1#*=}";;
 
-  --aws-access-key) aws_access_key="$2"; shift;;
-  --aws-access-key=*) aws_access_key="${1#*=}";;
+    --aws-access-key) aws_access_key="$2"; shift;;
+    --aws-access-key=*) aws_access_key="${1#*=}";;
 
-  --aws-secret-key) aws_secret_key="$2"; shift;;
-  --aws-secret-key=*) aws_secret_key="${1#*=}";;
+    --aws-secret-key) aws_secret_key="$2"; shift;;
+    --aws-secret-key=*) aws_secret_key="${1#*=}";;
 
-  --target) target="$2"; shift;;
+    --target) target="$2"; shift;;
 
-  *) echo "Unknown parameter passed: $1"; exit 1;;
+    --help) target=display_usage;;
+
+    *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 function display_usage() {
@@ -64,7 +66,7 @@ function display_usage() {
     echo "  Build an ODS Box AMI based on the previously uploaded CentOS box on AWS"
     echo "      --aws-access-key        AWS credentials"
     echo "      --aws-secret-key        AWS credentials"
-    echo "      --ods_branch            branch to build ODS box against, e.g master"
+    echo "      --ods-branch            branch to build ODS box against, e.g master"
     echo
 }
 
