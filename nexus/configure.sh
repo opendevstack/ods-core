@@ -188,8 +188,7 @@ function changeScriptSetting {
     fi
 }
 
-waitForReady
-
+# changeScriptSetting does not require server to be up.
 changeScriptSetting "true"
 
 waitForReady
@@ -264,6 +263,10 @@ sed "s|@developer_password@|${DEVELOPER_PASSWORD}|g" json/developer-user.json > 
 runJsonScript "createUser" "-d @json/developer-user-with-password.json"
 rm json/developer-user-with-password.json
 
-changeScriptSetting "false"
+if [ -z "${LOCAL_CONTAINER_ID}" ]; then
+    changeScriptSetting "false"
+    waitForReady
+else
+    true # on local docker nexus don't care about security
+fi
 
-waitForReady
