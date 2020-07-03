@@ -23,6 +23,7 @@ BITBUCKET_URL=""
 GIT_REF=""
 SOURCE_GIT_REF=""
 TARGET_GIT_REF=""
+BITBUCKET_ODS_PROJECT="opendevstack"
 SYNC="n"
 
 function usage {
@@ -35,6 +36,7 @@ function usage {
   printf "\t--init\t\t\tDo not assume an existing Bitbucket server\n"
   printf "\t--sync\t\t\tPull refs from GitHub and push refs to Bitbucket\n"
   printf "\t-b|--bitbucket\t\tBitbucket URL, e.g. 'https://bitbucket.example.com'\n"
+  printf "\t-p|--bitbucket-ods-project\tBitbucket ODS project, defaults to '%s'\n" "${BITBUCKET_ODS_PROJECT}"
   printf "\t-g|--git-ref\t\tGit ref, e.g. '2.x' or 'master' (used for both source and target ref)\n"
   printf "\t-s|--source-git-ref\tSource Git ref (GitHub OpenDevStack), e.g. '2.x' or 'master'\n"
   printf "\t-t|--target-git-ref\tTarget Git ref (Bitbucket instance), e.g. '2.x', 'master' or '2.acme'\n"
@@ -55,6 +57,9 @@ while [[ "$#" -gt 0 ]]; do
 
   -b|--bitbucket) BITBUCKET_URL="$2"; shift;;
   -b=*|--bitbucket=*) BITBUCKET_URL="${1#*=}";;
+
+  -p|--bitbucket-ods-project) BITBUCKET_ODS_PROJECT="$2"; shift;;
+  -p=*|--bitbucket-ods-project=*) BITBUCKET_ODS_PROJECT="${1#*=}";;
 
   -g|--git-ref) GIT_REF="$2"; shift;;
   -g=*|--git-ref=*) GIT_REF="${1#*=}";;
@@ -144,7 +149,7 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-g
         read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
         BITBUCKET_URL=${input:-""}
       fi
-      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
+      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${BITBUCKET_ODS_PROJECT}/${REPO}.git"
       if git ls-remote ${BITBUCKET_REPO} &> /dev/null; then
         echo_info "${REPO} is reachable on Bitbucket, cloning from there."
         git clone ${BITBUCKET_REPO}
@@ -173,7 +178,7 @@ for REPO in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-g
         read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
         BITBUCKET_URL=${input:-""}
       fi
-      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
+      BITBUCKET_REPO="${BITBUCKET_URL}/scm/${BITBUCKET_ODS_PROJECT}/${REPO}.git"
       echo_info "Adding remote 'origin' (${BITBUCKET_REPO})."
       git remote add origin ${BITBUCKET_REPO}
       echo_info "Fetching from remote 'origin'."
