@@ -184,7 +184,7 @@ else
 fi
 
 echo "Check developer access"
-if curl -sSf \
+if curl -sSf ${INSECURE} \
     --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
     ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0" > /dev/null; then
     echo "Developer access not possible"
