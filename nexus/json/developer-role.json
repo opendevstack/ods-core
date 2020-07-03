@@ -10,7 +10,8 @@
     "nx-repository-view-maven2-*-*",
     "nx-repository-view-maven2-candidates-*",
     "nx-repository-view-npm-*-*",
-    "nx-repository-view-pypi-*-*"
+    "nx-repository-view-pypi-*-*",
+    "nx-repository-view-raw-*-*"
   ],
   "roleIds": []
 }
