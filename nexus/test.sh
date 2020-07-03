@@ -56,7 +56,7 @@ if ! $VERIFY_ONLY; then
     HOST_PORT="8081"
 
     HTTP_PROXY="someproxy.local"
-    HTTPS_PROXY="someproxy.local:99"
+    # HTTPS_PROXY="someproxy.local:99"
     NO_PROXY=".local,.svc,jcenter.bintray.com"
 
     echo "Run container using image ${CONTAINER_IMAGE}"
