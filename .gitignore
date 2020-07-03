@@ -12,8 +12,6 @@
 .idea
 *.box
 .vault_pass.txt
-test-results.txt
-test-report.xml
 /infrastructure-setup/deployment_token.txt
 ods-core.iml
 .DS_Store
