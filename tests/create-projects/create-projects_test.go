@@ -16,10 +16,10 @@ func TestCreateNakedOCPProjectsThruShellScripts(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 
-	values, err := utils.ReadConfiguration()
+	_, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatalf("Error reading ods-core.env: %s", err)
-	}
+	} 
 
 	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
