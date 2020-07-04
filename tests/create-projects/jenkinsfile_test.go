@@ -146,7 +146,9 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stderr)
 		} else {
 			t.Fatalf(
-				"Error during build: \nStdOut: %s\nStdErr: %s",
+				"Error during build - pleaes check jenkins - project: %s - build: %s: \nStdOut: %s\nStdErr: %s",
+				values["ODS_NAMESPACE"],
+				buildConfigName + "-1",
 				stdout,
 				stderr)
 		}
