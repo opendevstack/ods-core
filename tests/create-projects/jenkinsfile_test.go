@@ -23,18 +23,19 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	projectName := utils.PROJECT_NAME
 	projectNameCd := utils.PROJECT_NAME_CD
 
-	err := utils.RemoveAllTestOCProjects()
-	if err != nil {
-		t.Fatal("Unable to remove test projects")
-	}
-
 	values, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
-	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"],
-		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
+	err := utils.RemoveAllTestOCProjects()
+	if err != nil {
+		t.Fatal("Unable to remove test projects")
+	}
+
+	buildConfigName := fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
+
+	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
 
 	request := utils.RequestBuild{
 		Repository: "ods-core",
@@ -114,11 +115,11 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 
 	time.Sleep(10 * time.Second)
-	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, values["ODS_GIT_REF"]), metav1.GetOptions{})
+	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildConfigName + "-1"), metav1.GetOptions{})
 	count := 0
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
-		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")), metav1.GetOptions{})
+		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildConfigName), metav1.GetOptions{})
 		time.Sleep(20 * time.Second)
 		if err != nil {
 			fmt.Printf("Build is still not available: %s\r", err)
@@ -129,12 +130,13 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 
 	stdout, stderr, _ := utils.RunScriptFromBaseDir(
-		"tests/scripts/utils/print-jenkins-log.sh",
+		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
-			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
+			buildConfigName + "-1",
 		}, []string{})
 
-	fmt.Printf("Jenkins Build log: \r%s", stdout)
+	fmt.Printf("Jenkins json status log: \r%s", stdout)
+	// todo: verify stages!
 
 	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {
@@ -151,7 +153,6 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
-
 }
 
 func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, projectName string, t *testing.T) {
