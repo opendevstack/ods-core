@@ -114,7 +114,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Error creating Build client: %s", err)
 	}
 
-	buildName = buildConfigName + "-1"
+	buildName := buildConfigName + "-1"
 
 	time.Sleep(10 * time.Second)
 	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
