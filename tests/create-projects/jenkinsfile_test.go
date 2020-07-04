@@ -28,7 +28,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
-	err := utils.RemoveAllTestOCProjects()
+	err = utils.RemoveAllTestOCProjects()
 	if err != nil {
 		t.Fatal("Unable to remove test projects")
 	}
