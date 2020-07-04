@@ -114,12 +114,14 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Error creating Build client: %s", err)
 	}
 
+	buildName := buildConfigName + "-1"
+
 	time.Sleep(10 * time.Second)
-	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildConfigName + "-1"), metav1.GetOptions{})
+	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
 	count := 0
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
-		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildConfigName), metav1.GetOptions{})
+		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
 		time.Sleep(20 * time.Second)
 		if err != nil {
 			fmt.Printf("Build is still not available: %s\r", err)
@@ -132,7 +134,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	stdout, stderr, _ := utils.RunScriptFromBaseDir(
 		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
-			buildConfigName + "-1",
+			buildName,
 		}, []string{})
 
 	fmt.Printf("Jenkins json status log: \r%s", stdout)
@@ -148,7 +150,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 			t.Fatalf(
 				"Error during build - pleaes check jenkins - project: %s - build: %s: \nStdOut: %s\nStdErr: %s",
 				values["ODS_NAMESPACE"],
-				buildConfigName + "-1",
+				buildName,
 				stdout,
 				stderr)
 		}
