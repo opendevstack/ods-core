@@ -64,7 +64,7 @@
         },
         {
             "type": "shell",
-            "inine": [
+            "inline": [
                 "echo Installing ODS service",
                 "echo openshift | sudo -S cp /home/openshift/tmp/ods.service /etc/systemd/system/ods.service",
                 "sudo cp /home/openshift/tmp/startup_ods.sh /usr/local/sbin/startup_ods.sh",

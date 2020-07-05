@@ -2,11 +2,12 @@
 
 aws_access_key=
 aws_secret_key=
+
 ods_branch=
 
 s3_bucket_name=
 s3_upload_folder=image_upload
-artefact_folder=output-vmware-iso
+output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 
 while [[ "$#" -gt 0 ]]; do
@@ -33,6 +34,9 @@ while [[ "$#" -gt 0 ]]; do
     --instance-type) instance_type="$2"; shift;;
     --instance-type=*) instance_type="${1#*=}";;
 
+    --output-directory) output_directory="$2"; shift;;
+    --output-directory=*) output_directory="${1#*=}";;
+
     --target) target="$2"; shift;;
 
     --help) target=display_usage;;
@@ -51,6 +55,7 @@ function display_usage() {
     echo "                      E.g. when importing a new local VMware image into an AWS ECS AMI."
     echo "--s3-upload-folder    Specify a folder within your S3 bucket to upload local image files to."
     echo "                      If it does not exist yet, the folder will be created upon upload."
+    echo "                      E.g. myimages"
     echo
     echo "Target Section        lists the use cases that can be executed and their parameters."
     echo "--target              Specify the use case you want to execute. E.g. create_local_centos_image"
@@ -62,8 +67,9 @@ function display_usage() {
     echo
     echo "  import_centos_image_to_aws"
     echo "  Upload a locally available vmdk or other image file to AWS EC2 for later import to AMI."
+    echo "  Requires the cli tool ovftool - shipping with VMware - to be on the PATH"
     echo "      --s3-bucket-name        name of your AWS S3 bucket to upload the image to"
-    echo "      --artefact-folder       folder where the disk.vmdk file of the CentOS VM resides"
+    echo "      --output-directory      folder where the disk.vmdk file of the CentOS VM gets written"
     echo "                              defaults to output-vmware-iso, as created by packer"
     echo
     echo "  create_ods_box_ami"
@@ -80,6 +86,12 @@ function display_usage() {
 #   centos_iso_location e.g. file:///tmp/centos.si
 #######################################
 function create_local_centos_image() {
+    if [[ -d "${output_directory}" ]]
+    then
+        echo "packer output_directory ${output_directory} already exists, which is inacceptable for packer!"
+        echo "Please resolve this issue and then restart the script."
+        exit 1
+    fi
     # if you want to change login username and password below, you have to sync the changes
     # with the user data specified in the CentOS kickstart.cfg file
     time packer build -on-error=ask \
@@ -90,25 +102,30 @@ function create_local_centos_image() {
 }
 
 #######################################
-# uploads a vmdk to AWS EC2 AMI
+# uploads an ova file to AWS S3 and has it converted to an AWS EC2 AMI
 # Globals:
 #   s3_bucket_name
 #   s3_upload_folder
-#   artefact_folder
+#   output_directory
 #######################################
 function import_centos_image_to_aws() {
-    echo "Uploading local image to AWS S3 and importing it as AMI"
+    local upload_path
+    upload_path="${s3_upload_folder%/*}/$(date '+%Y%m%d')"
+    echo "Uploading local CentOS 7.8 image to AWS S3 bucket s3://${s3_bucket_name}/${upload_path} and importing it as AMI"
     # rm artefacts from last upload
-    if aws s3 ls "s3://${s3_bucket_name}" | grep -q "${s3_upload_folder}"
+    if [[ -n "$(aws s3 ls "s3://${s3_bucket_name}/${upload_path}")" ]]
     then
+        echo "Upload folder ${upload_path} already found on S3 bucket ${s3_bucket_name}. Cleaning it up before upload ..."
         aws s3 rm "s3://${s3_bucket_name}/${s3_upload_folder}" --recursive
     fi
 
-    pushd "${artefact_folder}" || return
+    pushd "${output_directory}" || return
+    echo "Exporting VMware vmx to ova"
     ovftool --acceptAllEulas packer-vmware-iso.vmx centosbox.ova
     popd || return
 
-    aws s3 cp "${artefact_folder}/centosbox.ova" "s3://${s3_bucket_name}/${s3_upload_folder}/$(date '+%Y%m%d')/centosbox.ova"
+    echo "Uploading exported ova to AWS S3: s3://${s3_bucket_name}/${upload_path}/centosbox.ova"
+    aws s3 cp "${output_directory}/centosbox.ova" "s3://${s3_bucket_name}/${upload_path}/centosbox.ova"
 
     local jq_query
     jq_query=$(cat <<- EOF
