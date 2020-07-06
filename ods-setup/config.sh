@@ -17,7 +17,8 @@ echo_info(){
   echo -e "\033[94mINFO\033[39m: $1"
 }
 
-BITBUCKET_URL=
+BITBUCKET_URL=""
+BITBUCKET_ODS_PROJECT="opendevstack"
 
 function usage {
   printf "Initialise and update OpenDevStack configuration.\n\n"
@@ -25,6 +26,7 @@ function usage {
   printf "\t-h|--help\t\tPrint usage\n"
   printf "\t-v|--verbose\t\tEnable verbose mode\n"
   printf "\t-b|--bitbucket\t\tBitbucket URL, e.g. 'https://bitbucket.example.com'\n"
+  printf "\t-p|--bitbucket-ods-project\tBitbucket ODS project, defaults to '%s'\n" "${BITBUCKET_ODS_PROJECT}"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -36,6 +38,9 @@ while [[ "$#" -gt 0 ]]; do
 
   -b|--bitbucket) BITBUCKET_URL="$2"; shift;;
   -b=*|--bitbucket=*) BITBUCKET_URL="${1#*=}";;
+
+  -p|--bitbucket-ods-project) BITBUCKET_ODS_PROJECT="$2"; shift;;
+  -p=*|--bitbucket-ods-project=*) BITBUCKET_ODS_PROJECT="${1#*=}";;
 
   *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -49,7 +54,6 @@ if [[ "$SCRIPT_DIR" == *ods-core/ods-setup ]]; then
 fi
 
 # Expected location of ods-configuration
-OPENDEVSTACK_ORG="opendevstack"
 REPO="ods-configuration"
 GIT_REF="master"
 SAMPLE_CONFIG_LOCATION="${ODS_CORE_DIR}/configuration-sample"
@@ -69,7 +73,7 @@ if [ ! -d "${ACTUAL_CONFIG_LOCATION}" ]; then
   else
     echo_info "Cloning ${REPO} from Bitbucket."
     cd ${WORKING_DIR}
-    git clone ${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git
+    git clone ${BITBUCKET_URL}/scm/${BITBUCKET_ODS_PROJECT}/${REPO}.git
   fi
 else
   echo_info "Directory ${ACTUAL_CONFIG_LOCATION} exists already."
@@ -80,7 +84,7 @@ else
       read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
       BITBUCKET_URL=${input:-""}
     fi
-    BITBUCKET_REPO="${BITBUCKET_URL}/scm/${OPENDEVSTACK_ORG}/${REPO}.git"
+    BITBUCKET_REPO="${BITBUCKET_URL}/scm/${BITBUCKET_ODS_PROJECT}/${REPO}.git"
     echo_info "Adding remote 'origin' (${BITBUCKET_REPO})."
     git remote add origin ${BITBUCKET_REPO}
   fi
