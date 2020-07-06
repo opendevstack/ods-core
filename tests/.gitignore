@@ -1,1 +1,7 @@
 *.pem
+test-results.txt
+test-report.xml
+
+test-installation-results.txt
+test-installation-report.xml
+
