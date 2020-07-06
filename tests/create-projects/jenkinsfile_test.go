@@ -138,7 +138,17 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		}, []string{})
 
 	fmt.Printf("Jenkins json status log: \r%s", stdout)
-	// todo: verify stages!
+
+	expected, err := ioutil.ReadFile("create-projects/golden-jenkins-create-project.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	expectedAsString := string(configBytes)
+	if (stdout != expectedAsString) {
+		t.FatalF("Actual jenkins stages from run: % don't match -golden:\r%s\r-jenkins response:\r%s",
+			buildName, expectedAsString, stdout)
+	}
 
 	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {
@@ -176,7 +186,6 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 		"--selector", "template=ods-jenkins-template",
 		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
 	if err != nil {
-
 		t.Fatalf(
 			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
 			stdout,
