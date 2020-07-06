@@ -135,7 +135,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
 			buildName,
-			values["ODS_NAMESPACE"]
+			values["ODS_NAMESPACE"],
 		}, []string{})
 
 	if err != nil {
