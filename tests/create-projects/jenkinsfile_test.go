@@ -131,12 +131,15 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		count++
 	}
 
-	stdout, stderr, _ := utils.RunScriptFromBaseDir(
+	stdout, stderr, err := utils.RunScriptFromBaseDir(
 		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
 			buildName,
 		}, []string{})
 
+	if err != nil {
+		t.Fatal(err)
+	}
 	fmt.Printf("Jenkins json status log: \r%s", stdout)
 
 	expected, err := ioutil.ReadFile("golden-jenkins-create-project.json")
