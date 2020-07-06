@@ -1,0 +1,18 @@
+[
+  {
+    "stage": "Checkout ods-core",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Checkout ods-configuration",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Create OpenShift projects",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Setup Jenkins in CD project",
+    "status": "SUCCESS"
+  }
+]
