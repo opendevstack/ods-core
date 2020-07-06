@@ -195,9 +195,21 @@ if [[ -n "${install}" ]]; then
     echo "Running bootstrap on AWS EC2 instance to build ODS from branch ${target_git_ref}"
     ssh -t "openshift@${host}" -- '${HOME}/bin/bootstrap' "--branch ${target_git_ref}"
 else
-    echo "Now starting ODS"
-    ssh -t "openshift@${host}" -- '(export PATH="$PATH:/usr/sbin"; ${HOME}/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods)'
+    echo "Your new ODS box was provisioned!"
+    echo "ODS will start as a service. Please allow the box some minutes to become ready, though."
+    echo "You can track progress by logging into your new ODS box and running:"
+    echo "  sudo journalctl -fu ods.service"
+    echo "  or"
+    echo "  sudo systemctl status ods.service"
 fi
 
 public_dns=$(aws ec2 describe-instances --instance-ids "${instance_id}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
 echo "ODS Box is available in EC2 instance ${instance_id} at ${public_dns}"
+echo "You can log into your new ODS Box by running"
+echo "ssh openshift@${public_dns}"
+echo "or"
+echo "aws ssm start-session --target ${instance_id} --document-name AWS-StartPortForwardingSession --parameters '{\"portNumber\":[\"22\"], \"localPortNumber\":[\"48022\"]}'"
+echo "ssh openshift@localhost -p 48022"
+echo
+echo "Have fun!"
+echo
