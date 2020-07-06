@@ -23,18 +23,19 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	projectName := utils.PROJECT_NAME
 	projectNameCd := utils.PROJECT_NAME_CD
 
-	err := utils.RemoveAllTestOCProjects()
-	if err != nil {
-		t.Fatal("Unable to remove test projects")
-	}
-
 	values, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatalf("Error reading ods-core.env: %s", err)
 	}
 
-	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"],
-		fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")))
+	err = utils.RemoveAllTestOCProjects()
+	if err != nil {
+		t.Fatal("Unable to remove test projects")
+	}
+
+	buildConfigName := fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
+
+	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
 
 	request := utils.RequestBuild{
 		Repository: "ods-core",
@@ -113,28 +114,44 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Error creating Build client: %s", err)
 	}
 
+	buildName := buildConfigName + "-1"
+
 	time.Sleep(10 * time.Second)
-	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, values["ODS_GIT_REF"]), metav1.GetOptions{})
+	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
 	count := 0
 	max := 240
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
-		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")), metav1.GetOptions{})
+		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
 		time.Sleep(20 * time.Second)
 		if err != nil {
-			fmt.Printf("Build is still not available: %s\r", err)
+			fmt.Printf("Build is still not available: %s\n", err)
 		} else {
-			fmt.Printf("Waiting for build. Current status: %s\r", build.Status.Phase)
+			fmt.Printf("Waiting for build. Current status: %s\n", build.Status.Phase)
 		}
 		count++
 	}
 
-	stdout, stderr, _ := utils.RunScriptFromBaseDir(
-		"tests/scripts/utils/print-jenkins-log.sh",
+	stdout, stderr, err := utils.RunScriptFromBaseDir(
+		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
-			fmt.Sprintf("ods-corejob-create-project-%s-%s-1", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-")),
+			buildName,
+			values["ODS_NAMESPACE"],
 		}, []string{})
 
-	fmt.Printf("Jenkins Build log: \r%s", stdout)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected, err := ioutil.ReadFile("golden/jenkins-create-project-stages.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	expectedAsString := string(expected)
+	if stdout != expectedAsString {
+		t.Fatalf("Actual jenkins stages from run: %s don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
+			buildName, expectedAsString, stdout)
+	}
 
 	if count >= max || build.Status.Phase != v1.BuildPhaseComplete {
 		if count >= max {
@@ -144,14 +161,15 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stderr)
 		} else {
 			t.Fatalf(
-				"Error during build: \nStdOut: %s\nStdErr: %s",
+				"Error during build - pleaes check jenkins - project: %s - build: %s: \nStdOut: %s\nStdErr: %s",
+				values["ODS_NAMESPACE"],
+				buildName,
 				stdout,
 				stderr)
 		}
 	}
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
-
 }
 
 func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, projectName string, t *testing.T) {
@@ -171,7 +189,6 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 		"--selector", "template=ods-jenkins-template",
 		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
 	if err != nil {
-
 		t.Fatalf(
 			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
 			stdout,
