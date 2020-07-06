@@ -127,13 +127,13 @@ start-sonarqube-build:
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
 	cd sonarqube/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude bc,is --param ODS_NAMESPACE=${NAMESPACE}
-	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube -ojsonpath={.spec.host}`
+	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
 	echo "Visit ${SONARQUBE_URL}/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube -ojsonpath={.spec.host}`
+	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
 	cd sonarqube && ./configure.sh --sonarqube=${SONARQUBE_URL}
 .PHONY: configure-sonarqube
 
@@ -150,7 +150,7 @@ apply-nexus:
 
 ## Configure Nexus service.
 configure-nexus:
-	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus -ojsonpath={.spec.host}`
+	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
 	cd nexus && ./configure.sh --namespace ${NAMESPACE} --nexus=${NEXUS_URL}
 .PHONY: configure-nexus
 ### Not part of install-nexus because it is not idempotent yet.
