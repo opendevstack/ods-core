@@ -112,14 +112,14 @@ if [[ -z "${host}" ]]; then
         then
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=import-ami-09d321665aa3054e4" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Install (${target_git_ref}) $(date)"
             echo "You are in install mode using CentOS 7 image ${ami_id}."
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=ODS in a Box ${target_git_ref} *" "Name=root-device-type,Values=ebs" \
+                --filters "Name=name,Values=ODS in a Box ${target_git_ref} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             ec2_instance_name="ODS in a box Startup $(date)"
             echo "You are in startup mode using ODS in a box image ${ami_id}."

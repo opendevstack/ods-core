@@ -15,7 +15,7 @@
                 },
                 "owners": "275438041116"
             },
-            "instance_type": "m5ad.4xlarge",
+            "instance_type": "{{user `instance_type`}}",
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
             "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
@@ -23,11 +23,26 @@
                 "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
             },
             "tags": {
-                "Name": "{{user `name_tag` | clean_resource_name}} tag"
+                "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
             }
         }
     ],
     "provisioners": [
+        {
+            "type": "file",
+            "source": "ods-devenv/ods-service/startup_ods.sh",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "ods-devenv/ods-service/stop_ods.sh",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "ods-devenv/ods-service/ods.service",
+            "destination": "/home/openshift/tmp/"
+        },
         {
             "type": "shell",
             "script": "ods-devenv/packer/pwd_less_sudo.sh",
@@ -46,6 +61,17 @@
             "type": "shell",
             "script": "ods-devenv/packer/pwd_sudo.sh",
             "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo Installing ODS service",
+                "echo openshift | sudo -S cp /home/openshift/tmp/ods.service /etc/systemd/system/ods.service",
+                "sudo cp /home/openshift/tmp/startup_ods.sh /usr/local/sbin/startup_ods.sh",
+                "sudo cp /home/openshift/tmp/stop_ods.sh /usr/local/sbin/stop_ods.sh",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl enable --now ods.service"
+            ]
         }
     ]
 }
