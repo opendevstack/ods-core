@@ -11,7 +11,7 @@
             "region": "eu-west-1",
             "source_ami_filter": {
                 "filters": {
-                    "image-id": "ami-0d94091bab632a283"
+                    "image-id": "{{user `ami_id`}}"
                 },
                 "owners": "275438041116"
             },

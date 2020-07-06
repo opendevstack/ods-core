@@ -3,11 +3,13 @@ Description=Start and stop ODS service gracefully on machine boot and shutdown
 After=network.target
 
 [Service]
-Type=simple
+Type=forking
+RemainAfterExit=true
 User=openshift
 Group=openshift
 ExecStart=/usr/local/sbin/startup_ods.sh
 ExecStop=/usr/local/sbin/stop_ods.sh
+TimeoutSec=3000
 
 [Install]
 WantedBy=default.target

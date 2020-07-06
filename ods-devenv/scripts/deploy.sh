@@ -326,6 +326,7 @@ function startup_openshift_cluster() {
     register_dns ocp "${ip_address}"
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
 
+    echo "Log into oc cluster with system:admin"
     oc login -u system:admin
 }
 
@@ -755,6 +756,9 @@ function startup_atlassian_crowd() {
         sleep 1
         rogue_process=$(sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "${atlassian_crowd_port}") || true
     done
+
+    sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN 2>/dev/null
+    echo "Crowd port ${atlassian_crowd_port} appears to be free, see lsof above -> starting up Crowd docker container..."
 
     docker container run \
         -v odsCrowdVolume:/var/atlassian/application-data/crowd \
