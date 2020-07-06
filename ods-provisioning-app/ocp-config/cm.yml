@@ -1,9 +1,13 @@
 apiVersion: v1
 kind: Template
 parameters:
+- name: ODS_NAMESPACE
+  required: true
 - name: ODS_IMAGE_TAG
   required: true
 - name: ODS_GIT_REF
+  required: true
+- name: ODS_BITBUCKET_PROJECT
   required: true
 - name: JIRA_URL
   required: true
@@ -135,11 +139,12 @@ objects:
       bitbucket.repository.pattern=%s-%s
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
-      bitbucket.opendevstack.project=opendevstack
+      bitbucket.opendevstack.project=${ODS_BITBUCKET_PROJECT}
 
       scm.global.readablerepos.opendevstack=${READABLE_OPENDEVSTACK_REPOS}
 
       # ODS properties
+      ods.namespace=${ODS_NAMESPACE}
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}
 
