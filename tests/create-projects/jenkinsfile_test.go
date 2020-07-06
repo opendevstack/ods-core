@@ -146,7 +146,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	
 	expectedAsString := string(expected)
 	if stdout != expectedAsString {
-		t.Fatalf("Actual jenkins stages from run: % don't match -golden:\r%s\r-jenkins response:\r%s",
+		t.Fatalf("Actual jenkins stages from run: %s don't match -golden:\r%s\r-jenkins response:\r%s",
 			buildName, expectedAsString, stdout)
 	}
 
