@@ -141,7 +141,6 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("Jenkins json status log: \r%s", stdout)
 
 	expected, err := ioutil.ReadFile("golden/jenkins-create-project-stages.json")
 	if err != nil {
@@ -150,7 +149,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	
 	expectedAsString := string(expected)
 	if stdout != expectedAsString {
-		t.Fatalf("Actual jenkins stages from run: %s don't match -golden:\r%s\r-jenkins response:\r%s",
+		t.Fatalf("Actual jenkins stages from run: %s don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
 			buildName, expectedAsString, stdout)
 	}
 
