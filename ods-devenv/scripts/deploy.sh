@@ -1325,7 +1325,7 @@ function setup_nexus() {
     echo "make configure-nexus:"
     pushd nexus
     local nexus_url
-    nexus_url="https://$(oc -n ods get route nexus -ojsonpath='{.spec.host}')"
+    nexus_url=$(oc -n ods get route nexus --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}')
     local nexus_port
     nexus_port=$(oc -n ods get route nexus -ojsonpath='{.spec.port.targetPort}')
     nexus_port=${nexus_port%-*} # truncate -tcp from 8081-tcp
@@ -1358,13 +1358,13 @@ function setup_sonarqube() {
     pushd sonarqube/ocp-config
     tailor apply --namespace ${NAMESPACE} --exclude bc,is --non-interactive --verbose
     local sonarqube_url
-    sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube -ojsonpath='{.spec.host}')
+    sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}')
     echo "Visit ${sonarqube_url}/setup to see if any update actions need to be taken."
     popd
 
     echo "configure-sonarqube:"
     pushd sonarqube
-    ./configure.sh --sonarqube="https://${sonarqube_url}" --verbose --insecure \
+    ./configure.sh --sonarqube="${sonarqube_url}" --verbose --insecure \
         --pipeline-user openshift \
         --pipeline-user-password openshift \
         --admin-password openshift \
