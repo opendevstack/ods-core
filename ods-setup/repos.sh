@@ -27,6 +27,7 @@ BITBUCKET_ODS_PROJECT="opendevstack"
 SYNC="n"
 
 function usage {
+  printf "NOTE: Before you run this script, make sure to have at least Git 2.7 in your system.\n\n"
   printf "Initialise, update and sync OpenDevStack repositories.\n\n"
   printf "This script will ask interactively for parameters by default.\n"
   printf "However, you can also pass them directly. Usage:\n\n"
