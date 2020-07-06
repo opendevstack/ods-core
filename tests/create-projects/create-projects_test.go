@@ -16,7 +16,7 @@ func TestCreateNakedOCPProjectsThruShellScripts(t *testing.T) {
 		t.Fatal("Unable to remove test projects")
 	}
 
-	stdout, stderr, err := utils.RunScriptFromBaseDir("create-projects/create-projects.sh", []string{
+	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/create-projects/create-projects.sh", []string{
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
 	}, []string{})
 	if err != nil {

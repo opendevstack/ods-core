@@ -124,9 +124,9 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
 		time.Sleep(20 * time.Second)
 		if err != nil {
-			fmt.Printf("Build is still not available: %s\r", err)
+			fmt.Printf("Build is still not available: %s\n", err)
 		} else {
-			fmt.Printf("Waiting for build. Current status: %s\r", build.Status.Phase)
+			fmt.Printf("Waiting for build. Current status: %s\n", build.Status.Phase)
 		}
 		count++
 	}
