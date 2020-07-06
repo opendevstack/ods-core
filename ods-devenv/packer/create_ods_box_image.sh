@@ -166,9 +166,16 @@ EOF
 #   instance_type
 #######################################
 function create_ods_box_ami() {
+    local ami_id
+    ami_id=$(aws ec2 describe-images \
+                --owners 275438041116 \
+                --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
+                --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+
     time packer build -on-error=ask \
         -var "aws_access_key=${aws_access_key}" \
         -var "aws_secret_key=${aws_secret_key}" \
+        -var "ami_id=${ami_id}" \
         -var 'username=openshift' \
         -var 'password=openshift' \
         -var "name_tag=ODS Box $(date)" \
