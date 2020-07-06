@@ -1553,7 +1553,10 @@ function run_smoke_tests() {
 
     pushd ods-provisioning-app/ocp-config
     # add flag to suppress confluence adapter
-    sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+    if ! grep -q adapters.confluence.enabled cm.yml
+    then
+        sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+    fi
     popd
 
     pushd tests
