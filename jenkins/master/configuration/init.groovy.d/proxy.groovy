@@ -1,4 +1,5 @@
 import jenkins.model.Jenkins
+import hudson.ProxyConfiguration
 
 Jenkins jenkins = Jenkins.getInstance()
 

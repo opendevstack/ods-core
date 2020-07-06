@@ -12,7 +12,6 @@ verify: prep-verify go.mod go.sum ods-verify/* utils/* validate/*
 	@(echo "Verifying ODS installation")
 	@(./verify.sh)
 
-
 lint:
 	echo "Checking code ..."
 	golangci-lint run
