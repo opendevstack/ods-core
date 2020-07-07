@@ -191,12 +191,21 @@ function setup_dnsmasq() {
     fi
 
     sudo chattr -i /etc/resolv.conf
-    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
+    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
 
+    local counter
+    counter=0
     while ! grep "${public_hostname}" /etc/resolv.conf
     do
+        if [[ ${counter} -gt 10 ]]
+        then
+            echo "ERROR: could not update /etc/resolv.conf. Aborting."
+            exit 1
+        fi
         echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
         sleep 1
+        sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
+        counter=$((counter + 1))
     done
 
     sudo chattr +i /etc/resolv.conf
@@ -1553,7 +1562,10 @@ function run_smoke_tests() {
 
     pushd ods-provisioning-app/ocp-config
     # add flag to suppress confluence adapter
-    sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+    if ! grep -q adapters.confluence.enabled cm.yml
+    then
+        sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
+    fi
     popd
 
     pushd tests
