@@ -136,7 +136,7 @@ if [[ -z "${host}" ]]; then
       exit 1
     fi
 
-    echo "Launching temporary instance (${instance_type}) with AMI=${ami_id} with security_group=${security_group_id} ..."
+    echo "Launching EC2 instance (${instance_type}) using AMI=${ami_id} and security_group=${security_group_id} ..."
     echo "Boot instance"
 
     arg_list=
@@ -172,9 +172,8 @@ if [[ -z "${host}" ]]; then
     wait="yes"
   fi
 
-  echo "Get IP address"
   host=$(aws ec2 describe-instances --instance-ids "$instance_id" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-  echo "Instance has address=${host}"
+  echo "Instance has public IP address ${host}"
 fi
 
 if [[ -n "${wait}" ]]; then
@@ -205,9 +204,9 @@ fi
 
 public_dns=$(aws ec2 describe-instances --instance-ids "${instance_id}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
 echo "ODS Box is available in EC2 instance ${instance_id} at ${public_dns}"
-echo "You can log into your new ODS Box by running"
+echo "You can log into your new ODS Box by running:"
 echo "ssh openshift@${public_dns}"
-echo "or"
+echo "or, if you have configured the required AWS IAM roles:"
 echo "aws ssm start-session --target ${instance_id} --document-name AWS-StartPortForwardingSession --parameters '{\"portNumber\":[\"22\"], \"localPortNumber\":[\"48022\"]}'"
 echo "ssh openshift@localhost -p 48022"
 echo

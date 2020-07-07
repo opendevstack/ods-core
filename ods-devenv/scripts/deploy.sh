@@ -191,12 +191,21 @@ function setup_dnsmasq() {
     fi
 
     sudo chattr -i /etc/resolv.conf
-    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf
+    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
 
+    local counter
+    counter=0
     while ! grep "${public_hostname}" /etc/resolv.conf
     do
+        if [[ ${counter} -gt 10 ]]
+        then
+            echo "ERROR: could not update /etc/resolv.conf. Aborting."
+            exit 1
+        fi
         echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
         sleep 1
+        sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
+        counter=$((counter + 1))
     done
 
     sudo chattr +i /etc/resolv.conf
