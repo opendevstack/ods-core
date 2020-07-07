@@ -188,7 +188,10 @@ function changeScriptSetting {
     fi
 }
 
-# changeScriptSetting does not require server to be up.
+# In the local context changeScriptSetting works directly after docker run
+if [ -z "${LOCAL_CONTAINER_ID}" ]; then
+    waitForReady
+fi
 changeScriptSetting "true"
 
 waitForReady
