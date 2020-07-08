@@ -19,7 +19,7 @@ Before you can install OpenDevStack (no matter whether locally or on another ser
 
 === Repositories
 
-If you do not have the ODS repositories setup yet, go to your Terminal and run:
+If you do not have the ODS repositories setup yet, you can run `repos.sh` file. Before you run this script, keep in mind to have Git (>=2.13). Once you have that, you can then go to your Terminal and run:
 [source,sh]
 ----
 mkdir -p opendevstack
