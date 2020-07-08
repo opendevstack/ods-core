@@ -1447,8 +1447,6 @@ function setup_provisioning_app() {
     echo "Setting up provisioning app"
     echo "make apply-provisioning-app-build:"
     pushd ods-provisioning-app/ocp-config
-    # add flag to suppress confluence adapter
-    sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
 
     tailor apply --namespace ${NAMESPACE} is,bc --non-interactive --verbose
     popd
@@ -1560,14 +1558,6 @@ function setup_jenkins_agents() {
 function run_smoke_tests() {
     oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
-
-    pushd ods-provisioning-app/ocp-config
-    # add flag to suppress confluence adapter
-    if ! grep -q adapters.confluence.enabled cm.yml
-    then
-        sed -i "/# Confluence properties/a\ \ \ \ \ \ adapters.confluence.enabled=false" cm.yml
-    fi
-    popd
 
     pushd tests
     make test
