@@ -13,16 +13,6 @@ In order to run the Atlassian suite and OpenShift, your host must have:
 - A recent `git` version (>= 2.13.2)
 - A recent `jq` version (>= 1.5, see https://stedolan.github.io/jq/)
 
-== Service Requirements
-ODS 3.x officially supports:
-- Openshift v3.11.154. The supported images for this version of Openshift can be found at:
-    - https://docs.openshift.com/container-platform/3.11/release_notes/ocp_3_11_release_notes.html
-- Jenkins v2.176.3
-    - The base image of the Jenkins we use through this version of ODS is: `openshift3/jenkins-2-rhel7:v3.11.153-2`
-- Sonarqube 
-    - 7.9 (LTS release)
-    - 8.2.0.32929 (latest release)
-
 == Local Setup
 
 Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the sources available on your local machine.
@@ -54,6 +44,7 @@ The script will prompt you which Git ref you want to use. Select either `master`
 
 === Configuration
 
+Before you get started with configuration, please refer to https://github.com/opendevstack/ods-core/blob/master/configuration-sample/ods-core.env.sample[configuration sample page] for supported service versions.
 Go to `ods-core` and run:
 [source,sh]
 ----
