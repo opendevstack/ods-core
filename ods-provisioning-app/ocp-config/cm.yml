@@ -77,6 +77,12 @@ parameters:
 - name: PROV_APP_WEBHOOKPROXY_HOST
   required: true
   description: the webhookproxy host that prov app connect to
+- name: PROV_APP_CONFLUENCE_ADAPTER_ENABLED
+  required: true
+  description: parameter that activate or deactive the confluence adapter
+- name: PROV_APP_AUTH_BASIC-AUTH_ENABLED
+  required: true
+  description: parameter that (de)activate basic auth authentication
 objects:
 - kind: ConfigMap
   metadata:
@@ -128,6 +134,7 @@ objects:
       jira.project.template.type.kanban=software
 
       # Confluence properties
+      adapters.confluence.enabled=${PROV_APP_CONFLUENCE_ADAPTER_ENABLED}
       confluence.uri=${CONFLUENCE_URL}
       confluence.api.path=/rest
       confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
@@ -210,6 +217,9 @@ objects:
       # First layer is the application.properties in classpath. It provides all defaults
       # Second layer: the config maps defined in this file which overrides all required properties from first layer
       spring.profiles.active=default
+
+      # basic auth
+      provision.auth.basic-auth.enabled=${PROV_APP_AUTH_BASIC-AUTH_ENABLED}
 
       # idmanager
       provision.auth.provider=crowd
