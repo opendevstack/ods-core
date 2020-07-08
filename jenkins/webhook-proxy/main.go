@@ -75,7 +75,7 @@ type BuildConfigData struct {
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
-	Forward(e *Event, triggerSecret string) ([]byte, error)
+	Forward(e *Event, triggerSecret string) (int, []byte, error)
 	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
 }
@@ -431,9 +431,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				project,
 				event.Repo,
 			)
-			env, err := json.Marshal(event.Env)
-			if err != nil {
-				log.Println(requestID, fmt.Sprintf("Cannot convert envs to JSON: %s", err))
+			env, forwardErr := json.Marshal(event.Env)
+			if forwardErr != nil {
+				log.Println(requestID, fmt.Sprintf("Cannot convert envs to JSON: %s", forwardErr))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
@@ -446,21 +446,28 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				JenkinsfilePath: jenkinsfilePath,
 				Env:             string(env),
 			}
-			statusCode, err := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
-			if err != nil {
+			createStatusCode, createErr := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
+			if createErr != nil {
 				msg := "Could not create pipeline"
-				log.Println(requestID, fmt.Sprintf("%s: %s", msg, err))
-				http.Error(w, msg, statusCode)
+				log.Println(requestID, fmt.Sprintf("%s [%d]: %s", msg, createStatusCode, createErr))
+				http.Error(w, msg, createStatusCode)
 				return
 			}
-			res, err := s.Client.Forward(event, s.TriggerSecret)
-			if err != nil {
-				log.Println(requestID, err)
+			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event, s.TriggerSecret)
+			if forwardErr != nil {
+				log.Println(requestID, forwardErr)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
-			_, err = w.Write(res)
-			if err != nil {
-				log.Println(requestID, fmt.Sprintf("Could not write response: %s", err))
+			if forwardStatusCode < 200 || forwardStatusCode >= 300 {
+				msg := "Could not trigger pipeline"
+				log.Println(requestID, fmt.Sprintf("%s [%d]: %s", msg, forwardStatusCode, forwardBody))
+				http.Error(w, msg, forwardStatusCode)
+				return
+			}
+			_, writeErr := w.Write(forwardBody)
+			if writeErr != nil {
+				log.Println(requestID, fmt.Sprintf("Could not write response: %s", writeErr))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
@@ -500,7 +507,7 @@ func (s *Server) readProjectParam(projectParam string, requestID string) (string
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
+func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
@@ -518,17 +525,18 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(p)
 	if err != nil {
-		return nil, fmt.Errorf("Could not encode payload: %s", err)
+		return 500, nil, fmt.Errorf("Could not encode payload: %s", err)
 	}
 
 	req, _ := http.NewRequest("POST", url, b)
 	res, err := c.do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Got error %s", err)
+		return 500, nil, fmt.Errorf("Got error %s", err)
 	}
 	defer res.Body.Close()
 
-	return ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	return res.StatusCode, body, err
 }
 
 // CreatePipelineIfRequired ensures that the pipeline which corresponds to the
