@@ -180,7 +180,13 @@ function setup_dnsmasq() {
     sudo sed -i "/#address=\/double-click.net\/127.0.0.1/a address=\/odsbox.lan\/${public_hostname}\naddress=\/odsbox.lan\/172.17.0.1\naddress=\/odsbox.lan\/127.0.0.1" "${dnsmasq_conf_path}"
     sudo sed -i "s|#listen-address=.*$|listen-address=::1,127.0.0.1,${public_hostname}|" "${dnsmasq_conf_path}"
     sudo sed -i "s|#domain=thekelleys.org.uk|domain=odsbox.lan|" "${dnsmasq_conf_path}"
-    echo "172.30.1.1     docker-registry.default.svc" | sudo tee -a /etc/hosts
+
+    local docker_registry_entry
+    docker_registry_entry="172.30.1.1     docker-registry.default.svc"
+    if ! grep -q "${docker_registry_entry}" /etc/hosts
+    then
+        echo "${docker_registry_entry}" | sudo tee -a /etc/hosts
+    fi
 
     # dnsmasq logs on stderr (?!)
     if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
@@ -970,7 +976,7 @@ function download_file_to_folder() {
 #   None
 #######################################
 function startup_atlassian_bitbucket() {
-    echo "Strating up Atlassian BitBucket ${atlassian_bitbucket_version}"
+    echo "Starting up Atlassian BitBucket ${atlassian_bitbucket_version}"
     local mysql_ip
     mysql_ip=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
 
