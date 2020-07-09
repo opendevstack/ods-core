@@ -6,6 +6,7 @@ import (
 	"time"
 	"path"
 	"runtime"
+	"fmt"
 )
 
 func RemoveProject(projectName string) error {
