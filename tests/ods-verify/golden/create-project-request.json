@@ -1,0 +1,9 @@
+{
+    "projectName": "ODS3PASSO6",
+    "projectKey": "ODS3PASSO6",
+    "description": "Prov App test",
+    "projectType": "default",
+    "bugtrackerSpace": true,
+    "platformRuntime": true,
+    "specialPermissionSet": false
+}

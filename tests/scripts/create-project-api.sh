@@ -7,6 +7,15 @@ set -eu
 # BASIC_AUTH_CREDENTIAL=<USERNAME>:<PASSWORD>
 # PROVISION_FILE=provision-new-project-payload.json
 
+PROV_APP_CONFIG_FILE=prov-app-config.txt
+
+if [ -f PROV_APP_CONFIG_FILE ]; then
+	cat PROV_APP_CONFIG_FILE
+	source PROV_APP_CONFIG_FILE
+else
+	echo "No config file found, assuming defaults"
+fi
+
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
 BASIC_AUTH_CREDENTIAL="${BASIC_AUTH_CREDENTIAL:=openshift:openshift}"
 PROVISION_FILE="${PROVISION_FILE:=new-project.json}"

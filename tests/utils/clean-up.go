@@ -68,3 +68,21 @@ func RemoveAllTestOCProjects() error {
 
 	return nil
 }
+
+func RemoveAllOpenshiftNamespacesForProject(project string) error {
+
+	err := RemoveProject(fmt.Sprintf("%s-test", project))
+	if err != nil {
+		return err
+	}
+	err = RemoveProject(fmt.Sprintf("%s-dev", project))
+	if err != nil {
+		return err
+	}
+	err = RemoveProject(fmt.Sprintf("%s-cd", project))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
