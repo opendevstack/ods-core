@@ -37,7 +37,7 @@ cat $PROVISION_FILE
 echo
 echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in file './response.txt' and headers in file './headers.txt')"
 echo
-http_resp_code=$(curl --fail --silent --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
+http_resp_code=$(curl --fail --insecure --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
 --header "Authorization: Basic ${BASE64_CREDENTIALS}" \
 --header 'Accept: application/json' \
 --header 'Content-Type: application/json' \
@@ -46,7 +46,7 @@ http_resp_code=$(curl --fail --silent --location --request POST "${PROVISION_API
 exit_status=$?
 if [ $exit_status != 0 ]
   then
-    echo "something went wrong... curl request failed [status="$exit_status"]!!!"
+    echo "something went wrong... curl request failed [status="$exit_status"] http response="$http_resp_code" !!!"
 	if [ -f response.text ]; then
 		cat response.txt
 	fi
