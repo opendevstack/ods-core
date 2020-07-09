@@ -18,7 +18,7 @@ fi
 
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
 BASIC_AUTH_CREDENTIAL="${BASIC_AUTH_CREDENTIAL:=openshift:openshift}"
-PROVISION_FILE="${PROVISION_FILE:=tests/ods-verify/golden/cerate-project-request.json}"
+PROVISION_FILE="${PROVISION_FILE:=golden/create-project-request.json}"
 
 echo
 echo "Started provision new project script!"
