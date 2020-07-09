@@ -9,9 +9,9 @@ set -eu
 
 PROV_APP_CONFIG_FILE=prov-app-config.txt
 
-if [ -f PROV_APP_CONFIG_FILE ]; then
-	cat PROV_APP_CONFIG_FILE
-	source PROV_APP_CONFIG_FILE
+if [ -f $PROV_APP_CONFIG_FILE ]; then
+	cat $PROV_APP_CONFIG_FILE
+	source $PROV_APP_CONFIG_FILE
 else
 	echo "No config file found, assuming defaults, current: $(pwd)"
 fi
@@ -37,18 +37,20 @@ cat $PROVISION_FILE
 echo
 echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in file './response.txt' and headers in file './headers.txt')"
 echo
+RESPONSE_FILE=response.txt
+
 http_resp_code=$(curl --fail --insecure --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
 --header "Authorization: Basic ${BASE64_CREDENTIALS}" \
 --header 'Accept: application/json' \
 --header 'Content-Type: application/json' \
 --data @"$PROVISION_FILE" \
---dump-header headers.txt -o response.txt -w "%{http_code}" )
+--dump-header headers.txt -o ${RESPONSE_FILE} -w "%{http_code}" )
 exit_status=$?
 if [ $exit_status != 0 ]
   then
     echo "something went wrong... curl request failed [status="$exit_status"] http response="$http_resp_code" !!!"
-	if [ -f response.text ]; then
-		cat response.txt
+	if [ -f ${RESPONSE_FILE} ]; then
+		cat ${RESPONSE_FILE}
 	fi
     exit $exit_status
 fi
@@ -56,8 +58,8 @@ fi
 echo "curl request successful..."
 echo
 echo "... displaying HTTP response body (content from './response.txt'):"
-if [ -f response.text ]; then
-	cat response.txt
+if [ -f ${RESPONSE_FILE} ]; then
+	cat ${RESPONSE_FILE}
 fi
 echo
 echo "... displaying HTTP response code"
