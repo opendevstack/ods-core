@@ -80,9 +80,12 @@ parameters:
 - name: PROV_APP_CONFLUENCE_ADAPTER_ENABLED
   required: true
   description: parameter that activate or deactive the confluence adapter
-- name: PROV_APP_AUTH_BASIC-AUTH_ENABLED
+- name: PROV_APP_AUTH_BASIC_AUTH_ENABLED
   required: true
   description: parameter that (de)activate basic auth authentication
+- name: PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED
+  required: true
+  description: parameter that (de)activate cleanup of projects that were left incomplete due an error on provision new project
 objects:
 - kind: ConfigMap
   metadata:
@@ -218,8 +221,11 @@ objects:
       # Second layer: the config maps defined in this file which overrides all required properties from first layer
       spring.profiles.active=default
 
+      # parameter that (de)activate cleanup of projects that were left incomplete due an error on provision new project
+      provision.cleanup.incomplete.projects=${PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED}
+
       # basic auth
-      provision.auth.basic-auth.enabled=${PROV_APP_AUTH_BASIC-AUTH_ENABLED}
+      provision.auth.basic-auth.enabled=${PROV_APP_AUTH_BASIC_AUTH_ENABLED}
 
       # idmanager
       provision.auth.provider=crowd
