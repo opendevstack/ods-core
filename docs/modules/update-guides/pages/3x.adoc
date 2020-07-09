@@ -5,10 +5,31 @@ Learn all about how to update your OpenDevStack based project to ODS 3.x.
 
 NOTE: It is assumed that you are updating from ODS 2.x.
 
+== New central `ods` namespace
+
+One of the biggest changes in ODS 3 is that there is a new central namespace,
+named `ods`. This namespace hosts the complete ODS installation, such as a
+provisioning app, Nexus, SonarQube, and images for Jenkins (master and agent).
+This central namespace replaces the previous namespaces `cd` (which hosted Nexus,
+SonarQube, etc.) as well as `prov-test`, `prov-dev` and `prov-cd` (which hosted
+the provisioning app).
+
+As a user, you will be affected by this change insofar as the images you use for
+the Jenkins master instance and Jenkins agent nodes will need to be retrieved
+from `ods` instead of `cd` (see next section). Further, depending on the
+migration done by the administrator, the URLs of Nexus, SonarQube and the
+provisioning app might have changed.
+
 == Update image tags of Jenkins deployments
 
-Go into your OpenShift `*-cd` namespace and edit (via "Actions" > "Edit") the deployments (`jenkins` and
-`webhook-proxy`) to point to the new image tags (`3.x`), and trigger a deployment.
+Go into your OpenShift `*-cd` namespace and edit (via "Actions" > "Edit") the
+deployments (`jenkins` and `webhook-proxy`) to point to the new image tags
+(`3.x`), and trigger a deployment. Note that you also need to change the
+namespace of the images from `cd` to `ods` (see above). Since ODS 2, it is also
+recommended to remove any image triggers from `jenkins` and `webhook-proxy`, so
+that any image changes are only rolled out by yourself. If you choose to remove
+the image trigger, ensure that the `imagePullPolicy` is set to `Always` to
+always get the latest `3.x` image when you deploy.
 
 include::jenkins-shared-library:partial$update-to-3x.adoc[]
 

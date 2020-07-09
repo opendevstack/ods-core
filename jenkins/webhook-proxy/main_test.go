@@ -182,9 +182,9 @@ type mockClient struct {
 	Event *Event
 }
 
-func (c *mockClient) Forward(e *Event, triggerSecret string) ([]byte, error) {
+func (c *mockClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
 	c.Event = e
-	return nil, nil
+	return 200, nil, nil
 }
 func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
 	c.Event = e
@@ -504,13 +504,17 @@ func TestNamespaceRestriction(t *testing.T) {
 
 func TestForward(t *testing.T) {
 	tests := map[string]struct {
-		expectedPayload   string // payload that OpenShift expects
-		openshiftResponse string // payload that OpenShift returns
-		event             *Event
+		expectedPayload            string // payload that the OpenShift stub expects to be called with
+		openshiftResponse          string // payload that OpenShift stub returns to proxy
+		openshiftStatusCode        int    // code that OpenShift stub returns to proxy
+		expectedReturnedStatusCode int    // code that we expect to get from OpenShift stub
+		event                      *Event
 	}{
 		"event without env": {
-			expectedPayload:   "test/golden/forward-payload-without-env.json",
-			openshiftResponse: "test/fixtures/webhook-triggered-payload.json",
+			expectedPayload:            "test/golden/forward-payload-without-env.json",
+			openshiftResponse:          "test/fixtures/webhook-triggered-payload.json",
+			openshiftStatusCode:        200,
+			expectedReturnedStatusCode: 200,
 			event: &Event{
 				Kind:      "forward",
 				Namespace: "bar-cd",
@@ -522,8 +526,10 @@ func TestForward(t *testing.T) {
 			},
 		},
 		"event with env": {
-			expectedPayload:   "test/golden/forward-payload-with-env.json",
-			openshiftResponse: "test/fixtures/webhook-triggered-payload.json",
+			expectedPayload:            "test/golden/forward-payload-with-env.json",
+			openshiftResponse:          "test/fixtures/webhook-triggered-payload.json",
+			openshiftStatusCode:        200,
+			expectedReturnedStatusCode: 200,
 			event: &Event{
 				Kind:      "forward",
 				Namespace: "bar-cd",
@@ -543,6 +549,21 @@ func TestForward(t *testing.T) {
 				},
 			},
 		},
+		"authentication issue": {
+			expectedPayload:            "test/golden/forward-payload-without-env.json",
+			openshiftResponse:          "",
+			openshiftStatusCode:        401,
+			expectedReturnedStatusCode: 401,
+			event: &Event{
+				Kind:      "forward",
+				Namespace: "bar-cd",
+				Repo:      "repository",
+				Component: "repository",
+				Branch:    "master",
+				Pipeline:  "repository-master",
+				Env:       []EnvPair{},
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -553,14 +574,19 @@ func TestForward(t *testing.T) {
 				t.Fatal(err)
 			}
 			// Sample response from OpenShift
-			expectedOpenshiftResponse, err := ioutil.ReadFile(tc.openshiftResponse)
-			if err != nil {
-				t.Fatal(err)
+			var expectedOpenshiftResponse []byte
+			if len(tc.openshiftResponse) > 0 {
+				r, err := ioutil.ReadFile(tc.openshiftResponse)
+				if err != nil {
+					t.Fatal(err)
+				}
+				expectedOpenshiftResponse = r
 			}
 
 			// Create a stub that returns the fixed response
 			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				actualForwardPayload, _ = ioutil.ReadAll(r.Body)
+				w.WriteHeader(tc.openshiftStatusCode)
 				_, err := w.Write(expectedOpenshiftResponse)
 				if err != nil {
 					t.Fatal(err)
@@ -575,15 +601,20 @@ func TestForward(t *testing.T) {
 			}
 
 			// Ensure the response from OpenShift is forwarded as-is to the client
-			actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
+			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
 			if err != nil {
 				t.Fatal(err)
 			}
 			if string(actualForwardPayload) != string(expectedPayload) {
 				t.Fatalf("Got payload: %s, want: %s", actualForwardPayload, expectedPayload)
 			}
-			if string(actualOpenshiftResponse) != string(expectedOpenshiftResponse) {
-				t.Fatalf("Got response: %s, want: %s", actualOpenshiftResponse, expectedOpenshiftResponse)
+			if string(actualOpenshiftStatusCode) != string(tc.expectedReturnedStatusCode) {
+				t.Fatalf("Got HTTP code: %d, want: %d", actualOpenshiftStatusCode, tc.expectedReturnedStatusCode)
+			}
+			if len(expectedOpenshiftResponse) > 0 {
+				if string(actualOpenshiftResponse) != string(expectedOpenshiftResponse) {
+					t.Fatalf("Got response: %s, want: %s", actualOpenshiftResponse, expectedOpenshiftResponse)
+				}
 			}
 		})
 	}

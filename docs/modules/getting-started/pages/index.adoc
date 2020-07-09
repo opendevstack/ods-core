@@ -49,14 +49,15 @@ OpenDevStack is released roughly every half year. Each release is identified by 
 
 Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHub project]. The current major version is 2, the next one will be 3.
 
-=== https://github.com/orgs/opendevstack/projects/9[3] (to be released June 2020)
+=== https://github.com/orgs/opendevstack/projects/9[3] (to be released July 2020)
 
 - Rename central namespace to `ODS`, and extend with running provisioning app
 - Install provisioning app and document generation service from pre-built images
-- Quickstarter pipeline
-- Merge of MRO (now: orchestration) pipeline into general shared pipeline
+- xref:jenkins-shared-library:quickstarter-pipeline.adoc[Quickstarter pipeline]
+- Merge of MRO (now: xref:jenkins-shared-library:orchestration-pipeline.adoc[orchestration pipeline]) into general shared pipeline
 - Automation of SonarQube and Nexus setup
 - Decorate Bitbucket pull requests with SonarQube analysis
+- Promote images between environments if possible (instead of rebuilding)
 
 === https://github.com/orgs/opendevstack/projects/6[2] (December 2019)
 
