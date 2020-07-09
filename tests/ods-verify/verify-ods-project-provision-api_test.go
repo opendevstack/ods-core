@@ -15,9 +15,10 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf(
-			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s",
+			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s",
 			stdout,
-			stderr)
+			stderr,
+			err)
 	} else {
 		fmt.Printf("Provision app raw logs:%s\n", stdout)
 	}
