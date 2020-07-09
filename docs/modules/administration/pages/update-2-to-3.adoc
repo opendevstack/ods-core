@@ -1,40 +1,33 @@
+== New central namespace
+
+In ODS 2, there was a central namespace `cd`, alongside 3 namespace dedicated to the provisioning app: `prov-cd`, `prov-dev` and `prov-test`. In ODS 3, there is only one namespace `ods`, which contains the whole OpenDevStack installation. When updating from ODS 2 to ODS 3, you will need to move the services running in `cd`, `prov-cd` and `prov-test` to `ods`. In detail:
+
+- SonarQube is moving from `cd` to `ods`
+- Nexus is moving from `cd` to `ods`
+- Jenkins (Master and Webhook Proxy) is moving from `prov-cd` to `ods`
+- Provisioning App is moving from `prov-test` to `ods`
+
+The Provisioning App will make use of the Jenkins instance in `ods` to provision new ODS projects.
+
+Apart from the instances, also all build configurations and image streams are moving from `cd` to `ods`, which means all users need to pull images from the new namespace.
+
+With that in mind, we can start the update procedure!
+
 == Update your OpenDevStack repositories
 
 Updating repositories means that new refs from repositories under
 `github.com/opendevstack` are pushed into the repositories in your BitBucket
 instance.
 
-First, you need a clone of each repository in BitBucket which should be updated
-on your local machine.
-
-Once this has been done, you need to fetch new refs from
-`github.com/opendevstack`. To do so, add a remote pointing to it like this:
+To do so, run the following and select the version you want to install (`3.x`).
 
 [source,sh]
 ----
-git remote add ods https://github.com/opendevstack/<REPO_NAME>.git
+make sync-repos
 ----
 
-Now you are ready to update the refs. It is recommended to update both the
-`master` branch and, unless you want to live off the bleeding edge, a release
-branch such as `2.x`. Use the steps shown below:
-
-[source,sh]
-----
-# Ensure you have the latest refs from ODS locally
-git fetch ods
-# Update master
-git checkout master
-git reset --hard ods/master
-git push origin master
-# Update 2.x
-git checkout 2.x
-git reset --hard ods/2.x
-git push origin 2.x
-----
-
-If your OpenDevStack installation is based on a custom branch (such as `2.acme`), then you
-need to create a pull request on BitBucket from `2.x` into that custom branch now.
+If your OpenDevStack installation is based on a custom branch (such as `3.acme`), then you
+need to create a pull request on BitBucket from `3.x` into that custom branch now.
 
 Now that the repositories are updated, you also need to modify the images and the
 running instances in OpenShift.
@@ -58,37 +51,41 @@ tailor export -n prov-test > backup_PROV_TEST.yml
 Note that the executing user needs to have permissions to access all resources
 in the `cd` namespaces for this to work properly.
 
+
 == Tailor
 
 Next, update Tailor.
-3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.1.1[1.1.1].
+3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.1.3[1.1.3].
+
 
 == Configuration
 
-Then, update/add/remove the configuration parameters (located in `ods-configuration`).
-To do this, use the `./update` script located in `ods-core/configuration-sample`.
+Run:
+[source,sh]
+----
+make prepare-config
+----
 
-== OCP resources
+In 2.x, the Jenkins master base image was pulled from the `openshift` namespace. The agent base image could have been pulled from that namespace as well, or directly from a registry. In 3.x, the master can also be pulled directly from a registry. The advantage of this is that you do not need to worry about the import policy set in the `openshift` namespace, which can have suprising results (e.g. your base image never updating even though a fix has been released by RedHat). The behaviour is defined by a new configuration parameter, `JENKINS_MASTER_BASE_FROM_IMAGE`.
 
-Next, run `tailor update` in `ods-core` and `ods-quickstarters` to bring all OCP resources (such as DC or BC) into sync. Review the diff produced by Tailor carefully, especially around changes to PVCs.
+Further, in 2.x you had to pick (via `JENKINS_AGENT_BASE_IMAGE`) whether you wanted to use `Dockerfile.centos7` or `Dockerfile.rhel7`. However, both files contained the same instructions. Therefore, those were combined into a single `Dockerfile` and you only need to choose which base image to use via `JENKINS_AGENT_BASE_FROM_IMAGE` (like before).
 
-== Images
+After you have updated/added/removed all parameters with your desired values,
+commit and push the result.
 
-After all OCP resources have been updated, you need to start a build for all build configs
-in the `cd` namespace to create new images.
 
-== New central namespace
+== OpenShift resources
 
-In ODS 2, there was a central namespace `cd`, alongside 3 namespace dedicated to the provisioning app: `prov-cd`, `prov-dev` and `prov-test`. In ODS 3, there is only one namespace `ods`, which contains the whole OpenDevStack installation. When updating from ODS 2 to ODS 3, you will need to move the services running in `cd`, `prov-cd` and `prov-test` to `ods`. In detail:
+Next you need to update all OpenShift resources (such as DC or BC). Review the diff produced by Tailor carefully before applying changes.
 
-- SonarQube is moving from `cd` to `ods`
-- Nexus is moving from `cd` to `ods`
-- Jenkins (Master and Webhook Proxy) is moving from `prov-cd` to `ods`
-- Provisioning App is moving from `prov-test` to `ods`
+[source,sh]
+----
+make install-ods-project
+make install-jenkins
+make install-nexus
+make install-doc-gen
+----
 
-The Provisioning App will make use of the Jenkins instance in `ods` to provision new ODS projects.
-
-Apart from the instances, also all build configurations and image streams are moving from `cd` to `ods`, which means all users need to pull images from the new namespace.
 
 == Provisioning App changes
 
@@ -129,9 +126,3 @@ The following outlines the procedure for SonarQube:
 == Secure route removal
 
 Checking for secure routes has been removed from the core, but is still available at https://github.com/BIX-Digital/ods-contrib.
-
-== Jenkins base image changes
-
-In 2.x, the Jenkins master base image was pulled from the `openshift` namespace. The agent base image could have been pulled from that namespace as well, or directly from a registry. In 3.x, the master can also be pulled directly from a registry. The advantage of this is that you do not need to worry about the import policy set in the `openshift` namespace, which can have suprising results (e.g. your base image never updating even though a fix has been released by RedHat). The behaviour is defined by a new configuration parameter, `JENKINS_MASTER_BASE_FROM_IMAGE`.
-
-Further, in 2.x you had to pick (via `JENKINS_AGENT_BASE_IMAGE`) whether you wanted to use `Dockerfile.centos7` or `Dockerfile.rhel7`. However, both files contained the same instructions. Therefore, those were combined into a single `Dockerfile` and you only need to choose which base image to use via `JENKINS_AGENT_BASE_FROM_IMAGE` (like before).
