@@ -1,4 +1,4 @@
-package ods-verify
+package ods_verify
 
 import (
 	"testing"
