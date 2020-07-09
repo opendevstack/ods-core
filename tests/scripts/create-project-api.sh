@@ -18,7 +18,7 @@ fi
 
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
 BASIC_AUTH_CREDENTIAL="${BASIC_AUTH_CREDENTIAL:=openshift:openshift}"
-PROVISION_FILE="${PROVISION_FILE:=../../ods-verify/golden/cerate-project-request.json}"
+PROVISION_FILE="${PROVISION_FILE:=tests/ods-verify/golden/cerate-project-request.json}"
 
 echo
 echo "Started provision new project script!"
@@ -28,7 +28,7 @@ BASE64_CREDENTIALS=$(echo -n $BASIC_AUTH_CREDENTIAL | base64)
 echo
 echo
 if [ ! -f $PROVISION_FILE ]; then
-	echo "Input for provision api (${PROVISION_FILE}) does not EXIST, aborting"
+	echo "Input for provision api (${PROVISION_FILE}) does not EXIST, aborting\ncurrent: $(pwd)"
 	exit 1
 fi
 echo "... new project request payload loaded from '"$PROVISION_FILE"'"
