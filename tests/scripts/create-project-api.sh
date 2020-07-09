@@ -47,13 +47,18 @@ exit_status=$?
 if [ $exit_status != 0 ]
   then
     echo "something went wrong... curl request failed [status="$exit_status"]!!!"
+	if [ -f response.text ]; then
+		cat response.txt
+	fi
     exit $exit_status
 fi
 
 echo "curl request successful..."
 echo
 echo "... displaying HTTP response body (content from './response.txt'):"
-cat response.txt
+if [ -f response.text ]; then
+	cat response.txt
+fi
 echo
 echo "... displaying HTTP response code"
 echo "http_resp_code=${http_resp_code}"
