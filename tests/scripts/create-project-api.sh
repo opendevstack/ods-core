@@ -13,7 +13,7 @@ if [ -f PROV_APP_CONFIG_FILE ]; then
 	cat PROV_APP_CONFIG_FILE
 	source PROV_APP_CONFIG_FILE
 else
-	echo "No config file found, assuming defaults"
+	echo "No config file found, assuming defaults, current: $(pwd)"
 fi
 
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
