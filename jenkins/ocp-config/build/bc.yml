@@ -66,6 +66,8 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
+        forcePull: true
+        noCache: true
         env:
           - name: APP_DNS
             value: ${APP_DNS}
@@ -116,6 +118,8 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
+        forcePull: true
+        noCache: true
         env:
           - name: APP_DNS
             value: ${APP_DNS}
@@ -156,7 +160,9 @@ objects:
         name: cd-user-token
       type: Git
     strategy:
-      dockerStrategy: {}
+      dockerStrategy:
+        forcePull: true
+        noCache: true
       type: Docker
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
