@@ -18,7 +18,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	projectName := "ODS3PASSO6"
 	
 	// remove the project and the build config in case it exists
-	err := utils.RemoveProject(strings.ToLower(projectName))
+	err = utils.RemoveProject(strings.ToLower(projectName))
 	if err != nil {
 		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
 	} else {
