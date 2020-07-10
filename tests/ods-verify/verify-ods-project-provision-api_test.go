@@ -22,6 +22,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	if err != nil {
 		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
 	} else {
+		fmt.Println("Project successfully deleted")
 /*		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
 			values["ODS_NAMESPACE"],
 			projectName, 
