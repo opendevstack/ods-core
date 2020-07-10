@@ -1568,6 +1568,7 @@ function run_smoke_tests() {
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
 
     pushd tests
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
     make test
     popd
     git reset --hard
