@@ -19,7 +19,7 @@ fi
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
 BASIC_AUTH_CREDENTIAL="${BASIC_AUTH_CREDENTIAL:=openshift:openshift}"
 PROVISION_FILE="${PROVISION_FILE:=golden/create-project-request.json}"
-COMMAND="${1:=POST}"
+COMMAND="${1:-POST}"
 
 echo
 echo "Started provision project script! (${COMMAND})"
