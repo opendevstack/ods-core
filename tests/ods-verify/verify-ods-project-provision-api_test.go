@@ -2,19 +2,35 @@ package ods_verify
 
 import (
 	"testing"
-	utils "github.com/opendevstack/ods-core/tests/utils"
+	"github.com/opendevstack/ods-core/tests/utils"
 	"io/ioutil"
 	"fmt"
 	"strings"
 )
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
+	values, err := utils.ReadConfiguration()
+	if err != nil {
+		t.Fatal(err)
+	}
+	
 	const projectName = "ODS3PASSO6"
+	
+	// remove the project and the build config in case it exists
 	err := utils.RemoveProject(strings.ToLower(projectName))
 	if err != nil {
-		fmt.Printf("Could not cleanup project:%s\n", err)
+		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
+	} else {
+		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
+			values["ODS_NAMESPACE"] 
+			projectName, 
+			strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
+		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
+		if err != nil {
+			fmt.Printf("Could not remove buildconfig: %s", buildConfigName)
+		}	
 	}
-	// get (executed) jenkins stages from run - the caller can compare against the golden record 
+	// api sample script
 	stdout, stderr, err := utils.RunScriptFromBaseDir(
 		"tests/scripts/create-project-api.sh",
 		[]string{}, []string{})
@@ -29,8 +45,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		fmt.Printf("Provision app raw logs:%s\n", stdout)
 	}
 
-	// verify provision jenkins stages - against golden record
-	log, err := ioutil.ReadFile("../../scripts/response.txt")
+	// get the (json) response from the script created file
+	log, err := ioutil.ReadFile("response.txt")
 	if err != nil {
 		t.Fatalf("Could not read response file?!, %s\n", err)
 	} else {
@@ -40,7 +56,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	var responseI map[string]interface{}
 	err = json.Unmarshal(log, &responseI)
 	if err != nil {
-		return "", fmt.Errorf("Could not parse json response: %s, err: %s",
+		t.Fatalf("Could not parse json response: %s, err: %s",
 			string(log), err)
 	}
 	
@@ -50,13 +66,17 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			projectName, responseProjectName) 
 	}
 	
-	responseExecutionJobs:= responseI["lastExecutionJobs"].(map[string]interface{})
+	responseExecutionJobs := responseI["lastExecutionJobs"].(map[string]interface{})
 	responseBuildName := responseExecutionJobs["name"].(string)
+	responseJenkinsBuildUrl := responseExecutionJobs["url"].(string)
+	responseBuildRun := strings.SplitAfter(responseJenkinsBuildUrl, responseBuildName + "/")[1]
+	
+	fmt.Printf("build run#: %s\n", responseBuildRun)
 	
 	responseBuildClean := strings.Replace(responseBuildName,
-		values["ODS_NAMESPACE"] + "-", "", 1) + "-1"
+		values["ODS_NAMESPACE"] + "-", "", 1) + "-" responseBuildRun
 	
-		// get (executed) jenkins stages from run - the caller can compare against the golden record 
+	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-json-status.sh",
 		[]string{
@@ -65,7 +85,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		}, []string{})
 
 	if err != nil {
-		return "", fmt.Errorf("Error getting jenkins stages for build: %s\rError: %s\n",
+		t.Fatalf("Error getting jenkins stages for build: %s\rError: %s\n",
 			responseBuildClean, err)
 	} else {
 		fmt.Printf("Jenkins stages: %s\n", stdout)
