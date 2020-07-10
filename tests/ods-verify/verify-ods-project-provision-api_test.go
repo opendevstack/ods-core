@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"fmt"
 	"strings"
+	"encoding/json"	
 )
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
@@ -14,7 +15,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		t.Fatal(err)
 	}
 	
-	const projectName = "ODS3PASSO6"
+	projectName := "ODS3PASSO6"
 	
 	// remove the project and the build config in case it exists
 	err := utils.RemoveProject(strings.ToLower(projectName))
@@ -61,7 +62,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			string(log), err)
 	}
 	
-	responseProjectName = responseI["projectName"].(string)
+	responseProjectName := responseI["projectName"].(string)
 	if projectName != responseProjectName {
 		t.Fatalf("Project names don't match - expected: %s real: %s",
 			projectName, responseProjectName) 
