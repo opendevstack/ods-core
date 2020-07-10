@@ -89,7 +89,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		t.Fatalf("Error getting jenkins stages for build: %s\rError: %s\n",
 			responseBuildClean, err)
 	} else {
-		fmt.Printf("Jenkins stages: %s\n", stdout)
+		fmt.Printf("Jenkins stages: \n'%s'\n", stdout)
 	}
 	
 	// verify provision jenkins stages - against golden record
@@ -100,7 +100,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	
 	if stdout != string(expected) {
 		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
-			string(expected), log)
+			string(expected), stdout)
 	}
 
 }
