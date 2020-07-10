@@ -22,11 +22,11 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	if err != nil {
 		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
 	} else {
-		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
+/*		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
 			values["ODS_NAMESPACE"],
 			projectName, 
 			strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
-/*		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
+		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
 		if err != nil {
 			fmt.Printf("Could not remove buildconfig: %s, err: %s\n",
 				buildConfigName, err)
