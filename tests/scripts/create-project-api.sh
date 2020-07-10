@@ -39,7 +39,7 @@ echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in fi
 echo
 RESPONSE_FILE=response.txt
 
-http_resp_code=$(curl --fail --insecure --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
+http_resp_code=$(curl --insecure --request POST "${PROVISION_API_HOST}/api/v2/project" \
 --header "Authorization: Basic ${BASE64_CREDENTIALS}" \
 --header 'Accept: application/json' \
 --header 'Content-Type: application/json' \
