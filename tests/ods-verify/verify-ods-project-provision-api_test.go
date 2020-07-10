@@ -75,13 +75,13 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	fmt.Printf("build run#: %s\n", responseBuildRun)
 	
 	responseBuildClean := strings.Replace(responseBuildName,
-		(values["ODS_NAMESPACE"] + "-", "", 1) + "-" responseBuildRun)
+		values["ODS_NAMESPACE"] + "-", "", 1)
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-json-status.sh",
 		[]string{
-			responseBuildClean,
+			fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun),
 			values["ODS_NAMESPACE"],
 		}, []string{})
 
