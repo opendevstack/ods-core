@@ -43,10 +43,10 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
 	RunCommandWithWorkDir("oc", []string{
-		"delete",
-		"bc",
 		"-n", projectName,
-		buildConfigName}, dir, []string{})
+		"delete",
+		"bc", buildConfigName,
+		}, dir, []string{})
 	// we need time here - as jenkins needs to sync.
 	time.Sleep(20 * time.Second)
 	return nil

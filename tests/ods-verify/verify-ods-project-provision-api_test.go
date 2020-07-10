@@ -27,7 +27,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
 		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
 		if err != nil {
-			fmt.Printf("Could not remove buildconfig: %s", buildConfigName)
+			fmt.Printf("Could not remove buildconfig: %s, err: %s\n",
+				buildConfigName, err)
 		}	
 	}
 	// api sample script
