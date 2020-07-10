@@ -22,7 +22,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
 	} else {
 		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
-			values["ODS_NAMESPACE"] 
+			values["ODS_NAMESPACE"],
 			projectName, 
 			strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
 		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
@@ -75,7 +75,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	fmt.Printf("build run#: %s\n", responseBuildRun)
 	
 	responseBuildClean := strings.Replace(responseBuildName,
-		values["ODS_NAMESPACE"] + "-", "", 1) + "-" responseBuildRun
+		values["ODS_NAMESPACE"] + "-", "", 1) + "-" responseBuildRun)
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
