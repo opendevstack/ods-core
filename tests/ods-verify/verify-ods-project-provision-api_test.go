@@ -14,33 +14,34 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
+	// cleanup
 	projectName := "ODS3PASSO6"
-	
-	// remove the project and the build config in case it exists
-	err = utils.RemoveAllOpenshiftNamespacesForProject(strings.ToLower(projectName))
-	if err != nil {
-		fmt.Printf("Could not remove openshift namespaces for project:%s\n", err)
-	} else {
-		fmt.Println("Project successfully deleted")
-/*		buildConfigName := fmt.Sprintf("%s-ods-corejob-%s-%s",
-			values["ODS_NAMESPACE"],
-			projectName, 
-			strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
-		err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
-		if err != nil {
-			fmt.Printf("Could not remove buildconfig: %s, err: %s\n",
-				buildConfigName, err)
-		}	*/
-	}
-	// api sample script
+
+	// use the api sample script to cleanup
 	stdout, stderr, err := utils.RunScriptFromBaseDir(
+		"tests/scripts/create-project-api.sh",
+		[]string{
+			"DELETE",
+			projectName,
+		}, []string{})
+
+	if err != nil {
+		fmt.Printf((
+			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
+			stdout,
+			stderr,
+			err)
+	} 
+	
+	// api sample script - create project
+	stdout, stderr, err = utils.RunScriptFromBaseDir(
 		"tests/scripts/create-project-api.sh",
 		[]string{}, []string{})
 
 	if err != nil {
 		t.Fatalf(
-			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s",
+			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
 			stdout,
 			stderr,
 			err)
