@@ -1312,7 +1312,7 @@ function create_configuration() {
     sed -i "s|CROWD_URL=.*$|CROWD_URL=http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/crowd|" ods-core.env
     sed -i "s|PROV_APP_CONFLUENCE_ADAPTER_ENABLED=.*$|PROV_APP_CONFLUENCE_ADAPTER_ENABLED=false|" ods-core.env
     sed -i "s|PROV_APP_AUTH_BASIC_AUTH_ENABLED=.*$|PROV_APP_AUTH_BASIC_AUTH_ENABLED=true|" ods-core.env
-    sed -i "s|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=.*$|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=false|" ods-core.env
+    sed -i "s|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=.*$|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true|" ods-core.env
 
     # OpenShift
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
