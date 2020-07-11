@@ -27,7 +27,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		}, []string{})
 
 	if err != nil {
-		fmt.Printf((
+		fmt.Printf(
 			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
 			stdout,
 			stderr,
@@ -82,7 +82,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	responseBuildClean := strings.Replace(responseBuildName,
 		values["ODS_NAMESPACE"] + "-", "", 1)
 
-	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun),
+	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun)
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
