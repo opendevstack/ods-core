@@ -16,7 +16,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	}
 
 	// cleanup
-	projectName := "ODS3PASSO6"
+	projectName := "ODSVERIFY"
 
 	// use the api sample script to cleanup
 	stdout, stderr, err := utils.RunScriptFromBaseDir(
@@ -72,6 +72,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	
 	responseExecutionJobs := responseI["lastExecutionJobs"].(map[string]interface{})
 	responseBuildName := responseExecutionJobs["name"].(string)
+	
+	fmt.Printf("build name from jenkins: %s\n", responseBuildName)
 	responseJenkinsBuildUrl := responseExecutionJobs["url"].(string)
 	responseBuildRun := strings.SplitAfter(responseJenkinsBuildUrl, responseBuildName + "/")[1]
 	
@@ -79,18 +81,20 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	
 	responseBuildClean := strings.Replace(responseBuildName,
 		values["ODS_NAMESPACE"] + "-", "", 1)
+
+	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun),
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-json-status.sh",
 		[]string{
-			fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun),
+			fullBuildName,
 			values["ODS_NAMESPACE"],
 		}, []string{})
 
 	if err != nil {
 		t.Fatalf("Error getting jenkins stages for build: %s\rError: %s\n",
-			responseBuildClean, err)
+			fullBuildName, err)
 	} else {
 		fmt.Printf("Jenkins stages: \n'%s'\n", stdout)
 	}
