@@ -77,6 +77,8 @@ function display_usage() {
     echo "      --aws-access-key        AWS credentials"
     echo "      --aws-secret-key        AWS credentials"
     echo "      --ods-branch            branch to build ODS box against, e.g master"
+    echo "      --instance-type         AWS EC2 instance type to run the AMI build on. Defaults to m5ad.4xlarge."
+    echo "                              Options: t2.2xlarge, m5ad.4xlarge"
     echo
 }
 
