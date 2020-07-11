@@ -131,6 +131,8 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
+        forcePull: true
+        noCache: true
         buildArgs:
           - name: sonarVersion
             value: ${SONAR_VERSION}
