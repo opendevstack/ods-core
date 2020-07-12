@@ -85,7 +85,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	responseBuildClean := strings.Replace(responseBuildName,
 		values["ODS_NAMESPACE"] + "-", "", 1)
 
-	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun),
+	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun)
 	fmt.Printf("full buildName: %s\n", fullBuildName)
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
