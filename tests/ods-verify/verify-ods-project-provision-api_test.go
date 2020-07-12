@@ -28,8 +28,12 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 
 	if err != nil {
 		fmt.Printf(
+<<<<<<< HEAD
 			"Execution of `create-project-api.sh/delete` for '%s' failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
 			projectName,
+=======
+			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
+>>>>>>> github-ods/feature/add_prov_app_test
 			stdout,
 			stderr,
 			err)
