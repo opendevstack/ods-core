@@ -116,8 +116,21 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
 			string(expected), stdout)
 	}*/
+	CheckProjectsAreCreated(projectName, t)
 	CheckJenkinsWithTailor(values, projectName, t)
+}
 
+func CheckProjectsAreCreated (projectName string, t *testing.T) {
+	expectedProjects := []string{
+		fmt.Sprintf("%s-cd", projectName), 
+		fmt.Sprintf("%s-dev", projectName),
+		fmt.Sprintf("%s-test", projectName),
+	}
+	for _, expectedProject := range expectedProjects {
+		if err = utils.FindProject(projects, expectedProject); err != nil {
+			t.Fatal(err)
+		}
+	}	
 }
 
 func CheckJenkinsWithTailor(values map[string]string, projectName string, t *testing.T) {
