@@ -1,6 +1,8 @@
 * Administration
 ** xref:administration:installation.adoc[Installation]
-** xref:administration:update.adoc[Upgrade]
+** Upgrade
+*** xref:administration:update-2-to-3.adoc[2.x to 3.x]
+*** xref:administration:update-older.adoc[older]
 ** xref:provisioning-app:configuration.adoc[Provisioning App]
 ** xref:administration:keycloak.adoc[Keycloak]
 ** xref:sonarqube:administration.adoc[SonarQube]
