@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"fmt"
 	"strings"
-	"encoding/json"	
+	"encoding/json"
+	"runtime"
+	"path"
 )
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
@@ -130,7 +132,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectName string, t *tes
 		"--reveal-secrets",
 		"--exclude=rolebinding",
 		"-n", 
-		fmt.Sprintf("%s-cd", projectName)
+		fmt.Sprintf("%s-cd", projectName),
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
