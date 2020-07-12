@@ -3,7 +3,7 @@
 aws_access_key=
 aws_secret_key=
 
-ods_branch=
+ods_branch=master
 
 s3_bucket_name=
 s3_upload_folder=image_upload
