@@ -28,12 +28,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 
 	if err != nil {
 		fmt.Printf(
-<<<<<<< HEAD
 			"Execution of `create-project-api.sh/delete` for '%s' failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
 			projectName,
-=======
-			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
->>>>>>> github-ods/feature/add_prov_app_test
 			stdout,
 			stderr,
 			err)
@@ -108,6 +104,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	}
 	
 	// verify provision jenkins stages - against golden record
+	/*
 	expected, err := ioutil.ReadFile("golden/create-project-response.json")
 	if err != nil {
 		t.Fatal(err)
@@ -116,6 +113,31 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	if stdout != string(expected) {
 		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
 			string(expected), stdout)
-	}
+	}*/
+	CheckJenkinsWithTailor(values, projectName + "cd", projectName, t)
 
+}
+
+func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, projectName string, t *testing.T) {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
+
+	user := values["CD_USER_ID_B64"]
+	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
+
+	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
+		"diff",
+		"--reveal-secrets",
+		"--exclude=rolebinding",
+		"-n", projectNameCd,
+		fmt.Sprintf("--param=PROJECT=%s", projectName),
+		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
+		"--selector", "template=ods-jenkins-template",
+		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
+	if err != nil {
+		t.Fatalf(
+			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
+			stdout,
+			stderr)
+	}
 }
