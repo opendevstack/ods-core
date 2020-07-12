@@ -114,11 +114,11 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
 			string(expected), stdout)
 	}*/
-	CheckJenkinsWithTailor(values, projectName + "cd", projectName, t)
+	CheckJenkinsWithTailor(values, projectName, t)
 
 }
 
-func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, projectName string, t *testing.T) {
+func CheckJenkinsWithTailor(values map[string]string, projectName string, t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
@@ -129,7 +129,8 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 		"diff",
 		"--reveal-secrets",
 		"--exclude=rolebinding",
-		"-n", projectNameCd,
+		"-n", 
+		fmt.Sprintf("%s-cd", projectName)
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
