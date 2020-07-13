@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"runtime"
 	"path"
+	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 )
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
