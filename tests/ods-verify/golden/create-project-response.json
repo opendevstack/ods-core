@@ -10,5 +10,9 @@
   {
     "stage": "Create OpenShift projects",
     "status": "SUCCESS"
+  },
+  {
+    "stage": "Setup Jenkins in CD project",
+    "status": "SUCCESS"
   }
 ]
