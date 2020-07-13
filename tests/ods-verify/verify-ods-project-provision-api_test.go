@@ -94,7 +94,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	fmt.Printf("full buildName: %s\n", fullBuildName)
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
-	stdout, _, err = utils.RunScriptFromBaseDir(
+	stdout, stderr, err = utils.RunScriptFromBaseDir(
 		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
 			fullBuildName,
@@ -102,8 +102,11 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		}, []string{})
 
 	if err != nil {
-		t.Fatalf("Error getting jenkins stages for build: %s\rError: %s\n",
-			fullBuildName, err)
+		t.Fatalf("Error getting jenkins stages for build: %s\rStdout: %s\n, Stderr: %s\n, Error: %s\n",
+			fullBuildName,
+			stdout,
+			stderr,
+			err)
 	} else {
 		fmt.Printf("Jenkins stages: \n'%s'\n", stdout)
 	}
