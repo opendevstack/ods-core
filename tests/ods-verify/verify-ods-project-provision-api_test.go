@@ -157,9 +157,9 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 func CheckProjectsAreCreated (projectName string, t *testing.T) {
 	// check that all three projects were created
 	expectedProjects := []string{
-		fmt.Sprintf("%s-cd", projectName), 
-		fmt.Sprintf("%s-dev", projectName),
-		fmt.Sprintf("%s-test", projectName),
+		fmt.Sprintf("%s-cd", string.ToLower(projectName)), 
+		fmt.Sprintf("%s-dev", string.ToLower(projectName)),
+		fmt.Sprintf("%s-test", string.ToLower(projectName)),
 	}
 	config, err := utils.GetOCClient()
 	if err != nil {
