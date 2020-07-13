@@ -32,6 +32,10 @@ echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in fi
 echo
 RESPONSE_FILE=response.txt
 
+if [ -f $RESPONSE_FILE ]; then
+	rm -f $RESPONSE_FILE
+fi
+
 if [ ${COMMAND^^} == "POST" ] || [ ${COMMAND^^} == "PUT" ]; then
 echo
 	echo "create or update project - ${COMMAND^^}"
