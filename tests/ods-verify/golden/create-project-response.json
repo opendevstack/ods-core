@@ -1,1 +1,14 @@
-{}
+[
+  {
+    "stage": "Checkout ods-core",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Checkout ods-configuration",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Create OpenShift projects",
+    "status": "SUCCESS"
+  }
+]

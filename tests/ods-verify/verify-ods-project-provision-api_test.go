@@ -146,7 +146,6 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	}
 	
 	// verify provision jenkins stages - against golden record
-	/*
 	expected, err := ioutil.ReadFile("golden/create-project-response.json")
 	if err != nil {
 		t.Fatal(err)
@@ -155,9 +154,9 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	if stdout != string(expected) {
 		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
 			string(expected), stdout)
-	}*/
+	}
 	CheckProjectsAreCreated(projectName, t)
-	CheckJenkinsWithTailor(values, projectName, t)
+	CheckJenkinsWithTailor(values, strings.ToLower(projectName), t)
 }
 
 func CheckProjectsAreCreated (projectName string, t *testing.T) {
