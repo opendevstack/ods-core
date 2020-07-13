@@ -40,7 +40,13 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			stdout,
 			stderr,
 			err)
-	} 
+	} else {
+		fmt.Printf(
+			"Execution of `create-project-api.sh/delete` for '%s' worked: \nStdOut: %s\n",
+			projectName,
+			stdout)
+		time.Sleep(20 * time.Second)
+	}
 	
 	// api sample script - create project
 	stdout, stderr, err = utils.RunScriptFromBaseDir(
