@@ -97,12 +97,12 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 
 	config, err := utils.GetOCClient()
 	if err != nil {
-		return "", fmt.Errorf("Error creating OC config: %s", err)
+		t.Fatalf("Error creating OC config: %s", err)
 	}
 
 	buildClient, err := buildClientV1.NewForConfig(config)
 	if err != nil {
-		return "", fmt.Errorf("Error creating Build client: %s", err)
+		t.Fatalf("Error creating Build client: %s", err)
 	}
 
 	time.Sleep(10 * time.Second)
