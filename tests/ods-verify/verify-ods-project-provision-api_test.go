@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"encoding/json"
+	"encoding/base64"
 	"runtime"
 	"path"
 	"time"
@@ -84,6 +85,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			projectName, responseProjectName) 
 	}
 	
+	webhookProxySecret := responseI["webhookProxySecret"].(string)
+	
 	responseExecutionJobsArray := responseI["lastExecutionJobs"].([]interface{})
 	responseExecutionJobs := responseExecutionJobsArray[len(responseExecutionJobsArray) - 1].
 		(map[string]interface{})
@@ -156,7 +159,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 			string(expected), stdout)
 	}
 	CheckProjectsAreCreated(projectName, t)
-	CheckJenkinsWithTailor(values, strings.ToLower(projectName), t)
+	CheckJenkinsWithTailor(values, strings.ToLower(projectName), webhookProxySecret, t)
 }
 
 func CheckProjectsAreCreated (projectName string, t *testing.T) {
@@ -185,12 +188,12 @@ func CheckProjectsAreCreated (projectName string, t *testing.T) {
 	}	
 }
 
-func CheckJenkinsWithTailor(values map[string]string, projectName string, t *testing.T) {
+func CheckJenkinsWithTailor(values map[string]string, projectName string, webhookSecret string, t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
 	user := values["CD_USER_ID_B64"]
-	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
+	secret := base64.StdEncoding.EncodeToString([]byte(webhookSecret))
 
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
 		"diff",
