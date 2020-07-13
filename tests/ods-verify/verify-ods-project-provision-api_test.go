@@ -9,9 +9,11 @@ import (
 	"encoding/json"
 	"runtime"
 	"path"
+	"time"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	v1 "github.com/openshift/api/build/v1"
+	buildClientV1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 )
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
@@ -92,6 +94,32 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 
 	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun)
 	fmt.Printf("full buildName: %s\n", fullBuildName)
+
+	config, err := utils.GetOCClient()
+	if err != nil {
+		return "", fmt.Errorf("Error creating OC config: %s", err)
+	}
+
+	buildClient, err := buildClientV1.NewForConfig(config)
+	if err != nil {
+		return "", fmt.Errorf("Error creating Build client: %s", err)
+	}
+
+	time.Sleep(10 * time.Second)
+	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(fullBuildName, metav1.GetOptions{})
+	count := 0
+	// especially provision builds with CLIs take longer ... 
+	max := 40
+	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
+		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fullBuildName, metav1.GetOptions{})
+		time.Sleep(20 * time.Second)
+		if err != nil {
+			fmt.Printf("Err Build: %s is still not available, %s\n", fullBuildName, err)
+		} else {
+			fmt.Printf("Waiting for build to complete: %s. Current status: %s\n", fullBuildName, build.Status.Phase)
+		}
+		count++
+	}
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, stderr, err = utils.RunScriptFromBaseDir(
