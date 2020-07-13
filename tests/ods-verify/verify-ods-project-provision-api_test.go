@@ -92,7 +92,7 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	
 	// get (executed) jenkins stages from run - the caller can compare against the golden record 
 	stdout, _, err = utils.RunScriptFromBaseDir(
-		"tests/scripts/print-jenkins-json-status.sh",
+		"tests/scripts/utils/print-jenkins-json-status.sh",
 		[]string{
 			fullBuildName,
 			values["ODS_NAMESPACE"],
@@ -121,11 +121,24 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 }
 
 func CheckProjectsAreCreated (projectName string, t *testing.T) {
+	// check that all three projects were created
 	expectedProjects := []string{
 		fmt.Sprintf("%s-cd", projectName), 
 		fmt.Sprintf("%s-dev", projectName),
 		fmt.Sprintf("%s-test", projectName),
 	}
+	config, err := utils.GetOCClient()
+	if err != nil {
+		t.Fatalf("Error creating OC config: %s", err)
+	}
+	client, err := projectClientV1.NewForConfig(config)
+	if err != nil {
+		t.Fatalf("Error creating Project client: %s", err)
+	}
+	projects, err := client.Projects().List(metav1.ListOptions{})
+	if err != nil {
+		t.Fatalf("Cannot list projects: %s", err)
+	}	
 	for _, expectedProject := range expectedProjects {
 		if err = utils.FindProject(projects, expectedProject); err != nil {
 			t.Fatal(err)
