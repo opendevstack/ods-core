@@ -204,7 +204,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectName string, webhoo
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
-		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
+		fmt.Sprintf("--param=%s", fmt.Sprintf("PIPELINE_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
