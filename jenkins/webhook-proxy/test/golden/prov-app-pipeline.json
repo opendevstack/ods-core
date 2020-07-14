@@ -3,7 +3,8 @@
     "apiVersion": "v1",
     "metadata": {
         "name": "ods-provisioning-app-production",
-        "creationTimestamp": null
+        "creationTimestamp": null,
+        "resourceVersion": "0"
     },
     "spec": {
         "triggers": [

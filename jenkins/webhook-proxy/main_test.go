@@ -186,7 +186,11 @@ func (c *mockClient) Forward(e *Event, triggerSecret string) (int, []byte, error
 	c.Event = e
 	return 200, nil, nil
 }
-func (c *mockClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
+func (c *mockClient) GetPipeline(e *Event) (bool, []byte, error) {
+	c.Event = e
+	return false, nil, nil
+}
+func (c *mockClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
 	c.Event = e
 	return 0, nil
 }
@@ -626,63 +630,90 @@ func TestBuildEndpoint(t *testing.T) {
 		whpPayload                string
 		whpExpectedResponseStatus int
 		whpExpectedResponseBody   string
-		openshiftExpectedPayload  string
-		openshiftResponseBody     string
-		openshiftResponseStatus   int
+		bcGetResponseBody         string // response when asked for the pipeline
+		bcUpsertExpectedPayload   string // expected payload of request to POST/PUT pipeline
+		bcUpsertResponseBody      string // response when pipeline is created/updated
+		bcUpsertResponseStatus    int    // code when pipeline is created/updated
 	}{
 		"request without trigger secret": {
 			whpPath:                   "/build",
 			whpPayload:                "test/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 401,
 			whpExpectedResponseBody:   "",
-			openshiftExpectedPayload:  "",
-			openshiftResponseBody:     "",
-			openshiftResponseStatus:   0,
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    0,
 		},
 		"valid payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
-			openshiftExpectedPayload:  "test/golden/build-pipeline.json",
-			openshiftResponseBody:     "",
-			openshiftResponseStatus:   201,
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "test/golden/build-pipeline.json",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    201,
 		},
 		"valid payload with param": {
 			whpPath:                   "/build?component=baz&trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
-			openshiftExpectedPayload:  "test/golden/build-component-pipeline.json",
-			openshiftResponseBody:     "",
-			openshiftResponseStatus:   201,
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "test/golden/build-component-pipeline.json",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    201,
 		},
 		"broken payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-broken-payload.txt",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Cannot parse JSON: invalid character '\"' after object key:value pair\n",
-			openshiftExpectedPayload:  "",
-			openshiftResponseBody:     "",
-			openshiftResponseStatus:   0,
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    0,
 		},
 		"invalid payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-invalid-payload.json",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Invalid input\n",
-			openshiftExpectedPayload:  "",
-			openshiftResponseBody:     "",
-			openshiftResponseStatus:   0,
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    0,
 		},
 		"accepted payload rejected by OpenShift": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
 			whpPayload:                "test/fixtures/build-rejected-payload.json",
 			whpExpectedResponseStatus: 422,
-			whpExpectedResponseBody:   "Could not create pipeline\n",
-			openshiftExpectedPayload:  "",
-			openshiftResponseBody:     "test/fixtures/build-rejected-openshift-response.json",
-			openshiftResponseStatus:   422,
+			whpExpectedResponseBody:   "Could not create/update pipeline\n",
+			bcGetResponseBody:         "",
+			bcUpsertExpectedPayload:   "",
+			bcUpsertResponseBody:      "test/fixtures/build-rejected-openshift-response.json",
+			bcUpsertResponseStatus:    422,
+		},
+		"existing pipeline with different jenkinsfile path": {
+			whpPath:                   "/build?trigger_secret=s3cr3t&jenkinsfile_path=bar/Jenkinsfile",
+			whpPayload:                "test/fixtures/build-payload.json",
+			whpExpectedResponseStatus: 200,
+			whpExpectedResponseBody:   "",
+			bcGetResponseBody:         "test/fixtures/build-pipeline-jenkinsfilepath.json",
+			bcUpsertExpectedPayload:   "test/golden/build-pipeline-jenkinsfilepath.json",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    201,
+		},
+		"existing pipeline with different branch": {
+			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPayload:                "test/fixtures/build-payload.json",
+			whpExpectedResponseStatus: 200,
+			whpExpectedResponseBody:   "",
+			bcGetResponseBody:         "test/fixtures/build-pipeline-branch.json",
+			bcUpsertExpectedPayload:   "test/golden/build-pipeline-branch.json",
+			bcUpsertResponseBody:      "",
+			bcUpsertResponseStatus:    201,
 		},
 	}
 
@@ -690,8 +721,8 @@ func TestBuildEndpoint(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Expected payload to create the BuildConfig
 			expectedOpenshiftPayload := []byte{}
-			if tc.openshiftExpectedPayload != "" {
-				e, err := ioutil.ReadFile(tc.openshiftExpectedPayload)
+			if tc.bcUpsertExpectedPayload != "" {
+				e, err := ioutil.ReadFile(tc.bcUpsertExpectedPayload)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -699,8 +730,8 @@ func TestBuildEndpoint(t *testing.T) {
 			}
 
 			openshiftResponseBody := []byte{}
-			if tc.openshiftResponseBody != "" {
-				or, err := ioutil.ReadFile(tc.openshiftResponseBody)
+			if tc.bcUpsertResponseBody != "" {
+				or, err := ioutil.ReadFile(tc.bcUpsertResponseBody)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -715,11 +746,26 @@ func TestBuildEndpoint(t *testing.T) {
 				if strings.HasSuffix(r.URL.Path, "/buildconfigs") && r.Method == "POST" {
 					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
 				}
+				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "PUT" {
+					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
+				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
-					http.Error(w, "Not found", http.StatusNotFound)
+					if len(tc.bcGetResponseBody) == 0 {
+						http.Error(w, "Not found", http.StatusNotFound)
+						return
+					}
+					w.WriteHeader(200)
+					grb, err := ioutil.ReadFile(tc.bcGetResponseBody)
+					if err != nil {
+						t.Fatal(err)
+					}
+					_, err = w.Write(grb)
+					if err != nil {
+						t.Fatal(err)
+					}
 					return
 				}
-				w.WriteHeader(tc.openshiftResponseStatus)
+				w.WriteHeader(tc.bcUpsertResponseStatus)
 				_, err := w.Write(openshiftResponseBody)
 				if err != nil {
 					t.Fatal(err)
@@ -814,6 +860,7 @@ func TestGetBuildConfig(t *testing.T) {
 		Branch:          "master",
 		JenkinsfilePath: "foo/Jenkinsfile",
 		Env:             string(env),
+		ResourceVersion: "0",
 	}
 	b, err := getBuildConfig(tmpl, data)
 	if err != nil {
