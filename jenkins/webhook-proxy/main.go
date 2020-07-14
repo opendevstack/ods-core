@@ -70,13 +70,35 @@ type BuildConfigData struct {
 	Branch          string
 	JenkinsfilePath string
 	Env             string
+	ResourceVersion string
+}
+
+// buildConfig represents the relevant fields of an OpenShift BuildConfig, see
+// https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
+type buildConfig struct {
+	Metadata struct {
+		ResourceVersion string `json:"resourceVersion"`
+	} `json:"metadata"`
+	Spec struct {
+		Source struct {
+			Git struct {
+				Ref string `json:"ref"`
+			} `json:"git"`
+		} `json:"source"`
+		Strategy struct {
+			JenkinsPipelineStrategy struct {
+				JenkinsfilePath string `json:"jenkinsfilePath"`
+			} `json:"jenkinsPipelineStrategy"`
+		} `json:"strategy"`
+	} `json:"spec"`
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
 	Forward(e *Event, triggerSecret string) (int, []byte, error)
-	CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
+	GetPipeline(e *Event) (bool, []byte, error)
+	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
 }
 
@@ -431,11 +453,49 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				project,
 				event.Repo,
 			)
-			env, forwardErr := json.Marshal(event.Env)
-			if forwardErr != nil {
-				log.Println(requestID, fmt.Sprintf("Cannot convert envs to JSON: %s", forwardErr))
+			env, marshalErr := json.Marshal(event.Env)
+			if marshalErr != nil {
+				log.Println(requestID, fmt.Sprintf("Cannot convert envs to JSON: %s", marshalErr))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
+			}
+
+			bcExists, bcBody, getErr := s.Client.GetPipeline(event)
+			if getErr != nil {
+				msg := "Could not check for existing pipeline"
+				log.Println(requestID, fmt.Sprintf("%s: %s", msg, getErr))
+				http.Error(w, msg, http.StatusInternalServerError)
+				return
+			}
+
+			updatePipeline := false
+			resourceVersion := "0"
+			// Check if we need to update an existing pipeline
+			if bcExists {
+				bc := buildConfig{}
+				unmarshalErr := json.Unmarshal(bcBody, &bc)
+				if unmarshalErr != nil {
+					msg := "Could not read existing pipeline"
+					log.Println(requestID, fmt.Sprintf("%s: %s", msg, unmarshalErr))
+					http.Error(w, msg, http.StatusInternalServerError)
+					return
+				}
+				if bc.Spec.Source.Git.Ref != event.Branch {
+					log.Println(requestID, fmt.Sprintf(
+						"Current branch %s differs from requested branch %s", bc.Spec.Source.Git.Ref, event.Branch,
+					))
+					updatePipeline = true
+					resourceVersion = bc.Metadata.ResourceVersion
+				}
+				if bc.Spec.Strategy.JenkinsPipelineStrategy.JenkinsfilePath != jenkinsfilePath {
+					log.Println(requestID, fmt.Sprintf(
+						"Current jenkinsfilePath %s differs from requested jenkinsfilePath %s",
+						bc.Spec.Strategy.JenkinsPipelineStrategy.JenkinsfilePath,
+						jenkinsfilePath,
+					))
+					updatePipeline = true
+					resourceVersion = bc.Metadata.ResourceVersion
+				}
 			}
 
 			buildConfigData := BuildConfigData{
@@ -445,13 +505,18 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				Branch:          event.Branch,
 				JenkinsfilePath: jenkinsfilePath,
 				Env:             string(env),
+				ResourceVersion: resourceVersion,
 			}
-			createStatusCode, createErr := s.Client.CreatePipelineIfRequired(tmpl, event, buildConfigData)
-			if createErr != nil {
-				msg := "Could not create pipeline"
-				log.Println(requestID, fmt.Sprintf("%s [%d]: %s", msg, createStatusCode, createErr))
-				http.Error(w, msg, createStatusCode)
-				return
+
+			// create or update
+			if !bcExists || updatePipeline {
+				createStatusCode, createErr := s.Client.CreateOrUpdatePipeline(bcExists, tmpl, event, buildConfigData)
+				if createErr != nil {
+					msg := "Could not create/update pipeline"
+					log.Println(requestID, fmt.Sprintf("%s [%d]: %s", msg, createStatusCode, createErr))
+					http.Error(w, msg, createStatusCode)
+					return
+				}
 			}
 			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event, s.TriggerSecret)
 			if forwardErr != nil {
@@ -539,19 +604,10 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	return res.StatusCode, body, err
 }
 
-// CreatePipelineIfRequired ensures that the pipeline which corresponds to the
+// CreateOrUpdatePipeline ensures that the pipeline which corresponds to the
 // received event exists in OpenShift.
 // It returns any errors, the status code and the response body
-func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
-	exists, err := c.checkPipeline(e)
-	if err != nil {
-		return 500, err
-	}
-
-	if exists {
-		return 200, nil
-	}
-
+func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error) {
 	jsonBuffer, err := getBuildConfig(tmpl, data)
 	if err != nil {
 		return 500, err
@@ -562,11 +618,12 @@ func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, d
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 	)
-	req, _ := http.NewRequest(
-		"POST",
-		url,
-		jsonBuffer,
-	)
+	verb := "POST"
+	if exists {
+		verb = "PUT"
+		url = fmt.Sprintf("%s/%s", url, data.Name)
+	}
+	req, _ := http.NewRequest(verb, url, jsonBuffer)
 	res, err := c.do(req)
 	if err != nil {
 		return 500, fmt.Errorf("could not make OpenShift request: %s", err)
@@ -579,7 +636,7 @@ func (c *ocClient) CreatePipelineIfRequired(tmpl *template.Template, e *Event, d
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return res.StatusCode, fmt.Errorf("could not create pipeline: %s", body)
+		return res.StatusCode, fmt.Errorf("unexpected return code for %s %s: %s", verb, url, body)
 	}
 
 	log.Println(e.RequestID, "Created pipeline", e.Pipeline)
@@ -618,9 +675,9 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	return nil
 }
 
-// checkPipeline determines whether the pipeline corresponding to the given
+// GetPipeline determines whether the pipeline corresponding to the given
 // event already exists.
-func (c *ocClient) checkPipeline(e *Event) (bool, error) {
+func (c *ocClient) GetPipeline(e *Event) (bool, []byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s",
 		c.OpenShiftAPIBaseURL,
@@ -634,15 +691,20 @@ func (c *ocClient) checkPipeline(e *Event) (bool, error) {
 	)
 	res, err := c.do(req)
 	if err != nil {
-		return false, fmt.Errorf("could not make OpenShift request: %s", err)
+		return false, nil, fmt.Errorf("could not make OpenShift request: %s", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return false, nil
+		return false, nil, nil
 	}
 
-	return true, nil
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, nil, fmt.Errorf("could not read OpenShift response: %s", err)
+	}
+
+	return true, body, nil
 }
 
 // do executes the request.
