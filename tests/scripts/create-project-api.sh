@@ -55,10 +55,10 @@ echo
 	--header 'Content-Type: application/json' \
 	--data @"$PROVISION_FILE" \
 	--dump-header headers.txt -o ${RESPONSE_FILE} -w "%{http_code}" )
-elif [ ${COMMAND^^} == "DELETE" ]; then
-	echo "delete project or component"
+elif [ ${COMMAND^^} == "DELETE" ] || [ ${COMMAND^^} == "GET" ]; then
+	echo "delete / get project - ${COMMAND^^}"
 	if [ -z $2 ]; then
-		echo "Project ID must be passed as second param in case of command == delete!!"
+		echo "Project Key must be passed as second param in case of command == delete or get!!"
 		exit 1
 	fi
 
@@ -68,7 +68,7 @@ elif [ ${COMMAND^^} == "DELETE" ]; then
 	--header 'Content-Type: application/json' \
 	--dump-header headers.txt -o ${RESPONSE_FILE} -w "%{http_code}" )
 else
-	echo "WARNING: Command ${COMMAND} not supported, only POST, PUT or DELETE"
+	echo "ERROR: Command ${COMMAND} not supported, only GET, POST, PUT or DELETE"
 	exit 1
 fi
 
