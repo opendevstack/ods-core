@@ -6,6 +6,7 @@ import (
 	"time"
 	"path"
 	"runtime"
+	"fmt"
 )
 
 func RemoveProject(projectName string) error {
@@ -42,10 +43,10 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
 	RunCommandWithWorkDir("oc", []string{
-		"delete",
-		"bc",
 		"-n", projectName,
-		buildConfigName}, dir, []string{})
+		"delete",
+		"bc", buildConfigName,
+		}, dir, []string{})
 	// we need time here - as jenkins needs to sync.
 	time.Sleep(20 * time.Second)
 	return nil
@@ -62,6 +63,24 @@ func RemoveAllTestOCProjects() error {
 		return err
 	}
 	err = RemoveProject(PROJECT_NAME_CD)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RemoveAllOpenshiftNamespacesForProject(project string) error {
+
+	err := RemoveProject(fmt.Sprintf("%s-test", project))
+	if err != nil {
+		return err
+	}
+	err = RemoveProject(fmt.Sprintf("%s-dev", project))
+	if err != nil {
+		return err
+	}
+	err = RemoveProject(fmt.Sprintf("%s-cd", project))
 	if err != nil {
 		return err
 	}

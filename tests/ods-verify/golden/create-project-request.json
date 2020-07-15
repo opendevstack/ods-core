@@ -1,0 +1,8 @@
+{
+    "projectName": "ODSVERIFY",
+    "projectKey": "ODSVERIFY",
+    "description": "Prov App test",
+    "projectType": "default",
+    "bugtrackerSpace": true,
+    "platformRuntime": true
+}

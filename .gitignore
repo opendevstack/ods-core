@@ -1,5 +1,6 @@
 .project
 .vscode
+*.swp
 *.env
 /Finished
 /Package
@@ -17,3 +18,6 @@ ods-core.iml
 .DS_Store
 packer_cache
 output-vmware-iso
+prov-app-config.txt
+headers.txt
+response.txt
