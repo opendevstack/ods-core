@@ -176,6 +176,14 @@ In `ods-core` run:
 make install-jenkins
 ----
 
+Then, there are further Jenkins agent images for each quickstarter technology.
+
+To create those images, run the following from `ods-quickstarters`:
+[source,sh]
+----
+make install-jenkins-agent
+----
+
 === Document Generation service
 At this stage you can setup or modify the image stream for the Document Generation service.
 
