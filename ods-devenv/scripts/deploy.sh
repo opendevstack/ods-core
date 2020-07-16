@@ -1520,17 +1520,19 @@ function setup_jenkins_agents() {
         popd
     done
 
-    local fail_count=0
+    local return_value=0
     for job in $(jobs -p)
     do
         echo "Waiting for openshift build configuration ${job} to be created."
-        wait "${job}" || fail_count=$((fail_count + 1))
-        echo "build configuration job ${job} returned. Number of failed jobs is ${fail_count}"
+        wait "${job}"
+        return_value=$?
+        if [[ "${return_value}" != 0 ]]
+        then
+            echo "Jenkins agent setup failed."
+            exit 1
+        fi
+        echo "build configuration job ${job} returned."
     done
-    if [[ "${fail_count}" -gt 0 ]]
-    then
-        echo "${fail_count} of the jenkins-agent build configurations failed."
-    fi
 
     for technology in $(ls -d -- */)
     do
@@ -1542,16 +1544,16 @@ function setup_jenkins_agents() {
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-agent builds  ${job} to complete."
-        wait "${job}" || fail_count=$((fail_count + 1))
-        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+        echo "Waiting for jenkins-agent builds ${job} to complete."
+        wait "${job}"
+        return_value=$?
+        if [[ "${return_value}" != 0 ]]
+        then
+            echo "Jenkins agent setup failed."
+            exit 1
+        fi
+        echo "build job ${job} returned."
     done
-    if [[ "${fail_count}" -gt 0 ]]
-    then
-        echo "${fail_count} of the jenkins-agent builds failed."
-        # don't return an error code here. The fail_count impl above is not reliable
-        # and the tests afterwards will find issues anyway.
-    fi
 }
 
 #######################################
