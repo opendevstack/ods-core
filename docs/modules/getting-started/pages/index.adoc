@@ -45,9 +45,9 @@ Major releases of OpenDevStack happen roughly every half year. Each major releas
 - point to `v2.0`, `v3.0`, etc. to pin an exact version
 - use a custom branch / tag such as `2.acme` or `3.custom` etc. to run ODS with customizations
 
-A major update (e.g. `2.x` to `3.x` or `3.x` to `4.x`) is, from a user perspective, an explicit update. This means that even if admins do update the ODS installation in the cluster, users still have to adopt that change (e.g. by updating their Jenkins image reference and so on). A major version change is accompanied by an update guide like xref:update-guides:3x.adoc.
+A major update (e.g. `2.x` to `3.x` or `3.x` to `4.x`) is, from a user perspective, an explicit update. This means that even if admins update the ODS installation in the cluster, users still have to adopt that change (e.g. by updating their Jenkins image reference and so on). Therefore, a major version change is accompanied by an update guide like xref:update-guides:3x.adoc[Update to 3.x]. For admins, a major update might mean that configuration options have to be changed or migration steps to be taken, as well as rebuilding and rolling out all images etc.
 
-A minor update (consuming changes/bugfixs on a release branch such as 3.x). From a user perspective, this is an implicit update. This means that only admins have to make a change to the ODS installation in the cluster. Users must get those changes automatically, without the need to explicitly adopt it. Therefore, there is no update guide for minor updates.
+A minor update (consuming changes/bugfixs on a release branch such as 3.x). From a user perspective, this is an implicit update. This means that only admins have to make a change to the ODS installation in the cluster. Users must get those changes automatically, without the need to explicitly adopt it. Therefore, there is no update guide for minor updates. For admins, a minor update should not require changing configuration options nor performing migration steps - only rebuilding and rolling out some (or all) images should be needed.
 
 == Roadmap
 
