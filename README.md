@@ -11,11 +11,11 @@ The extended, most up to date, user friendly documentation can be found @ [opend
 
 ## Contents
 1. [Jenkins master](jenkins/master) & base agent - the basis of the ODS build engine<br>
-The [base agent](jenkins/agent-base) provides plugins for Sonarqube, optionally Snyk, CNES and is HTTP proxy aware.
-Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder agents`. These `agents` are based on the ods `jenkins base agent` and are hosted in the [ods-quickstarter repository](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents) - next to their respective [boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master). <br><br>During `jenkins` builds instances/pods of those `builder / agent` images can be found within the project specific `cd` namespace.
+The [base agent](jenkins/agent-base) provides plugins for Sonarqube, optionally Snyk, CNES, skopeo and is HTTP proxy aware.
+Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder agents`. These `agents` are based on the ods `jenkins base agent` and are hosted in the [ods-quickstarter repository](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents) - next to their respective [boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master). <br><br>During `jenkins` builds, instances/pods of those `builder / agent` images can be found within the project specific `cd` namespace.
 *Deployment:* one global Jenkins instance in the central `ods` namespace
 
-1. [Jenkins Webhook proxy](jenkins/webhook-proxy) - the glue layer between Bitbucket / Jira and Jenkins - to start a build from a change in a repository. *Deployment:* There is one instance of the webhook proxy in each project's `cd` namespace.
+1. [Jenkins Webhook proxy](jenkins/webhook-proxy) - the glue layer between Bitbucket / Jira and Jenkins - to start a build from a change in a repository. *Deployment:* There is one instance of the webhook proxy in each project's `cd` namespace. The base image of the webhook proxy is located in the central `ods` namespace
 
 1. [Nexus](nexus) - repository manager <br>
 Nexus is used as artifact manager throughout OpenDevStack. Each [`jenkins agent`](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents) is configured to bind to the installed NEXUS to centralize build / dependency artifact resolution. *Deployment:* There is one central instance of Nexus in the `ods` project
@@ -28,7 +28,7 @@ Provides the functionality to provision new projects and also components within 
 
 1. [ODS document generation service](ods-document-generation-svc) - a service used to create PDF documents from json input and html templates.
 Used by the [release manager quickstarter](https://github.com/opendevstack/ods-quickstarters/tree/master/release-manager).
-The templates are located in the [templates repository](https://github.com/opendevstack/ods-document-generation-templates). <br>The code for the documentation generation service is located [here](https://github.com/opendevstack/ods-document-generation-svc). In case you want to work on the doc gen service, and build it yourself - there is a quickstarter that allows this, namely [ODS Document Generation Service](https://github.com/opendevstack/ods-quickstarters/tree/master/ods-document-gen-svc). *Deployment:* There is one instance of the document generation service in each project's `cd` namespace.
+The templates are located in the [templates repository](https://github.com/opendevstack/ods-document-generation-templates). <br>The code for the documentation generation service is located [here](https://github.com/opendevstack/ods-document-generation-svc). In case you want to work on the document generation service, and build it yourself - there is a quickstarter that allows this, namely [ODS Document Generation Service](https://github.com/opendevstack/ods-quickstarters/tree/master/ods-document-gen-svc). *Deployment:* There is one instance of the document generation service in each project's `cd` namespace. The base image of the doc gen service is located in the central `ods` namespace
 
 1. [Atlassian infrastructure](infrastructure-setup) <br>
 Contains all the ansible scripts to setup jira / confluence / bitbucket and atlassian crowd. Optional, if you have your own instances running, you can just configure OpenDevStack to use those.
