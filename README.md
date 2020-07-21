@@ -42,5 +42,5 @@ The automated tests for ods core are in two locations:<br>
 a) located side by side to the components, e.g for `sonarqube` they are located in [sonarqube/test.sh](sonarqube/test.sh). <br>
 b) inside the [/tests](tests) directory. </p> The tests can be started with `make test`, which will call two test-suites. Namely, the tests to create a new project in [/tests/create-projects](tests/create-projects) and those in [/tests/ods-verify](tests/ods-verify). If both pass - the setup of ods-core components is successfull. <br>Running the ods-core tests is also a pre-condition for the [ods-quickstarter tests](https://github.com/opendevstack/ods-quickstarters/tree/master/tests), as the test projects are created thru the tests here.
 
-1. [ODS Development Environment / ODS in a box](ods-devenv)
-ODS ships als as Amazon AMI, the scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version on a plain vm. Simply execute (ods-devenv/ods-devenv/scripts/bootstrap.sh)
+1. [ODS Development Environment / ODS in a box](ods-devenv)<br>
+ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version of ODS on a plain linux vm. Simply execute (ods-devenv/ods-devenv/scripts/bootstrap.sh)
