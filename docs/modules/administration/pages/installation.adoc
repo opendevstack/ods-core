@@ -98,7 +98,7 @@ WARNING: Documentation for this is missing.
 
 TIP: If you are on Linux, `oc cluster up` will do the trick.
 
-== Bitbucket Repoisitories
+== Bitbucket Repositories
 
 On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary repositories such as `ods-core`. To set them up, use:
 
