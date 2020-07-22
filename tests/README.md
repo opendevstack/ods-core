@@ -10,4 +10,4 @@ This packages houses the test infrastructure, yet also makes use of tests locate
 depend on projects created thru tests here!
 
 ## Running the tests
-just run `make test` [here](Makefile) directory
+just run `make test` [in this directory](Makefile)
