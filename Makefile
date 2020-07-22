@@ -4,9 +4,9 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-NAMESPACE=ods
-NEXUS_URL=
-SONARQUBE_URL=
+ODS_NAMESPACE := $(shell $(CURDIR)/scripts/get-config-param.sh ODS_NAMESPACE)
+NEXUS_URL := $(shell $(CURDIR)/scripts/get-config-param.sh NEXUS_URL)
+SONARQUBE_URL := $(shell $(CURDIR)/scripts/get-config-param.sh SONARQUBE_URL)
 
 # REPOSITORIES
 ## Prepare Bitbucket repos (create project and repos).
@@ -35,7 +35,7 @@ prepare-config:
 # ODS SETUP
 ## Setup central "ods" project.
 install-ods-project:
-	cd ods-setup && ./setup-ods-project.sh --namespace ${NAMESPACE} --reveal-secrets
+	cd ods-setup && ./setup-ods-project.sh --namespace $(ODS_NAMESPACE) --reveal-secrets
 
 
 # JENKINS
@@ -45,12 +45,12 @@ install-jenkins: apply-jenkins-build start-jenkins-build apply-jenkins-deploy
 
 ## Update OpenShift resources related to Jenkins images.
 apply-jenkins-build:
-	cd jenkins/ocp-config/build && tailor apply --namespace ${NAMESPACE}
+	cd jenkins/ocp-config/build && tailor apply --namespace $(ODS_NAMESPACE)
 .PHONY: apply-jenkins-build
 
 ## Install a jenkins instance in the ods namespace (needed by the provisioning app)
 apply-jenkins-deploy:
-	cd jenkins/ocp-config/deploy && tailor apply --namespace ${NAMESPACE} --selector template=ods-jenkins-template
+	cd jenkins/ocp-config/deploy && tailor apply --namespace $(ODS_NAMESPACE) --selector template=ods-jenkins-template
 .PHONY: apply-jenkins-deploy
 
 ## Start build of all Jenkins BuildConfig resources.
@@ -59,17 +59,17 @@ start-jenkins-build: start-jenkins-build-master start-jenkins-build-agent-base s
 
 ## Start build of BuildConfig "jenkins-master".
 start-jenkins-build-master:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config jenkins-master
 .PHONY: start-jenkins-build-master
 
 ## Start build of BuildConfig "jenkins-agent-base".
 start-jenkins-build-agent-base:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-agent-base
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config jenkins-agent-base
 .PHONY: start-jenkins-build-agent-base
 
 ## Start build of BuildConfig "jenkins-webhook-proxy".
 start-jenkins-build-webhook-proxy:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config jenkins-webhook-proxy
 .PHONY: start-jenkins-build-webhook-proxy
 
 
@@ -80,17 +80,17 @@ install-provisioning-app: apply-provisioning-app-build start-provisioning-app-bu
 
 ## Update OpenShift resources related to the Provisioning App image.
 apply-provisioning-app-build:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} is,bc
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) is,bc
 .PHONY: apply-provisioning-app-build
 
 ## Start build of BuildConfig "ods-provisioning-app".
 start-provisioning-app-build:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-provisioning-app
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-provisioning-app
 .PHONY: start-provisioning-app-build
 
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude is,bc
+	cd ods-provisioning-app/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude is,bc
 .PHONY: apply-provisioning-app-deploy
 
 # DOCUMENT GENERATION SERVICE IMAGE
@@ -100,12 +100,12 @@ install-doc-gen: apply-doc-gen-build start-doc-gen-build
 
 ## Update OpenShift resources related to the Document Generation image.
 apply-doc-gen-build:
-	cd ods-document-generation-svc/ocp-config && tailor apply --namespace ${NAMESPACE}
+	cd ods-document-generation-svc/ocp-config && tailor apply --namespace $(ODS_NAMESPACE)
 .PHONY: apply-doc-gen-build
 
 ## Start build of BuildConfig "ods-doc-gen-svc".
 start-doc-gen-build:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config ods-doc-gen-svc
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-doc-gen-svc
 .PHONY: start-doc-gen-build
 
 
@@ -116,25 +116,23 @@ install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-d
 
 ## Update OpenShift resources related to the SonarQube image.
 apply-sonarqube-build:
-	cd sonarqube/ocp-config && tailor apply --namespace ${NAMESPACE} bc,is
+	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) bc,is
 .PHONY: apply-sonarqube-build
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
-	ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
 .PHONY: start-sonarqube-build
 
 ## Update OpenShift resources related to the SonarQube service.
 apply-sonarqube-deploy:
-	cd sonarqube/ocp-config && tailor apply --namespace ${NAMESPACE} --exclude bc,is --param ODS_NAMESPACE=${NAMESPACE}
-	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
-	echo "Visit ${SONARQUBE_URL}/setup to see if any update actions need to be taken."
+	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude bc,is
+	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
 .PHONY: apply-sonarqube-deploy
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	SONARQUBE_URL=`oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
-	cd sonarqube && ./configure.sh --sonarqube=${SONARQUBE_URL}
+	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL)
 .PHONY: configure-sonarqube
 
 
@@ -145,13 +143,12 @@ install-nexus: apply-nexus
 
 ## Update OpenShift resources related to the Nexus service.
 apply-nexus:
-	cd nexus/ocp-config && tailor apply --namespace ${NAMESPACE}
+	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE)
 .PHONY: apply-nexus
 
 ## Configure Nexus service.
 configure-nexus:
-	NEXUS_URL=`oc -n ${NAMESPACE} get route nexus --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}'`
-	cd nexus && ./configure.sh --namespace ${NAMESPACE} --nexus=${NEXUS_URL}
+	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL)
 .PHONY: configure-nexus
 ### Not part of install-nexus because it is not idempotent yet.
 
@@ -163,12 +160,12 @@ backup: backup-sonarqube backup-ocp-config
 
 ## Create a backup of OpenShift resources in "cd" namespace.
 backup-ocp-config:
-	tailor export --namespace ${NAMESPACE} > backup_cd.yml
+	tailor export --namespace $(ODS_NAMESPACE) > backup_cd.yml
 .PHONY: backup-ocp-config
 
 ## Create a backup of the SonarQube database in the current directory.
 backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace ${NAMESPACE} --backup-dir `pwd`
+	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --backup-dir `pwd`
 .PHONY: backup-sonarqube
 
 
