@@ -35,7 +35,7 @@ Used by the [release manager quickstarter](https://github.com/opendevstack/ods-q
 The templates are located in the [templates repository](https://github.com/opendevstack/ods-document-generation-templates). <br>The code for the documentation generation service is located [here](https://github.com/opendevstack/ods-document-generation-svc). In case you want to work on the document generation service, and build it yourself - there is a quickstarter that allows this, namely [ODS Document Generation Service](https://github.com/opendevstack/ods-quickstarters/tree/master/ods-document-gen-svc). <br>*Deployment:* There is one instance of the document generation service in each project's `cd` namespace. The base image of the doc gen service is located in the central `ods` namespace
 
 1. [Atlassian infrastructure](infrastructure-setup) <br>
-Contains all the ansible scripts to setup jira / confluence / bitbucket and atlassian crowd. Optional, if you have your own instances running, you can just configure OpenDevStack to use those.
+Contains all the ansible scripts to setup jira / confluence / bitbucket and atlassian crowd. Optional, if you have your own instances running, you can just configure OpenDevStack to use those in `ods-configuration/ods-core.env`.
 
 1. [Tests](tests) <br>
 The automated tests for ods core are in two locations:<br>
