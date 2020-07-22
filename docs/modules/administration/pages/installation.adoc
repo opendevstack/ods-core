@@ -82,8 +82,6 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 
 == Infrastructure
 
-If you are want to install on your local machine, please review xref:administration:local-install-requirements.adoc[local installation requirements].
-
 === Atlassian Tools
 At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed.
 
