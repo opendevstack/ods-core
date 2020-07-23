@@ -1,0 +1,7 @@
+tests/ @clemensutschig @hugowschneider
+jenkins/ @michaelsauter @oalyman
+scripts/ @michaelsauter
+ods-provisioning-app/ @stitakis
+ods-document-generation-svc/ @metmajer
+infrastructure-setup/ @tjaeschke
+
