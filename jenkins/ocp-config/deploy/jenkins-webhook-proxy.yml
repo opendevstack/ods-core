@@ -18,6 +18,8 @@ parameters:
   required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
+- name: ODS_BITBUCKET_PROJECT
+  required: true
 - name: WEBHOOK_PROXY_CPU_REQUEST
   value: 50m
 - name: WEBHOOK_PROXY_CPU_LIMIT
@@ -91,7 +93,9 @@ objects:
         containers:
         - env:
           - name: REPO_BASE
-            value: '${REPO_BASE}'
+            value: ${REPO_BASE}
+          - name: ALLOWED_EXTERNAL_PROJECTS
+            value: ${ODS_BITBUCKET_PROJECT}
           - name: TRIGGER_SECRET
             valueFrom:
               secretKeyRef:

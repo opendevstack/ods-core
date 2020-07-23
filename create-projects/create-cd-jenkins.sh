@@ -13,6 +13,7 @@ set -eu
 TAILOR="tailor"
 ODS_NAMESPACE="ods"
 ODS_IMAGE_TAG="latest"
+ODS_BITBUCKET_PROJECT="opendevstack"
 PROJECT_ID=""
 CD_USER_TYPE=""
 CD_USER_ID_B64=""
@@ -28,6 +29,7 @@ function usage {
   printf "\t-p|--project\t\t\tProject ID\n"
   printf "\t--ods-namespace\t\t\tThe namespace where all ODS resources reside. Default: %s\n" "${ODS_NAMESPACE}"
   printf "\t--ods-image-tag\t\t\tThe image tag to use. Default: %s\n" "${ODS_IMAGE_TAG}"
+  printf "\t--ods-bitbucket-project\t\t\tThe Bitbucket project to use. Default: %s\n" "${ODS_BITBUCKET_PROJECT}"
   printf "\t--pipeline-trigger-secret-b64\tTrigger secret for pipelines (base64 encoded)\n"
   printf "\t--cd-user-type\t\t\tWhether CD user is general or project specific\n"
   printf "\t--cd-user-id-b64\t\tName of CD user (base64 encoded)\n"
@@ -51,6 +53,9 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
   --ods-image-tag=*) ODS_IMAGE_TAG="${1#*=}";;
   --ods-image-tag)   ODS_IMAGE_TAG="$2"; shift;;
+
+  --ods-bitbucket-project=*) ODS_BITBUCKET_PROJECT="${1#*=}";;
+  --ods-bitbucket-project)   ODS_BITBUCKET_PROJECT="$2"; shift;;
 
   --pipeline-trigger-secret-b64=*) PIPELINE_TRIGGER_SECRET_B64="${1#*=}";;
   --pipeline-trigger-secret-b64)   PIPELINE_TRIGGER_SECRET_B64="$2"; shift;;
@@ -112,5 +117,6 @@ ${TAILOR} ${TAILOR_VERBOSE} ${TAILOR_NON_INTERACTIVE} apply \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   "--param=ODS_NAMESPACE=${ODS_NAMESPACE}" \
   "--param=ODS_IMAGE_TAG=${ODS_IMAGE_TAG}" \
+  "--param=ODS_BITBUCKET_PROJECT=${ODS_BITBUCKET_PROJECT}" \
   "${cdUserPwdParam}" \
   --selector "template=ods-jenkins-template"
