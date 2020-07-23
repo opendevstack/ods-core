@@ -95,6 +95,7 @@ podTemplate(
             --project=${projectId} \
             --ods-namespace=${odsNamespace} \
             --ods-image-tag=${odsImageTag} \
+            --ods-bitbucket-project ${odsBitbucketProject} \
             --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
             --cd-user-type=${cdUserType} \
             --cd-user-id-b64=${cdUserIdB64}""",

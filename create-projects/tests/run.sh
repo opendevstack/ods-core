@@ -113,13 +113,14 @@ echo "=== create-cd-jenkins: With general CD user ==="
 
 tailor mock --receive='version' --stdout='1.1.3'
 
-tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELINE_TRIGGER_SECRET_B64=czNjcjN0 --param=PROJECT=foo --param=CD_USER_ID_B64=Y2RfdXNlcg== --param=ODS_NAMESPACE=bar --param=ODS_IMAGE_TAG=3.x --selector template=ods-jenkins-template' --times 1
+tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELINE_TRIGGER_SECRET_B64=czNjcjN0 --param=PROJECT=foo --param=CD_USER_ID_B64=Y2RfdXNlcg== --param=ODS_NAMESPACE=bar --param=ODS_IMAGE_TAG=3.x --param=ODS_BITBUCKET_PROJECT=opendevstack --selector template=ods-jenkins-template' --times 1
 
 ../create-cd-jenkins.sh \
     --project foo \
     --non-interactive \
     --ods-namespace=bar \
     --ods-image-tag=3.x \
+    --ods-bitbucket-project=opendevstack \
     --pipeline-trigger-secret-b64=$(echo -n "s3cr3t" | base64) \
     --cd-user-type=general \
     --cd-user-id-b64=$(echo -n "cd_user" | base64) \
@@ -131,13 +132,14 @@ echo "=== create-cd-jenkins: With project-specific CD user ==="
 
 tailor mock --receive='version' --stdout='1.1.3'
 
-tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELINE_TRIGGER_SECRET_B64=czNjcjN0 --param=PROJECT=foo --param=CD_USER_ID_B64=Zm9v --param=ODS_NAMESPACE=bar --param=ODS_IMAGE_TAG=3.x --param=CD_USER_PWD_B64=Y2hhbmdlbWU= --selector template=ods-jenkins-template' --times 1
+tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELINE_TRIGGER_SECRET_B64=czNjcjN0 --param=PROJECT=foo --param=CD_USER_ID_B64=Zm9v --param=ODS_NAMESPACE=bar --param=ODS_IMAGE_TAG=3.x --param=ODS_BITBUCKET_PROJECT=opendevstack --param=CD_USER_PWD_B64=Y2hhbmdlbWU= --selector template=ods-jenkins-template' --times 1
 
 ../create-cd-jenkins.sh \
     --project foo \
     --non-interactive \
     --ods-namespace=bar \
     --ods-image-tag=3.x \
+    --ods-bitbucket-project=opendevstack \
     --pipeline-trigger-secret-b64=$(echo -n "s3cr3t" | base64) \
     --cd-user-type=specific \
     --cd-user-id-b64=$(echo -n "foo" | base64) \
