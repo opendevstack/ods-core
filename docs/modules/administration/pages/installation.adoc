@@ -52,7 +52,7 @@ make prepare-config
 
 If you want to install OpenDevStack for the first time, leave the BitBucket URL empty.
 
-After the configuration is prepared, fill out all the parameters for your installation and commit the result.
+After the configuration is prepared (which means that a directory `ods-configuration` will be created if it does not exist yet), fill out all the parameters for your installation and commit the result. You don't need to push yet, this will be done later.
 
 === Tailor
 
