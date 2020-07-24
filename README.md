@@ -18,7 +18,7 @@ Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-quic
 1. [Jenkins Webhook proxy](jenkins/webhook-proxy) - the glue layer between Bitbucket / Jira and Jenkins - to start a build from a change in a repository.
 <br>*Deployment:* There is one instance of the webhook proxy in each project's `cd` namespace. The base image of the webhook proxy is located in the central `ods` namespace
 
-1. [Nexus](nexus) - repository manager <br>
+1. [Nexus](nexus) - artifact & repository manager<br>
 Nexus is used as artifact manager throughout OpenDevStack. Each [`jenkins agent`](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents) is configured to bind to the installed NEXUS to centralize build / dependency artifact resolution. In case one wants to upload an artifact to Nexus, jenkins component stage `odsComponentStageUploadToNexus` can be used.
 <br>*Deployment:* There is one central instance of Nexus in the `ods` project
 
