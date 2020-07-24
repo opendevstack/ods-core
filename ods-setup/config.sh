@@ -82,8 +82,16 @@ else
   if ! git remote get-url origin &> /dev/null; then
     if [ -z ${BITBUCKET_URL} ]; then
       echo_warn "Remote 'origin' is missing.\n"
-      read -e -p "Enter your Bitbucket URL, e.g. 'https://bitbucket.example.com': " input
-      BITBUCKET_URL=${input:-""}
+      configuredUrl="https://bitbucket.example.com"
+      if [ -f "${ACTUAL_CONFIG_LOCATION}/ods-core.env" ]; then
+          configuredUrl=$(../scripts/get-config-param.sh BITBUCKET_URL)
+      fi
+      read -e -p "Enter your Bitbucket URL [${configuredUrl}]: " input
+      if [ -z "${input}" ]; then
+        BITBUCKET_URL=${configuredUrl}
+      else
+        BITBUCKET_URL="${input}"
+      fi
     fi
     BITBUCKET_REPO="${BITBUCKET_URL}/scm/${BITBUCKET_ODS_PROJECT}/${REPO}.git"
     echo_info "Adding remote 'origin' (${BITBUCKET_REPO})."
