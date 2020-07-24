@@ -69,6 +69,7 @@ if [ ! -d "${ACTUAL_CONFIG_LOCATION}" ]; then
   if [ -z ${BITBUCKET_URL} ]; then
     echo_info "Creating ${REPO} from scratch."
     mkdir -p ${ACTUAL_CONFIG_LOCATION}
+    cd ${ACTUAL_CONFIG_LOCATION} && git init && cd -
     echo_info "Created directory ${ACTUAL_CONFIG_LOCATION}."
   else
     echo_info "Cloning ${REPO} from Bitbucket."
