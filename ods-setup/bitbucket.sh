@@ -97,7 +97,7 @@ if [ -z "${BITBUCKET_USER}" ]; then
 fi
 
 if [ -z "${BITBUCKET_PWD}" ]; then
-    read -r -e -p "Enter Bitbucket password for user '${BITBUCKET_USER}': " input
+    read -r -s -e -p "Enter Bitbucket password for user '${BITBUCKET_USER}': " input
     BITBUCKET_PWD="${input}"
 fi
 
