@@ -65,7 +65,7 @@ parameters:
 - name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
   required: true
   description: Log level of OpenDevStack package
-- name: LOGGING_FILE_PATH
+- name: PROV_APP_LOGGING_FILE_PATH
   required: true
   description: File system location for the log files
 - name: READABLE_OPENDEVSTACK_REPOS
@@ -104,7 +104,7 @@ objects:
       logging.level.org.opendevstack=${PROV_APP_LOG_LEVEL_OPENDEVSTACK}
 
       # log file
-      logging.file.path=${LOGGING_FILE_PATH}
+      logging.file.path=${PROV_APP_LOGGING_FILE_PATH}
 
       # atlassian API calls take sooo long
       server.servlet.session.timeout=240
