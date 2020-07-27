@@ -170,8 +170,8 @@ jobs:
         name: Verify all Go can be compiled
         working-directory: tests
         run: |
-          go test -c create-projects
-          go test -c ods-verify
+          go test -c ./create-projects
+          go test -c ./ods-verify
 
 # cluster:
 #   name: Setup and project provisioning tests
