@@ -1578,6 +1578,12 @@ function run_smoke_tests() {
     pushd ../ods-quickstarters/tests
         make setup-tests test
     popd
+
+    # clean up after tests
+    for project in $(oc get project | grep "unitt\|odsverify" | awk '{print $1;}')
+    do
+        echo "Deleting project $project"; oc delete project "${project}"
+    done
 }
 
 function startup_ods() {
