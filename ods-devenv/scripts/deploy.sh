@@ -1580,10 +1580,7 @@ function run_smoke_tests() {
     popd
 
     # clean up after tests
-    for project in $(oc get project | grep "unitt" | awk '{print $1;}')
-    do
-        echo "Deleting project $project"; oc delete project "${project}"
-    done
+    oc delete project unitt-cd unitt-dev unitt-test
 }
 
 function startup_ods() {
