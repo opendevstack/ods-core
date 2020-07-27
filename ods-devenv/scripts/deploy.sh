@@ -1580,7 +1580,7 @@ function run_smoke_tests() {
     popd
 
     # clean up after tests
-    for project in $(oc get project | grep "unitt\|odsverify" | awk '{print $1;}')
+    for project in $(oc get project | grep "unitt" | awk '{print $1;}')
     do
         echo "Deleting project $project"; oc delete project "${project}"
     done
