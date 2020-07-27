@@ -77,10 +77,10 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	reponse, err := http.Post(
 		fmt.Sprintf("https://%s%s/build?trigger_secret=%s&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
-		values["PROV_APP_WEBHOOKPROXY_HOST"],
-		values["OPENSHIFT_APPS_BASEDOMAIN"],
-		values["PIPELINE_TRIGGER_SECRET"],
-		projectName),
+			values["PROV_APP_WEBHOOKPROXY_HOST"],
+			values["OPENSHIFT_APPS_BASEDOMAIN"],
+			values["PIPELINE_TRIGGER_SECRET"],
+			projectName),
 		"application/json",
 		bytes.NewBuffer(body))
 
@@ -146,7 +146,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	expectedAsString := string(expected)
 	if stdout != expectedAsString {
 		t.Fatalf("Actual jenkins stages from run: %s don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
