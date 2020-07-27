@@ -130,7 +130,7 @@ jobs:
           ./run.sh
 
   clone-check:
-    name: verify clone script requirements
+    name: Verify clone script requirements
     runs-on: ubuntu-18.04
     steps:
       -
@@ -146,6 +146,32 @@ jobs:
           shellcheck --version
           shellcheck ocp-scripts/clone-project.sh
           shellcheck ocp-scripts/verify-jsl-expectations.sh
+
+
+  compile-go-tests:
+    name: Verify Go tests are formatted and can be compiled
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2.0.0
+      -
+        name: Verify all Go files are formatted with gofmt
+        working-directory: tests
+        run: |
+          unformatted=$(gofmt -l create-projects ods-verify)
+          [ -z "$unformatted" ] && exit 0
+          echo >&2 "Go files must be formatted with gofmt. Please run:"
+          for fn in $unformatted; do
+              echo >&2 "  gofmt -w $PWD/$fn"
+          done
+          exit 1
+      -
+        name: Verify all Go can be compiled
+        working-directory: tests
+        run: |
+          go test -c create-projects
+          go test -c ods-verify
 
 # cluster:
 #   name: Setup and project provisioning tests
