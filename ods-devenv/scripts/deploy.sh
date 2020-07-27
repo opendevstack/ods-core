@@ -630,7 +630,7 @@ function configure_bitbucket2crowd() {
     cookie_jar_path="${HOME}/tmp/bitbucket_cookie_jar.txt"
     echo "Configure BitBucket against Crowd directory ..."
     # login to BitBucket
-    curl 'http://172.17.0.1:28080/j_atl_security_check' \
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/j_atl_security_check" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
@@ -640,7 +640,7 @@ function configure_bitbucket2crowd() {
 
     # request crowd config form
     local atl_token
-    atl_token=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/new/' \
+    atl_token=$(curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/configure/new/" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'newDirectoryType=CROWD&next=Next' \
@@ -653,7 +653,7 @@ function configure_bitbucket2crowd() {
     crowd_service_name="crowd.odsbox.lan"
     echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
-    crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
+    crowd_directory_id=$(curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/configure/crowd/" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
@@ -664,12 +664,18 @@ function configure_bitbucket2crowd() {
     echo "Configured Crowd directory on BitBucket, got crowd directory id ${crowd_directory_id}."
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:28080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
         --insecure --silent -o /dev/null
     echo "Synced BitBucket directory with Crowd."
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
+        -b "${cookie_jar_path}" -c "${cookie_jar_path}" \
+        -X 'PUT' \
+        -H 'Accept: application/json, text/javascript, */*; q=0.01'
+
     rm "${cookie_jar_path}"
 }
 
