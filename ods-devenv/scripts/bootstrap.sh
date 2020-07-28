@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eux
 
 ods_git_ref=
 
