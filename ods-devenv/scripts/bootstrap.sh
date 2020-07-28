@@ -27,5 +27,5 @@ curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/
 chmod u+x ./repos.sh
 ./repos.sh --init --confirm --bitbucket-ods-project OPENDEVSTACK --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --verbose
 
-cd ods-core && git checkout -t origin/"${ods_git_ref}"
+cd ods-core
 time bash ods-devenv/scripts/deploy.sh --branch "${ods_git_ref}" --target basic_vm_setup
