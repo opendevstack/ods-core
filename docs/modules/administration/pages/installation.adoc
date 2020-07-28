@@ -147,7 +147,7 @@ Afterwards, run the initial configuration:
 make configure-nexus
 ----
 
-In the course of this you have to set a new admin password.
+In the course of this you will be prompted to set a new admin password.
 
 WARNING: The `configure-nexus` target is not idempotent yet, so it cannot be used for upgrading!
 
