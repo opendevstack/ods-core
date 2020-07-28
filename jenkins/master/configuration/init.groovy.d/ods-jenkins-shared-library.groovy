@@ -76,3 +76,19 @@ globalLibraries.get().setLibraries(mutableExistingLibs.asImmutable())
 
 // Save current Jenkins state to disk.
 jenkins.save()
+
+// Work around race condition in grape @Grab by downloading pipeline
+// dependencies during Jenkins startup sequence.
+// ref: https://github.com/opendevstack/ods-jenkins-shared-library/issues/422
+// ref: https://github.com/samrocketman/jenkins-bootstrap-jervis/issues/19
+// ref: https://issues.jenkins-ci.org/browse/JENKINS-48974
+// ref: https://issues.apache.org/jira/browse/GROOVY-7407
+println "INFO: Grabbing grapes to avoid race condition during parallel compilation ..."
+groovy.grape.Grape.grab(group: 'com.vladsch.flexmark', module: 'flexmark-all', version: '0.60.2')
+groovy.grape.Grape.grab(group: 'fr.opensagres.xdocreport', module: 'fr.opensagres.poi.xwpf.converter.core', version: '2.0.2', transitive: false)
+groovy.grape.Grape.grab(group: 'fr.opensagres.xdocreport', module: 'fr.opensagres.poi.xwpf.converter.pdf', version: '2.0.2', transitive: false)
+groovy.grape.Grape.grab(group: 'org.apache.pdfbox', module: 'pdfbox', version: '2.0.17', transitive: false)
+groovy.grape.Grape.grab(group: 'org.apache.poi', module: 'poi', version: '4.0.1', transitive: false)
+groovy.grape.Grape.grab(group: 'net.lingala.zip4j', module: 'zip4j', version: '2.1.1', transitive: false)
+groovy.grape.Grape.grab(group: 'org.yaml', module: 'snakeyaml', version: '1.24', transitive: false)
+groovy.grape.Grape.grab(group: 'com.konghq', module: 'unirest-java', version: '2.4.03', classifier: 'standalone', transitive: false)
