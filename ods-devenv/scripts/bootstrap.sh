@@ -11,7 +11,7 @@ while [[ "$#" -gt 0 ]]; do
 esac; shift; done
 
 ods_git_ref="${ods_git_ref:-master}"
-echo "Will build ods box against git-ref ${ods_git_ref}"
+echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 
 # install modern git version as required by repos.sh
 if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
