@@ -1578,6 +1578,9 @@ function run_smoke_tests() {
     pushd ../ods-quickstarters/tests
         make setup-tests test
     popd
+
+    # clean up after tests
+    oc delete project unitt-cd unitt-dev unitt-test
 }
 
 function startup_ods() {
