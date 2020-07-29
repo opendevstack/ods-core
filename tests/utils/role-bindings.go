@@ -1,8 +1,8 @@
 package utils
 
 import (
-    "fmt"
-    v1 "k8s.io/api/rbac/v1"
+	"fmt"
+	v1 "k8s.io/api/rbac/v1"
 )
 
 func FindRoleBinding(roleBindings *v1.RoleBindingList, subjectName string, subjectType string, subjectNamespace string, roleName string) error {
@@ -24,5 +24,5 @@ func FindClusterRoleBinding(roleBindings *v1.ClusterRoleBindingList, subjectName
 			}
 		}
 	}
-    return fmt.Errorf("Subject '%s' of kind '%s' in namespace '%s' does not have the cluster role '%s'", subjectName, subjectType, subjectNamespace, roleName)
+	return fmt.Errorf("Subject '%s' of kind '%s' in namespace '%s' does not have the cluster role '%s'", subjectName, subjectType, subjectNamespace, roleName)
 }

@@ -1,8 +1,8 @@
 package utils
 
 import (
-    "fmt"
-    v1 "github.com/openshift/api/project/v1"
+	"fmt"
+	v1 "github.com/openshift/api/project/v1"
 )
 
 func FindProject(projects *v1.ProjectList, projectName string) error {
