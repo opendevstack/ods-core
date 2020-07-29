@@ -3,3 +3,4 @@ email-ext:2.69
 sonar:2.6.1
 ansicolor:0.7.0
 blueocean:1.18.0
+workflow-durable-task-step:2.35
