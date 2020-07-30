@@ -62,6 +62,7 @@ Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHu
 - Automation of SonarQube and Nexus setup
 - Decorate Bitbucket pull requests with SonarQube analysis
 - Promote images between environments if possible (instead of rebuilding)
+- New (single page) app user interface as optional feature
 
 === https://github.com/orgs/opendevstack/projects/6[2] (December 2019)
 
