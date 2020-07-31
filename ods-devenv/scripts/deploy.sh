@@ -1040,6 +1040,21 @@ function restart_atlassian_suite() {
     restart_atlassian_jira
 }
 
+function setup_ods_crontab() {
+    # restart atlassian suite every 3 hours from time of setup
+    local minute
+    minute=$(date '+%M')
+    local hour_range
+    hour_range="$(( $(date '+%H') % 3 ))-$(( 21 + $(date '+%H') % 3 ))/3"
+
+    echo "Writing crontab entry: ${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh"
+    echo "${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh" | crontab -
+
+    local path_to_here
+    path_to_here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    cp "${path_to_here}/../crontab/restart_atlassian_suite.sh" /home/openshift/bin/
+}
+
 #######################################
 # Restart bitbucket.
 # Will register new container ip with /etc/hosts for dns resolution
@@ -1661,6 +1676,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
+    setup_ods_crontab
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background

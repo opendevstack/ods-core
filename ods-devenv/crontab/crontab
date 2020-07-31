@@ -1,2 +1,0 @@
-
-55 */3 * * * /home/openshift/bin/restart_atlassian_suite.sh
