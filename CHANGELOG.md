@@ -5,12 +5,6 @@
 ### Added
 Publish ods images to Docker Hub ([#490](https://github.com/opendevstack/ods-core/issues/490))
 Add script to manage Bitbucket ODS project and repos ([#614](https://github.com/opendevstack/ods-core/pull/614))
-Add make to the slave-base ([#539](https://github.com/opendevstack/ods-core/issues/539))
-Extend sync repos script with source and target ref ([#486](https://github.com/opendevstack/ods-core/issues/486))
-add prov app test - including delete ... ([#711](https://github.com/opendevstack/ods-core/pull/711))
-ods-setup: Add ODS Jenkins deployment to tests ([#343](https://github.com/opendevstack/ods-core/issues/343))
-Precompile tests as github Action ([#724](https://github.com/opendevstack/ods-core/issues/724))
-add jenkins json golden check ([#685](https://github.com/opendevstack/ods-core/pull/685))
 Support for http proxy for Nexus and Jenkins master ([#637](https://github.com/opendevstack/ods-core/issues/637))
 Add C# scanner plugin to Sonarqube ([#650](https://github.com/opendevstack/ods-core/issues/650))
 Add Groovy plugin ([#595](https://github.com/opendevstack/ods-core/pull/595))
@@ -53,11 +47,8 @@ adds missing property webhookproxy events and change namespace in Tailor file ([
 Fetch shared lib from github per default instead of requiring "local" clone on bitbucket ([#518](https://github.com/opendevstack/ods-core/issues/518))
 Change default branch from production to master ([#523](https://github.com/opendevstack/ods-core/issues/523))
 Unify Jenkins image setup ([#544](https://github.com/opendevstack/ods-core/pull/544))
-Jenkins BuildConfig "from" inconsistent ([#482](https://github.com/opendevstack/ods-core/issues/482))
 Makefile should tag dockerhub images (scheduled) into respective image streams ([#545](https://github.com/opendevstack/ods-core/issues/545))
 Jenkins BuildConfig "from" inconsistent ([#482](https://github.com/opendevstack/ods-core/issues/482))
-Change default branch from production to master ([#523](https://github.com/opendevstack/ods-core/issues/523))
-Fetch shared lib from github per default instead of requiring "local" clone on bitbucket ([#518](https://github.com/opendevstack/ods-core/issues/518))
 Configure readable repos via ConfigMap ([#535](https://github.com/opendevstack/ods-core/pull/535))
 Avoid harcoding prov-cd namespace ([#531](https://github.com/opendevstack/ods-core/pull/531))
 Move opendevstack from current "global" CD OCP namespace to opendevstack/ods namespace ([#493](https://github.com/opendevstack/ods-core/issues/493))
@@ -69,6 +60,7 @@ Update SonarQube to 8.2 ([#459](https://github.com/opendevstack/ods-core/issues/
 Automate SonarQube setup ([#488](https://github.com/opendevstack/ods-core/issues/488))
 Writable cache dir in Jenkins slave ([#496](https://github.com/opendevstack/ods-core/issues/496))
 Preserve immutable fields in Nexus/SonarQube config ([#453](https://github.com/opendevstack/ods-core/pull/453))
+Remove image trigger from Jenkins master instances / deployments ([#210](https://github.com/opendevstack/ods-core/issues/210)) ([#396](https://github.com/opendevstack/ods-core/issues/396))
 
 ### Fixed
 Log non-successful return code when triggering pipeline ([#694](https://github.com/opendevstack/ods-core/pull/694))
@@ -101,7 +93,6 @@ Sonarqube 8.2 support - missing jacoco plugin ([#457](https://github.com/opendev
 Use latest version (1.0.44) of openshift-sync plugin ([#461](https://github.com/opendevstack/ods-core/pull/461))
 Do not copy init.groovy.d files on initial boot ([#443](https://github.com/opendevstack/ods-core/issues/443))
 Restrict permissions of the default role ([#452](https://github.com/opendevstack/ods-core/issues/452))
-Update Nexus to 3.20.0 ([#346](https://github.com/opendevstack/ods-core/issues/346))
 Better documentation, logging and env var handling ([#446](https://github.com/opendevstack/ods-core/pull/446))
 Move ODS config to Jenkins master ([#410](https://github.com/opendevstack/ods-core/pull/410))
 Ensure that pipeline name is not longer than 63 characters ([#405](https://github.com/opendevstack/ods-core/pull/405))
@@ -111,10 +102,8 @@ Use HTTPS in curl command ([#387](https://github.com/opendevstack/ods-core/pull/
 
 ### Removed
 remove inactive spring active profile property from prov app config map ([#64](https://github.com/opendevstack/ods-core/issues/648))
-Remove image trigger from Jenkins master instances ([#210](https://github.com/opendevstack/ods-core/issues/210))
 Remove obsolete scripts from infrastructure-setup ([#618](https://github.com/opendevstack/ods-core/pull/618))
 removed owasp-dependency-check pvc and cli ([#556](https://github.com/opendevstack/ods-core/pull/556))
-Remove image trigger from Jenkins deployments ([#396](https://github.com/opendevstack/ods-core/issues/396))
 
 ## [2.0] - 2019-12-13
 
