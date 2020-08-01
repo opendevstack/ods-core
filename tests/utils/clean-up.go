@@ -23,10 +23,9 @@ func RemoveProject(projectName string) error {
 		return nil
 	}
 
-	stdout, err := RemoveProjectWait(projectName)
+	stdout, stderr, err := RemoveProjectWait(projectName)
 	if err != nil {
-		fmt.Printf("Could not delete project %s, %s - err:%s\n", projectName, stdout, err)
-		return err
+		fmt.Printf("Could not delete project %s, %s, %s - err:%s\n", projectName, stdout, stderr, err)
 	} else {
 		fmt.Printf("project %s deleted - %s\n", projectName, stdout)
 	}
@@ -47,19 +46,19 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 	return nil
 }
 
-func RemoveProjectWait(projectName string) (string, error) {
+func RemoveProjectWait(projectName string) (string, string, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
-	stdout, _, err := RunCommandWithWorkDir("oc", []string{
-		"delete project", projectName,
+	stdout, stderr, err := RunCommandWithWorkDir("oc", []string{
+		"delete", "project", projectName,
 		"--wait=true", "--now=true",
 	}, dir, []string{})
 	if err != nil {
-		return stdout, err
+		return stdout, stderr, err
 	}
 
-	return stdout, nil
+	return stdout, stderr, nil
 }
 
 func RemoveAllTestOCProjects() error {
