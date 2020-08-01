@@ -23,12 +23,12 @@ func RemoveProject(projectName string) error {
 		return nil
 	}
 
-	stdout, err := RemoveProjectWait(projectname)
+	stdout, err := RemoveProjectWait(projectName)
 	if err != nil {
-		fmt.Printf("Could not delete project %s - err:%s\n", stdout, err)
+		fmt.Printf("Could not delete project %s, %s - err:%s\n", projectName, stdout, err)
 		return err
 	} else {
-		fmt.Printf("project %s deleted\n", stdout)
+		fmt.Printf("project %s deleted - %s\n", projectName, stdout)
 	}
 	return nil
 }
