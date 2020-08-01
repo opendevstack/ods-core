@@ -412,7 +412,7 @@ function setup_openshift_cluster() {
 }
 
 #######################################
-# install tailor v1.1.3
+# install tailor v1.1.4
 # Globals:
 #   n/a
 # Arguments:
@@ -422,7 +422,7 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.3/tailor-linux-amd64"
+    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.4/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
     sudo mv tailor-linux-amd64 /usr/bin/tailor
 }
@@ -1221,7 +1221,7 @@ function initialise_ods_repositories() {
     local opendevstack_dir="${HOME}/opendevstack"
 
     pushd "${opendevstack_dir}"
-    ./repos.sh --sync --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
+    ./repos.sh --sync --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
     popd
 }
 
@@ -1520,17 +1520,19 @@ function setup_jenkins_agents() {
         popd
     done
 
-    local fail_count=0
+    local return_value=0
     for job in $(jobs -p)
     do
         echo "Waiting for openshift build configuration ${job} to be created."
-        wait "${job}" || fail_count=$((fail_count + 1))
-        echo "build configuration job ${job} returned. Number of failed jobs is ${fail_count}"
+        wait "${job}"
+        return_value=$?
+        if [[ "${return_value}" != 0 ]]
+        then
+            echo "Jenkins agent setup failed."
+            exit 1
+        fi
+        echo "build configuration job ${job} returned."
     done
-    if [[ "${fail_count}" -gt 0 ]]
-    then
-        echo "${fail_count} of the jenkins-agent build configurations failed."
-    fi
 
     for technology in $(ls -d -- */)
     do
@@ -1542,16 +1544,16 @@ function setup_jenkins_agents() {
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-agent builds  ${job} to complete."
-        wait "${job}" || fail_count=$((fail_count + 1))
-        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+        echo "Waiting for jenkins-agent builds ${job} to complete."
+        wait "${job}"
+        return_value=$?
+        if [[ "${return_value}" != 0 ]]
+        then
+            echo "Jenkins agent setup failed."
+            exit 1
+        fi
+        echo "build job ${job} returned."
     done
-    if [[ "${fail_count}" -gt 0 ]]
-    then
-        echo "${fail_count} of the jenkins-agent builds failed."
-        # don't return an error code here. The fail_count impl above is not reliable
-        # and the tests afterwards will find issues anyway.
-    fi
 }
 
 #######################################
@@ -1576,6 +1578,9 @@ function run_smoke_tests() {
     pushd ../ods-quickstarters/tests
         make setup-tests test
     popd
+
+    # clean up after tests
+    oc delete project unitt-cd unitt-dev unitt-test
 }
 
 function startup_ods() {

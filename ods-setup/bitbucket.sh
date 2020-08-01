@@ -24,7 +24,7 @@ echo_info(){
 BITBUCKET_URL=""
 BITBUCKET_USER=""
 BITBUCKET_PWD=""
-BITBUCKET_ODS_PROJECT="OPENDEVSTACK"
+BITBUCKET_ODS_PROJECT=""
 INSECURE=""
 
 function usage {
@@ -38,7 +38,7 @@ function usage {
     printf "\t-b|--bitbucket\t\tBitbucket URL, e.g. 'https://bitbucket.example.com'\n"
     printf "\t-u|--user\t\tBitbucket user\n"
     printf "\t-p|--password\t\tBitbucket password\n"
-    printf "\t-o|--ods-project\tName of OpenDevStack project (defaults to '%s')\n" "${BITBUCKET_ODS_PROJECT}"
+    printf "\t-o|--ods-project\tName of OpenDevStack project\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -68,8 +68,7 @@ esac; shift; done
 if [ -z "${BITBUCKET_URL}" ]; then
     configuredUrl="https://bitbucket.example.com"
     if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
-        echo_info "Configuration located"
-        configuredUrl=$(grep BITBUCKET_URL "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-)
+        configuredUrl=$(../scripts/get-config-param.sh BITBUCKET_URL)
     fi
     read -r -e -p "Enter Bitbucket URL [${configuredUrl}]: " input
     if [ -z "${input}" ]; then
@@ -79,13 +78,26 @@ if [ -z "${BITBUCKET_URL}" ]; then
     fi
 fi
 
+if [ -z "${BITBUCKET_ODS_PROJECT}" ]; then
+    configuredProject="OPENDEVSTACK"
+    if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+        configuredProject=$(../scripts/get-config-param.sh ODS_BITBUCKET_PROJECT)
+    fi
+    read -r -e -p "Enter Bitbucket ODS Project [${configuredProject}]: " input
+    if [ -z "${input}" ]; then
+        BITBUCKET_ODS_PROJECT=${configuredProject}
+    else
+        BITBUCKET_ODS_PROJECT="${input}"
+    fi
+fi
+
 if [ -z "${BITBUCKET_USER}" ]; then
     read -r -e -p "Enter Bitbucket user on ${BITBUCKET_URL}: " input
     BITBUCKET_USER="${input}"
 fi
 
 if [ -z "${BITBUCKET_PWD}" ]; then
-    read -r -e -p "Enter Bitbucket password for user '${BITBUCKET_USER}': " input
+    read -r -s -e -p "Enter Bitbucket password for user '${BITBUCKET_USER}': " input
     BITBUCKET_PWD="${input}"
 fi
 

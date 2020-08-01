@@ -23,7 +23,7 @@ BITBUCKET_URL=""
 GIT_REF=""
 SOURCE_GIT_REF=""
 TARGET_GIT_REF=""
-BITBUCKET_ODS_PROJECT="opendevstack"
+BITBUCKET_ODS_PROJECT=""
 SYNC="n"
 
 function usage {
@@ -37,7 +37,7 @@ function usage {
   printf "\t--init\t\t\tDo not assume an existing Bitbucket server\n"
   printf "\t--sync\t\t\tPull refs from GitHub and push refs to Bitbucket\n"
   printf "\t-b|--bitbucket\t\tBitbucket URL, e.g. 'https://bitbucket.example.com'\n"
-  printf "\t-p|--bitbucket-ods-project\tBitbucket ODS project, defaults to '%s'\n" "${BITBUCKET_ODS_PROJECT}"
+  printf "\t-p|--bitbucket-ods-project\tBitbucket ODS project, defaults to 'OPENDEVSTACK'\n"
   printf "\t-g|--git-ref\t\tGit ref, e.g. '2.x' or 'master' (used for both source and target ref)\n"
   printf "\t-s|--source-git-ref\tSource Git ref (GitHub OpenDevStack), e.g. '2.x' or 'master'\n"
   printf "\t-t|--target-git-ref\tTarget Git ref (Bitbucket instance), e.g. '2.x', 'master' or '2.acme'\n"
@@ -118,6 +118,16 @@ else
     echo_error "--source-git-ref is present but --target-git-ref is empty."
     exit 1
   fi
+fi
+
+if [ -z "${BITBUCKET_ODS_PROJECT}" ]; then
+    configuredProject="OPENDEVSTACK"
+    read -r -e -p "Enter Bitbucket ODS Project [${configuredProject}]: " input
+    if [ -z "${input}" ]; then
+        BITBUCKET_ODS_PROJECT=${configuredProject}
+    else
+        BITBUCKET_ODS_PROJECT="${input}"
+    fi
 fi
 
 if [ -z ${SYNC} ]; then

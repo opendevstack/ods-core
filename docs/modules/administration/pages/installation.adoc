@@ -34,7 +34,7 @@ If you are installing OpenDevStack for the first time, run:
 ./repos.sh --init
 ----
 
-If there is already an existing installation of OpenDevStack, run:
+If there is already an existing installation of OpenDevStack, run the following with a user that has write permission:
 [source,sh]
 ----
 ./repos.sh
@@ -52,7 +52,11 @@ make prepare-config
 
 If you want to install OpenDevStack for the first time, leave the BitBucket URL empty.
 
-After the configuration is prepared, fill out all the parameters for your installation and commit the result.
+After the configuration is prepared (which means that a directory `ods-configuration` will be created if it does not exist yet),
+fill out all the parameters in `ods-core.env` in directory `ods-configuration` for your installation.
+Add all files of directory `ods-configuration` to git and commit the result. You don't need to push yet, this will be done later.
+
+"Preparing" also updates the sample files and checks if any params are present in the sample files but missing from the real file.
 
 === Tailor
 
@@ -62,7 +66,7 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 | OpenDevStack version | Tailor version
 
 | 3.x
-| >= 1.1.3
+| >= 1.1.4
 
 | 2.x
 | >= 0.13.1
@@ -82,8 +86,6 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 
 == Infrastructure
 
-If you are want to install on your local machine, please review xref:administration:local-install-requirements.adoc[local installation requirements].
-
 === Atlassian Tools
 At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed.
 
@@ -98,7 +100,7 @@ WARNING: Documentation for this is missing.
 
 TIP: If you are on Linux, `oc cluster up` will do the trick.
 
-== Bitbucket Repoisitories
+== Bitbucket Repositories
 
 On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary repositories such as `ods-core`. To set them up, use:
 
@@ -116,6 +118,7 @@ make sync-repos
 You also need to update `ods-configuration`, which can be done via:
 [source,sh]
 ----
+git remote add origin <bitbucket-ods-configuration-git-repo-url>
 git push -u origin master
 ----
 
@@ -123,15 +126,14 @@ git push -u origin master
 
 === Central ODS project
 
-OpenDevStack needs one central `ods` project in OpenShift, which will hold all shared resources such as images or deployments.
+OpenDevStack needs one central project in OpenShift, which will hold all shared resources such as images or deployments. This project is typically called `ods`, but you can customize this in the configuration via `ODS_NAMESPACE`.
 
+First, log into OpenShift with a user that has cluster-admin rights.
 In `ods-core` run:
 [source,sh]
 ----
 make install-ods-project
 ----
-
-TIP: In certain situations, you may want to pick a different name for the central namespace, e.g. for testing purposes or trying two versions of ODS next to each other. To do so, you need to run this and the following commands with `make NAMESPACE=foo <target>`.
 
 
 === Nexus
@@ -150,6 +152,8 @@ Afterwards, run the initial configuration:
 make configure-nexus
 ----
 
+In the course of this you will be prompted to set a new admin password.
+
 WARNING: The `configure-nexus` target is not idempotent yet, so it cannot be used for upgrading!
 
 === SonarQube
@@ -163,8 +167,10 @@ make install-sonarqube
 ----
 
 This will launch an instance of SonarQube.
-The script will prompt for a new admin password, set it and create an auth token to be used by the Jenkins pipelines.
-Both values can be written into `ods-configuration/ods-core.env`, which you then need to commit and push before continuing.
+The script will prompt for a new admin password. Once this has been set, an auth token for the Jenkins pipelines will be generated.
+Both values are automatically written into `ods-configuration/ods-core.env`, which you then need to commit and push.
+
+Also, you have to add the cd-user as a user in the project permissions of your Bitbucket OpenDevStack project. Read permission is sufficient.
 
 === Jenkins
 
@@ -174,6 +180,14 @@ In `ods-core` run:
 [source,sh]
 ----
 make install-jenkins
+----
+
+Then, there are further Jenkins agent images for each quickstarter technology.
+
+To create those images, run the following from `ods-quickstarters`:
+[source,sh]
+----
+make install-jenkins-agent
 ----
 
 === Document Generation service

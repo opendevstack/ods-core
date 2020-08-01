@@ -56,7 +56,7 @@ parameters:
 - name: PROV_APP_CROWD_ADMIN_GROUP
   required: true
   description: The crowd admin group name
-- name: PROV_APP_PIPELINE_TRIGGER_SECRET
+- name: PIPELINE_TRIGGER_SECRET
   required: true
   description: The trigger secret to pass to the webhook proxy
 - name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
@@ -65,7 +65,7 @@ parameters:
 - name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
   required: true
   description: Log level of OpenDevStack package
-- name: LOGGING_FILE_PATH
+- name: PROV_APP_LOGGING_FILE_PATH
   required: true
   description: File system location for the log files
 - name: READABLE_OPENDEVSTACK_REPOS
@@ -104,7 +104,7 @@ objects:
       logging.level.org.opendevstack=${PROV_APP_LOG_LEVEL_OPENDEVSTACK}
 
       # log file
-      logging.file.path=${LOGGING_FILE_PATH}
+      logging.file.path=${PROV_APP_LOGGING_FILE_PATH}
 
       # atlassian API calls take sooo long
       server.servlet.session.timeout=240
@@ -205,7 +205,7 @@ objects:
       # list of supported webhook events
       openshift.jenkins.project.webhookproxy.events=${WEBHOOK_PROXY_EVENTS}
 
-      openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
+      openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
 
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
 
