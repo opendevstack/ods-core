@@ -54,11 +54,11 @@ func RemoveProjectWait(projectName string) (string, error) {
 	stdout, _, err := RunCommandWithWorkDir("oc", []string{
 		"delete project", projectName,
 		"--wait=true", "--now=true",
-		}, dir, []string{})
+	}, dir, []string{})
 	if err != nil {
 		return stdout, err
 	}
-	
+
 	return stdout, nil
 }
 
