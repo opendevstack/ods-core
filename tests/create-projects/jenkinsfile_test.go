@@ -88,9 +88,9 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Could not post request: %s", err)
 	}
 
-	defer response.Body.Close()
+	defer reponse.Body.Close()
 
-	bodyBytes, _ := ioutil.ReadAll(response.Body)
+	bodyBytes, _ := ioutil.ReadAll(reponse.Body)
 
 	if reponse.StatusCode >= http.StatusAccepted {
 		t.Fatalf("Could not post request: %s", string(bodyBytes))
