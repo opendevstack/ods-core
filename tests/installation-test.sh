@@ -3,6 +3,10 @@
 set +e
 set -o pipefail
 
+source ../../ods-configuration/ods-core.env
+export PROVISION_API_HOST=https://prov-app-${ODS_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
+echo "PROVISION_API_HOST = ${PROVISION_API_HOST}"
+
 if [ -f test-installation-results.txt ]; then
     rm test-installation-results.txt
 fi
