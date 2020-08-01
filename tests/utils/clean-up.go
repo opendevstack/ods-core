@@ -23,18 +23,13 @@ func RemoveProject(projectName string) error {
 		return nil
 	}
 
-	err = client.Projects().Delete(projectName, &metav1.DeleteOptions{})
+	stdout, err := RemoveProjectWait(projectname)
 	if err != nil {
+		fmt.Printf("Could not delete project %s - err:%s\n", stdout, err)
 		return err
+	} else {
+		fmt.Printf("project %s deleted\n", stdout)
 	}
-	for {
-		time.Sleep(500 * time.Millisecond)
-		project, err = client.Projects().Get(projectName, metav1.GetOptions{})
-		if err != nil || project == nil {
-			break
-		}
-	}
-
 	return nil
 }
 
@@ -50,6 +45,21 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 	// we need time here - as jenkins needs to sync.
 	time.Sleep(20 * time.Second)
 	return nil
+}
+
+func RemoveProjectWait(projectName string) (string, error) {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
+
+	stdout, _, err := RunCommandWithWorkDir("oc", []string{
+		"delete project", projectName,
+		"--wait=true", "--now=true",
+		}, dir, []string{})
+	if err != nil {
+		return stdout, err
+	}
+	
+	return stdout, nil
 }
 
 func RemoveAllTestOCProjects() error {
