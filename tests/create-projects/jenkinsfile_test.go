@@ -66,6 +66,14 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				Name:  "ODS_IMAGE_TAG",
 				Value: values["ODS_IMAGE_TAG"],
 			},
+			{
+				Name:  "ODS_NAMESPACE",
+				Value: values["ODS_NAMESPACE"],
+			},
+			{
+				Name:  "ODS_BITBUCKET_PROJECT",
+				Value: values["ODS_BITBUCKET_PROJECT"],
+			},
 		},
 	}
 
