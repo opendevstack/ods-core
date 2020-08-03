@@ -66,6 +66,14 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				Name:  "ODS_IMAGE_TAG",
 				Value: values["ODS_IMAGE_TAG"],
 			},
+			{
+				Name:  "ODS_NAMESPACE",
+				Value: values["ODS_NAMESPACE"],
+			},
+			{
+				Name:  "ODS_BITBUCKET_PROJECT",
+				Value: values["ODS_BITBUCKET_PROJECT"],
+			},
 		},
 	}
 
@@ -169,6 +177,8 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stderr)
 		}
 	}
+	// wait for 20 secs - so jenkins at least starts deploying ..
+	time.Sleep(20 * time.Second)
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
 }
