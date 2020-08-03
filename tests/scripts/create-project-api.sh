@@ -36,14 +36,14 @@ if [ -f $RESPONSE_FILE ]; then
 	rm -f $RESPONSE_FILE
 fi
 
-if [ ${COMMAND^^} == "POST" ] || [ ${COMMAND^^} == "PUT" ]; then
+if [ ${COMMAND} == "POST" ] || [ ${COMMAND} == "PUT" ]; then
 echo
-	echo "create or update project - ${COMMAND^^}"
+	echo "create or update project - ${COMMAND}"
 	if [ ! -f $PROVISION_FILE ]; then
 		echo "Input for provision api (${PROVISION_FILE}) does not EXIST, aborting\ncurrent: $(pwd)"
 		exit 1
 	fi
-	echo "... ${COMMAND} project request payload loaded from '"$PROVISION_FILE"'"´
+	echo "... ${COMMAND} project request payload loaded from '"$PROVISION_FILE"'"
 	echo
 	echo "... displaying payload file content:"
 	cat $PROVISION_FILE
@@ -55,8 +55,8 @@ echo
 	--header 'Content-Type: application/json' \
 	--data @"$PROVISION_FILE" \
 	--dump-header headers.txt -o ${RESPONSE_FILE} -w "%{http_code}" )
-elif [ ${COMMAND^^} == "DELETE" ] || [ ${COMMAND^^} == "GET" ]; then
-	echo "delete / get project - ${COMMAND^^}"
+elif [ ${COMMAND} == "DELETE" ] || [ ${COMMAND} == "GET" ]; then
+	echo "delete / get project - ${COMMAND}"
 	if [ -z $2 ]; then
 		echo "Project Key must be passed as second param in case of command == delete or get!!"
 		exit 1

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/opendevstack/ods-core/tests/utils"
+	"github.com/opendevstack/ods-core/tests/validate"
 )
 
 func TestVerifyOdsNamespaceJenkinsOcpConfig(t *testing.T) {
@@ -39,7 +40,9 @@ func TestVerifyOdsNamespaceProvAppOcpConfig(t *testing.T) {
 }
 
 func tailorOcpConfigNoDiffs(dir string, t *testing.T) {
+	odsNamespace := validate.OdsCoreEnvVariableOrFail(t, validate.ODS_NAMESPACE)
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
+		"-n", odsNamespace,
 		"diff",
 		"--reveal-secrets",
 	}, dir, []string{})
