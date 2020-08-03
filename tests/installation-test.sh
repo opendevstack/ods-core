@@ -10,7 +10,7 @@ echo "PROVISION_API_HOST = ${PROVISION_API_HOST}"
 if [ -f test-installation-results.txt ]; then
     rm test-installation-results.txt
 fi
-go test -v github.com/opendevstack/ods-core/tests/create-projects | tee test-installation-results.txt 2>&1
+go test -v -count=1 github.com/opendevstack/ods-core/tests/create-projects | tee test-installation-results.txt 2>&1
 exitcode=$?
 if [ -f test-installation-results.txt ]; then
     set -e
