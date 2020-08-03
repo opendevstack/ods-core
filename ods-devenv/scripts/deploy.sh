@@ -630,7 +630,7 @@ function configure_bitbucket2crowd() {
     cookie_jar_path="${HOME}/tmp/bitbucket_cookie_jar.txt"
     echo "Configure BitBucket against Crowd directory ..."
     # login to BitBucket
-    curl 'http://172.17.0.1:28080/j_atl_security_check' \
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/j_atl_security_check" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'j_username=openshift&j_password=openshift&_atl_remember_me=on&submit=Log+in' \
@@ -640,7 +640,7 @@ function configure_bitbucket2crowd() {
 
     # request crowd config form
     local atl_token
-    atl_token=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/new/' \
+    atl_token=$(curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/configure/new/" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'newDirectoryType=CROWD&next=Next' \
@@ -653,7 +653,7 @@ function configure_bitbucket2crowd() {
     crowd_service_name="crowd.odsbox.lan"
     echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
     local crowd_directory_id
-    crowd_directory_id=$(curl 'http://172.17.0.1:28080/plugins/servlet/embedded-crowd/configure/crowd/' \
+    crowd_directory_id=$(curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/configure/crowd/" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd&applicationName=bitbucket&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
@@ -664,12 +664,18 @@ function configure_bitbucket2crowd() {
     echo "Configured Crowd directory on BitBucket, got crowd directory id ${crowd_directory_id}."
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:28080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
         --insecure --silent -o /dev/null
     echo "Synced BitBucket directory with Crowd."
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
+        -b "${cookie_jar_path}" -c "${cookie_jar_path}" \
+        -X 'PUT' \
+        -H 'Accept: application/json, text/javascript, */*; q=0.01'
+
     rm "${cookie_jar_path}"
 }
 
@@ -1032,6 +1038,21 @@ function restart_atlassian_suite() {
     restart_atlassian_crowd
     restart_atlassian_bitbucket
     restart_atlassian_jira
+}
+
+function setup_ods_crontab() {
+    # restart atlassian suite every 3 hours from time of setup
+    local minute
+    minute=$(date '+%M')
+    local hour_range
+    hour_range="$(( $(date '+%H') % 3 ))-$(( 21 + $(date '+%H') % 3 ))/3"
+
+    echo "Writing crontab entry: ${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh"
+    echo "${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh" | crontab -
+
+    local path_to_here
+    path_to_here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    cp "${path_to_here}/../crontab/restart_atlassian_suite.sh" /home/openshift/bin/
 }
 
 #######################################
@@ -1655,6 +1676,7 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
+    setup_ods_crontab
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background

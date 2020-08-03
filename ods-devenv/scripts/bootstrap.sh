@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eux
 
 ods_git_ref=
 
@@ -10,7 +11,7 @@ while [[ "$#" -gt 0 ]]; do
 esac; shift; done
 
 ods_git_ref="${ods_git_ref:-master}"
-echo "Will build ods box against git-ref ${ods_git_ref}"
+echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 
 # install modern git version as required by repos.sh
 if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
@@ -26,5 +27,5 @@ curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/
 chmod u+x ./repos.sh
 ./repos.sh --init --confirm --bitbucket-ods-project OPENDEVSTACK --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --verbose
 
-cd ods-core && git checkout -t origin/"${ods_git_ref}"
+cd ods-core
 time bash ods-devenv/scripts/deploy.sh --branch "${ods_git_ref}" --target basic_vm_setup
