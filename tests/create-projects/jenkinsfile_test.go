@@ -177,6 +177,8 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stderr)
 		}
 	}
+	// wait for 20 secs - so jenkins at least starts deploying ..
+	time.Sleep(20 * time.Second)
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
 }
