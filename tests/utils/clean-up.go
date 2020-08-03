@@ -75,6 +75,7 @@ func RemoveAllTestOCProjects() error {
 	if err != nil {
 		return err
 	}
+	time.Sleep(20 * time.Second)
 
 	return nil
 }
@@ -93,6 +94,7 @@ func RemoveAllOpenshiftNamespacesForProject(project string) error {
 	if err != nil {
 		return err
 	}
+	time.Sleep(20 * time.Second)
 
 	return nil
 }
