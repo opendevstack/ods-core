@@ -229,7 +229,7 @@ func TestHandleRootRequiresTriggerSecret(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("test/fixtures/repo-refs-changed-payload.json")
+			f, err := os.Open("testdata/fixtures/repo-refs-changed-payload.json")
 			if err != nil {
 				t.Error(err)
 				return
@@ -298,7 +298,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -372,7 +372,7 @@ func TestSkipsPayloads(t *testing.T) {
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -435,7 +435,7 @@ func TestNamespaceRestriction(t *testing.T) {
 			var expectedOpenshiftPayload []byte
 			var err error
 			if len(tc.expectedPipeline) > 0 {
-				expectedOpenshiftPayload, err = ioutil.ReadFile("test/golden/" + tc.expectedPipeline)
+				expectedOpenshiftPayload, err = ioutil.ReadFile("testdata/golden/" + tc.expectedPipeline)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -482,7 +482,7 @@ func TestNamespaceRestriction(t *testing.T) {
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("test/fixtures/" + tc.payloadFile)
+			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -515,8 +515,8 @@ func TestForward(t *testing.T) {
 		event                      *Event
 	}{
 		"event without env": {
-			expectedPayload:            "test/golden/forward-payload-without-env.json",
-			openshiftResponse:          "test/fixtures/webhook-triggered-payload.json",
+			expectedPayload:            "testdata/golden/forward-payload-without-env.json",
+			openshiftResponse:          "testdata/fixtures/webhook-triggered-payload.json",
 			openshiftStatusCode:        200,
 			expectedReturnedStatusCode: 200,
 			event: &Event{
@@ -530,8 +530,8 @@ func TestForward(t *testing.T) {
 			},
 		},
 		"event with env": {
-			expectedPayload:            "test/golden/forward-payload-with-env.json",
-			openshiftResponse:          "test/fixtures/webhook-triggered-payload.json",
+			expectedPayload:            "testdata/golden/forward-payload-with-env.json",
+			openshiftResponse:          "testdata/fixtures/webhook-triggered-payload.json",
 			openshiftStatusCode:        200,
 			expectedReturnedStatusCode: 200,
 			event: &Event{
@@ -554,7 +554,7 @@ func TestForward(t *testing.T) {
 			},
 		},
 		"authentication issue": {
-			expectedPayload:            "test/golden/forward-payload-without-env.json",
+			expectedPayload:            "testdata/golden/forward-payload-without-env.json",
 			openshiftResponse:          "",
 			openshiftStatusCode:        401,
 			expectedReturnedStatusCode: 401,
@@ -637,7 +637,7 @@ func TestBuildEndpoint(t *testing.T) {
 	}{
 		"request without trigger secret": {
 			whpPath:                   "/build",
-			whpPayload:                "test/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 401,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
@@ -647,27 +647,27 @@ func TestBuildEndpoint(t *testing.T) {
 		},
 		"valid payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
-			bcUpsertExpectedPayload:   "test/golden/build-pipeline.json",
+			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
 		},
 		"valid payload with param": {
 			whpPath:                   "/build?component=baz&trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
-			bcUpsertExpectedPayload:   "test/golden/build-component-pipeline.json",
+			bcUpsertExpectedPayload:   "testdata/golden/build-component-pipeline.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
 		},
 		"broken payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-broken-payload.txt",
+			whpPayload:                "testdata/fixtures/build-broken-payload.txt",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Cannot parse JSON: invalid character '\"' after object key:value pair\n",
 			bcGetResponseBody:         "",
@@ -677,7 +677,7 @@ func TestBuildEndpoint(t *testing.T) {
 		},
 		"invalid payload": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-invalid-payload.json",
+			whpPayload:                "testdata/fixtures/build-invalid-payload.json",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Invalid input\n",
 			bcGetResponseBody:         "",
@@ -687,31 +687,31 @@ func TestBuildEndpoint(t *testing.T) {
 		},
 		"accepted payload rejected by OpenShift": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-rejected-payload.json",
+			whpPayload:                "testdata/fixtures/build-rejected-payload.json",
 			whpExpectedResponseStatus: 422,
 			whpExpectedResponseBody:   "Could not create/update pipeline\n",
 			bcGetResponseBody:         "",
 			bcUpsertExpectedPayload:   "",
-			bcUpsertResponseBody:      "test/fixtures/build-rejected-openshift-response.json",
+			bcUpsertResponseBody:      "testdata/fixtures/build-rejected-openshift-response.json",
 			bcUpsertResponseStatus:    422,
 		},
 		"existing pipeline with different jenkinsfile path": {
 			whpPath:                   "/build?trigger_secret=s3cr3t&jenkinsfile_path=bar/Jenkinsfile",
-			whpPayload:                "test/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
-			bcGetResponseBody:         "test/fixtures/build-pipeline-jenkinsfilepath.json",
-			bcUpsertExpectedPayload:   "test/golden/build-pipeline-jenkinsfilepath.json",
+			bcGetResponseBody:         "testdata/fixtures/build-pipeline-jenkinsfilepath.json",
+			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline-jenkinsfilepath.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
 		},
 		"existing pipeline with different branch": {
 			whpPath:                   "/build?trigger_secret=s3cr3t",
-			whpPayload:                "test/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
-			bcGetResponseBody:         "test/fixtures/build-pipeline-branch.json",
-			bcUpsertExpectedPayload:   "test/golden/build-pipeline-branch.json",
+			bcGetResponseBody:         "testdata/fixtures/build-pipeline-branch.json",
+			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline-branch.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
 		},
@@ -866,7 +866,7 @@ func TestGetBuildConfig(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	configBytes, err := ioutil.ReadFile("test/golden/pipeline.json")
+	configBytes, err := ioutil.ReadFile("testdata/golden/pipeline.json")
 	if err != nil {
 		t.Error(err)
 	}
