@@ -66,12 +66,20 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				Name:  "ODS_IMAGE_TAG",
 				Value: values["ODS_IMAGE_TAG"],
 			},
+			{
+				Name:  "ODS_NAMESPACE",
+				Value: values["ODS_NAMESPACE"],
+			},
+			{
+				Name:  "ODS_BITBUCKET_PROJECT",
+				Value: values["ODS_BITBUCKET_PROJECT"],
+			},
 		},
 	}
 
 	body, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("Could not marchal json: %s", err)
+		t.Fatalf("Could not marshal request json for creation: %s", err)
 	}
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
@@ -88,19 +96,11 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Could not post request: %s", err)
 	}
 
-	if reponse.StatusCode >= http.StatusAccepted {
-		bodyBytes, err := ioutil.ReadAll(reponse.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Fatalf("Could not post request: %s", string(bodyBytes))
-	}
+	defer reponse.Body.Close()
+
+	bodyBytes, _ := ioutil.ReadAll(reponse.Body)
 
 	if reponse.StatusCode >= http.StatusAccepted {
-		bodyBytes, err := ioutil.ReadAll(reponse.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
 		t.Fatalf("Could not post request: %s", string(bodyBytes))
 	}
 
@@ -114,7 +114,16 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatalf("Error creating Build client: %s", err)
 	}
 
-	buildName := buildConfigName + "-1"
+	var responseI map[string]interface{}
+	err = json.Unmarshal(bytes.Split(bodyBytes, []byte("\n"))[0], &responseI)
+	if err != nil {
+		t.Fatalf("Could not parse json response: %s, err: %s",
+			string(bodyBytes), err)
+	}
+
+	metadataAsMap := responseI["metadata"].(map[string]interface{})
+	buildName := metadataAsMap["name"].(string)
+	fmt.Printf("Buildname from response: %s\n", buildName)
 
 	time.Sleep(10 * time.Second)
 	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(buildName, metav1.GetOptions{})
@@ -168,6 +177,8 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				stderr)
 		}
 	}
+	// wait for 20 secs - so jenkins at least starts deploying ..
+	time.Sleep(20 * time.Second)
 	CheckProjectSetup(t)
 	CheckJenkinsWithTailor(values, projectNameCd, projectName, t)
 }

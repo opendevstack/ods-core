@@ -26,11 +26,23 @@ podTemplate(
   serviceAccount: 'jenkins'
 ) {
   node(podLabel) {
-
     stage('delete projects') {
-      sh "oc delete project ${projectId}-cd"
-      sh "oc delete project ${projectId}-dev"
-      sh "oc delete project ${projectId}-test"
+      if (!projectId) {
+        error ("No project ID passed - aborting")
+      }
+      def exists = sh(
+          script: "oc project ${project} &> /dev/null",
+          label: "Check if OpenShift project '${project}' exists",
+          returnStatus: true
+      ) == 0
+      if (!exists) {
+          error ("Project '${project}' does not exist! - aborting")
+      }
+      sh "oc delete project ${projectId}-cd --now=true --wait=true"
+      sh "oc delete project ${projectId}-dev --now=true --wait=true"
+      sh "oc delete project ${projectId}-test --now=true --wait=true"
+
+      echo "ODS Project ${projectId} successfully deleted"
     }
   }
 }

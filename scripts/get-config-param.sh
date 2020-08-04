@@ -20,9 +20,9 @@ if [ -z "${PARAM_NAME}" ]; then
     exit 1
 fi
 
-if ! grep "${PARAM_NAME}" "${ODS_CONFIGURATION_DIR}/ods-core.env" > /dev/null; then
+if ! grep "${PARAM_NAME}=" "${ODS_CONFIGURATION_DIR}/ods-core.env" > /dev/null; then
     echo "No param ${PARAM_NAME} found." 
     exit 1
 fi
 
-grep "${PARAM_NAME}" "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-
+grep "${PARAM_NAME}=" "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-

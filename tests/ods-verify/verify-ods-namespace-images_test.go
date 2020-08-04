@@ -22,7 +22,6 @@ func TestVerifyOdsNamespaceImages(t *testing.T) {
 			{Name: "jenkins-agent-golang", Tag: odsImageTag},
 			{Name: "jenkins-agent-maven", Tag: odsImageTag},
 			{Name: "jenkins-agent-nodejs10-angular", Tag: odsImageTag},
-			{Name: "jenkins-agent-nodejs12", Tag: odsImageTag},
 			{Name: "jenkins-agent-python", Tag: odsImageTag},
 			{Name: "jenkins-agent-scala", Tag: odsImageTag},
 			{Name: "ods-doc-gen-svc", Tag: odsImageTag},

@@ -40,6 +40,7 @@ func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 		"--non-interactive",
 		fmt.Sprintf("--ods-namespace=%s", values["ODS_NAMESPACE"]),
 		fmt.Sprintf("--ods-image-tag=%s", values["ODS_IMAGE_TAG"]),
+		fmt.Sprintf("--ods-bitbucket-project=%s", values["ODS_BITBUCKET_PROJECT"]),
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
 		fmt.Sprintf("--cd-user-type=%s", "general"),
 		fmt.Sprintf("--cd-user-id-b64=%s", user),
