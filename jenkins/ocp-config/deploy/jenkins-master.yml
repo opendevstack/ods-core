@@ -19,7 +19,7 @@ parameters:
 - name: JENKINS_MEMORY_LIMIT
   value: 5Gi
 - name: JENKINS_MEMORY_REQUEST
-  value: 2560Mi
+  value: 4Gi
 - name: JENKINS_CPU_LIMIT
   value: "1"
 - name: JENKINS_CPU_REQUEST
