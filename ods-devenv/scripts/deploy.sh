@@ -1535,6 +1535,7 @@ function setup_jenkins_agents() {
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
+        echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
         tailor apply --verbose --force --non-interactive &
