@@ -397,6 +397,7 @@ function setup_openshift_cluster() {
     oc create route edge --service=docker-registry --hostname="docker-registry-default.ocp.odsbox.lan" -n default
 
     oc adm policy add-cluster-role-to-user cluster-admin developer
+    oc login -u developer -p anypwd
     # allow for OpenShifts to be resolved within OpenShift network
     sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 
@@ -1518,6 +1519,9 @@ function setup_docgen() {
 #   None
 #######################################
 function setup_jenkins_agents() {
+    # to be save login as developer again
+    oc login -u developer -p anypwd
+
     local opendevstack_dir="${HOME}/opendevstack"
     local quickstarters_jenkins_agents_dir="${opendevstack_dir}/ods-quickstarters/common/jenkins-agents"
     local ocp_config_folder="ocp-config"
