@@ -46,6 +46,7 @@ ods_git_ref=
 # for now, making a best bet on the applicable ip adress with: hostname -I | awk '{print $1}'
 public_hostname=$(hostname -I | awk '{print $1}')
 echo "OpenShift ip will be ${public_hostname}"
+log_folder="${HOME}/logs"
 
 NAMESPACE=ods
 
@@ -79,6 +80,7 @@ function check_system_setup() {
     PATH="${PATH}:${HOME}/bin:${HOME}/go/bin"
     export GOPROXY="https://goproxy.io,direct"
     mkdir -p "${HOME}/tmp"
+    mkdir -p "${log_folder}"
     # print warning if hypervisor application support is not activated - interesting for local VMWare VMs
     if ! grep -q vmx /proc/cpuinfo
     then
@@ -1544,7 +1546,7 @@ function setup_jenkins_agents() {
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
-        tailor apply --verbose --force --non-interactive &
+        tailor apply --verbose --force --non-interactive | tee "${log_folder}/${technology}_tailorapply.log" &
         popd
     done
 
@@ -1566,7 +1568,7 @@ function setup_jenkins_agents() {
     do
         technology=${technology%/*}
         echo "Starting build of jenkins-agent for technology ${technology}."
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow &
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"  &
     done
     popd
 
@@ -1702,11 +1704,11 @@ function basic_vm_setup() {
     create_configuration
     install_ods_project
     # Install components in OpenShift
-    setup_nexus &
-    setup_sonarqube &
-    setup_jenkins &
-    setup_provisioning_app &
-    setup_docgen &
+    setup_nexus | tee "${log_folder}"/nexus_setup.log &
+    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log &
+    setup_jenkins | tee "${log_folder}"/jenkins_setup.log &
+    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log &
+    setup_docgen | tee "${log_folder}"/docgen_setup.log &
 
     local fail_count
     fail_count=0
