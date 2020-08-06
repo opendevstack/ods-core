@@ -99,7 +99,9 @@ function check_system_setup() {
 } >> ~/.bashrc
 
     # suppress sudo timeout
+    sudo chattr -i /etc/sudoers
     sudo sed -i "\$aDefaults    env_reset,timestamp_timeout=-1" /etc/sudoers
+    sudo chattr +i /etc/sudoers
 
     # remove obsolete version of git
     if [[ -n $(command -v git) ]]
