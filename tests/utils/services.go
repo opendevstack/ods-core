@@ -9,6 +9,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// FindServiceHasPods returns an error if no pod is assigned to given service
+// or if at least one pod is not "Running"
+// or at least one of its containers is not "ready".
 func FindServiceHasPods(services *v1.ServiceList, serviceName string) error {
 	pods, err := servicePodsEnsureOnePerSelector(services, serviceName)
 	if err != nil {
@@ -17,7 +20,22 @@ func FindServiceHasPods(services *v1.ServiceList, serviceName string) error {
 	for _, pod := range pods.Items {
 		phase := pod.Status.Phase
 		if phase != "Running" {
-			return fmt.Errorf("Pod %s of service %s is not running: phase=%s", pod.GetName(), serviceName, phase)
+			return fmt.Errorf(
+				"Pod %s of service %s is not running: phase=%s",
+				pod.GetName(),
+				serviceName,
+				phase,
+			)
+		}
+		for _, containerStatus := range pod.Status.ContainerStatuses {
+			if !containerStatus.Ready {
+				return fmt.Errorf(
+					"Container %s of pod %s of service %s is not ready",
+					containerStatus.Name,
+					pod.GetName(),
+					serviceName,
+				)
+			}
 		}
 	}
 	return nil
