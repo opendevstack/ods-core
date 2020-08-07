@@ -807,21 +807,24 @@ function startup_atlassian_crowd() {
 
     echo
     echo "...ping crowd web server"
-    curl --silent --location --request -GET "http://localhost:$atlassian_crowd_port/" -v
+    curl -sS -o /dev/null --location --request -GET "http://localhost:$atlassian_crowd_port/"
 
     # Get session cookie
     echo
     echo "...get session cookie from crowd web console"
-    curl --silent --location --request GET "http://localhost:$atlassian_crowd_port/crowd/console/" -c crowd_sessionid_cookie.txt
+    curl -sS -o /dev/null --location --request GET \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/"
 
     sleep 1
 
     # Set time limited license
     echo
     echo "...setup license"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
+        --form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
 yg9ZvLN+HuM/e1BUHdGlNvuuEHQ73X73Y4bR4nbbgU9ZwFiD2IchcPH+8T7vXzuej9eXp68YSv45
 UwoASYhOeYwxTsIE7RIxtNHhwh+SP3a33D0XnntuxHsIeM5CIdwtvYxUXQPoRIF6KaC0FUGVlEB3
 v0hOAOWYiH9abFbgZith3i34nwOO65gsAGmZBhUbNC/nIpjhBWEcefJWelzqIDPWz/OtjmXRYv2X
@@ -838,43 +841,48 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     # Set install type action
     echo
     echo "...start crowd configuration"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml" -b crowd_sessionid_cookie.txt
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml"
 
     sleep 1
 
     # Set setup database option to embedded
     echo
     echo "...choose embedded db option"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'databaseOption= db.embedded' \
---form 'jdbcDatabaseType= ' \
---form 'jdbcDriverClassName= ' \
---form 'jdbcUrl= ' \
---form 'jdbcUsername= ' \
---form 'jdbcPassword= ' \
---form 'jdbcHibernateDialect= ' \
---form 'datasourceDatabaseType= ' \
---form 'datasourceJndiName='
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --form 'databaseOption= db.embedded' \
+        --form 'jdbcDatabaseType= ' \
+        --form 'jdbcDriverClassName= ' \
+        --form 'jdbcUrl= ' \
+        --form 'jdbcUsername= ' \
+        --form 'jdbcPassword= ' \
+        --form 'jdbcHibernateDialect= ' \
+        --form 'datasourceDatabaseType= ' \
+        --form 'datasourceJndiName=' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action"
 
     sleep 1
 
     # Restore configuration from the backup file
     echo
     echo "...choose install with config file (config file was copied to container already)"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml'
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action"
 
     sleep 1
 
     # Test setup by login into crowd
     echo
     echo "...login in crowd to test installation"
-curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
--b crowd_sessionid_cookie.txt \
---header 'Content-Type: text/plain' \
---data '{username: "openshift", password: "openshift", rememberMe: false}'
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --header 'Content-Type: text/plain' \
+        --data '{username: "openshift", password: "openshift", rememberMe: false}' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/login.action"
 
     sleep 1
     # cleanup
