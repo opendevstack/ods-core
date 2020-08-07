@@ -1048,9 +1048,9 @@ function restart_atlassian_suite() {
 function setup_ods_crontab() {
     # restart atlassian suite every 3 hours from time of setup
     local minute
-    minute=$(date '+%M')
+    minute=$(date '+%-M')
     local hour_range
-    hour_range="$(( $(date '+%H') % 3 ))-$(( 21 + $(date '+%H') % 3 ))/3"
+    hour_range="$(( $(date '+%-H') % 3 ))-$(( 21 + $(date '+%-H') % 3 ))/3"
 
     echo "Writing crontab entry: ${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh"
     echo "${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh" | crontab -
