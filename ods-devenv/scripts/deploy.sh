@@ -1546,7 +1546,7 @@ function setup_jenkins_agents() {
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
-        tailor apply --verbose --force --non-interactive | tee "${log_folder}/${technology}_tailorapply.log" &
+        tailor apply --verbose --force --non-interactive | tee "${log_folder}/${technology}_tailorapply.log"
         popd
     done
 
@@ -1568,7 +1568,7 @@ function setup_jenkins_agents() {
     do
         technology=${technology%/*}
         echo "Starting build of jenkins-agent for technology ${technology}."
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"  &
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"
     done
     popd
 
@@ -1704,11 +1704,11 @@ function basic_vm_setup() {
     create_configuration
     install_ods_project
     # Install components in OpenShift
-    setup_nexus | tee "${log_folder}"/nexus_setup.log &
-    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log &
-    setup_jenkins | tee "${log_folder}"/jenkins_setup.log &
-    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log &
-    setup_docgen | tee "${log_folder}"/docgen_setup.log &
+    setup_nexus | tee "${log_folder}"/nexus_setup.log
+    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
+    setup_jenkins | tee "${log_folder}"/jenkins_setup.log
+    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
+    setup_docgen | tee "${log_folder}"/docgen_setup.log
 
     local fail_count
     fail_count=0
