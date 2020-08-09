@@ -535,10 +535,10 @@ function startup_atlassian_mysql() {
 #######################################
 function startup_and_follow_atlassian_mysql() {
     startup_atlassian_mysql
-    printf "Waiting for mysqld to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    echo -n "Waiting for mysqld to become available"
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
     do
-        printf .
+        echo -n "."
         sleep 1
     done
     echo "mysqld up and running."
@@ -546,10 +546,10 @@ function startup_and_follow_atlassian_mysql() {
 
 function startup_and_follow_bitbucket() {
     startup_atlassian_bitbucket
-    printf "Waiting for bitbucket to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    echo -n "Waiting for bitbucket to become available"
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name})" == 'healthy' ]]
     do
-        printf .
+        echo -n "."
         sleep 1
     done
     echo "bitbucket up and running."
@@ -1016,7 +1016,7 @@ function startup_atlassian_bitbucket() {
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
-        --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
+        --health-cmd '[ -n "$(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects)" ]' \
         -v "${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket" \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
@@ -1615,10 +1615,10 @@ function run_smoke_tests() {
 
     # buying extra time for the quickstarter tests
     restart_atlassian_suite
-    printf "Waiting for bitbucket to become available"
+    echo -n "Waiting for bitbucket to become available"
     until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
     do
-        printf .
+        echo -n "."
         sleep 1
     done
     echo "bitbucket up and running."
@@ -1703,7 +1703,6 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
-    setup_ods_crontab
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
@@ -1741,6 +1740,7 @@ function basic_vm_setup() {
     setup_jenkins_agents
 
     run_smoke_tests
+    setup_ods_crontab
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
