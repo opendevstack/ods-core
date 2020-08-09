@@ -1614,8 +1614,7 @@ function run_smoke_tests() {
     git reset --hard
 
     # buying extra time for the quickstarter tests
-    stop_ods
-    startup_ods
+    restart_atlassian_suite
     printf "Waiting for bitbucket to become available"
     until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
     do
