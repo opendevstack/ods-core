@@ -1613,6 +1613,17 @@ function run_smoke_tests() {
     popd
     git reset --hard
 
+    # buying extra time for the quickstarter tests
+    stop_ods
+    startup_ods
+    printf "Waiting for bitbucket to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "bitbucket up and running."
+
     pushd ../ods-quickstarters/tests
         make setup-tests test
     popd
