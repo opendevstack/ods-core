@@ -368,7 +368,6 @@ objects:
       app: sonarqube
     name: sonarqube
   spec:
-    dockerImageRepository: sonarqube
     lookupPolicy:
       local: false
 - apiVersion: v1

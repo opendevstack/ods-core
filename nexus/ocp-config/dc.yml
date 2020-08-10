@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: Template
 parameters:
+- name: ODS_NAMESPACE
+  value: ods-next
+- name: ODS_IMAGE_TAG
+  required: true
 - name: NEXUS_NAME
   value: nexus
-- name: NEXUS_IMAGE
-  description: Image to use for Nexus
-  value: sonatype/nexus3:3.23.0
 - name: NEXUS_CPU_REQUEST
   value: 200m
 - name: NEXUS_CPU_LIMIT
@@ -40,7 +41,7 @@ objects:
           deploymentconfig: ${NEXUS_NAME}
       spec:
         containers:
-        - image: ${NEXUS_IMAGE}
+        - image: ${ODS_NAMESPACE}/${NEXUS_NAME}:${ODS_IMAGE_TAG}
           imagePullPolicy: Always
           name: ${NEXUS_NAME}
           ports:
@@ -74,4 +75,13 @@ objects:
             claimName: nexus-db-backup
     test: false
     triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NEXUS_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${NEXUS_NAME}:${ODS_IMAGE_TAG}
+          namespace: ${ODS_NAMESPACE}
+      type: ImageChange
     - type: ConfigChange
