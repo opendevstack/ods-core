@@ -535,10 +535,10 @@ function startup_atlassian_mysql() {
 #######################################
 function startup_and_follow_atlassian_mysql() {
     startup_atlassian_mysql
-    printf "Waiting for mysqld to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    echo -n "Waiting for mysqld to become available"
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
     do
-        printf .
+        echo -n "."
         sleep 1
     done
     echo "mysqld up and running."
@@ -546,10 +546,10 @@ function startup_and_follow_atlassian_mysql() {
 
 function startup_and_follow_bitbucket() {
     startup_atlassian_bitbucket
-    printf "Waiting for bitbucket to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    echo -n "Waiting for bitbucket to become available"
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name})" == 'healthy' ]]
     do
-        printf .
+        echo -n "."
         sleep 1
     done
     echo "bitbucket up and running."
@@ -807,21 +807,24 @@ function startup_atlassian_crowd() {
 
     echo
     echo "...ping crowd web server"
-    curl --silent --location --request -GET "http://localhost:$atlassian_crowd_port/" -v
+    curl -sS -o /dev/null --location --request -GET "http://localhost:$atlassian_crowd_port/"
 
     # Get session cookie
     echo
     echo "...get session cookie from crowd web console"
-    curl --silent --location --request GET "http://localhost:$atlassian_crowd_port/crowd/console/" -c crowd_sessionid_cookie.txt
+    curl -sS -o /dev/null --location --request GET \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/"
 
     sleep 1
 
     # Set time limited license
     echo
     echo "...setup license"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setuplicense!update.action" \
+        --form 'key=AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
 yg9ZvLN+HuM/e1BUHdGlNvuuEHQ73X73Y4bR4nbbgU9ZwFiD2IchcPH+8T7vXzuej9eXp68YSv45
 UwoASYhOeYwxTsIE7RIxtNHhwh+SP3a33D0XnntuxHsIeM5CIdwtvYxUXQPoRIF6KaC0FUGVlEB3
 v0hOAOWYiH9abFbgZith3i34nwOO65gsAGmZBhUbNC/nIpjhBWEcefJWelzqIDPWz/OtjmXRYv2X
@@ -838,43 +841,48 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     # Set install type action
     echo
     echo "...start crowd configuration"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml" -b crowd_sessionid_cookie.txt
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/installtype!update.action?installOption=install.xml"
 
     sleep 1
 
     # Set setup database option to embedded
     echo
     echo "...choose embedded db option"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'databaseOption= db.embedded' \
---form 'jdbcDatabaseType= ' \
---form 'jdbcDriverClassName= ' \
---form 'jdbcUrl= ' \
---form 'jdbcUsername= ' \
---form 'jdbcPassword= ' \
---form 'jdbcHibernateDialect= ' \
---form 'datasourceDatabaseType= ' \
---form 'datasourceJndiName='
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --form 'databaseOption= db.embedded' \
+        --form 'jdbcDatabaseType= ' \
+        --form 'jdbcDriverClassName= ' \
+        --form 'jdbcUrl= ' \
+        --form 'jdbcUsername= ' \
+        --form 'jdbcPassword= ' \
+        --form 'jdbcHibernateDialect= ' \
+        --form 'datasourceDatabaseType= ' \
+        --form 'datasourceJndiName=' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupdatabase!update.action"
 
     sleep 1
 
     # Restore configuration from the backup file
     echo
     echo "...choose install with config file (config file was copied to container already)"
-    curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action" \
--b crowd_sessionid_cookie.txt \
---form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml'
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --form 'filePath=/var/atlassian/application-data/crowd/shared/crowd-provision-app-backup.xml' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/setup/setupimport!update.action"
 
     sleep 1
 
     # Test setup by login into crowd
     echo
     echo "...login in crowd to test installation"
-curl --silent --location --request POST "http://localhost:$atlassian_crowd_port/crowd/console/login.action" \
--b crowd_sessionid_cookie.txt \
---header 'Content-Type: text/plain' \
---data '{username: "openshift", password: "openshift", rememberMe: false}'
+    curl -sS -o /dev/null --location --request POST \
+        -b crowd_sessionid_cookie.txt -c crowd_sessionid_cookie.txt \
+        --header 'Content-Type: text/plain' \
+        --data '{username: "openshift", password: "openshift", rememberMe: false}' \
+        "http://localhost:$atlassian_crowd_port/crowd/console/login.action"
 
     sleep 1
     # cleanup
@@ -1008,7 +1016,7 @@ function startup_atlassian_bitbucket() {
 
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
-        --health-cmd '[ ! -z $(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects) ]' \
+        --health-cmd '[ -n "$(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects)" ]' \
         -v "${HOME}/bitbucket_data:/var/atlassian/application-data/bitbucket" \
         -dp ${atlassian_bitbucket_port}:7990 \
         -e "JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_bitbucket_db_name}" \
@@ -1048,9 +1056,9 @@ function restart_atlassian_suite() {
 function setup_ods_crontab() {
     # restart atlassian suite every 3 hours from time of setup
     local minute
-    minute=$(date '+%M')
+    minute=$(date '+%-M')
     local hour_range
-    hour_range="$(( $(date '+%H') % 3 ))-$(( 21 + $(date '+%H') % 3 ))/3"
+    hour_range="$(( $(date '+%-H') % 3 ))-$(( 21 + $(date '+%-H') % 3 ))/3"
 
     echo "Writing crontab entry: ${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh"
     echo "${minute} ${hour_range} * * * /home/openshift/bin/restart_atlassian_suite.sh" | crontab -
@@ -1546,7 +1554,7 @@ function setup_jenkins_agents() {
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
         echo "Creating build configuration of jenkins-agent for technology ${technology}."
-        tailor apply --verbose --force --non-interactive | tee "${log_folder}/${technology}_tailorapply.log" &
+        tailor apply --verbose --force --non-interactive | tee "${log_folder}/${technology}_tailorapply.log"
         popd
     done
 
@@ -1568,7 +1576,7 @@ function setup_jenkins_agents() {
     do
         technology=${technology%/*}
         echo "Starting build of jenkins-agent for technology ${technology}."
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"  &
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"
     done
     popd
 
@@ -1604,6 +1612,16 @@ function run_smoke_tests() {
     make test
     popd
     git reset --hard
+
+    # buying extra time for the quickstarter tests
+    restart_atlassian_suite
+    echo -n "Waiting for bitbucket to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo "bitbucket up and running."
 
     pushd ../ods-quickstarters/tests
         make setup-tests test
@@ -1685,7 +1703,6 @@ function basic_vm_setup() {
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
     # initialize_atlassian_jiradb
-    setup_ods_crontab
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
@@ -1704,11 +1721,11 @@ function basic_vm_setup() {
     create_configuration
     install_ods_project
     # Install components in OpenShift
-    setup_nexus | tee "${log_folder}"/nexus_setup.log &
-    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log &
-    setup_jenkins | tee "${log_folder}"/jenkins_setup.log &
-    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log &
-    setup_docgen | tee "${log_folder}"/docgen_setup.log &
+    setup_nexus | tee "${log_folder}"/nexus_setup.log
+    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
+    setup_jenkins | tee "${log_folder}"/jenkins_setup.log
+    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
+    setup_docgen | tee "${log_folder}"/docgen_setup.log
 
     local fail_count
     fail_count=0
@@ -1723,6 +1740,7 @@ function basic_vm_setup() {
     setup_jenkins_agents
 
     run_smoke_tests
+    setup_ods_crontab
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
