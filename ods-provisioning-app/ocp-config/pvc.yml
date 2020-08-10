@@ -17,7 +17,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 10Mi
+        storage: 20Mi
 parameters:
 - name: STORAGE_PROVISIONER
   description: storage class provisioner. For AWS this could be kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployments
