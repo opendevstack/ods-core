@@ -138,19 +138,29 @@ configure-sonarqube:
 
 # NEXUS
 ## Install or update Nexus.
-install-nexus: apply-nexus
+install-nexus: apply-nexus-build start-nexus-build apply-nexus-deploy
 .PHONY: nexus
 
+## Update OpenShift resources related to the Nexus image.
+apply-nexus-build:
+	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) bc,is
+.PHONY: apply-nexus-build
+
+## Start build of BuildConfig "nexus".
+start-nexus-build:
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config nexus
+.PHONY: start-nexus-build
+
 ## Update OpenShift resources related to the Nexus service.
-apply-nexus:
-	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE)
-.PHONY: apply-nexus
+apply-nexus-deploy:
+	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude bc,is
+.PHONY: apply-nexus-deploy
 
 ## Configure Nexus service.
 configure-nexus:
 	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL)
 .PHONY: configure-nexus
-### Not part of install-nexus because it is not idempotent yet.
+### configure-nexus is not part of install-nexus because it is not idempotent yet.
 
 
 # BACKUP
