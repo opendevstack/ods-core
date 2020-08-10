@@ -200,9 +200,9 @@ waitForReady
 DEFAULT_ADMIN_PASSWORD_FILE="/nexus-data/admin.password"
 if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     ADMIN_DEFAULT_PASSWORD=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
-    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $HTTP_PROXY")
-    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $HTTPS_PROXY")
-    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n $NO_PROXY")
+    HTTP_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n \$HTTP_PROXY")
+    HTTPS_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n \$HTTPS_PROXY")
+    NO_PROXY=$(oc -n "${NAMESPACE}" rsh "dc/${NEXUS_DC}" sh -c "echo -n \$NO_PROXY")
 else
     ADMIN_DEFAULT_PASSWORD=$(docker exec -t "${LOCAL_CONTAINER_ID}" sh -c "cat ${DEFAULT_ADMIN_PASSWORD_FILE} 2> /dev/null || true")
     # shellcheck disable=SC2046,SC2005
