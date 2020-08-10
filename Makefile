@@ -7,11 +7,16 @@ MAKEFLAGS += --no-builtin-rules
 ODS_NAMESPACE := $(shell $(CURDIR)/scripts/get-config-param.sh ODS_NAMESPACE)
 NEXUS_URL := $(shell $(CURDIR)/scripts/get-config-param.sh NEXUS_URL)
 SONARQUBE_URL := $(shell $(CURDIR)/scripts/get-config-param.sh SONARQUBE_URL)
+INSECURE := false
+INSECURE_FLAG :=
+ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
+    INSECURE_FLAG = --insecure
+endif
 
 # REPOSITORIES
 ## Prepare Bitbucket repos (create project and repos).
 prepare-bitbucket-repos:
-	cd ods-setup && ./bitbucket.sh
+	cd ods-setup && ./bitbucket.sh $(INSECURE_FLAG)
 .PHONY: prepare-bitbucket-repos
 
 ## Prepare local repos (fetch changes from Bitbucket).
@@ -132,7 +137,7 @@ apply-sonarqube-deploy:
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL)
+	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) $(INSECURE_FLAG)
 .PHONY: configure-sonarqube
 
 
@@ -158,7 +163,7 @@ apply-nexus-deploy:
 
 ## Configure Nexus service.
 configure-nexus:
-	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL)
+	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL) $(INSECURE_FLAG)
 .PHONY: configure-nexus
 ### configure-nexus is not part of install-nexus because it is not idempotent yet.
 
