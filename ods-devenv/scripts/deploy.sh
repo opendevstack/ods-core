@@ -1381,7 +1381,7 @@ function setup_nexus() {
     ocp-scripts/start-and-follow-build.sh --namespace "${NAMESPACE}" --build-config nexus --verbose
 
     echo "apply-nexus-deploy:"
-    push nexus/ocp-config
+    pushd nexus/ocp-config
     tailor apply --namespace "${NAMESPACE}" --exclude bc,is --non-interactive --verbose
     popd
 
