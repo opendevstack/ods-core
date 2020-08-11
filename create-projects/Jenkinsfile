@@ -49,7 +49,7 @@ podTemplate(
   serviceAccount: 'jenkins'
 ) {
   node(podLabel) {
-
+    currentBuild.description = "ODS Build #${env.BUILD_NUMBER} creating project: ${projectId}"
     stage('Checkout ods-core') {
       sh 'mkdir -p ods-core'
       dir('ods-core') {

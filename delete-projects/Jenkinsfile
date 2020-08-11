@@ -30,6 +30,7 @@ podTemplate(
       if (!projectId) {
         error ("No project ID passed - aborting")
       }
+      currentBuild.description = "ODS Build #${env.BUILD_NUMBER} delete project: ${projectId}"
       def exists = sh(
           script: "oc project ${projectId}-cd &> /dev/null",
           label: "Check if OpenShift project '${projectId}-cd' exists",
