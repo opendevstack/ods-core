@@ -12,8 +12,9 @@ depend on projects created thru tests here!<br>Secondly, there is a few musts fo
 1. the Provision Application needs to be configured to allow project deletion! This is done in 
 `ods-core.env` thru setting `PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true`. In order to have this setting applied, you need to update `ods-core.env` and run `tailor apply` to ensure no diff between the config and the deployed version!
 1. the configured `CD_USER_ID` in `ods-core.env` must have rights to create projects on the entire stack.
+1. have an atlassian user at hand with `admin` privileges, such as `openshift` - you'll need it to run the tests below.
 
 These settings can be reverted / set to false after the run of the tests in `ods-core` and in `ods-quickstarters`.
 
 ## Running the tests
-just run `make test` [in this directory](Makefile)
+just run `make test` [in this directory](Makefile). To pass a different atlassian user than the standard one `openshift:openshift` - specify the credentials as param for `make`, e.g. `make BASIC_AUTH_CREDENTIAL="user:password" test`
