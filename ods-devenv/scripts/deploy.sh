@@ -417,7 +417,7 @@ function setup_openshift_cluster() {
 }
 
 #######################################
-# install tailor v1.1.4
+# install tailor v1.2.0
 # Globals:
 #   n/a
 # Arguments:
@@ -427,7 +427,7 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.1.4/tailor-linux-amd64"
+    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.2.0/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
     sudo mv tailor-linux-amd64 /usr/bin/tailor
 }
@@ -1374,9 +1374,16 @@ function install_ods_project() {
 function setup_nexus() {
     echo "make install-nexus: / apply-nexus:"
     pushd nexus/ocp-config
-    tailor apply --namespace "${NAMESPACE}" --non-interactive --verbose
+    tailor apply --namespace "${NAMESPACE}" bc,is --non-interactive --verbose
     popd
 
+    echo "start-nexus-build:"
+    ocp-scripts/start-and-follow-build.sh --namespace "${NAMESPACE}" --build-config nexus --verbose
+
+    echo "apply-nexus-deploy:"
+    pushd nexus/ocp-config
+    tailor apply --namespace "${NAMESPACE}" --exclude bc,is --non-interactive --verbose
+    popd
 
     echo "make configure-nexus:"
     pushd nexus
