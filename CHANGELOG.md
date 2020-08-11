@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [3.0] - 2020-08-11
 
 ### Added
 - Publish ods images to Docker Hub ([#490](https://github.com/opendevstack/ods-core/issues/490))
