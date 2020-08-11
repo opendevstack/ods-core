@@ -1,6 +1,6 @@
 name: opendevstack
 title: OpenDevStack
-version: 3.x
+version: 4.x
 prerelease: Preview
 start_page: getting-started:index.adoc
 nav:
