@@ -118,7 +118,7 @@ The following outlines the procedure for SonarQube:
 
 . Create the SonarQube build resources in `ods` using `make apply-sonarqube-build`
 . Scale down the SonarQube pod in `cd`
-. Create a backup of the old data using `make NAMESPACE=cd backup-sonarqube`
+. Create a backup of the old data using `make ODS_NAMESPACE=cd backup-sonarqube`
 . Create the SonarQube deploy resources in `ods` using `make apply-sonarqube-deploy`
 . Scale down the SonarQube pod in `ods`
 . Upload backup to new Postgres pod: `oc -n ods cp sonarqube/sonarqube.sql pod/<sonarqube-postgresql-pod>:/var/lib/pgsql/`
