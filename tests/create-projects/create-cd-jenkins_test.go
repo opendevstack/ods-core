@@ -26,12 +26,6 @@ func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 			stderr)
 	}
 
-	values, err = utils.ReadConfiguration()
-	if err != nil {
-		t.Fatalf(
-			"Could not read ods-core.env")
-	}
-
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
 

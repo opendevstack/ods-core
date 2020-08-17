@@ -5,3 +5,5 @@ test-report.xml
 test-installation-results.txt
 test-installation-report.xml
 
+test-quickstarter-report.xml
+test-quickstarter-results.txt

@@ -1630,8 +1630,8 @@ function run_smoke_tests() {
     done
     echo "bitbucket up and running."
 
-    pushd ../ods-quickstarters/tests
-        make setup-tests test
+    pushd tests
+        make test-quickstarter
     popd
 
     # clean up after tests

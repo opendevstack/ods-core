@@ -1,0 +1,30 @@
+[
+  {
+    "stage": "Checkout quickstarter",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Initialize output directory",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Copy files from quickstarter",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Create OpenShift resources",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Create Jenkinsfile",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Create sonar-project.properties",
+    "status": "SUCCESS"
+  },
+  {
+    "stage": "Push to remote",
+    "status": "SUCCESS"
+  }
+]

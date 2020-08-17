@@ -1,0 +1,9 @@
+{
+  "projectKey" : "ODSVERIFY",
+  "quickstarters" : [
+    {
+      "component_type" : "docker-plain",
+      "component_id" : "plain"
+    }
+  ]
+}
