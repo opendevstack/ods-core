@@ -78,12 +78,19 @@ commit and push the result.
 
 Next you need to update all OpenShift resources (such as DC or BC). Review the diff produced by Tailor carefully before applying changes.
 
+In `ods-core`, run:
 [source,sh]
 ----
 make install-ods-project
 make install-jenkins
 make install-nexus
 make install-doc-gen
+----
+
+In `ods-quickstarters`, run:
+[source,sh]
+----
+make install-jenkins-agent
 ----
 
 
