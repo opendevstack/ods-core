@@ -224,6 +224,65 @@ function setup_dnsmasq() {
 }
 
 #######################################
+# Optionally, install an OpenVPN service for enhanced integration in a local
+# development environment.
+# TODO this function is still interactive and not fit for automated server setup.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_vpn() {
+    sudo yum update -y
+    pushd "${HOME}/tmp"
+    echo "Retrieve and install OpenVPN"
+    curl -sSLO https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/o/openvpn-2.4.9-1.el7.x86_64.rpm
+    sudo yum --nogpgcheck localinstall openvpn-2.4.9-1.el7.x86_64.rpm
+    echo "Retrieve and install easy-rsa"
+    curl -sSLO https://github.com/OpenVPN/easy-rsa-old/archive/2.3.3.tar.gz
+    tar xzf 2.3.3.tar.gz
+    sudo mv easy-rsa-old-2.3.3/easy-rsa/2.0 /etc/openvpn/easy-rsa
+    echo "Configure easy-rsa"
+    sed -i "s|export KEY_COUNTRY=.*$|export KEY_COUNTRY=AT|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_PROVINCE=.*$|export KEY_PROVINCE=Vienna|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_CITY=.*$|export KEY_CITY=Vienna|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_ORG=.*$|export KEY_ORG=platforms|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_CN=.*$|export KEY_CN=$(curl http://169.254.169.254/latest/meta-data/public-hostname)|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_NAME=.*$|export KEY_NAME=server|" /etc/openvpn/easy-rsa/vars
+    popd
+
+    echo "Generating PKI infrastructure"
+    pushd /etc/openvpn/easy-rsa
+    # shellcheck disable=SC1091
+    source ./vars
+    ./clean-all
+    echo "build the certificate authority (CA) certificate and key by invoking the interactive openssl command"
+    ./build-ca
+    echo "generate certificate and private key for the server. Choose to sign the certificate (y) and commit (y)"
+    ./build-key-server server
+    ./build-key client1
+    ./build-key client2
+    ./build-key client3
+    echo "build Diffie-Hellman parameters"
+    ./build-dh
+    popd
+
+    echo "Create OpenVPN server config"
+    sudo cp /usr/share/doc/openvpn-2.4.9/sample/sample-config-files/server.conf /etc/openvpn/
+    sudo sed -i "s|ca ca.crt|ca /etc/openvpn/easy-rsa/keys/ca.crt|" /etc/openvpn/server.conf
+    sudo sed -i "s|cert server.crt|cert /etc/openvpn/easy-rsa/keys/server.crt|" /etc/openvpn/server.conf
+    sudo sed -i "s|key server.key  # This file should be kept secret|key /etc/openvpn/easy-rsa/keys/server.key  # This file should be kept secret|" /etc/openvpn/server.conf
+    sudo sed -i "s|dh dh2048.pem|dh /etc/openvpn/easy-rsa/keys/dh2048.pem|" /etc/openvpn/server.conf
+    sudo sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' /etc/openvpn/server.conf
+    # TODO this would probably have to be updated after a reboot of the ODS box, when a new local IP will be assigned
+    sudo sed -i "s|;push \"dhcp-option DNS 208.67.222.222\"|push \"dhcp-option DNS $(curl http://169.254.169.254/latest/meta-data/local-ipv4)\"|" /etc/openvpn/server.conf
+    sudo sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 8.8.4.4"|' /etc/openvpn/server.conf
+    # Append explicit-exit-notify 1
+}
+
+#######################################
 # Optionally, install Vistual Studio Code
 # Globals:
 #   n/a
