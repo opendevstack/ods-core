@@ -30,12 +30,15 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 
 	err = utils.RemoveAllTestOCProjects()
 	if err != nil {
-		t.Fatal("Unable to remove test projects")
+		t.Fatalf("Unable to remove test projects: %s", err)
 	}
 
 	buildConfigName := fmt.Sprintf("ods-corejob-create-project-%s-%s", projectName, strings.ReplaceAll(values["ODS_GIT_REF"], "/", "-"))
 
 	err = utils.RemoveBuildConfigs(values["ODS_NAMESPACE"], buildConfigName)
+	if err != nil {
+		t.Fatalf("Unable to remove build configs: %s", err)
+	}
 
 	request := utils.RequestBuild{
 		Repository: "ods-core",
@@ -141,7 +144,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 
 	stdout, stderr, err := utils.RunScriptFromBaseDir(
-		"tests/scripts/utils/print-jenkins-json-status.sh",
+		"tests/scripts/print-jenkins-json-status.sh",
 		[]string{
 			buildName,
 			values["ODS_NAMESPACE"],

@@ -45,6 +45,9 @@ func servicePodsEnsureOnePerSelector(services *v1.ServiceList, serviceName strin
 	for _, service := range services.Items {
 		if service.Name == serviceName {
 			config, err := GetOCClient()
+			if err != nil {
+				return nil, err
+			}
 			clientset, err := kubernetes.NewForConfig(config)
 			if err != nil {
 				return nil, err

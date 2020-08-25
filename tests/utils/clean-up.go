@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"path"
 	"runtime"
 	"time"
+
+	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func RemoveProject(projectName string) error {
@@ -36,11 +37,14 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "..", "..", "jenkins", "ocp-config", "deploy")
 
-	RunCommandWithWorkDir("oc", []string{
+	_, _, err := RunCommandWithWorkDir("oc", []string{
 		"-n", projectName,
 		"delete",
 		"bc", buildConfigName,
 	}, dir, []string{})
+	if err != nil {
+		return err
+	}
 	// we need time here - as jenkins needs to sync.
 	time.Sleep(20 * time.Second)
 	return nil
