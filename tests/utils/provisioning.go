@@ -72,7 +72,7 @@ func (api *ProvisionAPI) DeleteComponent() error {
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE_COMPONENT"},
-		[]string{},
+		[]string{"PROVISION_FILE=fixtures/create-component-request.json"},
 	)
 
 	if err != nil {
