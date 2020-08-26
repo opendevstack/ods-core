@@ -78,12 +78,19 @@ commit and push the result.
 
 Next you need to update all OpenShift resources (such as DC or BC). Review the diff produced by Tailor carefully before applying changes.
 
+In `ods-core`, run:
 [source,sh]
 ----
 make install-ods-project
 make install-jenkins
 make install-nexus
 make install-doc-gen
+----
+
+In `ods-quickstarters`, run:
+[source,sh]
+----
+make install-jenkins-agent
 ----
 
 
@@ -110,17 +117,19 @@ With *OpenDevStack* version 3.x SonarQube is moving from the `cd` namespace to t
 The following outlines the procedure for SonarQube:
 
 . Create the SonarQube build resources in `ods` using `make apply-sonarqube-build`
+. Start build of SonarQube image in `ods` using `make start-sonarqube-build`
 . Scale down the SonarQube pod in `cd`
-. Create a backup of the old data using `make NAMESPACE=cd backup-sonarqube`
+. Create a backup of the old data using `make ODS_NAMESPACE=cd backup-sonarqube`
 . Create the SonarQube deploy resources in `ods` using `make apply-sonarqube-deploy`
 . Scale down the SonarQube pod in `ods`
-. Upload backup to new Postgres pod: `oc -n ods cp sonarqube/sonarqube.sql pod/<sonarqube-postgresql-pod>:/var/lib/pgsql/`
+. Upload backup to new Postgres pod: `oc -n ods cp sonarqube/sonarqube.sql <sonarqube-postgresql-pod>:/var/lib/pgsql/`
 . Start a bash in the Postgres pod: `oc rsh -n ods pod/<sonarqube-postgresql-pod> bash` and start a `psql` session.
 . Drop the `sonarqube` database (`DROP DATABASE sonarqube`) and create a new, empty one (`CREATE DATABASE sonarqube OWNER sonarqube`). Then quit from `psql`.
 . Import the backup with `psql sonarqube < sonarqube.sql`
 . Scale up the SonarQube pod in `ods`.
 . At this stage, the new SonarQube instance is fully functional, but the Elasticsearch index is not correct and therefore no projects show on the dashboard initially. To fix this, log into SonarQube with an admin user and go to "Administration > System". Then, start a bash in the SonarQube pod: `oc rsh -n ods pod/<sonarqube-pod> bash` and remove `/opt/sonarqube/data/es6`. Afterwards, restart the server from the UI (there's a button on the "Administration > System" page). Booting will take some time (depending on the amount of data to process) as a full re-index is performed.
-. Now delete the old SonarQube route in `cd`
+. Call `make configure-sonarqube` to verify the new installation is correctly configured.
+. Now delete the old SonarQube route in `cd`.
 . Create a new route in `ods` with the same host as the old route so that projects using the old URL don't break.
 
 == Secure route removal

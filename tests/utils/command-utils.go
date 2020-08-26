@@ -22,7 +22,7 @@ func RunCommand(command string, args []string, envVars []string) (string, string
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
-	return string(stdout.Bytes()), string(stderr.Bytes()), err
+	return stdout.String(), stderr.String(), err
 }
 
 func RunCommandWithWorkDir(command string, args []string, workDir string, envVars []string) (string, string, error) {
@@ -33,5 +33,5 @@ func RunCommandWithWorkDir(command string, args []string, workDir string, envVar
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
-	return string(stdout.Bytes()), string(stderr.Bytes()), err
+	return stdout.String(), stderr.String(), err
 }

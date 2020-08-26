@@ -4,161 +4,149 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/opendevstack/ods-core/tests/utils"
-	v1 "github.com/openshift/api/build/v1"
-	buildClientV1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
-	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
-	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"path"
 	"runtime"
 	"strings"
 	"testing"
-	"time"
+
+	"github.com/opendevstack/ods-core/tests/utils"
+	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type provisionResponse struct {
+	ProjectName        string
+	WebhookProxySecret string
+	ExecutionJobs      []provisionExecutionJob
+}
+type provisionExecutionJob struct {
+	BuildName     string
+	BuildURL      string
+	BuildRun      string
+	FullBuildName string
+}
 
 func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 	values, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// cleanup
 	projectName := "ODSVERIFY"
+	provAPI := &utils.ProvisionAPI{ProjectName: projectName, Config: values}
 
-	// use the api sample script to cleanup
-	stdout, stderr, err := utils.RunScriptFromBaseDir(
-		"tests/scripts/create-project-api.sh",
-		[]string{
-			"DELETE",
-			projectName,
-		}, []string{})
-
+	// --- PROJECT ---
+	err = provAPI.DeleteProject()
 	if err != nil {
-		fmt.Printf(
-			"Execution of `create-project-api.sh/delete` for '%s' failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
-			projectName,
-			stdout,
-			stderr,
-			err)
-	} else {
-		fmt.Printf(
-			"Execution of `create-project-api.sh/delete` for '%s' worked: \nStdOut: %s\n",
-			projectName,
-			stdout)
-		time.Sleep(20 * time.Second)
+		t.Fatalf("Failed to delete project: %s", err)
+	}
+	res, err := provAPI.CreateProject()
+	if err != nil {
+		t.Fatalf("Failed to create project: %s", err)
 	}
 
-	// api sample script - create project
-	stdout, stderr, err = utils.RunScriptFromBaseDir(
-		"tests/scripts/create-project-api.sh",
-		[]string{}, []string{})
-
+	provRes, err := extractProvisionResponse(strings.ToLower(values["ODS_NAMESPACE"]), res)
 	if err != nil {
-		t.Fatalf(
-			"Execution of `create-project-api.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
-			stdout,
-			stderr,
-			err)
-	} else {
-		fmt.Printf("Provision app raw logs:%s\n", stdout)
+		t.Fatalf("Failed to extract prov response: %s", err)
 	}
-
-	// get the (json) response from the script created file
-	log, err := ioutil.ReadFile("response.txt")
-	if err != nil {
-		t.Fatalf("Could not read response file?!, %s\n", err)
-	} else {
-		fmt.Printf("Provision results: %s\n", string(log))
-	}
-
-	var responseI map[string]interface{}
-	err = json.Unmarshal(log, &responseI)
-	if err != nil {
-		t.Fatalf("Could not parse json response: %s, err: %s",
-			string(log), err)
-	}
-
-	responseProjectName := responseI["projectName"].(string)
-	if projectName != responseProjectName {
+	if projectName != provRes.ProjectName {
 		t.Fatalf("Project names don't match - expected: %s real: %s",
-			projectName, responseProjectName)
+			projectName, provRes.ProjectName)
 	}
+	exJob := provRes.ExecutionJobs[0]
 
-	webhookProxySecret := responseI["webhookProxySecret"].(string)
-
-	responseExecutionJobsArray := responseI["lastExecutionJobs"].([]interface{})
-	responseExecutionJobs := responseExecutionJobsArray[len(responseExecutionJobsArray)-1].(map[string]interface{})
-	responseBuildName := responseExecutionJobs["name"].(string)
-
-	fmt.Printf("build name from jenkins: %s\n", responseBuildName)
-	responseJenkinsBuildUrl := responseExecutionJobs["url"].(string)
-	responseBuildRun := strings.SplitAfter(responseJenkinsBuildUrl, responseBuildName+"/")[1]
-
-	fmt.Printf("build run#: %s\n", responseBuildRun)
-
-	responseBuildClean := strings.Replace(responseBuildName,
-		values["ODS_NAMESPACE"]+"-", "", 1)
-
-	fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun)
-	fmt.Printf("full buildName: %s\n", fullBuildName)
-
-	config, err := utils.GetOCClient()
+	stages, err := utils.RetrieveJenkinsBuildStagesForBuild(
+		values["ODS_NAMESPACE"], exJob.FullBuildName,
+	)
 	if err != nil {
-		t.Fatalf("Error creating OC config: %s", err)
+		t.Fatal(err)
 	}
-
-	buildClient, err := buildClientV1.NewForConfig(config)
-	if err != nil {
-		t.Fatalf("Error creating Build client: %s", err)
-	}
-
-	time.Sleep(10 * time.Second)
-	build, err := buildClient.Builds(values["ODS_NAMESPACE"]).Get(fullBuildName, metav1.GetOptions{})
-	count := 0
-	// especially provision builds with CLIs take longer ...
-	max := 40
-	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
-		build, err = buildClient.Builds(values["ODS_NAMESPACE"]).Get(fullBuildName, metav1.GetOptions{})
-		time.Sleep(20 * time.Second)
-		if err != nil {
-			fmt.Printf("Err Build: %s is still not available, %s\n", fullBuildName, err)
-		} else {
-			fmt.Printf("Waiting for build to complete: %s. Current status: %s\n", fullBuildName, build.Status.Phase)
-		}
-		count++
-	}
-
-	// get (executed) jenkins stages from run - the caller can compare against the golden record
-	stdout, stderr, err = utils.RunScriptFromBaseDir(
-		"tests/scripts/utils/print-jenkins-json-status.sh",
-		[]string{
-			fullBuildName,
-			values["ODS_NAMESPACE"],
-		}, []string{})
-
-	if err != nil {
-		t.Fatalf("Error getting jenkins stages for build: %s\rStdout: %s\n, Stderr: %s\n, Error: %s\n",
-			fullBuildName,
-			stdout,
-			stderr,
-			err)
-	} else {
-		fmt.Printf("Jenkins stages: \n'%s'\n", stdout)
-	}
-
-	// verify provision jenkins stages - against golden record
-	expected, err := ioutil.ReadFile("golden/create-project-response.json")
+	fmt.Printf("Jenkins stages: \n'%s'\n", stages)
+	err = utils.VerifyJenkinsStages(
+		"golden/jenkins-stages-provision-project.json",
+		stages,
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if stdout != string(expected) {
-		t.Fatalf("prov run - records don't match -golden:\n'%s'\n-jenkins response:\n'%s'",
-			string(expected), stdout)
-	}
 	CheckProjectsAreCreated(projectName, t)
-	CheckJenkinsWithTailor(values, strings.ToLower(projectName), webhookProxySecret, t)
+	CheckJenkinsWithTailor(values, strings.ToLower(projectName), provRes.WebhookProxySecret, t)
+
+	// --- COMPONENT ---
+	res, err = provAPI.CreateComponent()
+	if err != nil {
+		t.Fatalf("Failed to create component: %s", err)
+	}
+
+	provRes, err = extractProvisionResponse(strings.ToLower(projectName+"-cd"), res)
+	if err != nil {
+		t.Fatalf("Failed to extract prov response: %s", err)
+	}
+	exJob = provRes.ExecutionJobs[0]
+
+	stages, err = utils.RetrieveJenkinsBuildStagesForBuild(
+		strings.ToLower(projectName+"-cd"), exJob.FullBuildName,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("Jenkins stages: \n'%s'\n", stages)
+	err = utils.VerifyJenkinsStages(
+		"golden/jenkins-stages-provision-component.json",
+		stages,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = provAPI.DeleteComponent()
+	if err != nil {
+		t.Fatalf("Failed to delete component: %s", err)
+	}
+}
+
+func extractProvisionResponse(jenkinsNamespace string, res []byte) (*provisionResponse, error) {
+	provRes := &provisionResponse{ExecutionJobs: []provisionExecutionJob{}}
+	var responseI map[string]interface{}
+	err := json.Unmarshal(res, &responseI)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse json response: %s, err: %w",
+			string(res), err)
+	}
+
+	provRes.ProjectName = responseI["projectName"].(string)
+	provRes.WebhookProxySecret = responseI["webhookProxySecret"].(string)
+
+	responseExecutionJobsArray := responseI["lastExecutionJobs"].([]interface{})
+	for _, job := range responseExecutionJobsArray {
+		responseExecutionJob := job.(map[string]interface{})
+
+		// example: "odsverify-cd-ods-qs-plain-master"
+		responseBuildName := responseExecutionJob["name"].(string)
+
+		fmt.Printf("build name from jenkins: %s\n", responseBuildName)
+		responseJenkinsBuildURL := responseExecutionJob["url"].(string)
+		responseBuildRun := strings.SplitAfter(responseJenkinsBuildURL, responseBuildName+"/")[1]
+
+		// example: "1"
+		fmt.Printf("build run#: %s\n", responseBuildRun)
+
+		// example: "ods-qs-plain-master"
+		responseBuildClean := strings.Replace(responseBuildName,
+			jenkinsNamespace+"-", "", 1)
+
+		// example: "ods-qs-plain-master-1"
+		fullBuildName := fmt.Sprintf("%s-%s", responseBuildClean, responseBuildRun)
+		fmt.Printf("full buildName: %s\n", fullBuildName)
+
+		ej := provisionExecutionJob{
+			BuildName:     responseBuildName,
+			BuildURL:      responseJenkinsBuildURL,
+			BuildRun:      responseBuildRun,
+			FullBuildName: fullBuildName,
+		}
+		provRes.ExecutionJobs = append(provRes.ExecutionJobs, ej)
+	}
+	return provRes, nil
 }
 
 func CheckProjectsAreCreated(projectName string, t *testing.T) {
