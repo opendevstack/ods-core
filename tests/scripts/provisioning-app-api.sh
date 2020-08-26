@@ -89,9 +89,12 @@ echo
 echo "... displaying HTTP response code"
 echo "http_resp_code=${http_resp_code}"
 echo
-if [ $http_resp_code != 200 ]
-  then
-    echo "something went wrong... endpoint responded with error code [HTTP CODE="$http_resp_code"] (expected was 200)"
-    exit 1
+if [ $http_resp_code != 200 ]; then
+	if [ ${COMMAND} == "DELETE" ] && [ ${http_resp_code} == 404 ]; then
+		echo "... DELETE request responded with 404 - continuing as resource does not exist"
+	else
+		echo "something went wrong... endpoint responded with error code [HTTP CODE="$http_resp_code"] (expected was 200)"
+		exit 1
+	fi
 fi
 echo "provision project/component request (${COMMAND}) completed successfully!"
