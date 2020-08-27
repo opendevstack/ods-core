@@ -58,6 +58,8 @@ Add all files of directory `ods-configuration` to git and commit the result. You
 
 "Preparing" also updates the sample files and checks if any params are present in the sample files but missing from the real file.
 
+WARNING: If you are using windows **Cygwin** or **WSL** remember to change ending line CRLF to LF before commit `ods-core.env`
+
 === Tailor
 
 We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templates and keep OpenDevStack resources in sync. Please see its https://github.com/opendevstack/tailor#installation[installation instructions] for your platform. The following lists the version requirements:
