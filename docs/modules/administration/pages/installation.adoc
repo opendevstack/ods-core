@@ -58,7 +58,7 @@ Add all files of directory `ods-configuration` to git and commit the result. You
 
 "Preparing" also updates the sample files and checks if any params are present in the sample files but missing from the real file.
 
-WARNING: If you are using windows **Cygwin** or **WSL** remember to change ending line CRLF to LF before commit `ods-core.env`
+WARNING: If you are using windows **Cygwin** or **WSL** remember to change ending line CRLF to LF before commit `ods-core.env`, you can find more information on https://docs.github.com/en/github/using-git/configuring-git-to-handle-line-endings[configure Git ending line]
 
 === Tailor
 
