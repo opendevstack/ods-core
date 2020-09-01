@@ -272,6 +272,8 @@ function setup_vpn() {
     ./build-dh
     popd
     sudo openvpn --genkey --secret /etc/openvpn/ta.key
+    sudo cp /etc/openvpn/ta.key /etc/openvpn/easy-rsa/keys/
+    sudo chown openshift:openshift /etc/openvpn/easy-rsa/keys/ta.key
 
     echo "Create OpenVPN server config"
     local server_conf_path
