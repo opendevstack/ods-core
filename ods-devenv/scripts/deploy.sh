@@ -295,6 +295,10 @@ function setup_vpn() {
     sudo firewall-cmd --get-active-zones
     sudo firewall-cmd --zone=public --permanent --add-port=1194/udp
     sudo firewall-cmd --zone=trusted --permanent --add-service openvpn
+    # allow access to dnsmasq svc
+    sudo firewall-cmd --zone=public --permanent --add-port=53/udp
+    # allow access to OpenShift web console
+    sudo firewall-cmd --zone=public --permanent --add-port=8443/tcp
 
     sudo firewall-cmd --permanent --add-masquerade
     local network_device
