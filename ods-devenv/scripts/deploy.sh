@@ -271,6 +271,7 @@ function setup_vpn() {
     echo "build Diffie-Hellman parameters"
     ./build-dh
     popd
+    sudo openvpn --genkey --secret /etc/openvpn/ta.key
 
     echo "Create OpenVPN server config"
     local server_conf_path
@@ -306,11 +307,15 @@ function setup_vpn() {
     then
         echo "Adding openvpn to trusted services failed"
         exit 171
+    else
+        echo "openvpn svc is trusted"
     fi
     if [[ "$(sudo firewall-cmd --query-masquerade)" != 'yes' ]]
     then
         echo "Activate masquerade failed"
         exit 172
+    else
+        echo "Network Address Translation (masquerading) configured"
     fi
 }
 
