@@ -16,3 +16,6 @@ aws_secret_access_key=
 # e.g. m5ad.4xlarge or t2.2xlarge. Note that additional file system drivers may need to be installed
 # if the resulting AMI is required to run on different instance types than specified here.
 instance_type=m5ad.4xlarge
+
+# path where the packer log file shall be created
+log_path="${HOME}/logs"

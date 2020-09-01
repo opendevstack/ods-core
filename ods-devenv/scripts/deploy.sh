@@ -241,7 +241,7 @@ function setup_vpn() {
     pushd "${HOME}/tmp"
     echo "Retrieve and install OpenVPN"
     curl -sSLO https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/o/openvpn-2.4.9-1.el7.x86_64.rpm
-    sudo yum --nogpgcheck localinstall openvpn-2.4.9-1.el7.x86_64.rpm
+    sudo yum -y --nogpgcheck localinstall openvpn-2.4.9-1.el7.x86_64.rpm
     echo "Retrieve and install easy-rsa"
     curl -sSLO https://github.com/OpenVPN/easy-rsa-old/archive/2.3.3.tar.gz
     tar xzf 2.3.3.tar.gz
@@ -291,7 +291,7 @@ function setup_vpn() {
     echo "Configure firewalld"
     sudo firewall-cmd --get-active-zones
     sudo firewall-cmd --zone=public --permanent --add-port=1194/udp
-    udo firewall-cmd --zone=trusted --add-service --permanent openvpn
+    sudo firewall-cmd --zone=trusted --permanent --add-service openvpn
     if [[ "$(sudo firewall-cmd --list-services --zone=trusted)" != "openvpn" ]]
     then
         echo "Adding openvpn to trusted services failed"
