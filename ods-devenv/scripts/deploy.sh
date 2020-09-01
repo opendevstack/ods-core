@@ -292,17 +292,8 @@ function setup_vpn() {
     sudo firewall-cmd --get-active-zones
     sudo firewall-cmd --zone=public --permanent --add-port=1194/udp
     sudo firewall-cmd --zone=trusted --permanent --add-service openvpn
-    if [[ "$(sudo firewall-cmd --list-services --zone=trusted)" != "openvpn" ]]
-    then
-        echo "Adding openvpn to trusted services failed"
-        exit 171
-    fi
+
     sudo firewall-cmd --permanent --add-masquerade
-    if [[ "$(sudo firewall-cmd --query-masquerade)" != 'yes' ]]
-    then
-        echo "Activate masquerade failed"
-        exit 172
-    fi
     local network_device
     network_device=$(ip route get 8.8.8.8 | awk 'NR==1 {print $(NF-2)}')
     sudo firewall-cmd --permanent --direct --passthrough ipv4 -t nat -A POSTROUTING -s 10.8.0.0/24 -o "${network_device}" -j MASQUERADE
@@ -310,6 +301,17 @@ function setup_vpn() {
     sudo iptables -I INPUT -p tcp -m tcp --dport 1936 -j ACCEPT
     sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
     sudo firewall-cmd --reload
+    # checks will only work after firewall reload
+    if [[ "$(sudo firewall-cmd --list-services --zone=trusted)" != "openvpn" ]]
+    then
+        echo "Adding openvpn to trusted services failed"
+        exit 171
+    fi
+    if [[ "$(sudo firewall-cmd --query-masquerade)" != 'yes' ]]
+    then
+        echo "Activate masquerade failed"
+        exit 172
+    fi
 }
 
 #######################################
