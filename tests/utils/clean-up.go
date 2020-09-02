@@ -41,6 +41,7 @@ func RemoveBuildConfigs(projectName string, buildConfigName string) error {
 		"-n", projectName,
 		"delete",
 		"bc", buildConfigName,
+		"--ignore-not-found", "true",
 	}, dir, []string{})
 	if err != nil {
 		return err

@@ -31,7 +31,7 @@ CD_USER_PWD_B64=$(${ODS_CORE_DIR}/scripts/get-config-param.sh CD_USER_PWD_B64)
 
 echo "Running tests (${QUICKSTARTER}). Output will take a while to arrive ..."
 
-go test -v -count=1 -timeout 1h -p 1 github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
+go test -v -count=1 -timeout 3h -p 1 github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
 exitcode="${PIPESTATUS[0]}"
 if [ -f test-quickstarter-results.txt ]; then
     go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml
