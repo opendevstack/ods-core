@@ -304,7 +304,6 @@ function setup_vpn() {
     local network_device
     network_device=$(ip route get 8.8.8.8 | awk 'NR==1 {print $(NF-2)}')
     sudo firewall-cmd --permanent --direct --passthrough ipv4 -t nat -A POSTROUTING -s 10.8.0.0/24 -o "${network_device}" -j MASQUERADE
-    sudo firewall-cmd --permanent --zone dockerc --add-port 443/tcp # TODO probably not needed any more
     sudo iptables -I INPUT -p tcp -m tcp --dport 1936 -j ACCEPT
     sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
     sudo firewall-cmd --reload
