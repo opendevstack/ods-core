@@ -73,12 +73,12 @@ done
 if [[ -z "${openvpn_host_name}" ]]
 then
     echo "openvpn_host_name is required, please provide e.g. a public ip of the VPN host, e.g."
-    echo "./setup_vpn_client.sh --openvpn-host-name ec2-3-250-169-37.eu-west-1.compute.amazonaws.com --scp-username openshift --scp-password ##########"
+    echo "./setup_vpn_client.sh --openvpn-host-name ec2-3-250-169-37.eu-west-1.compute.amazonaws.com --scp-username openshift"
     exit 1
 fi
 if [[ -z "${scp_username}" ]]
 then
-    echo "OpenVPN user name is required to download OpenVPN config / credentials from ${openvpn_host_name}, please provide them, e.g."
+    echo "OpenVPN user name is required to download OpenVPN config / credentials from ${openvpn_host_name}, please provide it, e.g."
     echo "./setup_vpn_client.sh --openvpn-host-name ec2-3-250-169-37.eu-west-1.compute.amazonaws.com --scp-username openshift"
     exit 1
 fi
