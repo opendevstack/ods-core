@@ -10,6 +10,8 @@ s3_upload_folder=image_upload
 output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 
+dryrun=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
 
@@ -38,6 +40,8 @@ while [[ "$#" -gt 0 ]]; do
     --output-directory=*) output_directory="${1#*=}";;
 
     --target) target="$2"; shift;;
+
+    --dryrun) dryrun=true;;
 
     --help) target=display_usage;;
 
@@ -79,6 +83,8 @@ function display_usage() {
     echo "      --ods-branch            branch to build ODS box against, e.g master"
     echo "      --instance-type         AWS EC2 instance type to run the AMI build on. Defaults to m5ad.4xlarge."
     echo "                              Options: t2.2xlarge, m5ad.4xlarge"
+    echo "      --dry-run               only query for ami-id, log parameters, wait a bit, and then exit without"
+    echo "                              actually calling packer"
     echo
 }
 
@@ -174,16 +180,36 @@ function create_ods_box_ami() {
                 --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
 
-    time packer build -on-error=ask \
-        -var "aws_access_key=${aws_access_key}" \
-        -var "aws_secret_key=${aws_secret_key}" \
-        -var "ami_id=${ami_id}" \
-        -var 'username=openshift' \
-        -var 'password=openshift' \
-        -var "name_tag=ODS Box $(date)" \
-        -var "ods_branch=${ods_branch}" \
-        -var "instance_type=${instance_type}" \
-        ods-devenv/packer/CentOS2ODSBox.json
+    echo "ami-id=${ami_id}"
+    echo "PACKER_LOG=${PACKER_LOG}"
+    echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
+    echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
+    echo "ods_branch=${ods_branch}"
+
+    if [[ "${dryrun}" == "true" ]]
+    then
+        echo -n "dryrun"
+        local counter=0
+        while (( counter <= 10 ))
+        do
+            sleep 1
+            counter=$((counter + 1))
+            echo -n '.'
+        done
+        echo "done."
+        exit 0
+    else
+        time packer build -on-error=ask \
+            -var "aws_access_key=${aws_access_key}" \
+            -var "aws_secret_key=${aws_secret_key}" \
+            -var "ami_id=${ami_id}" \
+            -var 'username=openshift' \
+            -var 'password=openshift' \
+            -var "name_tag=ODS Box $(date)" \
+            -var "ods_branch=${ods_branch}" \
+            -var "instance_type=${instance_type}" \
+            ods-devenv/packer/CentOS2ODSBox.json
+    fi
 }
 
 target="${target:-display_usage}"

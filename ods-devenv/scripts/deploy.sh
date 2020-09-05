@@ -224,6 +224,107 @@ function setup_dnsmasq() {
 }
 
 #######################################
+# Optionally, install an OpenVPN service for enhanced integration in a local
+# development environment.
+# TODO this function is still interactive and not fit for automated server setup.
+# TODO this function assumes the given ODS box is running in an EC2 instance,
+# but can be adapted to run for any host. EC2 specific code is annotated as such.
+# Globals:
+#   n/a
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function setup_vpn() {
+    sudo yum update -y
+    pushd "${HOME}/tmp"
+    echo "Retrieve and install OpenVPN"
+    curl -sSLO https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/o/openvpn-2.4.9-1.el7.x86_64.rpm
+    sudo yum -y --nogpgcheck localinstall openvpn-2.4.9-1.el7.x86_64.rpm
+    echo "Retrieve and install easy-rsa"
+    curl -sSLO https://github.com/OpenVPN/easy-rsa-old/archive/2.3.3.tar.gz
+    tar xzf 2.3.3.tar.gz
+    sudo mv easy-rsa-old-2.3.3/easy-rsa/2.0 /etc/openvpn/easy-rsa
+    echo "Configure easy-rsa"
+    sed -i "s|export KEY_COUNTRY=.*$|export KEY_COUNTRY=AT|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_PROVINCE=.*$|export KEY_PROVINCE=Vienna|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_CITY=.*$|export KEY_CITY=Vienna|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_ORG=.*$|export KEY_ORG=platforms|" /etc/openvpn/easy-rsa/vars
+    # AWS EC2 specific, can be replaced by e.g. hostname -I, but on EC2 instances, this version is more reliable.
+    sed -i "s|export KEY_CN=.*$|export KEY_CN=$(curl http://169.254.169.254/latest/meta-data/public-hostname)|" /etc/openvpn/easy-rsa/vars
+    sed -i "s|export KEY_NAME=.*$|export KEY_NAME=server|" /etc/openvpn/easy-rsa/vars
+    popd
+
+    echo "Generating PKI infrastructure"
+    pushd /etc/openvpn/easy-rsa
+    # shellcheck disable=SC1091
+    source ./vars
+    ./clean-all
+    echo "build the certificate authority (CA) certificate and key by invoking the interactive openssl command"
+    ./build-ca
+    echo "generate certificate and private key for the server. Choose to sign the certificate (y) and commit (y)"
+    ./build-key-server server
+    ./build-key client1
+    ./build-key client2
+    ./build-key client3
+    echo "build Diffie-Hellman parameters"
+    ./build-dh
+    popd
+    sudo openvpn --genkey --secret /etc/openvpn/ta.key
+    sudo cp /etc/openvpn/ta.key /etc/openvpn/easy-rsa/keys/
+    sudo chown openshift:openshift /etc/openvpn/easy-rsa/keys/ta.key
+
+    echo "Create OpenVPN server config"
+    local server_conf_path
+    server_conf_path=/etc/openvpn/server.conf
+    sudo cp /usr/share/doc/openvpn-2.4.9/sample/sample-config-files/server.conf /etc/openvpn/
+    sudo sed -i "s|ca ca.crt|ca /etc/openvpn/easy-rsa/keys/ca.crt|" "${server_conf_path}"
+    sudo sed -i "s|cert server.crt|cert /etc/openvpn/easy-rsa/keys/server.crt|" "${server_conf_path}"
+    sudo sed -i "s|key server.key  # This file should be kept secret|key /etc/openvpn/easy-rsa/keys/server.key  # This file should be kept secret|" "${server_conf_path}"
+    sudo sed -i "s|dh dh2048.pem|dh /etc/openvpn/easy-rsa/keys/dh2048.pem|" "${server_conf_path}"
+    sudo sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' "${server_conf_path}"
+    # TODO this would probably have to be updated after a reboot of the ODS box, when a new local IP will be assigned
+    # AWS EC2 specific, can be replaced by e.g. hostname -I, but on EC2 instances, this version is more reliable.
+    sudo sed -i "s|;push \"dhcp-option DNS 208.67.222.222\"|push \"dhcp-option DNS $(curl http://169.254.169.254/latest/meta-data/local-ipv4)\"|" "${server_conf_path}"
+    sudo sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 8.8.4.4"|' "${server_conf_path}"
+    # Append "explicit-exit-notify 1" at end of file
+    sudo sed -i '$aexplicit-exit-notify 1' "${server_conf_path}"
+
+    echo "Configure firewalld"
+    sudo firewall-cmd --get-active-zones
+    sudo firewall-cmd --zone=public --permanent --add-port=1194/udp
+    sudo firewall-cmd --zone=trusted --permanent --add-service openvpn
+    # allow access to dnsmasq svc
+    sudo firewall-cmd --zone=public --permanent --add-port=53/udp
+    # allow access to OpenShift web console
+    sudo firewall-cmd --zone=public --permanent --add-port=8443/tcp
+
+    sudo firewall-cmd --permanent --add-masquerade
+    local network_device
+    network_device=$(ip route get 8.8.8.8 | awk 'NR==1 {print $(NF-2)}')
+    sudo firewall-cmd --permanent --direct --passthrough ipv4 -t nat -A POSTROUTING -s 10.8.0.0/24 -o "${network_device}" -j MASQUERADE
+    sudo iptables -I INPUT -p tcp -m tcp --dport 1936 -j ACCEPT
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    sudo firewall-cmd --reload
+    # checks will only work after firewall reload
+    if [[ "$(sudo firewall-cmd --list-services --zone=trusted)" != "openvpn" ]]
+    then
+        echo "Adding openvpn to trusted services failed"
+        exit 171
+    else
+        echo "openvpn svc is trusted"
+    fi
+    if [[ "$(sudo firewall-cmd --query-masquerade)" != 'yes' ]]
+    then
+        echo "Activate masquerade failed"
+        exit 172
+    else
+        echo "Network Address Translation (masquerading) configured"
+    fi
+}
+
+#######################################
 # Optionally, install Vistual Studio Code
 # Globals:
 #   n/a
