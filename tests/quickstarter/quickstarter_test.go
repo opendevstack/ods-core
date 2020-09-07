@@ -216,6 +216,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 
 	sanitizedOdsGitRef := strings.Replace(config["ODS_GIT_REF"], "/", "_", -1)
 	sanitizedOdsGitRef = strings.Replace(sanitizedOdsGitRef, "-", "_", -1)
+	buildParts := strings.Split(buildName, "-")
 	tmplData := TemplateData{
 		ProjectID:           utils.PROJECT_NAME,
 		ComponentID:         step.ComponentID,
@@ -224,6 +225,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 		OdsImageTag:         config["ODS_IMAGE_TAG"],
 		OdsBitbucketProject: config["ODS_BITBUCKET_PROJECT"],
 		SanitizedOdsGitRef:  sanitizedOdsGitRef,
+		BuildNumber:         buildParts[len(buildParts)-1],
 	}
 
 	if len(verify.JenkinsStages) > 0 {
