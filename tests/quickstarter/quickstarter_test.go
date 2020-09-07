@@ -105,9 +105,9 @@ func TestQuickstarter(t *testing.T) {
 							stderr,
 							err)
 					} else {
-						fmt.Printf("Uploaded file %s to %s", step.UploadParams.File, config["BITBUCKET_URL"])
+						fmt.Printf("Uploaded file %s to %s\n", step.UploadParams.File, config["BITBUCKET_URL"])
 					}
-					return
+					continue
 				}
 
 				var request utils.RequestBuild
