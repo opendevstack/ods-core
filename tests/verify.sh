@@ -19,7 +19,7 @@ fi
 if [ -f test-results.txt ]; then
     rm test-results.txt
 fi
-go test -v -count=1 -timeout 10m github.com/opendevstack/ods-core/tests/ods-verify | tee test-results.txt 2>&1
+go test -v -count=1 -timeout 60m github.com/opendevstack/ods-core/tests/ods-verify | tee test-results.txt 2>&1
 exitcode=$?
 if [ -f test-results.txt ]; then
     set -e
