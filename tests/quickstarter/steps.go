@@ -104,6 +104,8 @@ type TemplateData struct {
 	OdsBitbucketProject string
 	// ODS Git reference with underscores instead of slashes and dashes.
 	SanitizedOdsGitRef string
+	// Jenkins Build number
+	BuildNumber string
 }
 
 // readSteps reads "steps.yml" in given folder.
