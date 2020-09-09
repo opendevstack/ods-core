@@ -55,12 +55,14 @@ objects:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
-          - mountPath: /opt/provision/history
-            name: volume-history
-          - mountPath: /config
-            name: volume-ikfik
-          - mountPath: /quickstarters
-            name: volume-qs
+            - mountPath: /opt/provision/history
+              name: volume-history
+            - mountPath: /config
+              name: volume-ie3ym
+            - mountPath: /quickstarters
+              name: volume-vk36g
+            - mountPath: /jira-project-types
+              name: volume-tqhkj
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -76,14 +78,21 @@ objects:
             - key: properties
               path: application.properties
             name: application.properties
-          name: volume-ikfik
+          name: volume-ie3ym
         - configMap:
             defaultMode: 420
             items:
             - key: properties
               path: quickstarters.properties
             name: quickstarters.properties
-          name: volume-qs
+          name: volume-vk36g
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: additional-templates.properties
+            name: additional-templates.properties
+          name: volume-tqhkj
     test: false
     triggers:
     - imageChangeParams:
