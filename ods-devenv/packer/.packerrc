@@ -1,3 +1,5 @@
+# This file should go to the $HOME path of the buildbot user
+
 # specify the branch from which the ODS box shall be created, e.g. master, feature/ods-devenv, 3.x
 # note: the specified branch must exist on each of the following repositories:
 # -) ods-core
@@ -19,3 +21,6 @@ instance_type=m5ad.4xlarge
 
 # path where the packer log file shall be created
 log_path="${HOME}/logs"
+
+# path where ods-core repository was cloned to
+build_path="${HOME}/opendevstack/ods-core"
