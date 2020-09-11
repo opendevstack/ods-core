@@ -4,7 +4,7 @@
 ![](https://4e53c33a6387.ngrok.io/images/buildStatus.svg)
 
 ## Introduction
-OpenDevStack (ODS) Core houses the all the central infrastructure components.
+OpenDevStack (ODS) Core houses all the central infrastructure components.
 
 All the contained components except Atlassian tools are built in the Openshift central `ods` namespace.
 
