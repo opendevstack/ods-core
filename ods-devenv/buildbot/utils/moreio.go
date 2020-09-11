@@ -20,7 +20,9 @@ func Copy(sourcePath, destPath string) {
 	handleFileErr(err, sourcePath)
 	defer CloseFile(sourceFile)
 
-	destFile, _ := os.OpenFile(destPath, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
+	destFile, err := os.Create(destPath)
+	handleFileErr(err, destPath)
+	err = os.Chmod(destPath, 0644)
 	handleFileErr(err, destPath)
 	defer CloseFile(destFile)
 
