@@ -1,6 +1,7 @@
 # ODS core & infrastructure
 
 ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master)
+![](https://4e53c33a6387.ngrok.io/images/buildStatus.svg)
 
 ## Introduction
 OpenDevStack (ODS) Core houses the all the central infrastructure components.
