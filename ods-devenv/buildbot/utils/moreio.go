@@ -41,6 +41,7 @@ func TarZip(sourcePath, destPath string) error {
 	if _, err := os.Stat(sourcePath); err != nil {
 		return fmt.Errorf("tar error: %v\n", err.Error())
 	}
+	log.Printf("tar %s to %s.\n", sourcePath, destPath)
 
 	tarfile, err := os.Create(destPath)
 	if err != nil {
@@ -61,6 +62,7 @@ func TarZip(sourcePath, destPath string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Writing header %v\n", header)
 
 	if err := tarWriter.WriteHeader(header); err != nil {
 		return err
@@ -71,8 +73,10 @@ func TarZip(sourcePath, destPath string) error {
 		return err
 	}
 
-	if _, err := io.Copy(tarWriter, file); err != nil {
+	if length, err := io.Copy(tarWriter, file); err != nil {
 		return err
+	} else {
+		log.Printf("Wrote %d bytes to tar ball.\n", length)
 	}
 	file.Close()
 

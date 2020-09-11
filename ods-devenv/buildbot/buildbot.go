@@ -42,7 +42,7 @@ func main() {
 	// process build result
 	buildResultPath := config["build_result_path"]
 	// zip log file and copy it to download location
-	err = utils.TarZip(config["log_path"]+"/currrent", config["build_result_path"]+"/current_log.tar.gz")
+	err = utils.TarZip(config["log_path"]+"/current", config["build_result_path"]+"/current_log.tar.gz")
 	if err != nil {
 		log.Fatalf("Could not tar log file: %v\n", err)
 	}
