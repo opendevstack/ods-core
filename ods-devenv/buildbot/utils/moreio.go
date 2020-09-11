@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"archive/tar"
+	"compress/gzip"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -31,6 +34,49 @@ func Copy(sourcePath, destPath string) {
 		log.Fatalf("Could not copy %s to %s: %v\n", sourcePath, destPath, err)
 	}
 	log.Printf("copied %d bytes from %s to %s.\n", length, sourcePath, destPath)
+}
+
+func TarZip(sourcePath, destPath string) error {
+	// check that sourcePath exists
+	if _, err := os.Stat(sourcePath); err != nil {
+		return fmt.Errorf("tar error: %v\n", err.Error())
+	}
+
+	tarfile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+
+	gzipWriter := gzip.NewWriter(tarfile)
+	defer gzipWriter.Close()
+
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
+	fileInfo, err := os.Stat(sourcePath)
+	if !fileInfo.Mode().IsRegular() {
+		return nil
+	}
+	header, err := tar.FileInfoHeader(fileInfo, fileInfo.Name())
+	if err != nil {
+		return err
+	}
+
+	if err := tarWriter.WriteHeader(header); err != nil {
+		return err
+	}
+
+	file, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(tarWriter, file); err != nil {
+		return err
+	}
+	file.Close()
+
+	return nil
 }
 
 func handleFileErr(err error, fileName string) {

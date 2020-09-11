@@ -42,6 +42,7 @@ func main() {
 	// process build result
 	buildResultPath := config["build_result_path"]
 	// zip log file and copy it to download location
+	utils.TarZip(config["log_path"]+"/currrent", config["build_result_path"]+"/current_log.tar.gz")
 
 	if buildSuccess {
 		// write success svg to webserver dir
