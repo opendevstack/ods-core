@@ -19,7 +19,8 @@ func Copy(sourcePath, destPath string) {
 	sourceFile, err := os.Open(sourcePath)
 	handleFileErr(err, sourcePath)
 	defer CloseFile(sourceFile)
-	destFile, _ := os.OpenFile(destPath, os.O_TRUNC|os.O_WRONLY, os.ModeAppend)
+
+	destFile, _ := os.OpenFile(destPath, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
 	handleFileErr(err, destPath)
 	defer CloseFile(destFile)
 
