@@ -42,7 +42,7 @@ func main() {
 	// process build result
 	buildResultPath := config["build_result_path"]
 	// zip log file and copy it to download location
-	err = utils.TarZip(config["log_path"]+"/current", config["build_result_path"]+"/current_log.tar.gz")
+	err = utils.TarZip(config["log_path"]+"/current", config["build_result_path"]+"/current_log_master.tar.gz")
 	if err != nil {
 		log.Fatalf("Could not tar log file: %v\n", err)
 	}
@@ -50,10 +50,10 @@ func main() {
 	if buildSuccess {
 		// write success svg to webserver dir
 		log.Println("build success")
-		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/buildStatus.svg")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/buildStatus_master.svg")
 	} else {
 		// write failure svg to webserver dir
 		log.Println("build failure")
-		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus.svg")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_master.svg")
 	}
 }
