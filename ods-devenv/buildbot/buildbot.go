@@ -28,14 +28,21 @@ func main() {
 	defer utils.CloseFile(logFile)
 
 	log.Println("Scanning logfile " + logPath)
-	buildSuccessIndicator := "Installation completed."
+	amiBuildSuccessIndicator := "Installation completed."
+	provappSuccessIndicator := "PASS: TestVerifyOdsProjectProvisionThruProvisionApi"
+	quickstarterTestSuccessIndicator := "--- PASS: TestQuickstarter ("
 	scanner := bufio.NewScanner(logFile)
-	buildSuccess := false
+	amiBuildSuccess := false
+	provappTestSuccess := false
+	quickstarterTestSuccess := false
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Contains(line, buildSuccessIndicator) {
-			buildSuccess = true
-			break
+		if strings.Contains(line, amiBuildSuccessIndicator) {
+			amiBuildSuccess = true
+		} else if strings.Contains(line, provappSuccessIndicator) {
+			provappTestSuccess = true
+		} else if strings.Contains(line, quickstarterTestSuccessIndicator) {
+			quickstarterTestSuccess = true
 		}
 	}
 
@@ -47,7 +54,7 @@ func main() {
 		log.Fatalf("Could not tar log file: %v\n", err)
 	}
 
-	if buildSuccess {
+	if amiBuildSuccess {
 		// write success svg to webserver dir
 		log.Println("build success")
 		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/buildStatus_master.svg")
@@ -56,4 +63,21 @@ func main() {
 		log.Println("build failure")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_master.svg")
 	}
+
+	if provappTestSuccess {
+		log.Println("provapp tests PASS")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/provapptestsoutcome_master.svg")
+	} else {
+		log.Println("provapp tests FAIL")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/provapptestsoutcome_master.svg")
+	}
+
+	if quickstarterTestSuccess {
+		log.Println("quickstarter tests PASS")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/quickstartertestsoutcome_master.svg")
+	} else {
+		log.Println("quickstarter tests FAIL")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_master.svg")
+	}
+
 }

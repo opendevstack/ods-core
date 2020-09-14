@@ -14,23 +14,21 @@ import (
 const CONFIG_FILE_NAME = ".packerrc"
 
 func ReadPackerRunControl() (map[string]string, error) {
-	log.Println("try to read $HOME/" + CONFIG_FILE_NAME)
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
-	log.Println("user HOME is " + user.HomeDir)
 
-	file, err := os.Open(user.HomeDir + "/" + CONFIG_FILE_NAME)
-	if err != nil {
-		return nil, err
-	}
+	buildBotrcPath := user.HomeDir + "/" + CONFIG_FILE_NAME
+	log.Printf("Reading buildbot runcontrol from %s\n", buildBotrcPath)
+	file, err := os.Open(buildBotrcPath)
+	HandleFileErr(err, buildBotrcPath)
 	defer CloseFile(file)
 
 	return ReadFileToMap(file)
 }
 
-// Read the build config from CONFIG_FILE_NAME
+// Read buildbotrc from CONFIG_FILE_NAME
 func ReadFileToMap(file *os.File) (map[string]string, error) {
 	config := make(map[string]string)
 
@@ -44,13 +42,4 @@ func ReadFileToMap(file *os.File) (map[string]string, error) {
 	}
 
 	return config, nil
-}
-
-func CloseFile(file *os.File) {
-	log.Printf("closing file %v\n", file)
-	err := file.Close()
-
-	if err != nil {
-		log.Fatalf("error: %v\n", err)
-	}
 }

@@ -20,13 +20,13 @@ func FileExists(filename string) bool {
 
 func Copy(sourcePath, destPath string) {
 	sourceFile, err := os.Open(sourcePath)
-	handleFileErr(err, sourcePath)
+	HandleFileErr(err, sourcePath)
 	defer CloseFile(sourceFile)
 
 	destFile, err := os.Create(destPath)
-	handleFileErr(err, destPath)
+	HandleFileErr(err, destPath)
 	err = os.Chmod(destPath, 0644)
-	handleFileErr(err, destPath)
+	HandleFileErr(err, destPath)
 	defer CloseFile(destFile)
 
 	length, err := io.Copy(destFile, sourceFile)
@@ -83,8 +83,17 @@ func TarZip(sourcePath, destPath string) error {
 	return nil
 }
 
-func handleFileErr(err error, fileName string) {
+func HandleFileErr(err error, fileName string) {
 	if err != nil {
 		log.Fatalf("Could not process file %s: %v\n", fileName, err)
+	}
+}
+
+func CloseFile(file *os.File) {
+	log.Printf("closing file %v\n", file)
+	err := file.Close()
+
+	if err != nil {
+		log.Fatalf("error: %v\n", err)
 	}
 }

@@ -7,7 +7,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="162"
+   width="150"
    height="20"
    version="1.1"
    id="svg146"
@@ -21,7 +21,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -41,10 +41,10 @@
      inkscape:zoom="4.7489177"
      inkscape:cx="80.049678"
      inkscape:cy="11.052871"
-     inkscape:window-x="3685"
-     inkscape:window-y="99"
+     inkscape:window-x="3386"
+     inkscape:window-y="110"
      inkscape:window-maximized="0"
-     inkscape:current-layer="g140"
+     inkscape:current-layer="g144"
      inkscape:document-rotation="0" />
   <defs
      id="defs118">
@@ -54,7 +54,7 @@
        y1="0"
        x2="30.083218"
        y2="60.166435"
-       gradientTransform="scale(1.8708663,0.33241125)"
+       gradientTransform="scale(1.6713741,0.33241125)"
        gradientUnits="userSpaceOnUse">
       <stop
          stop-color="#444D56"
@@ -95,26 +95,26 @@
        id="g129">
       <path
          id="workflow-bg"
-         d="M 0,3 C 0,1.3431 0.8427948,0 1.882499,0 H 112.56335 V 20 H 1.882499 C 0.8427948,20 0,18.6569 0,17 Z"
+         d="M 0,3 C 0,1.3431 0.75292681,0 1.6817664,0 H 100.56062 V 20 H 1.6817664 C 0.75292681,20 0,18.6569 0,17 Z"
          fill="url(#workflow-fill)"
          fill-rule="nonzero"
-         style="fill:url(#workflow-fill);stroke-width:0.788604" />
+         style="fill:url(#workflow-fill);stroke-width:0.745374" />
       <text
          fill="#010101"
          fill-opacity="0.3"
          id="text123"><tspan
            x="22.198198"
            y="15"
-           id="tspan121">ODS AMI build</tspan></text>
+           id="tspan121">ODS c/i tests</tspan></text>
       <text
          fill="#ffffff"
          id="text127"><tspan
            x="22.198198"
            y="14"
-           id="tspan125">ODS AMI build</tspan></text>
+           id="tspan125">ODS c/i tests</tspan></text>
     </g>
     <g
-       transform="translate(112.56335)"
+       transform="translate(100.56062)"
        font-family="'DejaVu Sans', Verdana, Geneva, sans-serif"
        font-size="11px"
        id="g140">
