@@ -104,12 +104,14 @@ TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repositories
 
-On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary repositories such as `ods-core`. To set them up, use:
+On your own Bitbucket instance, a new `OPENDEVSTACK` project will be created with the necessary repositories, such as `ods-core`. To set them up, use:
 
 [source,sh]
 ----
 make prepare-bitbucket-repos
 ----
+
+Notice that `prepare-bitbucket-repos` expects a running Atlassian suite. It will then create the OPENDEVSTACK project and the repos inside. It will *not* spin up a Bitbucket instance. You'll need to setup Bitbucket prior to running this. You can make use of either the Ansible playbooks in infrastructure-setup (however beware that this hasn't been updated in a while and might be buggy) or take inspiration from the ods-devenv setup, which uses containers to run Bitbucket.
 
 Then, update them with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift:
 [source,sh]
