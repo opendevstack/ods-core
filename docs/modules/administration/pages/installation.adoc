@@ -89,9 +89,9 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 == Infrastructure
 
 === Atlassian Tools
-At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed.
+At this stage the Atlassian suite is required prior to the ODS installation. OpenDevStack provides Ansible playbooks to install the Atlassian suite (Jira, Bitbucket, Confluence, Crowd). On the other hand, if you already have your own instances running, you can tell OpenDevStack to use those in `ods-configuration/ods-core.env`.
 
-WARNING: Documentation for this is missing.
+WARNING: Past this point you need to have the aforementioned elements that compose the Atlassian suite up and running, otherwise the ODS installation will just fail.
 
 After Crowd is running, ensure that there is a user corresponding to the `CD_USER_ID_B64`/`CD_USER_PWD_B64` parameters in `ods-core.env`.
 
@@ -104,14 +104,14 @@ TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repositories
 
-On your own Bitbucket instance, a new `OPENDEVSTACK` project will be created with the necessary repositories, such as `ods-core`. To set them up, use:
+On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary repositories such as `ods-core`. To set them up, use:
 
 [source,sh]
 ----
 make prepare-bitbucket-repos
 ----
 
-Notice that `prepare-bitbucket-repos` expects a running Atlassian suite. It will then create the OPENDEVSTACK project and the repos inside. It will *not* spin up a Bitbucket instance. You'll need to setup Bitbucket prior to running this. You can make use of either the Ansible playbooks in infrastructure-setup (however beware that this hasn't been updated in a while and might be buggy) or take inspiration from the ods-devenv setup, which uses containers to run Bitbucket.
+Notice that `prepare-bitbucket-repos` expects a running Atlassian suite (it will *not* spin up a new Bitbucket instance).
 
 Then, update them with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift:
 [source,sh]
