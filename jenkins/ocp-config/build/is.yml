@@ -10,7 +10,6 @@ objects:
     labels:
       app: jenkins
   spec:
-    dockerImageRepository: jenkins-master
     lookupPolicy:
       local: false
 - apiVersion: v1
@@ -20,7 +19,6 @@ objects:
     labels:
       app: jenkins
   spec:
-    dockerImageRepository: jenkins-agent-base
     lookupPolicy:
       local: false
 - apiVersion: v1
@@ -30,6 +28,5 @@ objects:
     labels:
       app: jenkins
   spec:
-    dockerImageRepository: jenkins-webhook-proxy
     lookupPolicy:
       local: false
