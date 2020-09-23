@@ -86,6 +86,12 @@ parameters:
 - name: PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED
   required: true
   description: parameter that (de)activate cleanup of projects that were left incomplete due an error on provision new project
+- name: JIRA_PROJECT_TEMPLATE_KEY_NAMES
+  required: true
+  description: list of jira project templates key names
+- name: ADDITIONAL_JIRA_PROJECT_TEMPLATE_PROPERTIES
+  required: true
+  description: list of additional jira project templates configuration properties
 objects:
 - kind: ConfigMap
   metadata:
@@ -121,7 +127,7 @@ objects:
       project.template.default.key=default
 
       # project types, these two are configured in the src/main/resources/application.properties
-      project.template.key.names=${project.template.default.key},kanban
+      project.template.key.names=${JIRA_PROJECT_TEMPLATE_KEY_NAMES}
 
       # JIRA properties
       jira.uri=${JIRA_URL}
@@ -324,8 +330,8 @@ objects:
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
       # Other quickstarters
-      jenkinspipeline.quickstarter.fe-be-mono-repo-plain.desc=FE/BE MonoRepo
-      jenkinspipeline.quickstarter.fe-be-mono-repo-plain.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.be-fe-mono-repo-plain.desc=FE/BE MonoRepo
+      jenkinspipeline.quickstarter.be-fe-mono-repo-plain.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
       jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
@@ -340,3 +346,13 @@ objects:
 
       jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
       jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
+
+- kind: ConfigMap
+  metadata:
+      labels:
+          app: ods-provisioning-app
+      name: additional-templates.properties
+  apiVersion: v1
+  data:
+      properties: |
+        ${ADDITIONAL_JIRA_PROJECT_TEMPLATE_PROPERTIES}

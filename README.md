@@ -1,9 +1,10 @@
 # ODS core & infrastructure
 
 ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master)
+![](https://4e53c33a6387.ngrok.io/images/buildStatus_master.svg)
 
 ## Introduction
-OpenDevStack (ODS) Core houses the all the central infrastructure components.
+OpenDevStack (ODS) Core houses all the central infrastructure components.
 
 All the contained components except Atlassian tools are built in the Openshift central `ods` namespace.
 
@@ -40,7 +41,18 @@ Contains all the ansible scripts to setup jira / confluence / bitbucket and atla
 1. [Tests & Installation verification](tests) <br>
 The automated tests for ods core are in two locations:<br>
 a) located side by side to the components, e.g for `sonarqube` they are located in [sonarqube/test.sh](sonarqube/test.sh). <br>
-b) inside the [tests](tests) directory. </p> The tests can be started with `make test`, which will call two test-suites. Namely, the tests to create a new project in [tests/create-projects](tests/create-projects) and those in [tests/ods-verify](tests/ods-verify) to verify if all components are installed successfully and run. If both pass - the setup of ods-core components is successfull. <br>**Attention:** Running the ods-core tests is also a pre-condition for the [ods-quickstarter tests](https://github.com/opendevstack/ods-quickstarters/tree/master/tests), as the test projects are created thru the tests here.
+b) inside the [tests](tests) directory. </p> The tests can be started with `make test`, which will call two test-suites. Namely, the tests to create a new project in [tests/create-projects](tests/create-projects) and those in [tests/ods-verify](tests/ods-verify) to verify if all components are installed successfully and run. If both pass - the setup of ods-core components is successful. Once those tests have passed, all quickstarters in [ods-quickstarters](https://github.com/opendevstack/ods-quickstarters) can be run via `make test-quickstarter`.
 
 1. [ODS Development Environment / ODS in a box](ods-devenv)<br>
 ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version of ODS on a plain linux vm. Simply execute [bootstrap.sh](ods-devenv/scripts/bootstrap.sh)
+
+## Current AMI build log
+[Current AMI build logs are available here.](https://4e53c33a6387.ngrok.io/images/current_log_master.tar.gz)
+
+Since the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
+
+
+```
+# after untaring view the log file 'current' like so:
+tail -fn +1 current
+```
