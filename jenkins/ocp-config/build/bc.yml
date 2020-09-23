@@ -1,170 +1,194 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: jenkins
+    name: jenkins
 parameters:
-- name: ODS_BITBUCKET_PROJECT
-  description: Bitbucket project name.
-  value: opendevstack
-- name: ODS_NAMESPACE
-  description: Central ODS namespace in OpenShift.
-  required: true
-- name: ODS_IMAGE_TAG
-  description: OpenDevStack image tag to use.
-  required: true
-- name: ODS_GIT_REF
-  description: Git ref to use for source code.
-  required: true
-- name: REPO_BASE
-  description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
-  required: true
-- name: JENKINS_MASTER_BASE_FROM_IMAGE
-  required: true
-  description: Base image for Jenkins master
-- name: JENKINS_AGENT_BASE_FROM_IMAGE
-  required: true
-  description: Base image for Jenkins agent base
-- name: APP_DNS
-  description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
-- name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
-  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
-- name: SONAR_EDITION
-  description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
-- name: SONAR_VERSION
-  description: SonarQube version, e.g. "7.9"
+    - name: ODS_BITBUCKET_PROJECT
+      description: Bitbucket project name.
+      value: opendevstack
+    - name: ODS_NAMESPACE
+      description: Central ODS namespace in OpenShift.
+      required: true
+    - name: ODS_IMAGE_TAG
+      description: OpenDevStack image tag to use.
+      required: true
+    - name: ODS_GIT_REF
+      description: Git ref to use for source code.
+      required: true
+    - name: REPO_BASE
+      description: repository base url. In case bitbucket is used, needs to include /scm - so it's the path in front on opendevstack/..
+      required: true
+    - name: JENKINS_MASTER_BASE_FROM_IMAGE
+      required: true
+      description: Base image for Jenkins master
+    - name: JENKINS_MASTER_CPU_REQUEST
+      value: 200m
+    - name: JENKINS_MASTER_CPU_LIMIT
+      value: "1"
+    - name: JENKINS_MASTER_MEMORY_REQUEST
+      value: 1Gi
+    - name: JENKINS_MASTER_MEMORY_LIMIT
+      value: 2Gi
+    - name: JENKINS_AGENT_BASE_FROM_IMAGE
+      required: true
+      description: Base image for Jenkins agent base
+    - name: JENKINS_AGENT_BASE_CPU_REQUEST
+      value: 200m
+    - name: JENKINS_AGENT_BASE_CPU_LIMIT
+      value: "1"
+    - name: JENKINS_AGENT_BASE_MEMORY_REQUEST
+      value: 1Gi
+    - name: JENKINS_AGENT_BASE_MEMORY_LIMIT
+      value: 2Gi
+    - name: APP_DNS
+      description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
+    - name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
+      description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+    - name: SONAR_EDITION
+      description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
+    - name: SONAR_VERSION
+      description: SonarQube version, e.g. "7.9"
+    - name: JENKINS_WEBHOOK_PROXY_CPU_REQUEST
+      value: 200m
+    - name: JENKINS_WEBHOOK_PROXY_CPU_LIMIT
+      value: "1"
+    - name: JENKINS_WEBHOOK_PROXY_MEMORY_REQUEST
+      value: 512Mi
+    - name: JENKINS_WEBHOOK_PROXY_MEMORY_LIMIT
+      value: 1Gi
 objects:
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: jenkins-master
-    labels:
-      app: jenkins
-  spec:
-    failedBuildsHistoryLimit: 5
-    nodeSelector: null
-    output:
-      to:
-        kind: ImageStreamTag
-        name: 'jenkins-master:${ODS_IMAGE_TAG}'
-    postCommit: {}
-    resources:
-      limits:
-        cpu: "1"
-        memory: "2Gi"
-      requests:
-        cpu: "200m"
-        memory: "1Gi"
-    runPolicy: Serial
-    source:
-      type: Git
-      contextDir: jenkins/master
-      git:
-        ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
-      sourceSecret:
-        name: cd-user-token
-    strategy:
-      type: Docker
-      dockerStrategy:
-        forcePull: true
-        noCache: true
-        env:
-          - name: APP_DNS
-            value: ${APP_DNS}
-          - name: ODS_NAMESPACE
-            value: ${ODS_NAMESPACE}
-          - name: ODS_GIT_REF
-            value: ${ODS_GIT_REF}
-          - name: ODS_IMAGE_TAG
-            value: ${ODS_IMAGE_TAG}
-          - name: SONAR_EDITION
-            value: ${SONAR_EDITION}
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
-        from:
-          kind: DockerImage
-          name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
-    successfulBuildsHistoryLimit: 5
-    triggers: []
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: jenkins-agent-base
-    labels:
-      app: jenkins
-  spec:
-    failedBuildsHistoryLimit: 5
-    nodeSelector: null
-    output:
-      to:
-        kind: ImageStreamTag
-        name: 'jenkins-agent-base:${ODS_IMAGE_TAG}'
-    postCommit: {}
-    resources:
-      limits:
-        cpu: "1"
-        memory: "2Gi"
-      requests:
-        cpu: "200m"
-        memory: "1Gi"
-    runPolicy: Serial
-    source:
-      contextDir: jenkins/agent-base
-      git:
-        ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
-      sourceSecret:
-        name: cd-user-token
-      type: Git
-    strategy:
-      dockerStrategy:
-        forcePull: true
-        noCache: true
-        env:
-          - name: APP_DNS
-            value: ${APP_DNS}
-          - name: SNYK_DISTRIBUTION_URL
-            value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
-        from:
-          kind: DockerImage
-          name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
-      type: Docker
-    successfulBuildsHistoryLimit: 5
-    triggers: []
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    name: jenkins-webhook-proxy
-    labels:
-      app: jenkins
-  spec:
-    output:
-      to:
-        kind: ImageStreamTag
-        name: 'jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
-    postCommit: {}
-    resources:
-      limits:
-        cpu: "1"
-        memory: "1Gi"
-      requests:
-        cpu: "200m"
-        memory: "512Mi"
-    runPolicy: Serial
-    source:
-      contextDir: jenkins/webhook-proxy
-      git:
-        ref: ${ODS_GIT_REF}
-        uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
-      sourceSecret:
-        name: cd-user-token
-      type: Git
-    strategy:
-      dockerStrategy:
-        forcePull: true
-        noCache: true
-      type: Docker
-    successfulBuildsHistoryLimit: 5
-    failedBuildsHistoryLimit: 5
-    nodeSelector: null
-    triggers: []
+    - kind: BuildConfig
+      apiVersion: v1
+      metadata:
+          name: jenkins-master
+          labels:
+              app: jenkins
+      spec:
+          failedBuildsHistoryLimit: 5
+          nodeSelector: null
+          output:
+              to:
+                  kind: ImageStreamTag
+                  name: "jenkins-master:${ODS_IMAGE_TAG}"
+          postCommit: {}
+          resources:
+              limits:
+                  cpu: ${JENKINS_MASTER_CPU_LIMIT}
+                  memory: ${JENKINS_MASTER_MEMORY_LIMIT}
+              requests:
+                  cpu: ${JENKINS_MASTER_CPU_REQUEST}
+                  memory: ${JENKINS_MASTER_MEMORY_REQUEST}
+          runPolicy: Serial
+          source:
+              type: Git
+              contextDir: jenkins/master
+              git:
+                  ref: ${ODS_GIT_REF}
+                  uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
+              sourceSecret:
+                  name: cd-user-token
+          strategy:
+              type: Docker
+              dockerStrategy:
+                  forcePull: true
+                  noCache: true
+                  env:
+                      - name: APP_DNS
+                        value: ${APP_DNS}
+                      - name: ODS_NAMESPACE
+                        value: ${ODS_NAMESPACE}
+                      - name: ODS_GIT_REF
+                        value: ${ODS_GIT_REF}
+                      - name: ODS_IMAGE_TAG
+                        value: ${ODS_IMAGE_TAG}
+                      - name: SONAR_EDITION
+                        value: ${SONAR_EDITION}
+                      - name: SONAR_VERSION
+                        value: ${SONAR_VERSION}
+                  from:
+                      kind: DockerImage
+                      name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
+          successfulBuildsHistoryLimit: 5
+          triggers: []
+    - kind: BuildConfig
+      apiVersion: v1
+      metadata:
+          name: jenkins-agent-base
+          labels:
+              app: jenkins
+      spec:
+          failedBuildsHistoryLimit: 5
+          nodeSelector: null
+          output:
+              to:
+                  kind: ImageStreamTag
+                  name: "jenkins-agent-base:${ODS_IMAGE_TAG}"
+          postCommit: {}
+          resources:
+              limits:
+                  cpu: ${JENKINS_AGENT_BASE_CPU_LIMIT}
+                  memory: ${JENKINS_AGENT_BASE_MEMORY_LIMIT}
+              requests:
+                  cpu: ${JENKINS_AGENT_BASE_CPU_REQUEST}
+                  memory: ${JENKINS_AGENT_BASE_MEMORY_REQUEST}
+          runPolicy: Serial
+          source:
+              contextDir: jenkins/agent-base
+              git:
+                  ref: ${ODS_GIT_REF}
+                  uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
+              sourceSecret:
+                  name: cd-user-token
+              type: Git
+          strategy:
+              dockerStrategy:
+                  forcePull: true
+                  noCache: true
+                  env:
+                      - name: APP_DNS
+                        value: ${APP_DNS}
+                      - name: SNYK_DISTRIBUTION_URL
+                        value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
+                  from:
+                      kind: DockerImage
+                      name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
+              type: Docker
+          successfulBuildsHistoryLimit: 5
+          triggers: []
+    - apiVersion: v1
+      kind: BuildConfig
+      metadata:
+          name: jenkins-webhook-proxy
+          labels:
+              app: jenkins
+      spec:
+          output:
+              to:
+                  kind: ImageStreamTag
+                  name: "jenkins-webhook-proxy:${ODS_IMAGE_TAG}"
+          postCommit: {}
+          resources:
+              limits:
+                  cpu: ${JENKINS_WEBHOOK_PROXY_CPU_LIMIT}
+                  memory: ${JENKINS_WEBHOOK_PROXY_MEMORY_LIMIT}
+              requests:
+                  cpu: ${JENKINS_WEBHOOK_PROXY_CPU_REQUEST}
+                  memory: ${JENKINS_WEBHOOK_PROXY_MEMORY_REQUEST}
+          runPolicy: Serial
+          source:
+              contextDir: jenkins/webhook-proxy
+              git:
+                  ref: ${ODS_GIT_REF}
+                  uri: ${REPO_BASE}/${ODS_BITBUCKET_PROJECT}/ods-core.git
+              sourceSecret:
+                  name: cd-user-token
+              type: Git
+          strategy:
+              dockerStrategy:
+                  forcePull: true
+                  noCache: true
+              type: Docker
+          successfulBuildsHistoryLimit: 5
+          failedBuildsHistoryLimit: 5
+          nodeSelector: null
+          triggers: []
