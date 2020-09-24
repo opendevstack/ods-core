@@ -16,6 +16,14 @@ parameters:
 - name: DOC_GEN_FROM_IMAGE
   description: Base image for Documentation generation service
   required: true
+- name: DOC_GEN_BUILD_CPU_REQUEST
+  value: "200m"
+- name: DOC_GEN_BUILD_CPU_LIMIT
+  value: "1"
+- name: DOC_GEN_BUILD_MEMORY_REQUEST
+  value: 1Gi
+- name: DOC_GEN_BUILD_MEMORY_LIMIT
+  value: 2Gi
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
 objects:
@@ -35,11 +43,11 @@ objects:
     postCommit: {}
     resources:
       limits:
-        cpu: "1"
-        memory: "2Gi"
+        cpu: ${DOC_GEN_BUILD_CPU_LIMIT}
+        memory: ${DOC_GEN_BUILD_MEMORY_LIMIT}
       requests:
-        cpu: "200m"
-        memory: "1Gi"
+        cpu: ${DOC_GEN_BUILD_CPU_REQUEST}
+        memory: ${DOC_GEN_BUILD_MEMORY_REQUEST}
     runPolicy: Serial
     source:
       type: Git
