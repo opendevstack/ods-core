@@ -21,24 +21,24 @@ parameters:
 - name: JENKINS_MASTER_BASE_FROM_IMAGE
   required: true
   description: Base image for Jenkins master
-- name: JENKINS_MASTER_CPU_REQUEST
+- name: JENKINS_MASTER_BUILD_CPU_REQUEST
   value: 200m
-- name: JENKINS_MASTER_CPU_LIMIT
+- name: JENKINS_MASTER_BUILD_CPU_LIMIT
   value: "1"
-- name: JENKINS_MASTER_MEMORY_REQUEST
+- name: JENKINS_MASTER_BUILD_MEMORY_REQUEST
   value: 1Gi
-- name: JENKINS_MASTER_MEMORY_LIMIT
+- name: JENKINS_MASTER_BUILD_MEMORY_LIMIT
   value: 2Gi  
 - name: JENKINS_AGENT_BASE_FROM_IMAGE
   required: true
   description: Base image for Jenkins agent base
-- name: JENKINS_AGENT_BASE_CPU_REQUEST
+- name: JENKINS_AGENT_BASE_BUILD_CPU_REQUEST
   value: 200m
-- name: JENKINS_AGENT_BASE_CPU_LIMIT
+- name: JENKINS_AGENT_BASE_BUILD_CPU_LIMIT
   value: "1"
-- name: JENKINS_AGENT_BASE_MEMORY_REQUEST
+- name: JENKINS_AGENT_BASE_BUILD_MEMORY_REQUEST
   value: 1Gi
-- name: JENKINS_AGENT_BASE_MEMORY_LIMIT
+- name: JENKINS_AGENT_BASE_BUILD_MEMORY_LIMIT
   value: 2Gi  
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
@@ -73,10 +73,10 @@ objects:
     postCommit: {}
     resources:
       limits:
-        cpu: ${JENKINS_MASTER_CPU_LIMIT}
-        memory: ${JENKINS_MASTER_MEMORY_LIMIT}
+        cpu: ${JENKINS_MASTER_BUILD_CPU_LIMIT}
+        memory: ${JENKINS_MASTER_BUILD_MEMORY_LIMIT}
       requests:
-        cpu: ${JENKINS_MASTER_CPU_REQUEST}
+        cpu: ${JENKINS_MASTER_BUILD_CPU_REQUEST}
         memory: ${JENKINS_MASTER_MEMORY_REQUEST}
     runPolicy: Serial
     source:
@@ -126,11 +126,11 @@ objects:
     postCommit: {}
     resources:
       limits:
-        cpu: ${JENKINS_AGENT_BASE_CPU_LIMIT}
-        memory: ${JENKINS_AGENT_BASE_MEMORY_LIMIT}
+        cpu: ${JENKINS_AGENT_BASE_BUILD_CPU_LIMIT}
+        memory: ${JENKINS_AGENT_BASE_BUILD_MEMORY_LIMIT}
       requests:
-        cpu: ${JENKINS_AGENT_BASE_CPU_REQUEST}
-        memory: ${JENKINS_AGENT_BASE_MEMORY_REQUEST}
+        cpu: ${JENKINS_AGENT_BASE_BUILD_CPU_REQUEST}
+        memory: ${JENKINS_AGENT_BASE_BUILD_MEMORY_REQUEST}
     runPolicy: Serial
     source:
       contextDir: jenkins/agent-base
