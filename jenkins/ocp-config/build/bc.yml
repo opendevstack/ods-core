@@ -48,13 +48,13 @@ parameters:
   description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
 - name: SONAR_VERSION
   description: SonarQube version, e.g. "7.9"
-- name: JENKINS_WEBHOOK_PROXY_CPU_REQUEST
+- name: JENKINS_WEBHOOK_PROXY_BUILD_CPU_REQUEST
   value: 200m
-- name: JENKINS_WEBHOOK_PROXY_CPU_LIMIT
+- name: JENKINS_WEBHOOK_PROXY_BUILD_CPU_LIMIT
   value: "1"
-- name: JENKINS_WEBHOOK_PROXY_MEMORY_REQUEST
+- name: JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_REQUEST
   value: 512Mi
-- name: JENKINS_WEBHOOK_PROXY_MEMORY_LIMIT
+- name: JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_LIMIT
   value: 1Gi  
 objects:
 - kind: BuildConfig
@@ -169,11 +169,11 @@ objects:
     postCommit: {}
     resources:
       limits:
-        cpu: ${JENKINS_WEBHOOK_PROXY_CPU_LIMIT}
-        memory: ${JENKINS_WEBHOOK_PROXY_MEMORY_LIMIT}
+        cpu: ${JENKINS_WEBHOOK_PROXY_BUILD_CPU_LIMIT}
+        memory: ${JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_LIMIT}
       requests:
-        cpu: ${JENKINS_WEBHOOK_PROXY_CPU_REQUEST}
-        memory: ${JENKINS_WEBHOOK_PROXY_MEMORY_REQUEST}
+        cpu: ${JENKINS_WEBHOOK_PROXY_BUILD_CPU_REQUEST}
+        memory: ${JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_REQUEST}
     runPolicy: Serial
     source:
       contextDir: jenkins/webhook-proxy
