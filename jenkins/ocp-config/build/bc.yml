@@ -77,7 +77,7 @@ objects:
         memory: ${JENKINS_MASTER_BUILD_MEMORY_LIMIT}
       requests:
         cpu: ${JENKINS_MASTER_BUILD_CPU_REQUEST}
-        memory: ${JENKINS_MASTER_MEMORY_REQUEST}
+        memory: ${JENKINS_MASTER_BUILD_MEMORY_REQUEST}
     runPolicy: Serial
     source:
       type: Git
