@@ -31,6 +31,11 @@ that any image changes are only rolled out by yourself. If you choose to remove
 the image trigger, ensure that the `imagePullPolicy` is set to `Always` to
 always get the latest `3.x` image when you deploy.
 
+CAUTION: If the administrator of your ODS cluster chose to use a custom Bitbucket
+project for the 3.x installation, then you'll need to set the environment variable
+`ALLOWED_EXTERNAL_PROJECTS=<ods-bitbucket-project>` for the `webhook-proxy`
+DeploymentConfig. Otherwise you will not be able to provision quickstarters.
+
 include::jenkins-shared-library:partial$update-to-3x.adoc[]
 
 include::jenkins-agents:partial$update-to-3x.adoc[]
