@@ -30,6 +30,27 @@ specifies the location of the SonarQube server.
 SONAR_AUTH_TOKEN::
 this is the SonarQube auth token that is generated when deploying and configuring sonarqube
 
-== Mail Sending
+== Email notifications
 
-In the Dockerfile, sending of mails to unknown users and users without read rights is enabled.
+Jenkins email notifications need manual configuration:
+
+1. The `SMTP server parameters` that need to be defined are found under menu option:
+`Jenkins` -> `Manage Jenkins` -> `Configure System` -> `Extended E-mail Notification`
+
+2. It is also mandatory to define the `System Admin e-mail address`, this is defined under menu option: `Jenkins` -> `Manage Jenkins` -> `Configure System` -> `Jenkins Location`
+
+3. Once Jenkins is configured, you will also need to define the recipients of the email notifications by definining `emailextRecipients` parameter in your `odsComponentPipeline` context, in your components' `Jenkinsfile`, like:
+
+```groovy
+...
+
+odsComponentPipeline(
+  ...
+
+  emailextRecipients: ['email1@foo.bar', 'email2@foo.bar'],
+
+  ...
+) { context ->
+
+...
+```
