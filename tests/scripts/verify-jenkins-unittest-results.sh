@@ -11,6 +11,6 @@ result=$(curl --insecure -sS "${BUILD_URL}/testReport" --location --header "Auth
 echo "# of tests executed in pipeline ${BUILD_NAME}: ${result}"
 if [[ ! "${result}" -gt 0 ]]
 then
-	echo "Could not find ($3) unit test results for build ${BUILD_NAME} in project ${PROJECT}"
+	echo "Could not find unit test results for build ${BUILD_NAME} in project ${PROJECT}"
 	exit 1
 fi
