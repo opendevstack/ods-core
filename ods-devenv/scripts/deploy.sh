@@ -19,7 +19,7 @@ atlassian_jira_db_name=jiradb
 atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
-atlassian_jira_software_version=8.5.3
+atlassian_jira_software_version=8.5.8
 # docker network internal jira port
 atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
