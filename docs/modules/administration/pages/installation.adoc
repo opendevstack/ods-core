@@ -88,6 +88,13 @@ git remote add origin <bitbucket-ods-configuration-git-repo-url>
 git push -u origin master
 ----
 
+Finally, it is required to create a Git ref in the `ods-jenkins-shared-library` which matches the ODS version you want your users to consume (as specified by `ODS_IMAGE_TAG` in the configuration):
+[source,sh]
+----
+make set-shared-library-ref
+----
+
+
 == OpenDevStack environment in OpenShift
 
 === Tailor
