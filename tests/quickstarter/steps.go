@@ -43,9 +43,17 @@ type TestStepUploadParams struct {
 
 // TestStepProvisionParams defines the parameters for the "provision" step type.
 type TestStepProvisionParams struct {
-	Quickstarter string          `json:"quickstarter"`
-	Pipeline     string          `json:"pipeline"`
-	Verify       *TestStepVerify `json:"verify"`
+	// Name of the quickstarter to provision.
+	Quickstarter string `json:"quickstarter"`
+	// Pipeline allows to customize the pipeline name.
+	// If empty, the pipeline name is generated.
+	Pipeline string `json:"pipeline"`
+	// Branch for which to run the pipeline.
+	// For "provision" steps, it defaults to ODS_GIT_REF.
+	// For "build" steps, it defaults to "master".
+	Branch string `json:"branch"`
+	// Verify parameters.
+	Verify *TestStepVerify `json:"verify"`
 }
 
 // TestStepBuildParams defines the parameters for the "build" step type.
