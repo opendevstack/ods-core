@@ -124,9 +124,13 @@ func TestQuickstarter(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
+					branch := config["ODS_GIT_REF"]
+					if len(step.ProvisionParams.Branch) > 0 {
+						branch = step.ProvisionParams.Branch
+					}
 					request = utils.RequestBuild{
 						Repository: "ods-quickstarters",
-						Branch:     config["ODS_GIT_REF"],
+						Branch:     branch,
 						Project:    config["ODS_BITBUCKET_PROJECT"],
 						Env: []utils.EnvPair{
 							{
@@ -165,9 +169,13 @@ func TestQuickstarter(t *testing.T) {
 					pipelineName = step.ProvisionParams.Pipeline
 					verify = step.ProvisionParams.Verify
 				} else if step.Type == "build" {
+					branch := "master"
+					if len(step.BuildParams.Branch) > 0 {
+						branch = step.BuildParams.Branch
+					}
 					request = utils.RequestBuild{
 						Repository: repoName,
-						Branch:     "master",
+						Branch:     branch,
 						Project:    utils.PROJECT_NAME,
 						Env:        []utils.EnvPair{},
 					}
