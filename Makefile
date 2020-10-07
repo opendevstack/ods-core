@@ -29,6 +29,11 @@ sync-repos:
 	cd ods-setup && ./repos.sh --sync --confirm
 .PHONY: sync-repos
 
+## Set ODS_IMAGE_TAG ref in Jenkins Shared Library.
+set-shared-library-ref:
+	cd scripts && ./set-shared-library-ref.sh
+.PHONY: set-shared-library-ref
+
 
 # CONFIG
 ## Update local sample config sample and run check against local actual config.
