@@ -2,18 +2,15 @@
 
 This document will guide you through installing / maintaining an OpenDevStack installation.
 
-NOTE: From now on we assume, you work from a Bash (Cygwin / Linux).
-
 == Server prerequisites
 
-In order to run the Atlassian suite and OpenShift, your host must have:
+Installing OpenShift is out of scope for this guide. We assume you have an OpenShift 3.11 cluster running already. If so, ensure that the cluster nodes have `vm.max_map_count` set to at least `262144`, otherwise you'll not be able to install SonarQube later on. You may change this setting via `sudo sysctl -w vm.max_map_count=262144`.
 
-- At least 16GB RAM and 32GB of available disk space
-- `vm.max_map_count=262144` to run SonarQube (which can be set via `sudo sysctl -w vm.max_map_count=262144`)
-- A recent `git` version (>= 2.13.2)
-- A recent `jq` version (>= 1.5, see https://stedolan.github.io/jq/)
+TIP: If you do not have an OpenShift cluster yet, and just want to try things out, you may use `oc cluster up` to spin up a temporary cluster. Note that this will only work on Linux and we recommend to have at least 16GB RAM and 32GB of available disk space.
 
 == Local Setup
+
+IMPORTANT: From now on we assume you work from a Bash terminal (Cygwin / Linux). In this terminal, you'll ned a recent `git` version (>= 2.13.2) and a recent `jq` version (>= 1.5, see https://stedolan.github.io/jq/) in your `$PATH`.
 
 Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the sources available on your local machine.
 
@@ -60,47 +57,12 @@ Add all files of directory `ods-configuration` to git and commit the result. You
 
 WARNING: If you are using windows **Cygwin** or **WSL** remember to change ending line CRLF to LF before commit `ods-core.env`, you can find more information on https://docs.github.com/en/github/using-git/configuring-git-to-handle-line-endings[configure Git ending line]
 
-=== Tailor
+== Atlassian Suite
+At this stage you have to setup the Atlassian suite (Jira, Confluence, Bitbucket, Crowd) if it does not exist yet. If you already have an installation the Atlassian suite, you now need to configure it to work with OpenDevStack.
 
-We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templates and keep OpenDevStack resources in sync. Please see its https://github.com/opendevstack/tailor#installation[installation instructions] for your platform. The following lists the version requirements:
-
-|===
-| OpenDevStack version | Tailor version
-
-| 3.x
-| >= 1.2.0
-
-| 2.x
-| >= 0.13.1
-
-| 1.2.x
-| = 0.9.3
-
-| 1.1.x
-| = 0.9.3
-
-| 1.0.x
-| = 0.9.1
-
-| 0.1.x
-| = 0.8
-|===
-
-== Infrastructure
-
-=== Atlassian Tools
-At this stage the Atlassian suite is required prior to the ODS installation. OpenDevStack provides Ansible playbooks to install the Atlassian suite (Jira, Bitbucket, Confluence, Crowd). On the other hand, if you already have your own instances running, you can tell OpenDevStack to use those in `ods-configuration/ods-core.env`.
-
-WARNING: Past this point you need to have the aforementioned elements that compose the Atlassian suite up and running, otherwise the ODS installation will just fail.
+WARNING: Documentation for the installation and configuration of the Atlassian suite is missing at the moment. The general setup is described in https://github.com/opendevstack/ods-core/tree/master/infrastructure-setup, but this will likely need adaption to your specific environment.
 
 After Crowd is running, ensure that there is a user corresponding to the `CD_USER_ID_B64`/`CD_USER_PWD_B64` parameters in `ods-core.env`.
-
-=== OpenShift cluster
-At this stage you can setup the OpenShift cluster if it does not exist yet.
-
-WARNING: Documentation for this is missing.
-
-TIP: If you are on Linux, `oc cluster up` will do the trick.
 
 == Bitbucket Repositories
 
@@ -128,11 +90,38 @@ git push -u origin master
 
 == OpenDevStack environment in OpenShift
 
+=== Tailor
+
+We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templates and keep OpenDevStack resources in sync. Tailor is a tool which needs to be installed on your local machine. Please see its https://github.com/opendevstack/tailor#installation[installation instructions] for your platform. Following are the version requirements:
+
+|===
+| OpenDevStack version | Tailor version
+
+| 3.x
+| >= 1.2.0
+
+| 2.x
+| >= 0.13.1
+
+| 1.2.x
+| = 0.9.3
+
+| 1.1.x
+| = 0.9.3
+
+| 1.0.x
+| = 0.9.1
+
+| 0.1.x
+| = 0.8
+|===
+
 === Central ODS project
 
 OpenDevStack needs one central project in OpenShift, which will hold all shared resources such as images or deployments. This project is typically called `ods`, but you can customize this in the configuration via `ODS_NAMESPACE`.
 
-First, log into OpenShift with a user that has cluster-admin rights.
+NOTE: For the following steps, you must be logged into OpenShift (using `oc login <host> --token=<token>`) with a user that has **cluster-admin** rights.
+
 In `ods-core` run:
 [source,sh]
 ----
