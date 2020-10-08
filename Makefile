@@ -95,7 +95,9 @@ start-provisioning-app-build:
 
 ## Update OpenShift resources related to the Provisioning App service.
 apply-provisioning-app-deploy:
-	cd ods-provisioning-app/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude is,bc
+	# first get from openshift the name of the default service account token which is used by prov app to interact with oc api
+	SA_TOKEN=$$(oc project $(ODS_NAMESPACE) | oc get sa -o=json | jq -r '.items[] | select(.metadata.name=="default").secrets[] | select(.name|test("^(default-token).+")).name') ;\
+ 	cd ods-provisioning-app/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --param ODS_DEFAULT_SA_TOKEN=$$SA_TOKEN --exclude is,bc
 .PHONY: apply-provisioning-app-deploy
 
 # DOCUMENT GENERATION SERVICE IMAGE

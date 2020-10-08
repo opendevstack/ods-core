@@ -1374,6 +1374,11 @@ function create_configuration() {
     sed -i "s|PROV_APP_AUTH_BASIC_AUTH_ENABLED=.*$|PROV_APP_AUTH_BASIC_AUTH_ENABLED=true|" ods-core.env
     sed -i "s|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=.*$|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true|" ods-core.env
 
+    # provisioning app env vars
+    local default_serviceaccount_token
+    default_serviceaccount_token=$(oc project ods | oc get sa -o=json | jq -r '.items[] | select(.metadata.name=="default").secrets[] | select(.name|test("^(default-token).+")).name')
+    sed -i "s|ODS_DEFAULT_SA_TOKEN=.*|ODS_DEFAULT_SA_TOKEN='"$default_serviceaccount_token"'|" ods-core.env
+
     # OpenShift
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
