@@ -742,7 +742,7 @@ function startup_atlassian_jira() {
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
-        -dp ${atlassian_jira_port}:8080
+        -dp ${atlassian_jira_port}:8080 \
         -p ${atlassian_jira_jdwp_port}:5005 \
         -e "ATL_JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
         -e ATL_JDBC_USER=jira_user \
