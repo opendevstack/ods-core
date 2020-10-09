@@ -19,6 +19,7 @@ atlassian_jira_db_name=jiradb
 atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
+atlassian_jira_jdwp_port=15005
 atlassian_jira_software_version=8.5.3
 # docker network internal jira port
 atlassian_jira_port_internal=8080
@@ -820,12 +821,14 @@ function startup_atlassian_jira() {
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
         -dp ${atlassian_jira_port}:8080 \
+        -p ${atlassian_jira_jdwp_port}:5005 \
         -e "ATL_JDBC_URL=jdbc:mysql://${atlassian_mysql_container_name}.${odsbox_domain}:${atlassian_mysql_port}/${atlassian_jira_db_name}" \
         -e ATL_JDBC_USER=jira_user \
         -e ATL_JDBC_PASSWORD=jira_password \
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
+        -e JVM_SUPPORT_RECOMMENDED_ARGS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005 \
         ods-jira-docker:latest \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
