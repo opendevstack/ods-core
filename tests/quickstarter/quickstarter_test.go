@@ -114,6 +114,7 @@ func TestQuickstarter(t *testing.T) {
 				var pipelineName string
 				var jenkinsfile string
 				var verify *TestStepVerify
+				tmplData := templateData(config, step.ComponentID, "")
 				if step.Type == "provision" {
 					// cleanup and create bb resources for this test
 					err = recreateBitbucketRepo(config, utils.PROJECT_NAME, repoName)
@@ -126,7 +127,7 @@ func TestQuickstarter(t *testing.T) {
 					}
 					branch := config["ODS_GIT_REF"]
 					if len(step.ProvisionParams.Branch) > 0 {
-						branch = step.ProvisionParams.Branch
+						branch = renderTemplate(t, step.ProvisionParams.Branch, tmplData)
 					}
 					request = utils.RequestBuild{
 						Repository: "ods-quickstarters",
@@ -171,7 +172,7 @@ func TestQuickstarter(t *testing.T) {
 				} else if step.Type == "build" {
 					branch := "master"
 					if len(step.BuildParams.Branch) > 0 {
-						branch = step.BuildParams.Branch
+						branch = renderTemplate(t, step.BuildParams.Branch, tmplData)
 					}
 					request = utils.RequestBuild{
 						Repository: repoName,
@@ -214,6 +215,26 @@ func collectTestableQuickstarters(t *testing.T, dir string) []string {
 	return testableQuickstarters
 }
 
+func templateData(config map[string]string, componentID string, buildName string) TemplateData {
+	sanitizedOdsGitRef := strings.Replace(config["ODS_GIT_REF"], "/", "_", -1)
+	sanitizedOdsGitRef = strings.Replace(sanitizedOdsGitRef, "-", "_", -1)
+	var buildNumber string
+	if len(buildName) > 0 {
+		buildParts := strings.Split(buildName, "-")
+		buildNumber = buildParts[len(buildParts)-1]
+	}
+	return TemplateData{
+		ProjectID:           utils.PROJECT_NAME,
+		ComponentID:         componentID,
+		OdsNamespace:        config["ODS_NAMESPACE"],
+		OdsGitRef:           config["ODS_GIT_REF"],
+		OdsImageTag:         config["ODS_IMAGE_TAG"],
+		OdsBitbucketProject: config["ODS_BITBUCKET_PROJECT"],
+		SanitizedOdsGitRef:  sanitizedOdsGitRef,
+		BuildNumber:         buildNumber,
+	}
+}
+
 // verifyPipelineRun checks that all expected values from the TestStepVerify
 // definition are present.
 func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, testdataPath string, repoName string, buildName string, config map[string]string) {
@@ -222,19 +243,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 		return
 	}
 
-	sanitizedOdsGitRef := strings.Replace(config["ODS_GIT_REF"], "/", "_", -1)
-	sanitizedOdsGitRef = strings.Replace(sanitizedOdsGitRef, "-", "_", -1)
-	buildParts := strings.Split(buildName, "-")
-	tmplData := TemplateData{
-		ProjectID:           utils.PROJECT_NAME,
-		ComponentID:         step.ComponentID,
-		OdsNamespace:        config["ODS_NAMESPACE"],
-		OdsGitRef:           config["ODS_GIT_REF"],
-		OdsImageTag:         config["ODS_IMAGE_TAG"],
-		OdsBitbucketProject: config["ODS_BITBUCKET_PROJECT"],
-		SanitizedOdsGitRef:  sanitizedOdsGitRef,
-		BuildNumber:         buildParts[len(buildParts)-1],
-	}
+	tmplData := templateData(config, step.ComponentID, buildName)
 
 	if len(verify.JenkinsStages) > 0 {
 		fmt.Printf("Verifying Jenkins stages of %s ...\n", buildName)
