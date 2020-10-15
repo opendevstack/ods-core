@@ -27,14 +27,14 @@ COPY ods-run /usr/libexec/s2i/ods-run
 
 RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 
-USER jenkins
-
 # Install Tailor.
 RUN cd /tmp \
 	&& curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
 	&& mv tailor-linux-amd64 /usr/local/bin/tailor \
-	&& chmod a+x /usr/local/bin/tailor \
-	&& tailor version
+	&& chmod a+x /usr/local/bin/tailor
+
+USER jenkins
 
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
+RUN tailor version
 CMD ["/usr/libexec/s2i/ods-run"]
