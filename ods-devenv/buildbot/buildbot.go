@@ -11,9 +11,63 @@ import (
 	"github.com/opendevstack/ods-core/ods-devenv/buildbot/utils"
 )
 
+const usecase_buildAmi = "runAmiBuild"
+const usecase_checkBuild = "checkAmiBuild"
+const amiBuildExecutable = "runAmiBuild"
+
 func main() {
+
+	cliArgs := os.Args[1:]
+	if len(cliArgs) != 1 {
+		log.Fatalf("Please specify which use case to execute: %s or %s.\n", usecase_buildAmi, usecase_checkBuild)
+	}
+
+	if cliArgs[0] == usecase_buildAmi {
+		log.Printf("Running %s.\n", usecase_buildAmi)
+		runAmiBuild()
+	} else if cliArgs[0] == usecase_checkBuild {
+		log.Printf("Running %s.\n", usecase_checkBuild)
+		checkAmiBuild()
+	} else {
+		log.Printf("Please specify valid usecase")
+	}
+}
+
+func runAmiBuild() {
+	log.Printf("yes, yes, I'm running the build now ... ")
+
+	configMap, err := utils.ReadBuildBotRunControl()
+	if err != nil || configMap == nil {
+		log.Fatalf("Could not load runtime configuration: %v\n", err)
+	}
+	buildArgs := getBuildArgsFromRunControl(configMap)
+	branches := strings.Split(configMap["branch"], ",")
+
+	stdout, _, err := utils.RunCommand("command", []string{"-v", amiBuildExecutable}, []string{})
+	if err != nil || configMap == nil {
+		log.Fatalf("Could not find AMI buildscript '%s' on path. Please copy it to the build user's path.\n", amiBuildExecutable)
+	}
+	amiBuildScriptPath := stdout
+
+	for _, branch := range branches {
+		log.Printf("Building branch %s using script %s\n", branch, amiBuildScriptPath)
+		log.Printf("%s %v", amiBuildScriptPath, append(buildArgs, "--target_git_ref", branch))
+		//utils.RunCommand(amiBuildExecutable, append(), []string{})
+	}
+}
+
+func getBuildArgsFromRunControl(configMap map[string]string) []string {
+	buildArgs := []string{}
+	for key, value := range configMap {
+		log.Printf("Listing [key;value] [%s;%s].\n", key, value)
+		buildArgs = append(buildArgs, "--"+key, value)
+	}
+	return buildArgs
+}
+
+func checkAmiBuild() {
 	fmt.Printf("Verifying build at %s.\n", time.Now().Format("2006-01-02T150405"))
-	config, err := utils.ReadPackerRunControl()
+	config, err := utils.ReadBuildBotRunControl()
 	if err != nil || config == nil {
 		log.Fatalf("Could not load runtime configuration: %v\n", err)
 	}
@@ -79,5 +133,4 @@ func main() {
 		log.Println("quickstarter tests FAIL")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_master.svg")
 	}
-
 }
