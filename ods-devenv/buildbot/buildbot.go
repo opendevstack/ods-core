@@ -18,14 +18,14 @@ func main() {
 
 	cliArgs := os.Args[1:]
 	if len(cliArgs) != 1 {
-		log.Fatalf("Please specify which use case to execute: %s or %s.\n", usecase_buildAmi, usecase_checkBuild)
+		log.Fatalf("Please specify which use case to execute: %s or %s\n", usecase_buildAmi, usecase_checkBuild)
 	}
 
 	if cliArgs[0] == usecase_buildAmi {
-		log.Printf("Running %s.\n", usecase_buildAmi)
+		log.Printf("Running %s\n", usecase_buildAmi)
 		runAmiBuild()
 	} else if cliArgs[0] == usecase_checkBuild {
-		log.Printf("Running %s.\n", usecase_checkBuild)
+		log.Printf("Running %s\n", usecase_checkBuild)
 		checkAmiBuild()
 	} else {
 		log.Printf("Please specify valid usecase")
@@ -42,7 +42,7 @@ func runAmiBuild() {
 
 	stdout, _, err := utils.RunCommand("command", []string{"-v", amiBuildExecutable}, []string{})
 	if err != nil || configMap == nil {
-		log.Fatalf("Could not find AMI buildscript '%s' on path. Please copy it to the build user's path.\n", amiBuildExecutable)
+		log.Fatalf("Could not find AMI buildscript '%s' on path - Please copy it to the build user's path\n", amiBuildExecutable)
 	}
 	amiBuildScriptPath := strings.TrimSpace(stdout)
 
