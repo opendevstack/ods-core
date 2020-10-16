@@ -47,7 +47,7 @@ func runAmiBuild() {
 	if err != nil || configMap == nil {
 		log.Fatalf("Could not find AMI buildscript '%s' on path. Please copy it to the build user's path.\n", amiBuildExecutable)
 	}
-	amiBuildScriptPath := stdout
+	amiBuildScriptPath := strings.TrimSpace(stdout)
 
 	for _, branch := range branches {
 		log.Printf("Building branch %s using script %s\n", branch, amiBuildScriptPath)
