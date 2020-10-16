@@ -2,7 +2,6 @@ package utils
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -100,12 +99,11 @@ func CloseFile(file *os.File) {
 	}
 }
 
-func RunCommand(command string, args []string, envVars []string) (string, string, error) {
+func RunCommandInBackground(command string, args []string, envVars []string) error {
 	cmd := exec.Command(command, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), envVars...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
+	err := cmd.Start()
+	return err
 }
