@@ -110,11 +110,10 @@ func RunCommand(command string, args []string, envVars []string) (string, string
 	return stdout.String(), stderr.String(), err
 }
 
-func RunCommandInBackground(command string, args []string, envVars []string) error {
+func RunCommandInBackground(command string, args []string, envVars []string) {
 	cmd := exec.Command(command, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), envVars...)
-	err := cmd.Start()
-	return err
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("error: %v\n", err)
+	}
 }

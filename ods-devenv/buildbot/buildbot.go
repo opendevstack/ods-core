@@ -34,8 +34,6 @@ func main() {
 }
 
 func runAmiBuild() {
-	log.Printf("yes, yes, I'm running the build now ... ")
-
 	configMap, err := utils.ReadBuildBotRunControl()
 	if err != nil || configMap == nil {
 		log.Fatalf("Could not load runtime configuration: %v\n", err)
@@ -58,7 +56,6 @@ func runAmiBuild() {
 func getBuildArgsFromRunControl(configMap map[string]string) []string {
 	buildArgs := []string{}
 	for key, value := range configMap {
-		log.Printf("Listing [key;value] [%s;%s].\n", key, value)
 		buildArgs = append(buildArgs, "--"+key, value)
 	}
 	return buildArgs
