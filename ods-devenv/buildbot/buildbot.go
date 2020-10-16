@@ -13,7 +13,7 @@ import (
 
 const usecase_buildAmi = "runAmiBuild"
 const usecase_checkBuild = "checkAmiBuild"
-const amiBuildExecutable = "runAmiBuild"
+const amiBuildExecutable = "runAmiBuild.sh"
 
 func main() {
 

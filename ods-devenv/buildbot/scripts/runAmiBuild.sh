@@ -10,7 +10,7 @@ targetGitRef="master"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 
-  --target-git-ref) targetGitRef="$2"; shift;;
+  --target_git_ref) targetGitRef="$2"; shift;;
   --build_path) buildPath="$2"; shift;;
   --log_path) logPath="$2"; shift;;
   --instance_type) instanceType="$2"; shift;;
