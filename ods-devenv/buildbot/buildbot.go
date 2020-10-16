@@ -51,7 +51,7 @@ func runAmiBuild() {
 
 	for _, branch := range branches {
 		log.Printf("Building branch %s using script %s\n", branch, amiBuildScriptPath)
-		utils.RunCommand(amiBuildExecutable, append(buildArgs, "--target_git_ref", branch), []string{})
+		utils.RunCommandInBackground(amiBuildExecutable, append(buildArgs, "--target_git_ref", branch), []string{})
 	}
 }
 
