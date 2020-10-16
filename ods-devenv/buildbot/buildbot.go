@@ -61,20 +61,20 @@ func getBuildArgsFromRunControl(configMap map[string]string) []string {
 }
 
 func checkAmiBuild() {
-	config, err := utils.ReadBuildBotRunControl()
-	if err != nil || config == nil {
+	configMap, err := utils.ReadBuildBotRunControl()
+	if err != nil || configMap == nil {
 		log.Fatalf("Could not load runtime configuration: %v\n", err)
 	}
 	branches := strings.Split(configMap["branch"], ",")
 
 	for _, branch := range branches {
 		log.Printf("Verify build for branch %s at %s.\n", branch, time.Now().Format("2006-01-02T150405"))
-		checkAmiBuildForBranch(branch)
+		checkAmiBuildForBranch(branch, configMap)
 	}
 }
 
-func checkAmiBuildForBranch(branch string) {
-	logPath := config["log_path"] + "/current_" + branch + ".log"
+func checkAmiBuildForBranch(branch string, configMap map[string]string) {
+	logPath := configMap["log_path"] + "/current_" + branch + ".log"
 	log.Println("logpath is " + logPath)
 
 	logFile, err := os.Open(logPath)
@@ -103,9 +103,9 @@ func checkAmiBuildForBranch(branch string) {
 	}
 
 	// process build result
-	buildResultPath := config["build_result_path"]
+	buildResultPath := configMap["build_result_path"]
 	// zip log file and copy it to download location
-	err = utils.TarZip(logPath, config["build_result_path"]+"/current_log_"+branch+".tar.gz")
+	err = utils.TarZip(logPath, configMap["build_result_path"]+"/current_log_"+branch+".tar.gz")
 	if err != nil {
 		log.Fatalf("Could not tar log file: %v\n", err)
 	}
@@ -119,7 +119,7 @@ func checkAmiBuildForBranch(branch string) {
 		log.Println("build failure")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_"+branch+".svg")
 	}
-	_, _, err := utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branch + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in build status svg for branch %s.\n", branch)
 	}
@@ -131,7 +131,7 @@ func checkAmiBuildForBranch(branch string) {
 		log.Println("provapp tests FAIL")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/provapptestsoutcome_"+branch+".svg")
 	}
-	_, _, err := utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branch + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in prov-app build status svg for branch %s.\n", branch)
 	}
@@ -143,7 +143,7 @@ func checkAmiBuildForBranch(branch string) {
 		log.Println("quickstarter tests FAIL")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_"+branch+".svg")
 	}
-	_, _, err := utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branch + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in quickstarters build status svg for branch %s.\n", branch)
 	}
