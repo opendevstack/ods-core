@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -97,6 +98,16 @@ func CloseFile(file *os.File) {
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
 	}
+}
+
+func RunCommand(command string, args []string, envVars []string) (string, string, error) {
+	cmd := exec.Command(command, args...)
+	cmd.Env = append(os.Environ(), envVars...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
 }
 
 func RunCommandInBackground(command string, args []string, envVars []string) error {
