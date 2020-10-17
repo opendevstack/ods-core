@@ -1,0 +1,8 @@
+branch=master,3.x,feature/ods-devenv
+aws_access_key=
+aws_secret_access_key=
+# m5ad.4xlarge or t2.2xlarge
+instance_type=m5ad.4xlarge
+log_path="${HOME}/logs"
+build_path="${HOME}/opendevstack/ods-core"
+build_result_path="${HOME}/opendevstack/packer_build_result"

@@ -11,9 +11,9 @@ import (
 	"strings"
 )
 
-const CONFIG_FILE_NAME = ".packerrc"
+const CONFIG_FILE_NAME = ".buildbotrc"
 
-func ReadPackerRunControl() (map[string]string, error) {
+func ReadBuildBotRunControl() (map[string]string, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err

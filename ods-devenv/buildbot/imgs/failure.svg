@@ -7,7 +7,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="150"
+   width="248"
    height="20"
    version="1.1"
    id="svg146"
@@ -42,7 +42,7 @@
      inkscape:cx="80.049678"
      inkscape:cy="11.052871"
      inkscape:window-x="3386"
-     inkscape:window-y="110"
+     inkscape:window-y="88"
      inkscape:window-maximized="0"
      inkscape:current-layer="g144"
      inkscape:document-rotation="0" />
@@ -95,26 +95,27 @@
        id="g129">
       <path
          id="workflow-bg"
-         d="M 0,3 C 0,1.3431 0.75292681,0 1.6817664,0 H 100.56062 V 20 H 1.6817664 C 0.75292681,20 0,18.6569 0,17 Z"
+         d="M 0,3 C 0,1.3431 0.75292681,0 1.6817664,0 L 198.89882,0.2105743 V 20.210574 L 1.6817664,20 C 0.75292734,19.999008 0,18.6569 0,17 Z"
          fill="url(#workflow-fill)"
          fill-rule="nonzero"
-         style="fill:url(#workflow-fill);stroke-width:0.745374" />
+         style="fill:url(#workflow-fill);stroke-width:0.745374"
+         sodipodi:nodetypes="ssccsss" />
       <text
          fill="#010101"
          fill-opacity="0.3"
          id="text123"><tspan
            x="22.198198"
            y="15"
-           id="tspan121">ODS c/i tests</tspan></text>
+           id="tspan121">ODS c/i tests __branchname__</tspan></text>
       <text
          fill="#ffffff"
          id="text127"><tspan
            x="22.198198"
            y="14"
-           id="tspan125">ODS c/i tests</tspan></text>
+           id="tspan125">ODS c/i tests __branchname__</tspan></text>
     </g>
     <g
-       transform="translate(100.56062)"
+       transform="translate(198.89882,0.2105743)"
        font-family="'DejaVu Sans', Verdana, Geneva, sans-serif"
        font-size="11px"
        id="g140">
