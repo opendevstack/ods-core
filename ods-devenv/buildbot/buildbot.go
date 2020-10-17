@@ -74,7 +74,8 @@ func checkAmiBuild() {
 }
 
 func checkAmiBuildForBranch(branch string, configMap map[string]string) {
-	logPath := configMap["log_path"] + "/current_" + branch + ".log"
+	branchPathSegement := strings.Replace(branch, "/", "_", -1)
+	logPath := configMap["log_path"] + "/current_" + branchPathSegement + ".log"
 	log.Println("logpath is " + logPath)
 
 	logFile, err := os.Open(logPath)
@@ -105,7 +106,7 @@ func checkAmiBuildForBranch(branch string, configMap map[string]string) {
 	// process build result
 	buildResultPath := configMap["build_result_path"]
 	// zip log file and copy it to download location
-	err = utils.TarZip(logPath, configMap["build_result_path"]+"/current_log_"+branch+".tar.gz")
+	err = utils.TarZip(logPath, configMap["build_result_path"]+"/current_log_"+branchPathSegement+".tar.gz")
 	if err != nil {
 		log.Fatalf("Could not tar log file: %v\n", err)
 	}
@@ -113,37 +114,37 @@ func checkAmiBuildForBranch(branch string, configMap map[string]string) {
 	if amiBuildSuccess {
 		// write success svg to webserver dir
 		log.Println("build success")
-		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/buildStatus_"+branch+".svg")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/buildStatus_"+branchPathSegement+".svg")
 	} else {
 		// write failure svg to webserver dir
 		log.Println("build failure")
-		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_"+branch+".svg")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in build status svg for branch %s.\n", branch)
 	}
 
 	if provappTestSuccess {
 		log.Println("provapp tests PASS")
-		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/provapptestsoutcome_"+branch+".svg")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/provapptestsoutcome_"+branchPathSegement+".svg")
 	} else {
 		log.Println("provapp tests FAIL")
-		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/provapptestsoutcome_"+branch+".svg")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/provapptestsoutcome_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in prov-app build status svg for branch %s.\n", branch)
 	}
 
 	if quickstarterTestSuccess {
 		log.Println("quickstarter tests PASS")
-		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/quickstartertestsoutcome_"+branch+".svg")
+		utils.Copy(buildResultPath+"/success.svg", buildResultPath+"/quickstartertestsoutcome_"+branchPathSegement+".svg")
 	} else {
 		log.Println("quickstarter tests FAIL")
-		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_"+branch+".svg")
+		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branch + ".svg"}, []string{})
+	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in quickstarters build status svg for branch %s.\n", branch)
 	}
