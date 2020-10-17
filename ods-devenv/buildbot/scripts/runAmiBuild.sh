@@ -28,6 +28,7 @@ cd "${buildPath:?}" || exit
 date
 mkdir -p "${logPath:?}"
 logFile="${logPath:?}/build_$(echo "${targetGitRef}" | tr "/" "_")_$(date +%Y%m%dT%H%M%S).log"
-rm -f "${logPath}/current_${targetGitRef}.log"
-ln -s "${logFile}" "${logPath}/current_${targetGitRef}.log"
+targetGitRefForPath=$(echo -n "${targetGitRef}" | tr "/" "_")
+rm -f "${logPath}/current_${targetGitRefForPath}.log"
+ln -s "${logFile}" "${logPath}/current_${targetGitRefForPath}.log"
 time bash 2>&1 ods-devenv/packer/create_ods_box_image.sh --target create_ods_box_ami --aws-access-key "${awsAccessKey}" --aws-secret-key "${awsSecretAccessKey}" --ods-branch "${targetGitRef}" --instance-type "${instanceType}" | tee "${logFile:?}"
