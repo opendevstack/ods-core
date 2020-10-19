@@ -51,9 +51,20 @@ A minor update (consuming changes/bugfixs on a release branch such as 3.x). From
 
 == Roadmap
 
-Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHub project]. The current major version is 2, the next one will be 3.
+Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHub project]. The current major version is 3, the next one will be 4.
 
-=== https://github.com/orgs/opendevstack/projects/9[3] (to be released July 2020)
+=== https://github.com/orgs/opendevstack/projects/10[4] (Target date: December 2020)
+
+Planned work (subject to change):
+
+- OpenShift 4 support (keeping 3.11 compatibility)
+- Support deploying to multiple Q/P clusters in the orchestration pipeline
+- New/Reworked machine learning quickstarter
+- Integration with Aqua Security
+- Implement health checks for quickstarters
+- Provisioning App: Support config of multiple identity providers and enable new UI by default
+
+=== https://github.com/orgs/opendevstack/projects/9[3] (August 2020)
 
 - Rename central namespace to `ODS`, and extend with running provisioning app
 - Install provisioning app and document generation service from pre-built images
