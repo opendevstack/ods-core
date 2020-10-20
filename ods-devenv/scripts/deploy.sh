@@ -778,10 +778,34 @@ function configure_bitbucket2crowd() {
         --insecure --silent -o /dev/null
     echo "Synced BitBucket directory with Crowd."
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
-        -b "${cookie_jar_path}" -c "${cookie_jar_path}" \
+    # enough time to synchronize bitbucket directory with crowd
+    sleep 10
+
+    # adding after sync groups to global permissions to enable users in the following groups to be able to login
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=bitbucket-users" \
         -X 'PUT' \
-        -H 'Accept: application/json, text/javascript, */*; q=0.01'
+        -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
+        -H 'Accept: application/json'
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=ADMIN&name=bitbucket-administrators" \
+        -X 'PUT' \
+        -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
+        -H 'Accept: application/json'
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
+        -X 'PUT' \
+        -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
+        -H 'Accept: application/json'
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-team-members" \
+        -X 'PUT' \
+        -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
+        -H 'Accept: application/json'
+
+    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=LICENSED_USER&name=project-readonly-users" \
+        -X 'PUT' \
+        -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
+        -H 'Accept: application/json'
 
     rm "${cookie_jar_path}"
 }
