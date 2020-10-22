@@ -89,9 +89,9 @@ We use https://github.com/opendevstack/tailor[Tailor] to handle OpenShift templa
 == Infrastructure
 
 === Atlassian Tools
-At this stage you can setup the Atlassian tools if they do not exist yet, or modify them as needed.
+At this stage the Atlassian suite is required prior to the ODS installation. OpenDevStack provides Ansible playbooks to install the Atlassian suite (Jira, Bitbucket, Confluence, Crowd). On the other hand, if you already have your own instances running, you can tell OpenDevStack to use those in `ods-configuration/ods-core.env`.
 
-WARNING: Documentation for this is missing.
+WARNING: Past this point you need to have the aforementioned elements that compose the Atlassian suite up and running, otherwise the ODS installation will just fail.
 
 After Crowd is running, ensure that there is a user corresponding to the `CD_USER_ID_B64`/`CD_USER_PWD_B64` parameters in `ods-core.env`.
 
@@ -110,6 +110,8 @@ On Bitbucket, there must be an `OPENDEVSTACK` project filled with the necessary 
 ----
 make prepare-bitbucket-repos
 ----
+
+Notice that `prepare-bitbucket-repos` expects a running Atlassian suite (it will *not* spin up a new Bitbucket instance).
 
 Then, update them with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift:
 [source,sh]
