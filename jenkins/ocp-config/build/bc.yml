@@ -163,6 +163,9 @@ objects:
       dockerStrategy:
         forcePull: true
         noCache: true
+        buildArgs:
+          - name: allowedExternalProjects
+            value: ${ODS_BITBUCKET_PROJECT}
       type: Docker
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
