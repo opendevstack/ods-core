@@ -23,9 +23,9 @@ sudo yum -y install git
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -p "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
-curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/ods-setup/repos.sh
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/scripts/repos.sh
 chmod u+x ./repos.sh
-./repos.sh --init --confirm --bitbucket-ods-project OPENDEVSTACK --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --verbose
+./repos.sh --git-ref "${ods_git_ref}" --verbose
 
 cd ods-core
 time bash ods-devenv/scripts/deploy.sh --branch "${ods_git_ref}" --target basic_vm_setup

@@ -1370,21 +1370,35 @@ function delete_ods_repositories() {
 }
 
 #######################################
-# Makes use of ods-core/ods-setup-repos.sh to clone ods repositories from github
-# and push them to the local BitBucket instance.
+# Makes use of ods-core/scripts/push-local-repos.sh to push ods repositories
+# to the local BitBucket instance.
 # Globals:
 #   atlassian_bitbucket_port
+#   atlassian_bitbucket_port_internal
+#   ods_git_ref
 # Arguments:
 #   n/a
 # Returns:
 #   None
 #######################################
-function initialise_ods_repositories() {
-    local opendevstack_dir="${HOME}/opendevstack"
+function push_ods_repositories() {
+    pwd
+    ./scripts/push-local-repos.sh --bitbucket-url "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --ods-git-ref "${ods_git_ref}"
+}
 
-    pushd "${opendevstack_dir}"
-    ./repos.sh --sync --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --source-git-ref "${ods_git_ref}" --target-git-ref "${ods_git_ref}" --confirm
-    popd
+#######################################
+# Makes use of ods-core/scripts/set-shared-library-ref.sh to set a ref equal to
+# ODS_IMAGE_TAG in the ods-jenkins-shared-library repository.
+# Globals:
+#   ods_git_ref
+# Arguments:
+#   n/a
+# Returns:
+#   None
+#######################################
+function set_shared_library_ref() {
+    pwd
+    ./scripts/set-shared-library-ref.sh --ods-git-ref "${ods_git_ref}"
 }
 
 function inspect_bitbucket_ip() {
@@ -1655,7 +1669,7 @@ function setup_docgen() {
 # Sets up Jenkins agents for various technologies, like:
 # golang, maven, nodejs/angular, nodejs12, python, scala
 #
-# Relies on initialise_ods_repositories' having run before to create and
+# Relies on push_ods_repositories' having run before to create and
 # initialise the opendevstack project folder with its repositories.
 #
 # Globals:
@@ -1850,10 +1864,12 @@ function basic_vm_setup() {
     configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
-    initialise_ods_repositories
     configure_jira2crowd
 
     create_configuration
+    push_ods_repositories
+    set_shared_library_ref
+
     install_ods_project
     # Install components in OpenShift
     setup_nexus | tee "${log_folder}"/nexus_setup.log
