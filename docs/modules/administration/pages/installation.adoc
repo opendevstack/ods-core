@@ -12,32 +12,25 @@ TIP: If you do not have an OpenShift cluster yet, and just want to try things ou
 
 IMPORTANT: From now on we assume you work from a Bash terminal (Cygwin / Linux). In this terminal, you'll ned a recent `git` version (>= 2.13.2) and a recent `jq` version (>= 1.5, see https://stedolan.github.io/jq/) in your `$PATH`.
 
-Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the sources available on your local machine.
-
 === Repositories
 
-If you do not have the ODS repositories setup yet, you can run `repos.sh` file. Before you run this script, keep in mind to have Git (>=2.13). Once you have that, you can then go to your Terminal and run:
+Before you can install OpenDevStack (no matter whether locally or on another server) you need to have the ODS repositories available on your local machine.
+
+For this purpose, ODS provides a script to setup all required repositories with the same Git ref easily.
+This script needs to be downloaded to the umbrella directory which should hold all ODS respositories.
+The following example shows how to do this for the `master` version, please use the exact version you want to install (e.g. `v4.0.0`):
+
 [source,sh]
 ----
-mkdir -p opendevstack
-cd opendevstack
-curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/master/ods-setup/repos.sh
+UMBRELLA_DIR=~/opendevstack
+GIT_REF=master
+mkdir -p $UMBRELLA_DIR && cd $UMBRELLA_DIR
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/$GIT_REF/scripts/repos.sh
 chmod +x repos.sh
+./repos.sh --git-ref $GIT_REF
 ----
 
-If you are installing OpenDevStack for the first time, run:
-[source,sh]
-----
-./repos.sh --init
-----
-
-If there is already an existing installation of OpenDevStack, run the following with a user that has write permission:
-[source,sh]
-----
-./repos.sh
-----
-
-The script will prompt you which Git ref you want to use. Select either `master` for bleeding edge or a more stable "version" such as `2.x`. Afterwards running this script, all required repositories should be available locally.
+After running this script, all required repositories should be available locally.
 
 === Configuration
 
@@ -78,7 +71,7 @@ Notice that `prepare-bitbucket-repos` expects a running Atlassian suite (it will
 Then, update them with the latest state so that they can be used e.g. from `BuildConfig` resources in OpenShift:
 [source,sh]
 ----
-make sync-repos
+make push-local-repos
 ----
 
 You also need to update `ods-configuration`, which can be done via:

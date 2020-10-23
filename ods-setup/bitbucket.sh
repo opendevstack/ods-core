@@ -121,7 +121,7 @@ fi
 
 # For each of the listed names, a repository will be created in the local bitbucket
 # instance under the OPENDEVSTACK project. The list should be synced with the repo
-# list in ods-core/ods-setup/repos.sh.
+# list in ods-core/scripts/repos.sh.
 for repository in ods-core ods-quickstarters ods-jenkins-shared-library ods-document-generation-templates ods-configuration; do
     httpCode=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" \
         --user "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
