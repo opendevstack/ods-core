@@ -27,6 +27,8 @@ if [[ "$SCRIPT_DIR" == *ods-core/scripts ]]; then
     exit 1
 fi
 
+# Since this script might be used for bootstrapping, we cannot use
+# colored_output.sh here.
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
 }
