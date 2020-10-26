@@ -65,6 +65,7 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala
 ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plugin-3.3.0.5166.jar /opt/configuration/sonarqube/plugins/
 ADD https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-8.6.1.17183.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.6/sonar-groovy-plugin-1.6.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.1.3/sonar-r-plugin-0.1.3.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \
