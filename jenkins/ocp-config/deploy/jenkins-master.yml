@@ -126,6 +126,7 @@ objects:
       requests:
         storage: '${JENKINS_VOLUME_CAPACITY}'
     storageClassName: '${STORAGE_CLASS_DATA}'
+    volumeMode: Filesystem
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:

@@ -388,6 +388,7 @@ objects:
       requests:
         storage: 2Gi
     storageClassName: ${STORAGE_CLASS_DATA}
+    volumeMode: Filesystem
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -405,6 +406,7 @@ objects:
       requests:
         storage: 2Gi
     storageClassName: ${STORAGE_CLASS_DATA}
+    volumeMode: Filesystem
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -422,6 +424,7 @@ objects:
       requests:
         storage: 1Gi
     storageClassName: ${STORAGE_CLASS_DATA}
+    volumeMode: Filesystem
 - apiVersion: v1
   kind: Route
   metadata:
