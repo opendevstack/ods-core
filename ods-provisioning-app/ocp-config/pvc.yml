@@ -18,6 +18,7 @@ objects:
     resources:
       requests:
         storage: 20Mi
+    volumeMode: Filesystem
 parameters:
 - name: STORAGE_PROVISIONER
   description: storage class provisioner. For AWS this could be kubernetes.io/aws-ebs. Leave empty for local (e.g. vagrant) deployments
