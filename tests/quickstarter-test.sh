@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 set -o pipefail
+export CGO_ENABLED=0
 
 # By default we run all quickstarter tests, otherwise just the quickstarter
 # passed as the first argument to this script.

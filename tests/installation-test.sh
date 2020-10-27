@@ -2,6 +2,7 @@
 # set -x
 set +e
 set -o pipefail
+export CGO_ENABLED=0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
