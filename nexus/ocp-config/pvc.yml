@@ -34,6 +34,7 @@ objects:
     resources:
       requests:
         storage: ${NEXUS_DATA_CAPACITY}
+    volumeMode: Filesystem
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -51,3 +52,4 @@ objects:
     resources:
       requests:
         storage: ${NEXUS_BACKUP_CAPACITY}
+    volumeMode: Filesystem

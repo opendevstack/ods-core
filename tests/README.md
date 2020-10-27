@@ -8,6 +8,7 @@ This packages houses the test infrastructure for ODS core components, yet also m
 1. Tests for quickstarters - the exact instructions are located in [ods-quickstarters](https://github.com/opendevstack/ods-quickstarters/tree/master)
 
 ## Prerequisites
+1. [Golang](https://golang.org/doc/install) installed
 1. the user you are logged into Openshift with needs to have cluster admin rights
 1. the Provisioning Application needs to be configured to allow project deletion! This is done in 
 `ods-core.env` thru setting `PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true`. In order to have this setting applied, you need to update `ods-core.env` and run `tailor apply` to ensure no diff between the config and the deployed version!

@@ -3,6 +3,10 @@
 # OpenShift yet, for now the easiest is to build the binary in this image.
 FROM golang:1.12-alpine
 
+# Set default ALLOWED_EXTERNAL_PROJECTS env var
+ARG allowedExternalProjects=opendevstack
+ENV ALLOWED_EXTERNAL_PROJECTS=$allowedExternalProjects
+
 RUN apk add --no-cache ca-certificates && \
     mkdir -p /home/webhook-proxy && \
     chgrp -R 0 /home/webhook-proxy && \

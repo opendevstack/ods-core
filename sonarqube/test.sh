@@ -186,7 +186,8 @@ expectedPlugins=( "crowd:2.1.3"
                   "sonarscala:1.5.0.315"
                   "php:3.3.0.5166"
                   "csharp:8.6.1.17183"
-                  "groovy:1.6" )
+                  "groovy:1.6" 
+                  "r:0.1.3" )
 
 actualPlugins=$(curl -sSf ${INSECURE} \
     --user "$CURL_ADMIN_AUTH" \
