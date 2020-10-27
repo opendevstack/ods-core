@@ -55,7 +55,7 @@ in the `cd` namespaces for this to work properly.
 == Tailor
 
 Next, update Tailor.
-3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.2.0[1.2.0].
+3.x requires Tailor https://github.com/opendevstack/tailor/releases/tag/v1.2.2[1.2.2].
 
 
 == Configuration
