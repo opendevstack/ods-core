@@ -19,15 +19,15 @@ prepare-bitbucket-repos:
 	cd ods-setup && ./bitbucket.sh $(INSECURE_FLAG)
 .PHONY: prepare-bitbucket-repos
 
-## Prepare local repos (fetch changes from Bitbucket).
-prepare-local-repos:
-	cd ods-setup && ./repos.sh --confirm
-.PHONY: prepare-local-repos
+## Push local repos to Bitbucket.
+push-local-repos:
+	cd scripts && ./push-local-repos.sh
+.PHONY: push-local-repos
 
-## Sync repos (fetch changes from GitHub, and synchronize with Bitbucket).
-sync-repos:
-	cd ods-setup && ./repos.sh --sync --confirm
-.PHONY: sync-repos
+## Set ODS_IMAGE_TAG ref in Jenkins Shared Library repo on Bitbucket.
+set-shared-library-ref:
+	cd scripts && ./set-shared-library-ref.sh
+.PHONY: set-shared-library-ref
 
 
 # CONFIG
