@@ -519,7 +519,7 @@ function setup_openshift_cluster() {
 }
 
 #######################################
-# install tailor v1.2.0
+# install tailor v1.2.2
 # Globals:
 #   n/a
 # Arguments:
@@ -529,7 +529,7 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.2.0/tailor-linux-amd64"
+    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.2.2/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
     sudo mv tailor-linux-amd64 /usr/bin/tailor
 }
