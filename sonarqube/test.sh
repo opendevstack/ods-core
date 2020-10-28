@@ -86,7 +86,7 @@ if ! $VERIFY_ONLY; then
     SONARQUBE_URL="http://localhost:${HOST_PORT}"
     SONAR_ADMIN_USERNAME="admin"
     ADMIN_USER_DEFAULT_PASSWORD="admin"
-    ADMIN_PASSWORD="s3cr3t"
+    ADMIN_PASSWORD="s3cr3t&C0mpl3x"
     PIPELINE_USER_NAME="cd_user"
     PIPELINE_USER_PWD="cd_user"
 
@@ -117,7 +117,7 @@ if ! $VERIFY_ONLY; then
         prior_SONAR_AUTH_TOKEN_B64=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-)
     fi
     ./configure.sh \
-        --admin-password=s3cr3t \
+        --admin-password=${ADMIN_PASSWORD} \
         --pipeline-user=${PIPELINE_USER_NAME} \
         --sonarqube=${SONARQUBE_URL}
     now_SONAR_AUTH_TOKEN_B64=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2-)
