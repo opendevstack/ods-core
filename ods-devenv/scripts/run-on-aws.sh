@@ -5,16 +5,21 @@ set -o pipefail
 install=
 target_git_ref=
 
+ami_owner="275438041116"
 instance_type="m5ad.4xlarge"
 volume_size=100
 ami_id=
 host=
 keypair=
+profile=
+profile_flag=
 instance_id=
 security_group_id=
 wait=
 subnet_id=
 iam_instance_profile=
+default_keypair="edp_dublin_keypair"
+default_securitygroup="sg-006935bec03a154a1"
 
 function usage {
   printf "Setup and run ODS in a box on AWS.\n\n"
@@ -31,14 +36,15 @@ function usage {
   printf "\n"
   printf "\t--target-git-ref\tThe git branch to build against, defaults to master\n"
   printf "\n"
-  printf "\t--keypair\t\tName of keypair (required)\n"
+  printf "\t--profile\t\tOptional name of AWS profile to use\n"
+  printf "\t--keypair\t\tName of keypair (defaults to %s)\n" "${default_keypair}"
   printf "\t--ami-id\t\tIf you brought your own CentOS 7 base image, specify its image-id here\n"
   printf "\t--host\t\t\tHost (bypasses launching a new instance)\n"
   printf "\t--instance-id\t\tInstance ID (bypasses creating a new instance)\n"
   printf "\t--instance-type\t\tInstance Type (defaults to '%s', used if neither --instance-id nor --host are given)\n" "${instance_type}"
-  printf "\t--security-group-id\tSecurity Group with SSH access allowed - there is a reasonable default\n"
-  printf "\t--subnet-id\tThe AWS subnet the EC2 instance shall be deployed in. This also implicitly determines the VPC.\n"
-  printf "\t--iam-instance-profile\tSpecify the Arn if you want to connect to the EC2 instance using an AWS SSM session manager\n"
+  printf "\t--security-group-id\tSecurity Group with SSH access allowed (defaults to %s)\n" "${default_securitygroup}"
+  printf "\t--subnet-id\t\tThe AWS subnet the EC2 instance shall be deployed in. This also implicitly determines the VPC.\n"
+  printf "\t--iam-instance-profile\tSpecify the ARN if you want to connect to the EC2 instance using an AWS SSM session manager\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -75,6 +81,9 @@ while [[ "$#" -gt 0 ]]; do
   --ami-id) ami_id="$2"; shift;;
   --ami-id=*) ami_id="${1#*=}";;
 
+  --profile) profile="$2"; shift;;
+  --profile=*) profile="${1#*=}";;
+
   --install) install="yes";;
 
   *) echo "Unknown parameter passed: $1"; exit 1;;
@@ -91,45 +100,54 @@ if ! which jq &> /dev/null; then
 fi
 
 if [[  -z "$keypair" ]]; then
-    echo "--key-name not given, setting to default edp_dublin_keypair."
-    keypair=edp_dublin_keypair
+    echo "--keypair not given, setting to default: ${default_keypair}"
+    keypair="${default_keypair}"
+fi
+
+if [[  -n "$profile" ]]; then
+    profile_flag="--profile=${profile}"
 fi
 
 target_git_ref="${target_git_ref:-master}"
 
+# If no host is given, we need to launch one now, unless we have been passed
+# an instance ID, in which case we only need to find its IP.
 if [[ -z "${host}" ]]; then
   if [[ -z "${instance_id}" ]]; then
+    echo "Neither --host nor --instance-id specified, launching new instance."
     if [[ -z "${security_group_id}" ]] && [[ -z "${iam_instance_profile}" ]]; then
-      echo "Neither --security-group-id nor --iam-instance-profile specified. Using default sg-006935bec03a154a1"
-      security_group_id=sg-006935bec03a154a1
-    fi
-    if [[ -z "${keypair}" ]]; then
-      echo "ERROR: --key-name not given."
-      exit 1
+      echo "Neither --security-group-id nor --iam-instance-profile specified. Using default SG: ${default_securitygroup}"
+      security_group_id="${default_securitygroup}"
     fi
     if [[ -z "${ami_id}" ]]; then
-        if [[ -n "${install}" ]]
-        then
-            ami_id=$(aws ec2 describe-images \
-                --owners 275438041116 \
+        if [[ -n "${install}" ]]; then
+            ami_id=$(aws ${profile_flag} ec2 describe-images \
+                --owners ${ami_owner} \
                 --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+            if [[ -z "${ami_id}" ]] || [[ "null" == "${ami_id}" ]]; then
+                echo "Did not find vanilla CentOS AMI"
+                exit 1
+            fi
             ec2_instance_name="ODS in a box Install (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
-            echo "You are in install mode using CentOS 7 image ${ami_id}."
+            echo "You are in install mode using a vanilla CentOS 7 image ${ami_id}."
         else
-            ami_id=$(aws ec2 describe-images \
-                --owners 275438041116 \
+            ami_id=$(aws ${profile_flag} ec2 describe-images \
+                --owners ${ami_owner} \
                 --filters "Name=name,Values=ODS in a Box ${target_git_ref} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+            if [[ -z "${ami_id}" ]] || [[ "null" == "${ami_id}" ]]; then
+                echo "Did not find pre-built AMI"
+                exit 1
+            fi
             ec2_instance_name="ODS in a box Startup (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
-            echo "You are in startup mode using ODS in a box image ${ami_id}."
+            echo "You are in startup mode using a pre-built ODS in a box image ${ami_id}."
         fi
     else
       ec2_instance_name="ODS in a box Startup (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
     fi
 
-    if [[ -z "${ami_id}" ]] || [[ "${ami_id}" == "null" ]]
-    then
+    if [[ -z "${ami_id}" ]] || [[ "${ami_id}" == "null" ]]; then
       echo "It looks like we have no AMI image ready for the git ref ${target_git_ref}!"
       echo "You may want to specify a branch name with --target-git-ref some-branch-name"
       echo "Stopping script execution now."
@@ -140,22 +158,19 @@ if [[ -z "${host}" ]]; then
     echo "Boot instance"
 
     arg_list=
-    if [[ -n "${subnet_id}" ]]
-    then
+    if [[ -n "${subnet_id}" ]]; then
         arg_list="--subnet-id ${subnet_id} "
     fi
-    if [[ -n "${iam_instance_profile}" ]]
-    then
+    if [[ -n "${iam_instance_profile}" ]]; then
         arg_list="${arg_list} --iam-instance-profile Arn=${iam_instance_profile} "
     fi
-    if [[ -n "${security_group_id}" ]]
-    then
+    if [[ -n "${security_group_id}" ]]; then
         arg_list="${arg_list} --security-group-ids ${security_group_id} "
     fi
 
     echo "using arguments ${arg_list}"
 
-    instance_id=$(aws ec2 run-instances --image-id "$ami_id" \
+    instance_id=$(aws ${profile_flag} ec2 run-instances --image-id "$ami_id" \
     ${arg_list} \
     --count 1 \
     --instance-type "${instance_type}" \
@@ -163,27 +178,27 @@ if [[ -z "${host}" ]]; then
     --block-device-mappings "[{ \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": ${volume_size} } }]" \
     | jq -r '.Instances[0].InstanceId')
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
-    aws ec2 wait instance-running --instance-ids "$instance_id"
+    aws ${profile_flag} ec2 wait instance-running --instance-ids "$instance_id"
     echo "Instance with ID=${instance_id} running"
     
-    aws ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
+    aws ${profile_flag} ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
     echo "Started new EC2 instance with name ${ec2_instance_name}"
 
     wait="yes"
   fi
 
-  host=$(aws ec2 describe-instances --instance-ids "$instance_id" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+  host=$(aws ${profile_flag} ec2 describe-instances --instance-ids "$instance_id" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
   echo "Instance has public IP address ${host}"
 fi
 
 if [[ -n "${wait}" ]]; then
     echo -n "Waiting for ODS Box instance ${instance_id} to become available."
-    instance_state=$(aws ec2 describe-instance-status --instance-ids  "${instance_id}" | jq ".InstanceStatuses[].SystemStatus.Details[].Status")
+    instance_state=$(aws ${profile_flag} ec2 describe-instance-status --instance-ids  "${instance_id}" | jq ".InstanceStatuses[].SystemStatus.Details[].Status")
     while [[ ${instance_state} != \"passed\" ]]
     do
         echo -n "."
         sleep 5
-        instance_state=$(aws ec2 describe-instance-status --instance-ids  "${instance_id}" | jq ".InstanceStatuses[].SystemStatus.Details[].Status")
+        instance_state=$(aws ${profile_flag} ec2 describe-instance-status --instance-ids  "${instance_id}" | jq ".InstanceStatuses[].SystemStatus.Details[].Status")
     done
     echo "available."
 fi
@@ -202,12 +217,12 @@ else
     echo "  sudo systemctl status ods.service"
 fi
 
-public_dns=$(aws ec2 describe-instances --instance-ids "${instance_id}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
+public_dns=$(aws ${profile_flag} ec2 describe-instances --instance-ids "${instance_id}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
 echo "ODS Box is available in EC2 instance ${instance_id} at ${public_dns}"
 echo "You can log into your new ODS Box by running:"
 echo "ssh openshift@${public_dns}"
 echo "or, if you have configured the required AWS IAM roles:"
-echo "aws ssm start-session --target ${instance_id} --document-name AWS-StartPortForwardingSession --parameters '{\"portNumber\":[\"22\"], \"localPortNumber\":[\"48022\"]}'"
+echo "aws ${profile_flag} ssm start-session --target ${instance_id} --document-name AWS-StartPortForwardingSession --parameters '{\"portNumber\":[\"22\"], \"localPortNumber\":[\"48022\"]}'"
 echo "ssh openshift@localhost -p 48022"
 echo
 echo "Have fun!"
