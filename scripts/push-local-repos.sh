@@ -94,11 +94,28 @@ done
 
 # Push ODS_GIT_REF of all repos.
 for REPO in ${REPOS//,/ }; do
-    echo_info "Pushing ${REPO} (${ODS_GIT_REF}) to Bitbucket."
+
     cd "${REPO}"
-    git push -u origin "${ODS_GIT_REF}"
-    echo_done "Pushed ${REPO} (${ODS_GIT_REF}) to Bitbucket."
+
+    if [ "${REPO}" == "ods-document-generation-templates" ]; then
+        echo_info "Pushing master and release branches of ods-document-generation-templates"
+        while read -r branchToSync; do
+            git push origin refs/remotes/ods/${branchToSync}:refs/heads/${branchToSync}
+        done < <(git for-each-ref --format '%(refname:lstrip=3)' refs/remotes/ods | grep "^release/*\|^master$")
+        echo_info "Pushing tags of ods-document-generation-templates"
+        git push origin --tags
+        echo_done "Pushed relevant refs of ods-document-generation-templates to Bitbucket."
+    else
+        echo_info "Pushing ${REPO} (${ODS_GIT_REF}) to Bitbucket."
+        if ! git push -u origin "${ODS_GIT_REF}"; then
+            echo_error "Local ref '${ODS_GIT_REF}' cannot be pushed, likely because it is outdated. Update using repos.sh."
+            exit 1
+        fi
+        echo_done "Pushed ${REPO} (${ODS_GIT_REF}) to Bitbucket."
+    fi
 
     cd - &> /dev/null
     echo ""
 done
+
+echo_done "Pushed '${ODS_GIT_REF}' of all local repositories to Bitbucket."
