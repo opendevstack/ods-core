@@ -612,7 +612,7 @@ func TestForward(t *testing.T) {
 			if string(actualForwardPayload) != string(expectedPayload) {
 				t.Fatalf("Got payload: %s, want: %s", actualForwardPayload, expectedPayload)
 			}
-			if string(actualOpenshiftStatusCode) != string(tc.expectedReturnedStatusCode) {
+			if actualOpenshiftStatusCode != tc.expectedReturnedStatusCode {
 				t.Fatalf("Got HTTP code: %d, want: %d", actualOpenshiftStatusCode, tc.expectedReturnedStatusCode)
 			}
 			if len(expectedOpenshiftResponse) > 0 {
