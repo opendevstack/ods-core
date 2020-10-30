@@ -32,12 +32,15 @@ func ReadBuildBotRunControl() (map[string]string, error) {
 func ReadFileToMap(file *os.File) (map[string]string, error) {
 	config := make(map[string]string)
 
+	user, _ := user.Current()
+	configReplacer := strings.NewReplacer("${USER}", user.Username, "${HOME}", user.HomeDir)
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) == 2 {
-			config[parts[0]] = parts[1]
+			config[parts[0]] = configReplacer.Replace(parts[1])
 		}
 	}
 

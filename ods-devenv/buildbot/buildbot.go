@@ -40,7 +40,7 @@ func runAmiBuild() {
 	buildArgs := getBuildArgsFromRunControl(configMap)
 	branches := strings.Split(configMap["branch"], ",")
 
-	stdout, _, err := utils.RunCommand("command", []string{"-v", amiBuildExecutable}, []string{})
+	stdout, err := utils.RunCommand("command", []string{"-v", amiBuildExecutable}, []string{})
 	if err != nil || configMap == nil {
 		log.Fatalf("Could not find AMI buildscript '%s' on path - Please copy it to the build user's path\n", amiBuildExecutable)
 	}
@@ -120,7 +120,7 @@ func checkAmiBuildForBranch(branch string, configMap map[string]string) {
 		log.Println("build failure")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/buildStatus_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branchPathSegement + ".svg"}, []string{})
+	_, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/buildStatus_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in build status svg for branch %s.\n", branch)
 	}
@@ -132,7 +132,7 @@ func checkAmiBuildForBranch(branch string, configMap map[string]string) {
 		log.Println("provapp tests FAIL")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/provapptestsoutcome_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branchPathSegement + ".svg"}, []string{})
+	_, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/provapptestsoutcome_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in prov-app build status svg for branch %s.\n", branch)
 	}
@@ -144,7 +144,7 @@ func checkAmiBuildForBranch(branch string, configMap map[string]string) {
 		log.Println("quickstarter tests FAIL")
 		utils.Copy(buildResultPath+"/failure.svg", buildResultPath+"/quickstartertestsoutcome_"+branchPathSegement+".svg")
 	}
-	_, _, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branchPathSegement + ".svg"}, []string{})
+	_, err = utils.RunCommand("sed", []string{"-i", "s|__branchname__|" + branch + "|", buildResultPath + "/quickstartertestsoutcome_" + branchPathSegement + ".svg"}, []string{})
 	if err != nil {
 		log.Fatalf("Could not rewrite branch name in quickstarters build status svg for branch %s.\n", branch)
 	}
