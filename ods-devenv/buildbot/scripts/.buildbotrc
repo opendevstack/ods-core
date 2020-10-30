@@ -1,0 +1,29 @@
+# This file should go to the $HOME path of the buildbot user
+
+# specify the branch from which the ODS box shall be created, e.g. master, feature/ods-devenv, 3.x
+# note: the specified branch must exist on each of the following repositories:
+# -) ods-core
+# -) ods-quickstarters
+# -) ods-jenkins-shared-library
+# -) ods-document-generation-svc
+branch=master,3.x,feature/ods-devenv
+
+# The AWS access key for the AWS EC2 account on which the ODS box build shall be performed
+aws_access_key=
+
+# The AWS secret access key for the AWS EC2 account on which the ODS box build shall be performed
+aws_secret_access_key=
+
+# The AWS EC2 instance type of the EC2 box on which the ODS box build shall be performed
+# e.g. m5ad.4xlarge or t2.2xlarge. Note that additional file system drivers may need to be installed
+# if the resulting AMI is required to run on different instance types than specified here.
+instance_type=m5ad.4xlarge
+
+# path where the packer log file shall be created
+log_path="${HOME}/logs"
+
+# path where ods-core repository was cloned to
+build_path="${HOME}/opendevstack/ods-core"
+
+# path to build result resources
+build_result_path="${HOME}/opendevstack/packer_build_result"
