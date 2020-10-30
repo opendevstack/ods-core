@@ -105,6 +105,7 @@ func RunCommand(command string, args []string, envVars []string) (string, error)
 	cmd.Env = append(os.Environ(), envVars...)
 	log.Printf("Running command %s\n", command)
 	var stdBuffer bytes.Buffer
+	// add real time command output
 	multiWriter := io.MultiWriter(os.Stdout, &stdBuffer)
 
 	cmd.Stdout = multiWriter
