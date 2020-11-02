@@ -123,7 +123,7 @@ if [[ -z "${host}" ]]; then
         if [[ -n "${install}" ]]; then
             ami_id=$(aws ${profile_flag} ec2 describe-images \
                 --owners ${ami_owner} \
-                --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
+                --filters "Name=name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
             if [[ -z "${ami_id}" ]] || [[ "null" == "${ami_id}" ]]; then
                 echo "Did not find vanilla CentOS AMI"
