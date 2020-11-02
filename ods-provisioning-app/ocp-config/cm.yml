@@ -92,13 +92,13 @@ parameters:
 - name: ADDITIONAL_JIRA_PROJECT_TEMPLATE_PROPERTIES
   required: true
   description: list of additional jira project templates configuration properties
+labels:
+  app: ods-provisioning-app
 objects:
-- kind: ConfigMap
+- apiVersion: v1
+  kind: ConfigMap
   metadata:
-    labels:
-      app: ods-provisioning-app
     name: application.properties
-  apiVersion: v1
   data:
     properties: |
       # log level
@@ -272,12 +272,10 @@ objects:
       provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
 
-- kind: ConfigMap
+- apiVersion: v1
+  kind: ConfigMap
   metadata:
-    labels:
-      app: ods-provisioning-app
     name: quickstarters.properties
-  apiVersion: v1
   data:
     properties: |
       #############
@@ -347,12 +345,10 @@ objects:
       jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
       jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
 
-- kind: ConfigMap
+- apiVersion: v1
+  kind: ConfigMap
   metadata:
-      labels:
-          app: ods-provisioning-app
-      name: additional-templates.properties
-  apiVersion: v1
+    name: additional-templates.properties
   data:
-      properties: |
-        ${ADDITIONAL_JIRA_PROJECT_TEMPLATE_PROPERTIES}
+    properties: |
+      ${ADDITIONAL_JIRA_PROJECT_TEMPLATE_PROPERTIES}

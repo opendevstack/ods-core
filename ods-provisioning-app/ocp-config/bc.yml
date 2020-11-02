@@ -18,13 +18,13 @@ parameters:
   required: true
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
+labels:
+  app: ods-provisioning-app
 objects:
-- kind: BuildConfig
+- apiVersion: v1
+  kind: BuildConfig
   metadata:
-    labels:
-      app: ods-provisioning-app
     name: ods-provisioning-app
-  apiVersion: v1
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null

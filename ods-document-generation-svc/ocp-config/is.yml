@@ -1,16 +1,12 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: 'ods-document-generation-service'
-  app: 'ods-doc-gen-svc'
+  app: ods-doc-gen-svc
 objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    labels:
-      app: 'ods-doc-gen-svc'
     name: ods-doc-gen-svc
   spec:
-    dockerImageRepository: ods-doc-gen-svc
     lookupPolicy:
       local: false
