@@ -91,4 +91,4 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
 fi
 
 echo "Booting Jenkins ..."
-/usr/libexec/s2i/run
+/usr/libexec/s2i/openshift-run
