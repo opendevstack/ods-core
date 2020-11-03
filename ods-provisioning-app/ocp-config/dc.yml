@@ -15,12 +15,12 @@ parameters:
   value: 512Mi
 - name: PROV_APP_MEMORY_LIMIT
   value: 1Gi
+labels:
+  app: ods-provisioning-app
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    labels:
-      app: ods-provisioning-app
     name: ods-provisioning-app
   spec:
     replicas: 1
