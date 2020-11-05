@@ -7,5 +7,6 @@
 ** xref:administration:keycloak.adoc[Keycloak]
 ** xref:sonarqube:administration.adoc[SonarQube]
 ** xref:jenkins:administration.adoc[Jenkins]
+** xref:jenkins:image-lifecycle.adoc[Image Lifecycles]
 
 
