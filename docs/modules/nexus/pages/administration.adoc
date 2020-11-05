@@ -1,0 +1,45 @@
+= Nexus Administration
+
+The `ods-core` repository contains a build recipe for a central Nexus instance. The remainder of this document describes how that setup is done, and how it can be modified and updated.
+
+== Updating Nexus to a new version
+
+The Nexus deployment is using an image built in the central ODS namespace. This image is a customisation of the https://hub.docker.com/r/sonatype/nexus3[official Nexus image on DockerHub].
+
+The Nexus version which is used is determined by which image tag from DockerHub is used, and depending on tag, at which time the ODS image is built.
+
+To update Nexus, the following steps need to be taken:
+
+1. Configure new version
+2. Update `BuildConfig`
+3. Create new image
+4. Rollout new deployment
+
+The following will guide you through this process.
+
+To configure a new version of Nexus, you need to update the configuration of ODS, which is located in the `ods-configuration` repository of your ODS project in Bitbucket. You need to have the latest `master` of this repository, as well as the `ods-core` repository in your current ODS version available locally. If you don't want to do this manually, you can make use the `repos.sh` script:
+
+[source,sh]
+----
+UMBRELLA_DIR=~/opendevstack
+BITBUCKET_HOST=bitbucket.acme.org
+BITBUCKET_PROJECT=opendevstack
+GIT_REF=v3.0.0
+mkdir -p $UMBRELLA_DIR && cd $UMBRELLA_DIR
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/$GIT_REF/scripts/repos.sh
+chmod +x repos.sh
+./repos.sh --git-ref $GIT_REF --repos="ods-core,ods-configuration" --source-project https://$BITBUCKET_HOST/scm/$BITBUCKET_PROJECT
+----
+
+The script can also be used in an umbrella directory in which the repositories already exist. Once the repositories are at the desired revision, change `NEXUS_FROM_IMAGE` in `ods-configuration/ods-core.env` to your desired image tag. Commit the change and push it to Bitbucket.
+
+Next, you should ensure that the Nexus `BuildConfig` resource in the central ODS namespace is up-to-date, then trigger a new build so that a new image with the changed base image gets built. Finally, a new deployment should be rolled out which uses the newly built image. All of this can be done from the `ods-core` repository:
+
+[source,sh]
+----
+make install-nexus
+----
+
+This target depends on the targets `apply-nexus-build`, `start-nexus-build`, and `apply-nexus-deploy` which execute the steps described above (and can of course also be executed individually).
+
+WARNING: There is also a `configure-nexus` target. However, this is not executed as part of `install-nexus` as it is not idempotent yet (which means it cannot be used against an existing Nexus deployment). For a simple Nexus version update, you don't need to change any configuration, but if you switch between ODS versions you should keep an eye on Nexus configuration.

@@ -2,11 +2,46 @@
 
 The `ods-core` repository contains a build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this document describes how that setup is done.
 
-== Building a new SonarQube image
-
-Run `make start-sonarqube-build`.
-
-== Administration
+== Modifying configurations, plugins, etc.
 
 There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OpenShift project `cd`, inside the `sonarqube-app` secret.
 
+== Updating SonarQube to a new version
+
+The SonarQube deployment is using an image built in the central ODS namespace. This image is not based on the https://hub.docker.com/_/sonarqube[official SonarQube image on DockerHub], because that requires a specific user to be run under. However, the approach ODS takes is similar to the official `Dockerfile`.
+
+The SonarQube version which is used is determined by which ZIP file is used.
+
+To update SonarQube, the following steps need to be taken:
+
+1. Configure new version
+2. Update `BuildConfig`
+3. Create new image
+4. Rollout new deployment
+
+The following will guide you through this process.
+
+To configure a new version of SonarQube, you need to update the configuration of ODS, which is located in the `ods-configuration` repository of your ODS project in Bitbucket. You need to have the latest `master` of this repository, as well as the `ods-core` repository in your current ODS version available locally. If you don't want to do this manually, you can make use the `repos.sh` script:
+
+[source,sh]
+----
+UMBRELLA_DIR=~/opendevstack
+BITBUCKET_HOST=bitbucket.acme.org
+BITBUCKET_PROJECT=opendevstack
+GIT_REF=v3.0.0
+mkdir -p $UMBRELLA_DIR && cd $UMBRELLA_DIR
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/$GIT_REF/scripts/repos.sh
+chmod +x repos.sh
+./repos.sh --git-ref $GIT_REF --repos="ods-core,ods-configuration" --source-project https://$BITBUCKET_HOST/scm/$BITBUCKET_PROJECT
+----
+
+The script can also be used in an umbrella directory in which the repositories already exist. Once the repositories are at the desired revision, change `SONAR_VERSION` and `SONAR_DISTRIBUTION_URL` in `ods-configuration/ods-core.env` to your desired version. Commit the change and push it to Bitbucket.
+
+Next, you should ensure that the SonarQube `BuildConfig` resource in the central ODS namespace is up-to-date, then trigger a new build so that a new image gets built. Finally, a new deployment should be rolled out which uses the newly built image. All of this can be done from the `ods-core` repository:
+
+[source,sh]
+----
+make install-sonarqube
+----
+
+This target depends on the targets `apply-sonarqube-build`, `start-sonarqube-build`, `apply-sonarqube-deploy` and `configure-sonarqube` which execute the steps described above (and can of course also be executed individually).

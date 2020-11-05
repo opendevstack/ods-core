@@ -56,7 +56,7 @@ function usage {
     printf "Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n\n"
-    printf "\t-s|--source-project\tSource project (defaults to '%s')\n\t\t\t\tYou may also use an existing Bitbucket project if you only want to mirror\n\t\t\t\tthe current state locally, e.g. https://bitbucket.acme.org/scm/opendevstack\n\n" "${DEFAULT_SOURCE_PROJECT}"
+    printf "\t-s|--source-project\tSource project (defaults to '%s')\n\t\t\t\tYou may also use an existing Bitbucket project if you only want to mirror\n\t\t\t\tthe current state locally, e.g. https://bitbucket.acme.org/scm/opendevstack\n\t\t\t\tIf the flag is set, its value is assumed to be the 'origin' remote.\n\n" "${DEFAULT_SOURCE_PROJECT}"
     printf "\t-r|--repos\t\tRepositories to handle (comma-separated)\n\t\t\t\tDefaults to: %s\n\n" "${REPOS}"
     printf "\t-g|--git-ref\t\tGit ref, e.g. 'v4.0.0' or 'master'\n\n"
     printf "NOTE: Before you run this script, make sure to have at least Git 2.13 in your system.\n"
@@ -88,6 +88,8 @@ if [ -z "${GIT_REF}" ]; then
 fi
 
 # Handle source project parameter.
+# By default we use "ods" as remote name. If --source-project is passed,
+# we asume it is the "origin" remote.
 if [ -z "${SOURCE_PROJECT}" ]; then
     REMOTE_NAME="ods"
     SOURCE_PROJECT="${DEFAULT_SOURCE_PROJECT}"
@@ -126,29 +128,38 @@ for REPO in ${REPOS//,/ }; do
 
     if [ "${REPO}" != "ods-document-generation-templates" ]; then
 
+        CHECKOUT_REF="${GIT_REF}"
+        # ods-configuration is not part of the repos by default, but there
+        # are use cases in which someone might add it. If it is added, we
+        # need to checkout master as the config repo does not follow ODS
+        # versioning. Only the master branch is maintained.
+        if [ "${REPO}" == "ods-configuration" ]; then
+            CHECKOUT_REF="master"
+        fi
+
         # Update local ref.
         # The following succeeds for "new" tags as they are found by rev-parse once
         # they have been fetched from the remote.
-        if git rev-parse "${GIT_REF}" &> /dev/null; then
-            echo_info "Checking out existing local ref '${GIT_REF}'."
-            if ! git checkout "${GIT_REF}" &> /dev/null; then
-                echo_error "${GIT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
+        if git rev-parse "${CHECKOUT_REF}" &> /dev/null; then
+            echo_info "Checking out existing local ref '${CHECKOUT_REF}'."
+            if ! git checkout "${CHECKOUT_REF}" &> /dev/null; then
+                echo_error "${CHECKOUT_REF} cannot be checked out, which means that your local state has modifications. Please clean your local state."
                 exit 1
             fi
-            if ! git show-ref --verify --quiet "refs/tags/${GIT_REF}"; then
-                echo_info "Merging changes from remote (${REMOTE_NAME}/${GIT_REF}) into local branch."
-                if ! git merge "${REMOTE_NAME}/${GIT_REF}" &> /dev/null; then
-                    echo_error "${REMOTE_NAME}/${GIT_REF} cannot be merged. Please reset your local branch to ${REMOTE_NAME}/${GIT_REF}."
+            if ! git show-ref --verify --quiet "refs/tags/${CHECKOUT_REF}"; then
+                echo_info "Merging changes from remote (${REMOTE_NAME}/${CHECKOUT_REF}) into local branch."
+                if ! git merge "${REMOTE_NAME}/${CHECKOUT_REF}" &> /dev/null; then
+                    echo_error "${REMOTE_NAME}/${CHECKOUT_REF} cannot be merged. Please reset your local branch to ${REMOTE_NAME}/${CHECKOUT_REF}."
                     exit 1
                 fi
-                if [ "$(git rev-parse "${GIT_REF}")" != "$(git rev-parse "${REMOTE_NAME}/${GIT_REF}")" ]; then
-                    echo_error "${GIT_REF} differs from ${REMOTE_NAME}/${GIT_REF}. Please reset your local branch to ${REMOTE_NAME}/${GIT_REF}."
+                if [ "$(git rev-parse "${CHECKOUT_REF}")" != "$(git rev-parse "${REMOTE_NAME}/${CHECKOUT_REF}")" ]; then
+                    echo_error "${CHECKOUT_REF} differs from ${REMOTE_NAME}/${CHECKOUT_REF}. Please reset your local branch to ${REMOTE_NAME}/${CHECKOUT_REF}."
                     exit 1
                 fi
             fi
         else
-            echo_info "Creating new branch based on '${REMOTE_NAME}/${GIT_REF}'."
-            git checkout -b "${GIT_REF}" "${REMOTE_NAME}/${GIT_REF}" --no-track
+            echo_info "Creating new branch based on '${REMOTE_NAME}/${CHECKOUT_REF}'."
+            git checkout -b "${CHECKOUT_REF}" "${REMOTE_NAME}/${CHECKOUT_REF}" --no-track
         fi
     fi
 
