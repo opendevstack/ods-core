@@ -1,0 +1,51 @@
+= Image Lifecycles
+
+ODS makes use of and provides a few container images. This document will detail which container images are used, how contaienr images are built during an ODS installation, and how images are consumed by users of ODS.
+
+== Categories of images
+
+There are three broad categories of images:
+
+1. Images used in the central ODS namespace
+2. Images used in the `*-cd` namespace of each ODS project
+3. Application images used in the `*-dev` and `*-test` namespace
+
+Every category has different lifecycles.
+
+=== Images used in the central ODS namespace
+
+Those images are owned by ODS admins. Examples of such images include the SonarQube image and the Nexus image. All of the images used by containers in the central ODS namespace are built by ODS during its installation. No container uses a vanilla image as provided by e.g.  DockerHub or quay.io.
+
+Each image is created through a `BuildConfig`, and placed into an `ImageStream`. The `BuildConfig` defines which `Dockerfile` is used, and which base image is used to build from. The base image can be pulled from DockerHub (e.g. in case of SonarQube or Nexus), but it can also be from another registry (e.g. in case for the Jenkins Master image, it might be from `registry.access.redhat.com` or `registry.redhat.io`).
+
+The images are built during installation or upgrade of ODS, and tagged with the value of the configuration parameter `ODS_IMAGE_TAG`. Once an image has been built, it is not changed until a new build is triggered - that means that even if the base image changes, it has no effect on the images in the central ODS namespaces unless an admin triggers a new build for that image. Further, a new image does not necessarily equal an update to the deployment. Admins have to ensure that new deployments are rolled out so that the new images get picked up.
+
+=== Images used in the `*-cd` namespace of each ODS project
+
+Those images are also owned by ODS admins, and also built in the central ODS namespace like the first category, but the deployments are running in each ODS project. The images in this catgeory are the Jenkins related images (master, agents, webhook-proxy), and potentially also the image for the document generation service.
+
+Note that building a new image in the central ODS namespace does not equal an update of the deployments in each `*-cd` project. This is because no image triggers are defined on the `DeploymentConfig` resources. While having such a trigger sounds convenient at first, it is actually not desirable. The main reason is that the rollouts started from an image trigger cannot be controlled, leading to simultaneous restarts which runs the risk of putting a huge amount of load on the cluster.
+
+A downside of not having a trigger is that it is cumbersome for ODS admins to rollout bugfixes and security patches to running instances such as the Jenkins Master or the webhook proxy. At the moment, there is no easy, automated, solution to this. However, you might be interested in an experimental tool, https://github.com/opendevstack/oc-batch-rollout[oc-batch-rollout], which allows admins to trigger rollouts in a controlled fashion.
+
+=== Application images used in the `*-dev` and `*-test` namespace
+
+Those images are owned by ODS users and are built using `BuildConfig` resources in the respective namespace. The build is triggered from the Jenkins pipeline. The `BuildConfig` refers to a `Dockerfile` in the application repository, which refers to an image (typically from DockerHub) in its `FROM` instruction.
+
+Which image gets pulled from DockerHub is completely dependent on which image tag is specified in the `FROM` instruction. Authors of the `Dockerfile` are free to be as specific or inspecific as they want, e.g. they could point to the `latest` tag or use a more stable version published by the base image owner.
+
+Therefore, updates to the base image of application images take effect on every build. Once an application runs in a pod though, its image is not automatically updated when the base image changes in DockerHub.
+
+Also it is important to note that updates to the `Dockerfile` in a quickstarter have no effect on an application, even if the application was originally provisioned using that same quickstarter. The reason is that there is no ongoing link between a quickstarter (which is like a template) and the created component (which is like an instance).
+
+== Vulnerabilities in images
+
+Depending on the category of the image as outlined above, vulnerabilities in those image have different impact, and also different mitigation paths.
+
+Vulnerabilities in application images have a high impact, but mitigation is relatively easy. If the vulnerability is within the base image, and the latest image of the currently used image tag has the vulnerability fixed, one simply needs to trigger a new Jenkins job, which builds a new image, and deploys that new image. If the image tag referenced in the `FROM` instruction of the `Dockerfile` does not contain the security fix, one can attempt to change to an image tag which is not vulnerable. Finally, the vulnerability might not be in the base image, but in the `Dockerfile` of the application, in which the security fix can be applied there.
+
+Vulnerabilities in images used in the `*-cd` namespace of each ODS project are a bit harder to mitigate. This is because the vulnerability can be in the base image or in the ODS customisation of it. Further, to actually fix the vulnerability in the running container, one needs to built a new vulnerabilty-free image and have that rolled out to each `*-cd` namespace (remember there are no automatic image triggers).
+
+Vulnerabilities in images used in the central ODS namespace are very similar to this. However, since all deployments in the ODS namespace are controlled by the ODS administrator, updating them is easier from a process perspective then the containers in the `*-cd` namespaces.
+
+
