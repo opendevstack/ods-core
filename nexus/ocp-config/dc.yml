@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 parameters:
 - name: ODS_NAMESPACE
-  value: ods-next
+  value: ods
 - name: ODS_IMAGE_TAG
   required: true
 - name: NEXUS_NAME
