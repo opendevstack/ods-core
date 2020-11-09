@@ -76,8 +76,8 @@ if ! $VERIFY_ONLY; then
     NEXUS_USERNAME="developer"
     NEXUS_PASSWORD=${DEVELOPER_PASSWORD:-"geHeim"}
 
-    echo "Run ./configure.sh"
-    ./configure.sh \
+    echo "Run configure.sh"
+    "${SCRIPT_DIR}"/configure.sh \
         --admin-password="${NEXUS_ADMIN_PASSWORD}" \
         --developer-password="${NEXUS_PASSWORD}" \
         --nexus="${NEXUS_URL}" \
