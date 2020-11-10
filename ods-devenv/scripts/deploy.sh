@@ -202,20 +202,24 @@ function setup_dnsmasq() {
     fi
 
     sudo chattr -i /etc/resolv.conf
-    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
 
     local counter
     counter=0
-    while ! grep "${public_hostname}" /etc/resolv.conf
+    while ! grep --silent "${public_hostname}" /etc/resolv.conf
     do
         if [[ ${counter} -gt 10 ]]
         then
             echo "ERROR: could not update /etc/resolv.conf. Aborting."
             exit 1
         fi
-        echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
+        if [[ ${counter} -gt 1 ]]
+        then
+            echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
+        fi
         sleep 1
         sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
+        # Add nameserver listening on ip ###.###.###.2 as fallback in case the EC2 instance is hosted on an AWS VPC
+        echo "nameserver $(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')" >> /etc/resolv.conf
         counter=$((counter + 1))
     done
 
