@@ -6,7 +6,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     CNES_REPORT_VERSION=3.1.0 \
     TAILOR_VERSION=1.2.2 \
     GIT_LFS_VERSION=2.6.1 \
-    SKOPEO_VERSION=0.1.37-3 \
+    SKOPEO_VERSION=1.2.0 \
     OSTREE_VERSION=2018.5-1
 
 ARG APP_DNS
@@ -44,10 +44,10 @@ RUN cd /tmp \
 
 # Install Tailor.
 RUN cd /tmp \
-	&& curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
-	&& mv tailor-linux-amd64 /usr/local/bin/tailor \
-	&& chmod a+x /usr/local/bin/tailor \
-	&& tailor version
+    && curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
+    && mv tailor-linux-amd64 /usr/local/bin/tailor \
+    && chmod a+x /usr/local/bin/tailor \
+    && tailor version
 
 # Install GIT-LFS extension https://git-lfs.github.com/.
 RUN cd /tmp \
@@ -79,10 +79,10 @@ RUN chmod +x /usr/local/bin/run-jnlp-client \
     && . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 
 # Add skopeo.
-RUN yum install -y \
-    http://mirror.centos.org/centos/7/extras/x86_64/Packages/containers-common-${SKOPEO_VERSION}.el7.centos.x86_64.rpm \
-    http://mirror.centos.org/centos/7/extras/x86_64/Packages/ostree-${OSTREE_VERSION}.el7.x86_64.rpm \
-    http://mirror.centos.org/centos/7/extras/x86_64/Packages/skopeo-${SKOPEO_VERSION}.el7.centos.x86_64.rpm \
+# Newer Skopeo releases may be available on the repositories provided by the Kubic project.
+# https://github.com/containers/skopeo/blob/master/install.md#rhelcentos--7x
+RUN curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/devel:kubic:libcontainers:stable.repo \
+    && yum -y install skopeo-$SKOPEO_VERSION \
     && yum clean all \
     && rm -rf /var/cache/yum/* \
     && skopeo --version
