@@ -76,8 +76,8 @@ objects:
             defaultMode: 420
             items:
             - key: properties
-              path: application.properties
-            name: application.properties
+              path: prov-app.properties
+            name: prov-app.properties
           name: volume-ie3ym
         - configMap:
             defaultMode: 420

@@ -98,7 +98,7 @@ objects:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: application.properties
+    name: prov-app.properties
   data:
     properties: |
       # log level
@@ -126,7 +126,7 @@ objects:
 
       project.template.default.key=default
 
-      # project types, these two are configured in the src/main/resources/application.properties
+      # project types, these two are configured in the src/main/resources/prov-app.properties
       project.template.key.names=${JIRA_PROJECT_TEMPLATE_KEY_NAMES}
 
       # JIRA properties
@@ -223,7 +223,7 @@ objects:
 
       # Spring active profile is default.
       # This allow just 2 layers of configuration
-      # First layer is the application.properties in classpath. It provides all defaults
+      # First layer is the prov-app.properties in classpath. It provides all defaults
       # Second layer: the config maps defined in this file which overrides all required properties from first layer
       spring.profiles.active=default
 
