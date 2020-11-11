@@ -218,8 +218,10 @@ function setup_dnsmasq() {
         fi
         sleep 1
         sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
-        # Add nameserver listening on ip ###.###.###.2 as fallback in case the EC2 instance is hosted on an AWS VPC
-        echo "nameserver $(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')" >> /etc/resolv.conf
+        echo 'Add nameserver listening on ip ###.###.###.2 as fallback ns in case the EC2 instance is hosted on an AWS VPC'
+        # until somebody finds the correct syntax for ${publichostname/[0-9]+$/2} ignore SC2001
+        # shellcheck disable=SC2001
+        echo "nameserver $(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')" | sudo tee -a /etc/resolv.conf
         counter=$((counter + 1))
     done
 
