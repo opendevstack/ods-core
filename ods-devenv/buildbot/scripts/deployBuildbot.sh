@@ -23,6 +23,9 @@ instanceType=t2.large
 keyName=
 pathToPem=
 
+awsAccessKey=
+awsSecretAccessKey=
+
 # size of the EBS disk. For the default AMI the size is 8GB.
 volumeSize=8
 
@@ -31,15 +34,24 @@ securityGroupId=
 
 # the following arguments are required for the script to run successfully
 declare -A requiredArguments
-requiredArguments=([keyName]="--key-name" [pathToPem]="--path-to-pem" [securityGroupId]="--security-group-id")
+requiredArguments=(
+    [keyName]="--key-name"
+    [pathToPem]="--path-to-pem"
+    [securityGroupId]="--security-group-id"
+    [awsAccessKey]="--aws-access-key"
+    [awsSecretAccessKey]="--aws-secret-access-key"
+    )
 
-# the public ip address of the newly create buildbot box
+# the public ip address of the newly create buildbot box. will be assigned by EC2 response.
 publicIP=
-# the public DNS of the newly create buildbot box
+# the public DNS of the newly create buildbot box. will be assigned by EC2 response.
 publicDNS=
 
 # OS user
 buildbotUser=centos
+
+# configure which branches the buildbot shall build initially
+branchesToBuild=master,3.x,feature/ods-devenv
 
 ############################################################################
 ## resolveArgs
@@ -62,9 +74,15 @@ function resolveArgs() {
 
             -p|--path-to-pem) pathToPem="$2"; shift;;
 
+            --aws-access-key) awsAccessKey="$2"; shift;;
+
+            --aws-secret-access-key) awsSecretAccessKey="$2"; shift;;
+
             --volume-size) volumeSize="$2"; shift;;
 
             -s|--security-group-id) securityGroupId="$2"; shift;;
+
+            --branches-to-build) branchesToBuild="$2"; shift;;
 
             *) echo "Unknown parameter passed: $1"; exit 1;;
 
@@ -183,8 +201,42 @@ function setupBuildbot() {
     ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install git2u-all glances golang jq tree
+    sudo yum -y install glances golang jq tree vim
+    cd "${HOME}" || exit 1
+    # shellcheck disable=SC2016
+    echo 'export PATH=/home/centos/go/bin:$PATH' >> /home/centos/.bashrc
+    # shellcheck disable=SC1091
+    source /home/centos/.bashrc
+    mkdir -p opendevstack && cd "${_}" || exit 1
+    git clone https://github.com/opendevstack/ods-core.git
+    cd ods-core/ods-devenv/buildbot || exit 1
+    go install
+    cp ./.buildbotrc "${HOME}"/
+    cd "${HOME}" || exit 1
+    sed -i "s|branch=master|branch=${branchesToBuild}|" "${HOME}/.buildbotrc"
+    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "${HOME}/.buildbotrc"
+    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "${HOME}/.buildbotrc"
 SETUP_SCRIPT
+}
+
+function doNotExecute_Ever() {
+    sudo yum update -y
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
+    sudo yum -y install glances golang jq tree vim
+    cd "${HOME}" || exit 1
+    # shellcheck disable=SC2016
+    echo 'export PATH=/home/centos/go/bin:$PATH' >> /home/centos/.bashrc
+    # shellcheck disable=SC1091
+    source /home/centos/.bashrc
+    mkdir -p opendevstack && cd "${_}" || exit 1
+    git clone https://github.com/opendevstack/ods-core.git
+    cd ods-core/ods-devenv/buildbot || exit 1
+    go install
+    cp ./.buildbotrc "${HOME}"/
+    cd "${HOME}" || exit 1
+    sed -i "s|branch=master|branch=${branchesToBuild}|" "${HOME}/.buildbotrc"
+    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "${HOME}/.buildbotrc"
+    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "${HOME}/.buildbotrc"
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
