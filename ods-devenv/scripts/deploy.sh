@@ -205,7 +205,11 @@ function setup_dnsmasq() {
 
     local counter
     counter=0
-    while ! grep --silent "${public_hostname}" /etc/resolv.conf
+    local fallbackServer
+    # until somebody finds the correct syntax for ${public_hostname/[0-9]+$/2} ignore SC2001
+    # shellcheck disable=SC2001
+    fallbackServer=$(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')
+    while ! grep --silent "${public_hostname}" /etc/resolv.conf || ! grep --silent "${fallbackServer}" /etc/resolv.conf
     do
         if [[ ${counter} -gt 10 ]]
         then
@@ -219,9 +223,7 @@ function setup_dnsmasq() {
         sleep 1
         sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
         echo 'Add nameserver listening on ip ###.###.###.2 as fallback ns in case the EC2 instance is hosted on an AWS VPC'
-        # until somebody finds the correct syntax for ${publichostname/[0-9]+$/2} ignore SC2001
-        # shellcheck disable=SC2001
-        echo "nameserver $(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')" | sudo tee -a /etc/resolv.conf
+        echo "nameserver ${fallbackServer}" | sudo tee -a /etc/resolv.conf
         counter=$((counter + 1))
     done
 

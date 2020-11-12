@@ -2,7 +2,7 @@
 # Per default this script will build a new AMI on AWS for the ODS master branch.
 # The branch can be overridden to build e.g. 3.x. Caveat: the stated branch must
 # exist on each of the following repositories: 
-# ods-core, ods-jenkins-shared-library, 
+# ods-core, ods-quickstarters, ods-jenkins-shared-library, not necessarily in ods-document-generation-templates
 set -exu
 
 targetGitRef="master"
