@@ -180,7 +180,7 @@ function deployBuildbotHost() {
 function setupBuildbot() {
     echo "Setting up buildbot on host ${publicDNS}"
     # <<- allows for the heredoc to be indented with TAB
-    ssh -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
+    ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install git2u-all glances golang jq tree
