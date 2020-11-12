@@ -16,8 +16,12 @@ amiId=ami-0d4002a13019b7703
 instanceType=t2.large
 
 # the AWS keyname must be configured when the script is called.
-# this will tell AWS EC2 which public key to paste into ~/.ssh/authorized_keys 
+# this will tell AWS EC2 which public key to paste into ~/.ssh/authorized_keys.
+# In effect, the buildbot host will be accessible using the AWS keypair.
+# Thus, this setup script will also require access to the private key
+# so it can log into the buildbot host and run setup commands.
 keyName=
+pathToPem=
 
 # size of the EBS disk. For the default AMI the size is 8GB.
 volumeSize=8
@@ -25,6 +29,23 @@ volumeSize=8
 # security group to be applied to the buildbot host. the id has to be specified.
 securityGroupId=
 
+# the following arguments are required for the script to run successfully
+declare -A requiredArguments
+requiredArguments=([keyName]="--key-name" [pathToPem]="--path-to-pem" [securityGroupId]="--security-group-id")
+
+# the public ip address of the newly create buildbot box
+publicIP=
+# the public DNS of the newly create buildbot box
+publicDNS=
+
+# OS user
+buildbotUser=centos
+
+############################################################################
+## resolveArgs
+## maps arguments to script variables and verifies that all required
+## arguments are actually specified.
+############################################################################
 function resolveArgs() {
     while [[ "$#" -gt 0 ]]
     do
@@ -39,6 +60,8 @@ function resolveArgs() {
 
             -k|--key-name) keyName="$2"; shift;;
 
+            -p|--path-to-pem) pathToPem="$2"; shift;;
+
             --volume-size) volumeSize="$2"; shift;;
 
             -s|--security-group-id) securityGroupId="$2"; shift;;
@@ -50,14 +73,18 @@ function resolveArgs() {
     done
 
     local missingArgs
-    if [[ -z "${keyName}" ]]
-    then
-        missingArgs="${missingArgs} --key-name"
-    fi
-    if [[ -z "${securityGroupId}" ]]
-    then
-        missingArgs="${missingArgs} --security-group-id"
-    fi
+    # iterate over keys of associative array requiredArguments
+    for arg in ${!requiredArguments[*]}
+    do
+        # arg iterates over variable names pathToPem, keyName, etc. ${!arg} will reference the
+        # values of the referenced variables. If any of those is empty, then the respective
+        # variable is not set, thus leading to an error message that this required var needs to be set.
+        if [[ -z "${!arg}" ]]
+        then
+            missingArgs="${missingArgs} ${requiredArguments[${arg}]}"
+        fi
+    done
+    # fail script execution if any required argument is missing
     if [[ -n "${missingArgs}" ]]
     then
         # apply whitespace trimming to missingArgs
@@ -85,6 +112,9 @@ function usage() {
     echo "    -k, --key-name"
     echo "        Name of the public key with AWS EC2 which shall be pasted to ~/.ssh/authorized_keys for"
     echo "        authentication when logging into the buildbot box."
+    echo "    -p, --path-to-pem"
+    echo "        Path to a local file where the setup script can find the key to authenticate against"
+    echo "        the buildbot host under construction."
     echo "    -s, --security-group-id"
     echo "        The id of the AWS EC2 security-group that shall be applied to the buildbot EC2 host."
     echo "        The security group must have incoming traffic on 22, 80, 443 enabled."
@@ -105,12 +135,20 @@ function usage() {
     echo "        as defined by the AMI in use."
 }
 
-function deployBuildbot() {
+############################################################################
+## deployBuildbotHost
+## launches a new EC2 instance in AWS cloud to deploy buildbot there
+## Globals
+##      publicIP
+##      publicDNS
+############################################################################
+function deployBuildbotHost() {
     local instanceId
     instanceId=$(aws ec2 run-instances --image-id "${amiId}" \
        --count 1 \
        --instance-type "${instanceType}" \
        --key-name "${keyName}" \
+       --security-group-ids "${securityGroupId}" \
        --block-device-mappings "[{ \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": ${volumeSize} } }]" \
        | jq -r '.Instances[0].InstanceId' )
     echo "Created buildbot host EC2 instance with instance-id ${instanceId}, waiting for it to be running ..."
@@ -127,16 +165,26 @@ function deployBuildbot() {
 
     local publicDNS
     publicDNS=$(aws ec2 describe-instances --instance-ids "${instanceId}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
-    echo "buildbot EC2 host has the public DNS ${publicDNS}."
+    echo "buildbot EC2 host has the public DNS ${publicDNS}"
 
-    setupBuildBot "${publicIP}"
+    setupBuildbot "${publicIP}"
 
 }
 
+############################################################################
+## setupBuildbot
+## deploys the buildbot in a (newly created) CentOS instance
+## Globals
+##      publicDNS
+############################################################################
 function setupBuildbot() {
-    local publicIP="$1"
-
-    echo "Setting up buildbot at IP ${publicIP}"
+    echo "Setting up buildbot on host ${publicDNS}"
+    # <<- allows for the heredoc to be indented with TAB
+    ssh -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
+    sudo yum update -y
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
+    sudo yum -y install git2u-all glances golang jq tree
+SETUP_SCRIPT
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
@@ -155,4 +203,5 @@ function waitOnBuildbotEC2InstanceToBecomeAvailable() {
 }
 
 resolveArgs "$@"
-deployBuildbot
+deployBuildbotHost
+setupBuildbot
