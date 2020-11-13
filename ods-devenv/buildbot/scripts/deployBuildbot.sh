@@ -196,25 +196,34 @@ function deployBuildbotHost() {
 ############################################################################
 function setupBuildbot() {
     echo "Setting up buildbot on host ${publicDNS}"
-    # <<- allows for the heredoc to be indented with TAB
-    ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
+    # <<- allows for the heredoc to be indented with TAB. unquoted label SETUP_SCRIPT means
+    # that variable expansion happens on client side. So, you can use script local
+    # variables in the HEREDOC but not server env vars like ${HOME}!
+    # shellcheck disable=SC2087
+    ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- SETUP_SCRIPT
+    
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install glances golang jq tree vim
-    cd "${HOME}" || exit 1
+    cd "/home/${buildbotUser}" || exit 1
     # shellcheck disable=SC2016
-    echo 'export PATH=/home/centos/go/bin:$PATH' >> /home/centos/.bashrc
+    echo 'export PATH=/home/centos/go/bin:$PATH' >> "/home/${buildbotUser}/.bashrc"
     # shellcheck disable=SC1091
     source /home/centos/.bashrc
     mkdir -p opendevstack && cd "${_}" || exit 1
     git clone https://github.com/opendevstack/ods-core.git
     cd ods-core/ods-devenv/buildbot || exit 1
     go install
-    cp ./.buildbotrc "${HOME}"/
-    cd "${HOME}" || exit 1
-    sed -i "s|branch=master|branch=${branchesToBuild}|" "${HOME}/.buildbotrc"
-    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "${HOME}/.buildbotrc"
-    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "${HOME}/.buildbotrc"
+    cp ./.buildbotrc "/home/${buildbotUser}"/
+    cd "/home/${buildbotUser}" || exit 1
+    sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
+    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
+    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
+    echo | crontab - <<- 'HEREDOC'
+        0 */6 * * * buildbot runAmiBuild
+        0 5-23/6 * * * buildbot checkAmiBuild
+HEREDOC
+
 SETUP_SCRIPT
 }
 
@@ -222,20 +231,24 @@ function doNotExecute_Ever() {
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install glances golang jq tree vim
-    cd "${HOME}" || exit 1
+    cd "/home/${buildbotUser}" || exit 1
     # shellcheck disable=SC2016
-    echo 'export PATH=/home/centos/go/bin:$PATH' >> /home/centos/.bashrc
+    echo 'export PATH=/home/centos/go/bin:$PATH' >> "/home/${buildbotUser}/.bashrc"
     # shellcheck disable=SC1091
     source /home/centos/.bashrc
     mkdir -p opendevstack && cd "${_}" || exit 1
     git clone https://github.com/opendevstack/ods-core.git
     cd ods-core/ods-devenv/buildbot || exit 1
     go install
-    cp ./.buildbotrc "${HOME}"/
-    cd "${HOME}" || exit 1
-    sed -i "s|branch=master|branch=${branchesToBuild}|" "${HOME}/.buildbotrc"
-    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "${HOME}/.buildbotrc"
-    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "${HOME}/.buildbotrc"
+    cp ./.buildbotrc "/home/${buildbotUser}"/
+    cd "/home/${buildbotUser}" || exit 1
+    sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
+    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
+    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
+    echo | crontab - <<- 'HEREDOC'
+        0 */6 * * * buildbot runAmiBuild
+        0 5-23/6 * * * buildbot checkAmiBuild
+HEREDOC
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
