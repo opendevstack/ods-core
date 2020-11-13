@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-
-function help() {
-    echo
-}
-
-
 # The EC2 instance will be created from the community CentOS AMI ami-0d4002a13019b7703
 # Community CentOS 7.8.2003 x86_64 AMI available in eu-west-1 using 8GB partition
 # username: centos
