@@ -8,8 +8,10 @@ function usage {
     printf "\n"
     printf "  --imagename    Name of the image beeing build\n"
     printf "  --dockerdir    Path to the docker context dir\n"
+    printf "  --dockerfile   Name of Dockerfile, relative to --dockerdir\n"
 }
 
+DOCKER_FILE="Dockerfile"
 BUILDARGS_ARR=()
 
 if [[ "$#" -gt 0 ]]; then
@@ -24,6 +26,9 @@ if [[ "$#" -gt 0 ]]; then
 
         --dockerdir) DOCKER_DIR="$2"; shift;;
         --dockerdir=*) DOCKER_DIR="${1#*=}";;
+
+        --dockerfile) DOCKER_FILE="$2"; shift;;
+        --dockerfile=*) DOCKER_FILE="${1#*=}";;
 
         --build-arg)
             BUILDARGS_ARR+=("${2}")
@@ -45,7 +50,8 @@ if [[ "$#" -gt 0 ]]; then
     COMMIT_TIME=$(git show -s --format=%ci $GITHUB_SHA)
     BUILD_TIME=$(date -u "+%Y-%m-%d %H:%M:%S %z")
 
-    docker build $BUILDARGS \
+    cd $DOCKER_DIR
+    docker build --file $DOCKER_FILE $BUILDARGS \
     --label "ods.build.job.url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
     --label "ods.build.source.repo.ref=$GITHUB_REF" \
     --label "ods.build.source.repo.commit.author=$COMMIT_AUTHOR" \
@@ -54,7 +60,7 @@ if [[ "$#" -gt 0 ]]; then
     --label "ods.build.source.repo.commit.timestamp=$COMMIT_TIME" \
     --label "ods.build.source.repo.url=https://github.com/$GITHUB_REPOSITORY.git" \
     --label "ods.build.timestamp=$BUILD_TIME" \
-    -t $IMAGE_NAME:local $DOCKER_DIR
+    -t $IMAGE_NAME:local .
 
     docker inspect $IMAGE_NAME:local --format='{{.Config.Labels}}'
 
