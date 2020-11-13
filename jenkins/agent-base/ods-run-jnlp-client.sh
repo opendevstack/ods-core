@@ -12,4 +12,4 @@ else
   echo "INFO: skip import"
 fi
 
-/usr/local/bin/ocp-run-jnlp-client
+/usr/local/bin/openshift-run-jnlp-client
