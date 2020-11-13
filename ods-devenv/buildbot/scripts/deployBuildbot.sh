@@ -179,11 +179,9 @@ function deployBuildbotHost() {
 
     waitOnBuildbotEC2InstanceToBecomeAvailable "${instanceId}"
 
-    local publicIP
     publicIP=$(aws ec2 describe-instances --instance-ids "$instanceId" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
     echo "buildbot EC2 host has the public IP address ${publicIP}"
 
-    local publicDNS
     publicDNS=$(aws ec2 describe-instances --instance-ids "${instanceId}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
     echo "buildbot EC2 host has the public DNS ${publicDNS}"
 }
@@ -201,16 +199,17 @@ function setupBuildbot() {
     # variables in the HEREDOC but not server env vars like ${HOME}!
     # shellcheck disable=SC2087
     ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- SETUP_SCRIPT
-    
+
+    set -x
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install glances golang jq tree vim
     cd "/home/${buildbotUser}" || exit 1
     # shellcheck disable=SC2016
-    echo 'export PATH=/home/centos/go/bin:$PATH' >> "/home/${buildbotUser}/.bashrc"
     # shellcheck disable=SC1091
     source /home/centos/.bashrc
-    mkdir -p opendevstack && cd "${_}" || exit 1
+    mkdir -p opendevstack
+    cd opendevstack || exit 1
     git clone https://github.com/opendevstack/ods-core.git
     cd ods-core/ods-devenv/buildbot || exit 1
     go install
@@ -220,35 +219,20 @@ function setupBuildbot() {
     sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
     sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
     echo | crontab - <<- 'HEREDOC'
-        0 */6 * * * buildbot runAmiBuild
-        0 5-23/6 * * * buildbot checkAmiBuild
+0 */6 * * * buildbot runAmiBuild
+0 5-23/6 * * * buildbot checkAmiBuild
 HEREDOC
+    echo "Finished with basic setup"
 
 SETUP_SCRIPT
-}
 
-function doNotExecute_Ever() {
-    sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install glances golang jq tree vim
-    cd "/home/${buildbotUser}" || exit 1
-    # shellcheck disable=SC2016
-    echo 'export PATH=/home/centos/go/bin:$PATH' >> "/home/${buildbotUser}/.bashrc"
-    # shellcheck disable=SC1091
-    source /home/centos/.bashrc
-    mkdir -p opendevstack && cd "${_}" || exit 1
-    git clone https://github.com/opendevstack/ods-core.git
-    cd ods-core/ods-devenv/buildbot || exit 1
-    go install
-    cp ./.buildbotrc "/home/${buildbotUser}"/
-    cd "/home/${buildbotUser}" || exit 1
-    sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
-    sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
-    sed -i "s|aws_secret_access_key=|aws_secret_access_key=${awsSecretAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
-    echo | crontab - <<- 'HEREDOC'
-        0 */6 * * * buildbot runAmiBuild
-        0 5-23/6 * * * buildbot checkAmiBuild
-HEREDOC
+    # now run everything that needs variable expansion on the server side -> "SETUP_SCRIPT"
+    ssh -oStrictHostKeyChecking=no -i "${pathToPem}" "${buildbotUser}@${publicDNS}" <<- "SETUP_SCRIPT"
+    
+    set -x
+    echo "export PATH=${HOME}/go/bin:"'$PATH' >> "${HOME}/.bashrc"
+
+SETUP_SCRIPT
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
