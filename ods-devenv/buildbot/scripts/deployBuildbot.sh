@@ -186,9 +186,6 @@ function deployBuildbotHost() {
     local publicDNS
     publicDNS=$(aws ec2 describe-instances --instance-ids "${instanceId}" --query 'Reservations[].Instances[].PublicDnsName' --output text)
     echo "buildbot EC2 host has the public DNS ${publicDNS}"
-
-    setupBuildbot "${publicIP}"
-
 }
 
 ############################################################################
