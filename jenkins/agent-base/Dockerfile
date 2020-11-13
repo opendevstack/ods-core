@@ -72,11 +72,10 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
 
 # Set java proxy var.
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
-RUN cp /usr/local/bin/run-jnlp-client /usr/local/bin/ocp-run-jnlp-client
-COPY ods-run-jnlp-client /usr/local/bin/run-jnlp-client
-RUN chmod +x /usr/local/bin/run-jnlp-client \
-    && chmod +x /tmp/set_java_proxy.sh \
-    && . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
+RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
+
+RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client
+COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 
 # Add skopeo.
 RUN yum install -y \
