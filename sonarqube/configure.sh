@@ -21,6 +21,12 @@ echo_info(){
     echo -e "\033[94mINFO\033[39m: $1"
 }
 
+# From https://stackoverflow.com/questions/296536/how-to-urlencode-data-for-curl-command.
+# The API of SonarQube is super weird and uses query parameters in a POST request,
+# so we need a way to URI encode those. As this script depends on "jq" anyway,
+# we use that as the easiest way to URI encode.
+function uriencode { jq -nr --arg v "$1" '$v|@uri'; }
+
 ADMIN_USER_NAME="admin"
 ADMIN_USER_DEFAULT_PASSWORD="admin"
 ADMIN_USER_PASSWORD=""
@@ -145,15 +151,27 @@ if [ "${httpOk}" != "200" ]; then
 fi
 
 echo_info "Checking if '${ADMIN_USER_NAME}' uses default password '${ADMIN_USER_DEFAULT_PASSWORD}'."
+encodedAdminUser="$(uriencode "${ADMIN_USER_NAME}")"
+encodedAdminPassword="$(uriencode "${ADMIN_USER_PASSWORD}")"
+encodedDefaultPassword="$(uriencode "${ADMIN_USER_DEFAULT_PASSWORD}")"
 if curl ${INSECURE} -X POST -sf \
-    "${SONARQUBE_URL}/api/authentication/login?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_DEFAULT_PASSWORD}"; then
+    "${SONARQUBE_URL}/api/authentication/login?login=${encodedAdminUser}&password=${encodedDefaultPassword}"; then
     echo_info "Default password '${ADMIN_USER_DEFAULT_PASSWORD}' is used, changing password for '${ADMIN_USER_NAME}' now."
     if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_NAME}" \
-        "${SONARQUBE_URL}/api/users/change_password?login=${ADMIN_USER_NAME}&password=${ADMIN_USER_PASSWORD}&previousPassword=${ADMIN_USER_DEFAULT_PASSWORD}"; then
+        "${SONARQUBE_URL}/api/users/change_password?login=${encodedAdminUser}&password=${encodedAdminPassword}&previousPassword=${encodedDefaultPassword}"; then
         echo_error "Could not change default password of '${ADMIN_USER_NAME}'."
         exit 1
     fi
     echo_info "Default password for '${ADMIN_USER_NAME}' changed."
+
+    echo_info "Verifying login with new password ..."
+    if ! curl ${INSECURE} -X POST -sSf \
+        "${SONARQUBE_URL}/api/authentication/login?login=${encodedAdminUser}&password=${encodedAdminPassword}"; then
+        echo_error "Could not login as '${ADMIN_USER_NAME}' using the new password."
+        exit 1
+    fi
+    echo_info "Login for '${ADMIN_USER_NAME}' with new password successful."
+
     base64Password=$(echo -n "${ADMIN_USER_PASSWORD}" | base64)
 
     if [ -z "${WRITE_TO_CONFIG}" ]; then
@@ -187,18 +205,20 @@ fi
 echo_info "sonar.forceAuthentication is enabled."
 
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists ..."
+encodedPipelineUser="$(uriencode "${PIPELINE_USER_NAME}")"
+encodedPipelinePassword="$(uriencode "${ADMIN_USER_PASSWORD}")"
 if curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
-    "${SONARQUBE_URL}/api/users/search?q=${PIPELINE_USER_NAME}" | grep '"users":\[\]' >/dev/null; then
+    "${SONARQUBE_URL}/api/users/search?q=${encodedPipelineUser}" | grep '"users":\[\]' >/dev/null; then
     echo_info "No user '${PIPELINE_USER_NAME}' present yet."
     if [ -z "${PIPELINE_USER_PWD}" ]; then
         echo "Please enter '${PIPELINE_USER_NAME}' password:"
         read -r -e -s input
         PIPELINE_USER_PWD=${input:-""}
     fi
-    echo_info "Trying to login in with '${PIPELINE_USER_NAME}' ..."
+    echo_info "Trying to login in as '${PIPELINE_USER_NAME}' ..."
     if ! curl ${INSECURE} -X POST -sSf \
-        "${SONARQUBE_URL}/api/authentication/login?login=${PIPELINE_USER_NAME}&password=${PIPELINE_USER_PWD}"; then
-        echo_error "Could not login with '${PIPELINE_USER_NAME}'."
+        "${SONARQUBE_URL}/api/authentication/login?login=${encodedPipelineUser}&password=${encodedPipelinePassword}"; then
+        echo_error "Could not login as '${PIPELINE_USER_NAME}'."
         exit 1
     fi
     echo_info "Login for '${PIPELINE_USER_NAME}' successful."
@@ -220,8 +240,9 @@ fi
 
 if [ -z "${authTokenVerified}" ]; then
     echo_info "Creating token for '${PIPELINE_USER_NAME}' ..."
+    encodedTokenName="$(uriencode "${TOKEN_NAME}")"
     tokenResponse=$(curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
-        "${SONARQUBE_URL}/api/user_tokens/generate?login=${PIPELINE_USER_NAME}&name=${TOKEN_NAME}")
+        "${SONARQUBE_URL}/api/user_tokens/generate?login=${encodedPipelineUser}&name=${encodedTokenName}")
     echo_info "Created token for '${PIPELINE_USER_NAME}'."
     # Example response:
     # {"login":"cd_user","name":"foo","token":"bar","createdAt":"2020-04-22T13:21:54+0000"}

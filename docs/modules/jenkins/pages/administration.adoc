@@ -1,19 +1,54 @@
 = Jenkins Administration
 
-The `ods-core` repository contains a `Makefile` with several targets to maintain Jenkins images.
+== Updating Jenkins to a new version
 
-== Managing Jenkins build resources
+Jenkins master deployments are using an image built in the central ODS namespace. This image is a https://github.com/opendevstack/ods-core/blob/master/jenkins/master/Dockerfile[customisation] of an upstream Jenkins master image provided by RedHat. Jenkins agent images are also built in the central ODS namespace, and are also based on upstream images provided by RedHat.
 
-Run `make apply-jenkins-build`.
+The exact Jenkins version which is used is determined by which RedHat base image tag is used, and depending on the used tag, at which time the ODS image is built.
 
-== Building a new Jenkins Master image
+To update Jenkins (master and agents), the following steps need to be taken:
 
-Run `make start-jenkins-build-master`.
+1. Configure new versions
+2. Update `BuildConfig` resources
+3. Create new images
+4. Rollout new deployments
 
-== Building a new Jenkins Agent Base image
+The following will guide you through this process.
 
-Run `make start-jenkins-build-agent-base`.
+To configure a new version of Jenkins, you need to update the configuration of ODS, which is located in the `ods-configuration` repository of your ODS project in Bitbucket. You need to have the latest `master` of this repository, as well as the `ods-core` and `ods-quickstarters` repository in your current ODS version available locally. If you don't want to do this manually, you can make use the `repos.sh` script:
 
-== Building a new Jenkins Webhook Proxy image
+[source,sh]
+----
+UMBRELLA_DIR=~/opendevstack
+BITBUCKET_HOST=bitbucket.acme.org
+BITBUCKET_PROJECT=opendevstack
+GIT_REF=v3.0.0
+mkdir -p $UMBRELLA_DIR && cd $UMBRELLA_DIR
+curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/$GIT_REF/scripts/repos.sh
+chmod +x repos.sh
+./repos.sh --git-ref $GIT_REF --repos="ods-core,ods-quickstarters,ods-configuration" --source-project https://$BITBUCKET_HOST/scm/$BITBUCKET_PROJECT
+----
 
-Run `make start-jenkins-build-webhook-proxy`.
+The script can also be used in an umbrella directory in which the repositories already exist. Once the repositories are at the desired revision, change `JENKINS_MASTER_BASE_FROM_IMAGE` and `JENKINS_AGENT_BASE_FROM_IMAGE` in `ods-configuration/ods-core.env` to your desired image tags. Commit the change and push it to Bitbucket.
+
+NOTE: If the configured tag is a moving target, you might not need to change it at all and you can simply continue with the next step.
+
+Next, you should ensure that the Jenkins `BuildConfig` resources in the central ODS namespace are up-to-date, then trigger new builds so that new images with the changed base images get built. Finally, new deployments should be rolled out which use the newly built image. All of this can be done from the `ods-core` repository:
+
+[source,sh]
+----
+make install-jenkins
+----
+
+This target depends on the targets `apply-jenkins-build`, `start-jenkins-build`, and `apply-jenkins-deploy` which execute the steps described above (and can of course also be executed individually).
+
+WARNING: Only the Jenkins master deployment in the central ODS namespace gets updated automatically using this command. Updating Jenkins master deployments in each `*-cd` namespace is a separate task for which no ODS automation exists at the moment.
+
+Finally, you also need to rebuild all technology-specific Jenkins agent images. For the Jenkins agent images delivered with the official quickstarters, this can be done from the `ods-quickstarters` repository:
+
+[source,sh]
+----
+make install-jenkins-agent
+----
+
+If you have other quickstarters which use custom Jenkins agents, you will also have to rebuild those.

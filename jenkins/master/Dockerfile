@@ -20,10 +20,11 @@ RUN import_certs.sh
 COPY plugins.txt /opt/openshift/configuration/plugins.txt
 COPY kube-slave-common.sh /usr/local/bin/kube-slave-common.sh
 RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
-    && rm -r /opt/openshift/configuration/jobs/OpenShift* \
-    && touch /var/lib/jenkins/configured
+    && rm -r /opt/openshift/configuration/jobs/OpenShift* || true \
+    && touch /var/lib/jenkins/configured \
+    && mv /usr/libexec/s2i/run /usr/libexec/s2i/openshift-run
 COPY configuration/ /opt/openshift/configuration/
-COPY ods-run /usr/libexec/s2i/ods-run
+COPY ods-run.sh /usr/libexec/s2i/run
 
 RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 
@@ -37,4 +38,3 @@ USER jenkins
 
 ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true -Dhudson.tasks.MailSender.SEND_TO_USERS_WITHOUT_READ=true"
 RUN tailor version
-CMD ["/usr/libexec/s2i/ods-run"]

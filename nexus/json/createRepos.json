@@ -1,7 +1,7 @@
 {
   "name":"createRepos",
   "content":"import org.sonatype.nexus.blobstore.api.BlobStoreManager;
-  import org.sonatype.nexus.repository.storage.WritePolicy;
+  import org.sonatype.nexus.repository.config.WritePolicy;
   import org.sonatype.nexus.repository.maven.VersionPolicy;
   import org.sonatype.nexus.repository.maven.LayoutPolicy;
   repository.createMavenHosted('candidates', 'candidates', true, VersionPolicy.RELEASE, WritePolicy.ALLOW_ONCE, LayoutPolicy.STRICT);

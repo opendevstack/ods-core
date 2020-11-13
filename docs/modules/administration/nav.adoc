@@ -6,6 +6,8 @@
 ** xref:provisioning-app:configuration.adoc[Provisioning App]
 ** xref:administration:keycloak.adoc[Keycloak]
 ** xref:sonarqube:administration.adoc[SonarQube]
+** xref:nexus:administration.adoc[Nexus]
 ** xref:jenkins:administration.adoc[Jenkins]
+** xref:jenkins:image-lifecycle.adoc[Image Lifecycles]
 
 

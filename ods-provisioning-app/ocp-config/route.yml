@@ -1,13 +1,18 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: TAILOR_NAMESPACE
+  required: true
+labels:
+  app: ods-provisioning-app
 objects:
 - apiVersion: v1
   kind: Route
   metadata:
     annotations:
       haproxy.router.openshift.io/timeout: 2m
-    labels:
-      app: ods-provisioning-app
     name: ods-provisioning-app
   spec:
     host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
@@ -19,8 +24,3 @@ objects:
       name: ods-provisioning-app
       weight: 100
     wildcardPolicy: None
-parameters:
-- name: OPENSHIFT_APPS_BASEDOMAIN
-  required: true
-- name: TAILOR_NAMESPACE
-  required: true

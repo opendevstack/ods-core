@@ -89,6 +89,7 @@ RUN yum install -y \
 
 # Fix permissions.
 RUN mkdir -p /home/jenkins/.config && chmod g+w /home/jenkins/.config \
-    && mkdir -p /home/jenkins/.cache && chmod g+w /home/jenkins/.cache
+    && mkdir -p /home/jenkins/.cache && chmod g+w /home/jenkins/.cache \
+    && mkdir -p /home/jenkins/.sonar && chmod g+w /home/jenkins/.sonar
 
 RUN chmod g+w $JAVA_HOME/lib/security/cacerts
