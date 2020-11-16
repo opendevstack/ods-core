@@ -24,6 +24,7 @@ const (
 	namespaceFile                  = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	caCert                         = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	buildAPIBasePath               = "/apis/build.openshift.io/v1"
 	pipelineConfigFilename         = "pipeline.json.tmpl"
 	repoBaseEnvVar                 = "REPO_BASE"
 	triggerSecretEnvVar            = "TRIGGER_SECRET"
@@ -751,8 +752,9 @@ func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error)
 	}
 
 	baseURL := fmt.Sprintf(
-		"https://%s/oapi/v1",
+		"https://%s%s",
 		openShiftAPIHost,
+		buildAPIBasePath,
 	)
 
 	return &ocClient{
