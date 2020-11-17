@@ -106,6 +106,8 @@ oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd'
 
 ../create-projects.sh --project foo --groups USERGROUP=foo,ADMINGROUP=bar,READONLYGROUP=baz
 
+oc mock --verify
+
 echo ""
 echo "=== create-projects: With *multiple* admin groups ==="
 
