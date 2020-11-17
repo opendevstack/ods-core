@@ -200,7 +200,7 @@ objects:
               value: '${DOCKER_REGISTRY}'
             - name: BITBUCKET_URL
               value: '${BITBUCKET_URL}'
-            - name: CLUSTER_GROUPS
+            - name: ODS_CLUSTER_GROUPS
               value: '${ODS_CLUSTER_GROUPS}'
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-master:${ODS_IMAGE_TAG}'
           imagePullPolicy: Always
