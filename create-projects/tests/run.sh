@@ -106,6 +106,39 @@ oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd'
 
 ../create-projects.sh --project foo --groups USERGROUP=foo,ADMINGROUP=bar,READONLYGROUP=baz
 
+echo ""
+echo "=== create-projects: With *multiple* admin groups ==="
+
+oc mock --receive='new-project' --times 3
+
+# Expect group permissions
+oc mock --receive 'policy add-role-to-group view baz -n foo-dev' --times 1
+oc mock --receive 'policy add-role-to-group view baz -n foo-test' --times 1
+oc mock --receive 'policy add-role-to-group view baz -n foo-cd' --times 1
+
+oc mock --receive 'policy add-role-to-group edit foo -n foo-dev' --times 1
+oc mock --receive 'policy add-role-to-group edit foo -n foo-test' --times 1
+oc mock --receive 'policy add-role-to-group edit foo -n foo-cd' --times 1
+
+oc mock --receive 'policy add-role-to-group admin bar1 -n foo-dev' --times 1
+oc mock --receive 'policy add-role-to-group admin bar1 -n foo-test' --times 1
+oc mock --receive 'policy add-role-to-group admin bar1 -n foo-cd' --times 1
+
+oc mock --receive 'policy add-role-to-group admin bar2 -n foo-dev' --times 1
+oc mock --receive 'policy add-role-to-group admin bar2 -n foo-test' --times 1
+oc mock --receive 'policy add-role-to-group admin bar2 -n foo-cd' --times 1
+
+# Expect no default view/edit setup
+oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev' --times 0
+oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-test' --times 0
+oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd' --times 0
+
+oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-dev' --times 0
+oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-test' --times 0
+oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd' --times 0
+
+../create-projects.sh --project foo --groups USERGROUP=foo,ADMINGROUP=bar1,ADMINGROUP=bar2,READONLYGROUP=baz
+
 oc mock --verify
 
 echo ""
