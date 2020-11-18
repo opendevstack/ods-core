@@ -129,6 +129,14 @@ func TestQuickstarter(t *testing.T) {
 					if len(step.ProvisionParams.Branch) > 0 {
 						branch = renderTemplate(t, step.ProvisionParams.Branch, tmplData)
 					}
+					agentImageTag := config["ODS_IMAGE_TAG"]
+					if len(step.ProvisionParams.AgentImageTag) > 0 {
+						agentImageTag = renderTemplate(t, step.ProvisionParams.AgentImageTag, tmplData)
+					}
+					sharedLibraryRef := agentImageTag
+					if len(step.ProvisionParams.SharedLibraryRef) > 0 {
+						sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
+					}
 					request = utils.RequestBuild{
 						Repository: "ods-quickstarters",
 						Branch:     branch,
@@ -145,6 +153,14 @@ func TestQuickstarter(t *testing.T) {
 							{
 								Name:  "ODS_IMAGE_TAG",
 								Value: config["ODS_IMAGE_TAG"],
+							},
+							{
+								Name:  "AGENT_IMAGE_TAG",
+								Value: agentImageTag,
+							},
+							{
+								Name:  "SHARED_LIBRARY_REF",
+								Value: sharedLibraryRef,
 							},
 							{
 								Name:  "PROJECT_ID",
