@@ -39,13 +39,24 @@ jobs:
           --user "$DOCKER_USER" \
           --password "$DOCKER_PASS" \
           --imagename ods-jenkins-agent-base-centos7
-      - name: Build RHEL8 docker image
+      - name: Build UBI8 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-agent-base \
+          --imagename ods-jenkins-agent-base-ubi8 \
           --dockerdir jenkins/agent-base \
-          --dockerfile Dockerfile.rhel8 \
+          --dockerfile Dockerfile.ubi8 \
           --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.217.3/snyk-linux"
+      - name: Push UBI8 docker image
+        if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
+        shell: bash
+        env:
+          DOCKER_USER: ${{ secrets.DockerHubUser }}
+          DOCKER_PASS: ${{ secrets.DockerHubPass }}
+        run: |
+          ./.github/workflows/push-docker-image.sh \
+          --user "$DOCKER_USER" \
+          --password "$DOCKER_PASS" \
+          --imagename ods-jenkins-agent-base-ubi8
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-18.04
