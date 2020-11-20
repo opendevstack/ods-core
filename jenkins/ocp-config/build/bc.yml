@@ -32,6 +32,9 @@ parameters:
 - name: JENKINS_AGENT_BASE_FROM_IMAGE
   required: true
   description: Base image for Jenkins agent base
+- name: JENKINS_AGENT_DOCKERFILE_PATH
+  value: Dockerfile.rhel7
+  description: Dockerfile variant to use
 - name: JENKINS_AGENT_BASE_BUILD_CPU_REQUEST
   value: 200m
 - name: JENKINS_AGENT_BASE_BUILD_CPU_LIMIT
@@ -152,6 +155,7 @@ objects:
         from:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
+        dockerfilePath: ${JENKINS_AGENT_DOCKERFILE_PATH}
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers: []
