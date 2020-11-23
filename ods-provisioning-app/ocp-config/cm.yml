@@ -71,6 +71,9 @@ parameters:
 - name: READABLE_OPENDEVSTACK_REPOS
   required: true
   description: Repositories which the project specific technical user can read
+- name: DEFAULT_OPENSHIFT_PERMISSION_GROUPS
+  required: false
+  description: List of default groups to be permissioned in openshift on project creation (value is optional and can be empty)
 - name: WEBHOOK_PROXY_EVENTS
   required: true
   description: list of supported webhook events
@@ -185,6 +188,9 @@ objects:
 
       jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
       jenkinspipeline.adminjobs.delete-components.repo=ods-core
+
+      # List of default groups to be permissioned in openshift on project creation (value can be empty)
+      jenkinspipeline.create-project.default-project-groups=DEFAULT_OPENSHIFT_PERMISSION_GROUPS
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
