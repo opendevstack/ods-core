@@ -3,7 +3,7 @@ FROM openshift/jenkins-slave-base-centos7
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
-    CNES_REPORT_VERSION=3.1.0 \
+    CNES_REPORT_VERSION=3.2.2 \
     TAILOR_VERSION=1.2.2 \
     GIT_LFS_VERSION=2.6.1 \
     SKOPEO_VERSION=0.1.37-3 \
@@ -37,7 +37,7 @@ ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
 
 # Add sq cnes report jar.
 RUN cd /tmp \
-    && curl -Lv https://github.com/lequal/sonar-cnes-report/releases/download/${CNES_REPORT_VERSION}/sonar-cnes-report-${CNES_REPORT_VERSION}.jar -o cnesreport.jar \
+    && curl -Lv https://github.com/cnescatlab/sonar-cnes-report/releases/download/${CNES_REPORT_VERSION}/sonar-cnes-report-${CNES_REPORT_VERSION}.jar -o cnesreport.jar \
     && mkdir /usr/local/cnes \
     && mv cnesreport.jar /usr/local/cnes/cnesreport.jar \
     && chmod 777 /usr/local/cnes/cnesreport.jar
