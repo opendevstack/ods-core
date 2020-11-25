@@ -190,7 +190,7 @@ objects:
       jenkinspipeline.adminjobs.delete-components.repo=ods-core
 
       # List of default groups to be permissioned in openshift on project creation (value can be empty)
-      jenkinspipeline.create-project.default-project-groups=DEFAULT_OPENSHIFT_PERMISSION_GROUPS
+      jenkinspipeline.create-project.default-project-groups=${DEFAULT_OPENSHIFT_PERMISSION_GROUPS}
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
