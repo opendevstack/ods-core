@@ -142,7 +142,6 @@ objects:
             value: ${APP_DNS}
       type: Docker
     successfulBuildsHistoryLimit: 5
-    triggers: []
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:

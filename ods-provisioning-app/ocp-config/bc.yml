@@ -61,4 +61,3 @@ objects:
           kind: DockerImage
           name: ${PROV_APP_FROM_IMAGE}
     successfulBuildsHistoryLimit: 5
-    triggers: []
