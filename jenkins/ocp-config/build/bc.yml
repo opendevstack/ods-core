@@ -112,7 +112,6 @@ objects:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
     successfulBuildsHistoryLimit: 5
-    triggers: []
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -158,7 +157,6 @@ objects:
         dockerfilePath: ${JENKINS_AGENT_DOCKERFILE_PATH}
       type: Docker
     successfulBuildsHistoryLimit: 5
-    triggers: []
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -198,4 +196,3 @@ objects:
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
     nodeSelector: null
-    triggers: []
