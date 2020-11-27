@@ -72,6 +72,7 @@ objects:
     name: cd-user-with-password
     labels:
       template: ods-jenkins-template
+      credential.sync.jenkins.openshift.io: 'true'
   type: kubernetes.io/basic-auth
 - apiVersion: v1
   data:
