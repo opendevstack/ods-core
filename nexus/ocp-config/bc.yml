@@ -59,4 +59,3 @@ objects:
           name: ${NEXUS_FROM_IMAGE}
       type: Docker
     successfulBuildsHistoryLimit: 5
-    triggers: []
