@@ -94,6 +94,13 @@ if [ $http_resp_code != 200 ]; then
 		echo "... DELETE request responded with 404 - continuing as resource does not exist"
 	else
 		echo "something went wrong... endpoint responded with error code [HTTP CODE="$http_resp_code"] (expected was 200)"
+		# if logged in dump logs
+		if ! oc whoami > /dev/null; then
+			echo "Could NOT get provision app logs from OCP, you are not logged in"
+		else
+			echo "Attempting to get ocp logs for provision application"
+			oc logs $(oc get pod -l app=ods-provisioning-app -ojson | jq -r .items[0].metadata.name)
+		fi
 		exit 1
 	fi
 fi
