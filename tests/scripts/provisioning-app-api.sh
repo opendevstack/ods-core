@@ -19,6 +19,8 @@ fi
 PROVISION_API_HOST="${PROVISION_API_HOST:=http://localhost:8080}"
 BASIC_AUTH_CREDENTIAL="${BASIC_AUTH_CREDENTIAL:=openshift:openshift}"
 PROVISION_FILE="${PROVISION_FILE:=fixtures/create-project-request.json}"
+ODS_NAMESPACE="${2:-ods}"
+
 # not set - use post as operation, creates new project
 COMMAND="${1:-POST}"
 
@@ -99,7 +101,7 @@ if [ $http_resp_code != 200 ]; then
 			echo "Could NOT get provision app logs from OCP, you are not logged in"
 		else
 			echo "Attempting to get ocp logs for provision application"
-			oc logs $(oc get pod -l app=ods-provisioning-app -ojson | jq -r .items[0].metadata.name)
+			oc -n "$ODS_NAMESPACE" logs $(oc -n "$ODS_NAMESPACE" get pod -l app=ods-provisioning-app -ojson | jq -r .items[0].metadata.name)
 		fi
 		exit 1
 	fi

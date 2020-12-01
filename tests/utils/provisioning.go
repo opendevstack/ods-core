@@ -17,7 +17,7 @@ func (api *ProvisionAPI) DeleteProject() error {
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE", api.ProjectName},
-		[]string{},
+		[]string{fmt.Sprintf("ODS_NAMESPACE=%s", api.Config["ODS_NAMESPACE"])},
 	)
 
 	if err != nil {
@@ -44,7 +44,10 @@ func (api *ProvisionAPI) CreateProject() ([]byte, error) {
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"POST"},
-		[]string{"PROVISION_FILE=fixtures/create-project-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-project-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", api.Config["ODS_NAMESPACE"]),
+		},
 	)
 
 	if err != nil {
@@ -72,7 +75,10 @@ func (api *ProvisionAPI) DeleteComponent() error {
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE_COMPONENT"},
-		[]string{"PROVISION_FILE=fixtures/create-component-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-component-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", api.Config["ODS_NAMESPACE"]),
+		},
 	)
 
 	if err != nil {
@@ -97,7 +103,10 @@ func (api *ProvisionAPI) CreateComponent() ([]byte, error) {
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"PUT"},
-		[]string{"PROVISION_FILE=fixtures/create-component-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-component-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", api.Config["ODS_NAMESPACE"]),
+		},
 	)
 
 	if err != nil {
