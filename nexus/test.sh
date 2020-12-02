@@ -90,10 +90,12 @@ else
     fi
     # Now we read the NEXUS variables from ods-core.env
     # - Since we use set -u in this script undefined variables will
-    #   cause the sscript to exit
+    #   cause the script to exit
     # - ods-core.env contains some passwords which makes a plain source
     #   hickup, therfore we are filtering this to only NEXUS variables.
-    source <( grep NEXUS "$ods_core_env_file")
+    grep NEXUS "$ods_core_env_file" > verify-nexus.env
+    source verify-nexus.env
+    rm verify-nexus.env
 
     NEXUS_USERNAME=${NEXUS_USERNAME-"developer"}
     NEXUS_ADMIN_USERNAME=${NEXUS_ADMIN_USERNAME-"admin"}

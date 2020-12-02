@@ -48,10 +48,16 @@ type TestStepProvisionParams struct {
 	// Pipeline allows to customize the pipeline name.
 	// If empty, the pipeline name is generated.
 	Pipeline string `json:"pipeline"`
-	// Branch for which to run the pipeline.
+	// Quickstarter branch for which to run the pipeline.
 	// For "provision" steps, it defaults to ODS_GIT_REF.
 	// For "build" steps, it defaults to "master".
 	Branch string `json:"branch"`
+	// Jenkins Agent image tag.
+	// Defaults to ODS_IMAGE_TAG.
+	AgentImageTag string `json:"agentImageTag"`
+	// Jenkins Shared library Git reference.
+	// Defaults to AgentImageTag.
+	SharedLibraryRef string `json:"sharedLibraryRef"`
 	// Verify parameters.
 	Verify *TestStepVerify `json:"verify"`
 }

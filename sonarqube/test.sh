@@ -134,8 +134,10 @@ else
     # - Since we use set -u in this script undefined variables will
     #   cause the sscript to exit
     # - ods-core.env contains some passwords which makes a plain source
-    #   hickup, therfore we are filtering this to only NEXUS variables.
-    source <( grep SONAR "$ods_core_env_file")
+    #   hickup, therfore we are filtering this to only SONAR variables.
+    grep SONAR "$ods_core_env_file" > verify-sonar.env
+    source verify-sonar.env
+    rm verify-sonar.env
     SONAR_ADMIN_USERNAME=${SONAR_ADMIN_USERNAME-"admin"}
     if [ -n "${SONAR_ADMIN_PASSWORD_B64-}" ]; then
         ADMIN_PASSWORD=$(echo -n "$SONAR_ADMIN_PASSWORD_B64" | base64 --decode)
