@@ -15,7 +15,7 @@ type ProvisionAPI struct {
 
 // DeleteProject deletes a project via the provisioning app.
 func (api *ProvisionAPI) DeleteProject() error {
-	const ocpProjectName = strings.ToLower(api.Config["ODS_NAMESPACE"])
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE", api.ProjectName},
@@ -43,7 +43,7 @@ func (api *ProvisionAPI) DeleteProject() error {
 
 // CreateProject creates a project via the provisioning app.
 func (api *ProvisionAPI) CreateProject() ([]byte, error) {
-	const ocpProjectName = strings.ToLower(api.Config["ODS_NAMESPACE"])
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"POST"},
@@ -75,7 +75,7 @@ func (api *ProvisionAPI) CreateProject() ([]byte, error) {
 
 // DeleteComponent deletes a component via the provisioning app.
 func (api *ProvisionAPI) DeleteComponent() error {
-	const ocpProjectName = strings.ToLower(api.Config["ODS_NAMESPACE"])
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE_COMPONENT"},
@@ -104,7 +104,7 @@ func (api *ProvisionAPI) DeleteComponent() error {
 
 // CreateComponent creates a component via the provisioning app.
 func (api *ProvisionAPI) CreateComponent() ([]byte, error) {
-	const ocpProjectName = strings.ToLower(api.Config["ODS_NAMESPACE"])
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"PUT"},
