@@ -12,7 +12,7 @@ objects:
   kind: Route
   metadata:
     annotations:
-      haproxy.router.openshift.io/timeout: 2m
+      haproxy.router.openshift.io/timeout: 6m
     name: ods-provisioning-app
   spec:
     host: prov-app-${TAILOR_NAMESPACE}${OPENSHIFT_APPS_BASEDOMAIN}
