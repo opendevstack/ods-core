@@ -24,6 +24,9 @@ parameters:
 - name: JENKINS_AGENT_BASE_FROM_IMAGE
   required: true
   description: Base image for Jenkins agent base
+- name: JENKINS_MASTER_DOCKERFILE_PATH
+  value: Dockerfile.rhel7
+  description: Dockerfile variant to use
 - name: JENKINS_AGENT_DOCKERFILE_PATH
   value: Dockerfile.rhel7
   description: Dockerfile variant to use
@@ -84,6 +87,7 @@ objects:
             value: ${SONAR_EDITION}
           - name: SONAR_VERSION
             value: ${SONAR_VERSION}
+        dockerfilePath: ${JENKINS_MASTER_DOCKERFILE_PATH}
         from:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
