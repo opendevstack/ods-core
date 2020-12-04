@@ -1,4 +1,4 @@
-FROM openshift/jenkins-2-centos7
+FROM quay.io/openshift/origin-jenkins
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 
