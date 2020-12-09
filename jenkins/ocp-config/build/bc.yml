@@ -28,10 +28,16 @@ parameters:
 - name: JENKINS_MASTER_BUILD_MEMORY_REQUEST
   value: 1Gi
 - name: JENKINS_MASTER_BUILD_MEMORY_LIMIT
-  value: 2Gi  
+  value: 2Gi
 - name: JENKINS_AGENT_BASE_FROM_IMAGE
   required: true
   description: Base image for Jenkins agent base
+- name: JENKINS_MASTER_DOCKERFILE_PATH
+  value: Dockerfile.rhel7
+  description: Dockerfile variant to use
+- name: JENKINS_AGENT_DOCKERFILE_PATH
+  value: Dockerfile.rhel7
+  description: Dockerfile variant to use
 - name: JENKINS_AGENT_BASE_BUILD_CPU_REQUEST
   value: 200m
 - name: JENKINS_AGENT_BASE_BUILD_CPU_LIMIT
@@ -105,11 +111,11 @@ objects:
             value: ${SONAR_EDITION}
           - name: SONAR_VERSION
             value: ${SONAR_VERSION}
+        dockerfilePath: ${JENKINS_MASTER_DOCKERFILE_PATH}
         from:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
     successfulBuildsHistoryLimit: 5
-    triggers: []
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -152,9 +158,9 @@ objects:
         from:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
+        dockerfilePath: ${JENKINS_AGENT_DOCKERFILE_PATH}
       type: Docker
     successfulBuildsHistoryLimit: 5
-    triggers: []
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -194,4 +200,3 @@ objects:
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
     nodeSelector: null
-    triggers: []

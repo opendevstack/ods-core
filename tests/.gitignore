@@ -2,8 +2,14 @@
 test-results.txt
 test-report.xml
 
-test-installation-results.txt
-test-installation-report.xml
+test-smoketest-results.txt
+test-smoketest-report.xml
+
+test-verify-results.txt
+test-verify-report.xml
+
+test-create-projects-results.txt
+test-create-projects-report.xml
 
 test-quickstarter-report.xml
 test-quickstarter-results.txt

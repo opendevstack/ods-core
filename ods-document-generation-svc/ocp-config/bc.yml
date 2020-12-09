@@ -69,4 +69,3 @@ objects:
           kind: DockerImage
           name: ${DOC_GEN_FROM_IMAGE}
     successfulBuildsHistoryLimit: 5
-    triggers: []

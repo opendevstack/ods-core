@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 )
 
@@ -14,10 +15,11 @@ type ProvisionAPI struct {
 
 // DeleteProject deletes a project via the provisioning app.
 func (api *ProvisionAPI) DeleteProject() error {
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE", api.ProjectName},
-		[]string{},
+		[]string{fmt.Sprintf("ODS_NAMESPACE=%s", ocpProjectName)},
 	)
 
 	if err != nil {
@@ -41,10 +43,14 @@ func (api *ProvisionAPI) DeleteProject() error {
 
 // CreateProject creates a project via the provisioning app.
 func (api *ProvisionAPI) CreateProject() ([]byte, error) {
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"POST"},
-		[]string{"PROVISION_FILE=fixtures/create-project-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-project-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", ocpProjectName),
+		},
 	)
 
 	if err != nil {
@@ -69,10 +75,14 @@ func (api *ProvisionAPI) CreateProject() ([]byte, error) {
 
 // DeleteComponent deletes a component via the provisioning app.
 func (api *ProvisionAPI) DeleteComponent() error {
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"DELETE_COMPONENT"},
-		[]string{"PROVISION_FILE=fixtures/create-component-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-component-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", ocpProjectName),
+		},
 	)
 
 	if err != nil {
@@ -94,10 +104,14 @@ func (api *ProvisionAPI) DeleteComponent() error {
 
 // CreateComponent creates a component via the provisioning app.
 func (api *ProvisionAPI) CreateComponent() ([]byte, error) {
+	ocpProjectName := strings.ToLower(api.Config["ODS_NAMESPACE"])
 	stages, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/provisioning-app-api.sh",
 		[]string{"PUT"},
-		[]string{"PROVISION_FILE=fixtures/create-component-request.json"},
+		[]string{
+			"PROVISION_FILE=fixtures/create-component-request.json",
+			fmt.Sprintf("ODS_NAMESPACE=%s", ocpProjectName),
+		},
 	)
 
 	if err != nil {
