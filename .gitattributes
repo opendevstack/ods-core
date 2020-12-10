@@ -1,0 +1,4 @@
+# Tells Git to (1) normalize line endings to LF on checkin and 
+# (2) prevent conversion to CRLF when the file is checked out.
+configuration-sample/ods-core.env text eol=lf
+configuration-sample/ods-core.env.sample text eol=lf
