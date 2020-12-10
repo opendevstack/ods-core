@@ -70,6 +70,7 @@ func TestQuickstarter(t *testing.T) {
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
 		t.Run(quickstarterName, func(t *testing.T) {
+			t.Parallel()
 			s, err := readSteps(testdataPath)
 			if err != nil {
 				t.Fatal(err)

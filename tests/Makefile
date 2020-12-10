@@ -7,6 +7,9 @@ MAKEFLAGS += --no-builtin-rules
 ### By default we test all quickstarters located in ods-quickstarters
 QS := ods-quickstarters/...
 
+### By default we do not parallelize tests
+PARALLEL := 1
+
 ## Full test of existing ODS core installation. Caution: Creates UNITT project and ODSVERIFY project.
 test: smoketest verify test-create-projects
 .PHONY: test
@@ -32,7 +35,7 @@ test-create-projects:
 
 ## Run quickstarter tests within existing ODS installation. Depends on UNITT project.
 test-quickstarter:
-	@(./quickstarter-test.sh $(QS))
+	@(./quickstarter-test.sh $(QS) $(PARALLEL))
 .PHONY: test-quickstarter
 
 ## Install tools required for tests.
