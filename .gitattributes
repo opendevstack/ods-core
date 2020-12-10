@@ -1,4 +1,4 @@
-# Tells Git to (1) normalize line endings to LF on checkin and 
-# (2) prevent conversion to CRLF when the file is checked out.
-configuration-sample/ods-core.env text eol=lf
-configuration-sample/ods-core.env.sample text eol=lf
+# This attribute enables and controls end-of-line normalization.
+# When a text file is normalized, its line endings are converted to LF in the repository.
+configuration-sample/ods-core.env text
+configuration-sample/ods-core.env.sample text
