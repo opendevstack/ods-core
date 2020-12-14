@@ -81,7 +81,13 @@ func TestQuickstarter(t *testing.T) {
 				if len(step.ComponentID) == 0 {
 					step.ComponentID = s.ComponentID
 				}
-				fmt.Printf("Run step #%d (%s) of quickstarter %s ...\n", (i + 1), step.Type, quickstarterName)
+				fmt.Printf(
+					"Run step #%d (%s) of quickstarter %s ... %s\n",
+					(i + 1),
+					step.Type,
+					quickstarterName,
+					step.Description,
+				)
 
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
 

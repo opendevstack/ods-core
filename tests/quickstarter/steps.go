@@ -23,6 +23,8 @@ type TestSteps struct {
 type TestStep struct {
 	// Type of the step - one of "build", "provision", "upload"
 	Type string `json:"type"`
+	// Optional description to explain the step's purpose
+	Description string `json:"description"`
 	// ComponentID name for that step (overwrites global component name)
 	ComponentID string `json:"componentID"`
 	// Parameters for "provison" step type
