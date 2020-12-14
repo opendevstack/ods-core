@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -319,15 +321,28 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 
 	if verify.TestResults > 0 {
 		fmt.Printf("Verifying unit tests of %s ...\n", buildName)
-		stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/verify-jenkins-unittest-results.sh", []string{
-			buildName,
+		stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/print-jenkins-unittest-results.sh", []string{
 			utils.PROJECT_NAME_CD,
-			fmt.Sprintf("%d", verify.TestResults), // number of tests expected
+			buildName,
 		}, []string{})
-
 		if err != nil {
 			t.Fatalf("Could not find unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
 				buildName, stdout, stderr, err)
+		}
+
+		r := regexp.MustCompile("([0-9]+) tests")
+		match := r.FindStringSubmatch(stdout)
+		if match == nil {
+			t.Fatalf("Could not find any unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
+				buildName, stdout, stderr, err)
+		}
+		foundTests, err := strconv.Atoi(match[1])
+		if err != nil {
+			t.Fatalf("Could not convert number of unit tests to int: %s", err)
+		}
+		if foundTests < verify.TestResults {
+			t.Fatalf("Expected %d unit tests, but found only %d for build:%s\n",
+				verify.TestResults, foundTests, buildName)
 		}
 	}
 
