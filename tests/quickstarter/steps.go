@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/opendevstack/ods-core/tests/utils"
 )
 
 // TestSteps defines the steps the test runner should execute.
@@ -23,6 +24,8 @@ type TestSteps struct {
 type TestStep struct {
 	// Type of the step - one of "build", "provision", "upload"
 	Type string `json:"type"`
+	// Optional description to explain the step's purpose
+	Description string `json:"description"`
 	// ComponentID name for that step (overwrites global component name)
 	ComponentID string `json:"componentID"`
 	// Parameters for "provison" step type
@@ -58,6 +61,8 @@ type TestStepProvisionParams struct {
 	// Jenkins Shared library Git reference.
 	// Defaults to AgentImageTag.
 	SharedLibraryRef string `json:"sharedLibraryRef"`
+	// Additional environment variables
+	Env []utils.EnvPair `json:"env"`
 	// Verify parameters.
 	Verify *TestStepVerify `json:"verify"`
 }

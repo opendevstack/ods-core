@@ -81,7 +81,13 @@ func TestQuickstarter(t *testing.T) {
 				if len(step.ComponentID) == 0 {
 					step.ComponentID = s.ComponentID
 				}
-				fmt.Printf("Run step #%d (%s) of quickstarter %s ...\n", (i + 1), step.Type, quickstarterName)
+				fmt.Printf(
+					"Run step #%d (%s) of quickstarter %s ... %s\n",
+					(i + 1),
+					step.Type,
+					quickstarterName,
+					step.Description,
+				)
 
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
 
@@ -138,44 +144,45 @@ func TestQuickstarter(t *testing.T) {
 					if len(step.ProvisionParams.SharedLibraryRef) > 0 {
 						sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
 					}
+					env := []utils.EnvPair{
+						{
+							Name:  "ODS_NAMESPACE",
+							Value: config["ODS_NAMESPACE"],
+						},
+						{
+							Name:  "ODS_GIT_REF",
+							Value: config["ODS_GIT_REF"],
+						},
+						{
+							Name:  "ODS_IMAGE_TAG",
+							Value: config["ODS_IMAGE_TAG"],
+						},
+						{
+							Name:  "AGENT_IMAGE_TAG",
+							Value: agentImageTag,
+						},
+						{
+							Name:  "SHARED_LIBRARY_REF",
+							Value: sharedLibraryRef,
+						},
+						{
+							Name:  "PROJECT_ID",
+							Value: utils.PROJECT_NAME,
+						},
+						{
+							Name:  "COMPONENT_ID",
+							Value: step.ComponentID,
+						},
+						{
+							Name:  "GIT_URL_HTTP",
+							Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
+						},
+					}
 					request = utils.RequestBuild{
 						Repository: "ods-quickstarters",
 						Branch:     branch,
 						Project:    config["ODS_BITBUCKET_PROJECT"],
-						Env: []utils.EnvPair{
-							{
-								Name:  "ODS_NAMESPACE",
-								Value: config["ODS_NAMESPACE"],
-							},
-							{
-								Name:  "ODS_GIT_REF",
-								Value: config["ODS_GIT_REF"],
-							},
-							{
-								Name:  "ODS_IMAGE_TAG",
-								Value: config["ODS_IMAGE_TAG"],
-							},
-							{
-								Name:  "AGENT_IMAGE_TAG",
-								Value: agentImageTag,
-							},
-							{
-								Name:  "SHARED_LIBRARY_REF",
-								Value: sharedLibraryRef,
-							},
-							{
-								Name:  "PROJECT_ID",
-								Value: utils.PROJECT_NAME,
-							},
-							{
-								Name:  "COMPONENT_ID",
-								Value: step.ComponentID,
-							},
-							{
-								Name:  "GIT_URL_HTTP",
-								Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
-							},
-						},
+						Env:        append(env, step.ProvisionParams.Env...),
 					}
 					// If quickstarter is overwritten, use that value. Otherwise
 					// we use the quickstarter under test.
@@ -195,7 +202,7 @@ func TestQuickstarter(t *testing.T) {
 						Repository: repoName,
 						Branch:     branch,
 						Project:    utils.PROJECT_NAME,
-						Env:        []utils.EnvPair{},
+						Env:        step.BuildParams.Env,
 					}
 					jenkinsfile = "Jenkinsfile"
 					pipelineName = step.BuildParams.Pipeline
