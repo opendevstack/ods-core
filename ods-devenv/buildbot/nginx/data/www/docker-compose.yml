@@ -1,0 +1,14 @@
+version: '3'
+services:
+  proxy:
+    container_name: proxy
+    image: reverse-proxy:latest
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - "/home/centos/opendevstack/packer_build_result:/data/images"
+    networks:
+    - net
+networks:
+  net:
