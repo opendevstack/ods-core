@@ -12,3 +12,4 @@ services:
     - net
 networks:
   net:
+  
