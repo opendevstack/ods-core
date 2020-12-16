@@ -204,7 +204,8 @@ function setupBuildbot() {
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-    sudo yum -y install glances golang jq packer tree vim zip unzip
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    sudo yum -y install containerd.io docker-ce docker-ce-cli glances golang jq packer tree vim zip unzip
     cd tmp
     # install aws cli
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
