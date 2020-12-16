@@ -5,60 +5,78 @@
 
 == What is OpenDevStack?
 
-When we started with https://www.openshift.com/[RedHat's OpenShift] we were blown away by the 100s of possibilities to use it, but there was not anything along the lines of "This is how you make it work for your org". Its catalog provides items for almost everything - yet what we wanted is to enable people to quickly introduce Continous Delivery and standardized technology archetypes. We call this lean, empowered governance.
+When we started with the OpenShift container platform we were blown away by the 100s of possibilities to use it, but there was nothing along the lines of "`This is how you make it work for your org`". What we wanted is to enable developers to quickly introduce Continous Delivery and standardized technology archetypes. We call this lean, empowered governance.
 
-So what does OpenDevStack provide?
+OpenDevStack (ODS) is how we achieve this. It is, to a large extent, tooling sitting in between your local software development (your machine/editor), and the running software in the target environemnt (OpenShift etc.). As such, most of ODS functionality is within and related to the CI/CD process.
 
-- Everyting you need for CI infrastructure (Jenkins images, SonarQube, Nexus).
-- Ansible playbooks to install the Atlassian suite (Jira, Bitbucket, Confluence, Crowd).
-- A shared xref:jenkins-shared-library:index.adoc[jenkins library] that harmonizes the way you build, test, govern and deploy.
-- A set of xref:quickstarters:index.adoc[technology quickstarters] that provide complete CI/CD integration, w/o anything to worry about for the engineer.
-- A small xref:provisioning-app:index.adoc[provisioning application] that gives you one place to start, no matter if you want to start a new project, or enhance an existing one with a quickstarter.
+== What ODS isn't
 
-== Using OpenDevStack
-=== Create a new project
+* ODS has no overlap with your local environment, such as the editor you use to develop software.
+* ODS is not a project management solution, rather it makes use of the Atlassian suite (Jira, Confluence, Bitbucket).
+* ODS does not run your software application. ODS only deploys your software into a target environment (= OpenShift, but deployment could really be anywhere, such as AWS etc.).
+* ODS is not a replacement for tools in the container space - rather it is one coherent offering of a selection of existing (open-source) tools.
 
-Trigger project creation through the xref:provisioning-app:index.adoc[provisioning application] to get a new project. The web GUI of the provisioning app is located at `https://prov-app-ods.example.com`.
+== High-Level Overview of ODS
 
-When "Create Openshift Project" is checked, this will also create OpenShift projects, namely `<project-key>-dev` and `<project-key>-test`.
-A Jenkins deployment will be created in the `<project-key>-cd` project to allow each project full freedom of build management. This deployment is based on a common Jenkins image from the central ODS namespace.
+ODS is comprised of core functionality, and a configurable set of so-called quickstarters. Quickstarters can be seen as software templates, which can be instantiated in your project to create a component of your application quickly, with all the integration / configuration setup out-of-the box. The xref:quickstarters:index.adoc[officially supplied quickstarters] include, but are not limited to: Java (Spring Boot), Python (Flask), Scala (Play), Go, Angular, Ionic, Jupyter, RShiny.
 
-=== Create a new component within a project (using a quickstarter)
+The core ODS functionality offers the following:
 
-Open the web GUI of the provisioning app `https://prov-app-ods.example.com`.
-Select your project, then choose a xref:quickstarters:index.adoc[quickstarter]. If no framework fits to your needs, choose the xref:quickstarters:docker-plain.adoc[docker-plain quickstarter].
+* A central xref:provisioning-app:index.adoc[provisioning application] (the "`entry point of ODS`") which allows to:
+  1. provision new projects and
+  2. provision components from aforementioned quickstarters within those projects
+* A central Nexus instance to store and retrieve software artefacts.
+* A central xref:sonarqube:index.adoc[SonarQube] instance to statically analyze the software components of a project.
+* Customized xref:jenkins:master.adoc[Jenkins Master] and xref:jenkins:agent-base.adoc[Jenkins agent base] images that are integrated with e.g. Bitbucket, OpenShift, Nexus and SonarQube. Each project runs its own Jenkins Master instance using the centrally provided image.
+* A xref:jenkins-shared-library:index.adoc[Jenkins Shared Library] which can be used from each software component to cover most CI/CD functionality. The shared library offers all language-agnostic features, such as checking out source code, running static analysis, building container images, and deploying artefacts into the target environment. Each component only needs to add in their `Jenkinsfile` language-specific functionality such as building artefacts (e.g. JAR files).
+* A xref:quickstarters:release-manager.adoc[release manager] component which can be installed in each project to generate GxP documents from Jenkins pipeline runs (through the use of a centrally provided document generation service image).
 
-After provisioning the quickstarter, you'll have a new repository in your BitBucket project with the boilerplate of the component. From that, a Jenkins job is triggered automatically (via a webhook setup in Bitbucket) which builds and deploys the boilerplate application into the `<project-key>-dev` project.
+Quickstarters provide the following:
+
+* Jenkins agent images that can be used during pipeline runs to build a specific language / framework
+* Boilerplate of a specific language / framework with a "Hello World" example
+* A `Jenkinsfile` integrating the Jenkins shared library and providing basic artefact building for the specific language / framework
+* Integration with SonarQube, Nexus, OpenShift etc. as required
+
+When quickstarters are provisioned through the provisioning application, a repository is created on Bitbucket for the new component. The repository is populated with the boilerplate, and immediately built and deployed via Jenkins through the ODS integration. Developers can start to work on features straight away without setting up CI/CD and integrating various services.
 
 == Parts of OpenDevStack
+The following pictures the different parts ODS is made out of:
+
 image::documentation/opendevstack/opendevstack_parts.png[OpenDevStackParts]
 
 == Journey: From Commit To Deployment
+Below is a diagram detailing the flow of an OpenDevStack CI/CD pipeline:
+
 image::documentation/opendevstack/from_commit_to_deployment.png[OpenDevStack Journey From Commit to Deployment]
 
 == Versioning
 
-Major releases of OpenDevStack happen roughly every half year. Each major release is identified by a version such as `2`, `3`, `4` and so on. As a consumer of OpenDevStack, you can either:
+Each major ODS release is identified by a version such as `2`, `3`, `4` and so on. Administrators of ODS can either:
 
-- point to `master` to follow the cutting edge
-- point to `2.x`, `3.x`, etc. to stay on a major version, but get bug fixes (minor versions)
-- point to `v2.0`, `v3.0`, etc. to pin an exact version
+- install from `master` to follow the cutting edge
+- install from `2.x`, `3.x`, etc. branches to stay on a major version, but get bug fixes (minor versions)
+- install from `v2.0.0`, `v3.0.0`, etc. tags to pin an exact version
 - use a custom branch / tag such as `2.acme` or `3.custom` etc. to run ODS with customizations
 
-A major update (e.g. `2.x` to `3.x` or `3.x` to `4.x`) is, from a user perspective, an explicit update. This means that even if admins update the ODS installation in the cluster, users still have to adopt that change (e.g. by updating their Jenkins image reference and so on). Therefore, a major version change is accompanied by an update guide like xref:update-guides:3x.adoc[Update to 3.x]. For admins, a major update might mean that configuration options have to be changed or migration steps to be taken, as well as rebuilding and rolling out all images etc.
+Users of ODS simply consume the version installed by their ODS administrators.
 
-A minor update (consuming changes/bugfixs on a release branch such as 3.x). From a user perspective, this is an implicit update. This means that only admins have to make a change to the ODS installation in the cluster. Users must get those changes automatically, without the need to explicitly adopt it. Therefore, there is no update guide for minor updates. For admins, a minor update should not require changing configuration options nor performing migration steps - only rebuilding and rolling out some (or all) images should be needed.
+A major update (e.g. `2.x` to `3.x` or `3.x` to `4.x`) is, from a user perspective, an explicit update. This means that although admins update the ODS installation in the cluster, users still have to explicitly adopt that change (e.g. by updating their Jenkins image reference and so on). Therefore, a major version change is accompanied by an update guide like xref:update-guides:3x.adoc[Update to 3.x]. For admins, a major update might mean that configuration options have to be changed or migration steps have to be taken, as well as rebuilding and rolling out all images etc.
+
+A minor update (consuming changes/bugfixs on a release branch such as 3.x) is, from a user perspective, an implicit update. This means that only admins have to make a change to the ODS installation in the cluster. Users should get those changes automatically, without the need to explicitly adopt it. Therefore, there is no update guide for minor updates. For admins, a minor update should (typically) not require changing configuration options nor performing migration steps - only rebuilding and rolling out some (or all) images should be needed.
 
 == Roadmap
 
 Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHub project]. The current major version is 3, the next one will be 4.
 
-=== https://github.com/orgs/opendevstack/projects/10[4] (Target date: December 2020)
+=== https://github.com/orgs/opendevstack/projects/10[4] (Target date: Early 2021)
 
 Planned work (subject to change):
 
 - OpenShift 4 support (keeping 3.11 compatibility)
-- Support deploying to multiple Q/P clusters in the orchestration pipeline
+- Support for Kubernetes-native Deployment resources
+- Support for Helm 3
+- Deployment to multiple D/Q/P namespaces/clusters
 - New/Reworked machine learning quickstarter
 - Integration with Aqua Security
 - Implement health checks for quickstarters
