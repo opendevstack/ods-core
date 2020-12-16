@@ -206,6 +206,10 @@ function setupBuildbot() {
     sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum -y install containerd.io docker-ce docker-ce-cli glances golang jq packer tree vim zip unzip
+    sudo systemctl start docker
+    sudo groupadd docker || true
+    sudo gpasswd -a $USER docker
+    newgrp docker
     cd tmp
     # install aws cli
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -224,6 +228,8 @@ function setupBuildbot() {
     go install
     cp ./scripts/.buildbotrc "/home/${buildbotUser}"/
     cp ./scripts/runAmiBuild.sh "/home/${buildbotUser}"/bin
+    cd nginx
+    docker image build --tag reverse-proxy:latest .
     cd "/home/${buildbotUser}" || exit 1
     sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
     sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
