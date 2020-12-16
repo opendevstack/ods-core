@@ -205,10 +205,12 @@ function setupBuildbot() {
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum -y install containerd.io docker-ce docker-ce-cli glances golang jq packer tree vim zip unzip
+    sudo yum -y install containerd.io docker-ce docker-ce-cli glances golang jq packer tmux tree vim wget zip unzip
     sudo systemctl start docker
     sudo groupadd docker || true
     sudo gpasswd -a $USER docker
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
     newgrp docker
     cd tmp
     # install aws cli
@@ -230,6 +232,10 @@ function setupBuildbot() {
     cp ./scripts/runAmiBuild.sh "/home/${buildbotUser}"/bin
     cd nginx
     docker image build --tag reverse-proxy:latest .
+    docker-compose up -d
+    # install build badge templates to packer_build_result folder
+    cd ../imgs
+    cp -v *.svg "/home/${buildbotUser}/opendevstack/packer_build_result/"
     cd "/home/${buildbotUser}" || exit 1
     sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
     sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
@@ -252,6 +258,8 @@ SETUP_SCRIPT
 
     echo "Now, log into the buildbot and finish configuration by running:"
     echo "aws configure"
+    echo "Download ngrok and configure the ngrok auth token for enhanced session handling"
+    echo "./ngrok authtoken __your_ngrok_auth_token__"
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
