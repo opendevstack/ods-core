@@ -203,17 +203,26 @@ function setupBuildbot() {
     set -x
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install glances golang jq tree vim
+    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    sudo yum -y install glances golang jq packer tree vim zip unzip
+    cd tmp
+    # install aws cli
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+    rm -rf aws*
+    # install buildbot
     cd "/home/${buildbotUser}" || exit 1
     # shellcheck disable=SC2016
     # shellcheck disable=SC1091
     source /home/centos/.bashrc
-    mkdir -p opendevstack
+    mkdir -p bin logs opendevstack/builds opendevstack/packer_build_result tmp
     cd opendevstack || exit 1
     git clone https://github.com/opendevstack/ods-core.git
     cd ods-core/ods-devenv/buildbot || exit 1
     go install
-    cp ./.buildbotrc "/home/${buildbotUser}"/
+    cp ./scripts/.buildbotrc "/home/${buildbotUser}"/
+    cp ./scripts/runAmiBuild.sh "/home/${buildbotUser}"/bin
     cd "/home/${buildbotUser}" || exit 1
     sed -i "s|branch=master|branch=${branchesToBuild}|" "/home/${buildbotUser}/.buildbotrc"
     sed -i "s|aws_access_key=|aws_access_key=${awsAccessKey}|" "/home/${buildbotUser}/.buildbotrc"
@@ -233,6 +242,9 @@ SETUP_SCRIPT
     echo "export PATH=${HOME}/go/bin:"'$PATH' >> "${HOME}/.bashrc"
 
 SETUP_SCRIPT
+
+    echo "Now, log into the buildbot and finish configuration by running:"
+    echo "aws configure"
 }
 
 function waitOnBuildbotEC2InstanceToBecomeAvailable() {
