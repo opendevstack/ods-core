@@ -409,7 +409,9 @@ function setup_rdp() {
 #######################################
 function install_docker() {
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum -y install docker-ce docker-ce-cli containerd.io
+    echo "installing docker-ce packages"
+    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
+    echo "enabling docker in systemctl"
     sudo systemctl enable --now docker
 
     echo "updating docker insecure registries"

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -70,6 +72,7 @@ func TestQuickstarter(t *testing.T) {
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
 		t.Run(quickstarterName, func(t *testing.T) {
+			t.Parallel()
 			s, err := readSteps(testdataPath)
 			if err != nil {
 				t.Fatal(err)
@@ -80,7 +83,13 @@ func TestQuickstarter(t *testing.T) {
 				if len(step.ComponentID) == 0 {
 					step.ComponentID = s.ComponentID
 				}
-				fmt.Printf("Run step #%d (%s) of quickstarter %s ...\n", (i + 1), step.Type, quickstarterName)
+				fmt.Printf(
+					"Run step #%d (%s) of quickstarter %s ... %s\n",
+					(i + 1),
+					step.Type,
+					quickstarterName,
+					step.Description,
+				)
 
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
 
@@ -137,44 +146,45 @@ func TestQuickstarter(t *testing.T) {
 					if len(step.ProvisionParams.SharedLibraryRef) > 0 {
 						sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
 					}
+					env := []utils.EnvPair{
+						{
+							Name:  "ODS_NAMESPACE",
+							Value: config["ODS_NAMESPACE"],
+						},
+						{
+							Name:  "ODS_GIT_REF",
+							Value: config["ODS_GIT_REF"],
+						},
+						{
+							Name:  "ODS_IMAGE_TAG",
+							Value: config["ODS_IMAGE_TAG"],
+						},
+						{
+							Name:  "AGENT_IMAGE_TAG",
+							Value: agentImageTag,
+						},
+						{
+							Name:  "SHARED_LIBRARY_REF",
+							Value: sharedLibraryRef,
+						},
+						{
+							Name:  "PROJECT_ID",
+							Value: utils.PROJECT_NAME,
+						},
+						{
+							Name:  "COMPONENT_ID",
+							Value: step.ComponentID,
+						},
+						{
+							Name:  "GIT_URL_HTTP",
+							Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
+						},
+					}
 					request = utils.RequestBuild{
 						Repository: "ods-quickstarters",
 						Branch:     branch,
 						Project:    config["ODS_BITBUCKET_PROJECT"],
-						Env: []utils.EnvPair{
-							{
-								Name:  "ODS_NAMESPACE",
-								Value: config["ODS_NAMESPACE"],
-							},
-							{
-								Name:  "ODS_GIT_REF",
-								Value: config["ODS_GIT_REF"],
-							},
-							{
-								Name:  "ODS_IMAGE_TAG",
-								Value: config["ODS_IMAGE_TAG"],
-							},
-							{
-								Name:  "AGENT_IMAGE_TAG",
-								Value: agentImageTag,
-							},
-							{
-								Name:  "SHARED_LIBRARY_REF",
-								Value: sharedLibraryRef,
-							},
-							{
-								Name:  "PROJECT_ID",
-								Value: utils.PROJECT_NAME,
-							},
-							{
-								Name:  "COMPONENT_ID",
-								Value: step.ComponentID,
-							},
-							{
-								Name:  "GIT_URL_HTTP",
-								Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
-							},
-						},
+						Env:        append(env, step.ProvisionParams.Env...),
 					}
 					// If quickstarter is overwritten, use that value. Otherwise
 					// we use the quickstarter under test.
@@ -194,7 +204,7 @@ func TestQuickstarter(t *testing.T) {
 						Repository: repoName,
 						Branch:     branch,
 						Project:    utils.PROJECT_NAME,
-						Env:        []utils.EnvPair{},
+						Env:        step.BuildParams.Env,
 					}
 					jenkinsfile = "Jenkinsfile"
 					pipelineName = step.BuildParams.Pipeline
@@ -311,15 +321,28 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 
 	if verify.TestResults > 0 {
 		fmt.Printf("Verifying unit tests of %s ...\n", buildName)
-		stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/verify-jenkins-unittest-results.sh", []string{
-			buildName,
+		stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/print-jenkins-unittest-results.sh", []string{
 			utils.PROJECT_NAME_CD,
-			fmt.Sprintf("%d", verify.TestResults), // number of tests expected
+			buildName,
 		}, []string{})
-
 		if err != nil {
 			t.Fatalf("Could not find unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
 				buildName, stdout, stderr, err)
+		}
+
+		r := regexp.MustCompile("([0-9]+) tests")
+		match := r.FindStringSubmatch(stdout)
+		if match == nil {
+			t.Fatalf("Could not find any unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
+				buildName, stdout, stderr, err)
+		}
+		foundTests, err := strconv.Atoi(match[1])
+		if err != nil {
+			t.Fatalf("Could not convert number of unit tests to int: %s", err)
+		}
+		if foundTests < verify.TestResults {
+			t.Fatalf("Expected %d unit tests, but found only %d for build:%s\n",
+				verify.TestResults, foundTests, buildName)
 		}
 	}
 
