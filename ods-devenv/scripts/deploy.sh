@@ -202,20 +202,28 @@ function setup_dnsmasq() {
     fi
 
     sudo chattr -i /etc/resolv.conf
-    sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
 
     local counter
     counter=0
-    while ! grep "${public_hostname}" /etc/resolv.conf
+    local fallbackServer
+    # until somebody finds the correct syntax for ${public_hostname/[0-9]+$/2} ignore SC2001
+    # shellcheck disable=SC2001
+    fallbackServer=$(echo "${public_hostname}" | sed 's/.[0-9]\+$/.2/')
+    while ! grep --silent "${public_hostname}" /etc/resolv.conf || ! grep --silent "${fallbackServer}" /etc/resolv.conf
     do
         if [[ ${counter} -gt 10 ]]
         then
             echo "ERROR: could not update /etc/resolv.conf. Aborting."
             exit 1
         fi
-        echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
+        if [[ ${counter} -gt 1 ]]
+        then
+            echo "WARN: could not write nameserver ${public_hostname} to /etc/resolv.conf"
+        fi
         sleep 1
         sudo sed -i "s|nameserver .*$|nameserver ${public_hostname}|" /etc/resolv.conf || true
+        echo 'Add nameserver listening on ip ###.###.###.2 as fallback ns in case the EC2 instance is hosted on an AWS VPC'
+        echo "nameserver ${fallbackServer}" | sudo tee -a /etc/resolv.conf
         counter=$((counter + 1))
     done
 
