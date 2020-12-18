@@ -1,10 +1,23 @@
 #!/bin/bash
-#
+
+#######################################
+# Run this script in the EDP server
+# ./build-client-profile.sh {EC2_INSTANCE} client1 > clientProfile.ovpn
+# This script is to generate the OpenVPN client profile for the EDP in a box.
+# This profile can be used from an openvpn-connect client
+# (see https://openvpn.net/downloads/openvpn-connect-v3-windows.msi)
+# Arguments:
+#   - The server address
+#   - The client certificate name (/etc/openvpn/easy-rsa/keys/${2?}.crt)
+# Returns:
+#   Output the profile to be used by the ovpn client
+#######################################
+
 server=${1?"The server address is required"}
 protocol=udp
 port=1194
 cacert=/etc/openvpn/easy-rsa/keys/ca.crt
-client_cert=/etc/openvpn/easy-rsa/keys/${2?"The path to the client certificate file is required"}.crt
+client_cert=/etc/openvpn/easy-rsa/keys/${2?"The client certificate name is required"}.crt
 client_key=/etc/openvpn/easy-rsa/keys/${2}.key
 tls_key=/etc/openvpn/easy-rsa/keys/ta.key
 
@@ -33,12 +46,12 @@ cat << EOF
 </ca>
 <cert>
 EOF
-cat ${client_cert} | sed -n '/.*BEGIN.*/, /.*END.*/p'
+sed -n '/.*BEGIN.*/, /.*END.*/p' "${client_cert}"
 cat << EOF
 </cert>
 <key>
 EOF
-cat ${client_key}
+cat "${client_key}"
 cat << EOF
 </key>
 EOF
@@ -50,7 +63,7 @@ remote-cert-tls server
 key-direction 1
 <tls-auth>
 EOF
-cat ${tls_key} | sed -n '/.*BEGIN.*/, /.*END.*/p'
+sed -n '/.*BEGIN.*/, /.*END.*/p' "${tls_key}"
 cat << EOF
 </tls-auth>
 EOF
