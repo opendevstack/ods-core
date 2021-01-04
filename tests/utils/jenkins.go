@@ -108,10 +108,10 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 	build, err := buildClient.Builds(jenkinsNamespace).Get(buildName, metav1.GetOptions{})
 	count := 0
 	// especially provision builds with CLIs take longer ...
-	max := 180
+	max := 400
 	for (err != nil || build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning) && count < max {
 		build, err = buildClient.Builds(jenkinsNamespace).Get(buildName, metav1.GetOptions{})
-		time.Sleep(45 * time.Second)
+		time.Sleep(20 * time.Second)
 		if err != nil {
 			fmt.Printf("Err Build: %s is still not available, %s\n", buildName, err)
 			// try to refresh the client - sometimes the token does expire...
