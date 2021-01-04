@@ -13,7 +13,7 @@ require (
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/openshift/api v3.9.0+incompatible
+	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.8.1 // indirect
