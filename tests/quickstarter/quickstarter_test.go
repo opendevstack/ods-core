@@ -67,6 +67,7 @@ func TestQuickstarter(t *testing.T) {
 	}
 	for _, quickstarterPath := range quickstarterPaths {
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
+		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
 		// Run each quickstarter test in a subtest to avoid exiting early
@@ -84,9 +85,10 @@ func TestQuickstarter(t *testing.T) {
 					step.ComponentID = s.ComponentID
 				}
 				fmt.Printf(
-					"Run step #%d (%s) of quickstarter %s ... %s\n",
+					"Run step #%d (%s) of quickstarter %s/%s ... %s\n",
 					(i + 1),
 					step.Type,
+					quickstarterRepo,
 					quickstarterName,
 					step.Description,
 				)
@@ -181,7 +183,7 @@ func TestQuickstarter(t *testing.T) {
 						},
 					}
 					request = utils.RequestBuild{
-						Repository: "ods-quickstarters",
+						Repository: quickstarterRepo,
 						Branch:     branch,
 						Project:    config["ODS_BITBUCKET_PROJECT"],
 						Env:        append(env, step.ProvisionParams.Env...),
