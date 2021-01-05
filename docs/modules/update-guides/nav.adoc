@@ -1,4 +1,5 @@
 * Update Guides
+** xref:update-guides:4x.adoc[Migrate to 4.x]
 ** xref:update-guides:3x.adoc[Migrate to 3.x]
 ** xref:update-guides:2x.adoc[Migrate to 2.x]
 
