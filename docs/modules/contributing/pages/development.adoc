@@ -1,4 +1,4 @@
 = Development Guide
 
-Please refer to the https://raw.githubusercontent.com/opendevstack/PMC/master/CONTRIBUTING.adoc[contribution guide in the PMC repository].
+Please refer to the https://github.com/opendevstack/PMC/blob/master/CONTRIBUTING.adoc[contribution guide in the PMC repository].
 
