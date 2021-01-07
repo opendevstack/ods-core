@@ -44,8 +44,14 @@ oc start-build -n ${NAMESPACE} ${BUILD_CONFIG} --follow
 LAST_VERSION=$(oc -n ${NAMESPACE} get bc ${BUILD_CONFIG} -o jsonpath='{.status.lastVersion}')
 BUILD_ID="${BUILD_CONFIG}-${LAST_VERSION}"
 
-until [[ $(oc -n ${NAMESPACE} get build ${BUILD_ID} -o jsonpath='{.status.phase}') == 'Complete' ]]
+BUILD_STATUS=
+until [[ "${BUILD_STATUS}" == "Complete" ]]
 do
+    BUILD_STATUS=$(oc -n ${NAMESPACE} get build ${BUILD_ID} -o jsonpath='{.status.phase}')
+    if [ "${BUILD_STATUS}" == "Failed" ]; then
+      echo "Build ${BUILD_ID} has failed."
+      exit 1
+    fi    
     printf .
     sleep 3
 done
