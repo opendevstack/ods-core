@@ -21,6 +21,7 @@
 - Add SonarQube readiness probe ([#495](https://github.com/opendevstack/ods-core/pull/495))
 
 ### Changed
+- Updated start-and-follow-build script to wait for OpenShift build to complete sucessfully ([#939](https://github.com/opendevstack/ods-core/pull/939))
 - Improve install documentation ([#730](https://github.com/opendevstack/ods-core/issues/730))
 - Update proxy.groovy ([#691](https://github.com/opendevstack/ods-core/pull/691))
 - Assign self-provisioner role to Jenkins serviceaccount ([#529](https://github.com/opendevstack/ods-core/pull/529))

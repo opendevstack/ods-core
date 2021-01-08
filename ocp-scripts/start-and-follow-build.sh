@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Start build of given image and follows the output.
-# After build finishes, we verify status is "Complete".
+# Depending on the VM available resources, the build process might take longer than expected.
+# Instead of hard-coding a timeout value and hope for the build to complete within that time frame, simply wait for the build to complete successfully.
 
 set -ue
 
@@ -43,13 +44,17 @@ oc start-build -n ${NAMESPACE} ${BUILD_CONFIG} --follow
 LAST_VERSION=$(oc -n ${NAMESPACE} get bc ${BUILD_CONFIG} -o jsonpath='{.status.lastVersion}')
 BUILD_ID="${BUILD_CONFIG}-${LAST_VERSION}"
 
-for i in 1 2 3; do
-  BUILD_STATUS=$(oc -n ${NAMESPACE} get build ${BUILD_ID} -o jsonpath='{.status.phase}')
-  if [ "${BUILD_STATUS}" == "Complete" ]; then
-    echo "Build ${BUILD_ID} is complete."
-    exit 0
-  fi
-  sleep 3
+BUILD_STATUS=
+until [[ "${BUILD_STATUS}" == "Complete" ]]
+do
+    BUILD_STATUS=$(oc -n ${NAMESPACE} get build ${BUILD_ID} -o jsonpath='{.status.phase}')
+    if [ "${BUILD_STATUS}" == "Failed" ]; then
+      echo "Build ${BUILD_ID} has failed."
+      exit 1
+    fi    
+    printf .
+    sleep 3
 done
-echo "Please, check build ${BUILD_ID} since it seems failed/not completed."
-exit 1
+
+echo "Build ${BUILD_ID} is complete."
+exit 0
