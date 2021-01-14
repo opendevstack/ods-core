@@ -4,6 +4,7 @@
 
 ### Added
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
+- Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
 
 ## [3.0] - 2020-08-11
 
