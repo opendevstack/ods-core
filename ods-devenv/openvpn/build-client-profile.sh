@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #######################################
-# Run this script in the EDP server
-# ./build-client-profile.sh {EC2_INSTANCE} client1 > clientProfile.ovpn
-# This script is to generate the OpenVPN client profile for the EDP in a box.
+# Run this script in your EDP / ODS box
+# to generate the OpenVPN client profile for the EDP in a box.
 # This profile can be used from an openvpn-connect client
 # (see https://openvpn.net/downloads/openvpn-connect-v3-windows.msi)
 # Arguments:
@@ -11,6 +10,8 @@
 #   - The client certificate name (/etc/openvpn/easy-rsa/keys/${2?}.crt)
 # Returns:
 #   Output the profile to be used by the ovpn client
+# Example
+#   bash build-client-profile.sh {EC2_INSTANCE} client1 > /home/openshift/clientProfile.ovpn
 #######################################
 
 server=${1?"The server address is required"}
@@ -22,7 +23,7 @@ client_key=/etc/openvpn/easy-rsa/keys/${2}.key
 tls_key=/etc/openvpn/easy-rsa/keys/ta.key
 
 if [ "$#" -lt 2 ]; then
-    echo "params: <server address> <client>"
+    echo "params: <server address> <client-cert-name>"
     exit 1
 fi
 
