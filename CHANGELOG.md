@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 
 ## [3.0] - 2020-08-11
