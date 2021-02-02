@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add script to generate the OpenVPN client profile for the EDP in a box
 
 ### Added
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
