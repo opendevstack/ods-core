@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #######################################
-# Run this script in your EDP / ODS box
-# to generate the OpenVPN client profile for the EDP in a box.
+# Run this script in your ODS box
+# to generate the OpenVPN client profile for the ODS in a box.
 # This profile can be used from an openvpn-connect client
 # (see https://openvpn.net/downloads/openvpn-connect-v3-windows.msi)
 # Arguments:
