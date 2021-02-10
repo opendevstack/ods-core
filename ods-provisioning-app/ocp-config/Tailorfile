@@ -3,6 +3,7 @@ selector app=ods-provisioning-app
 param-file ../../../ods-configuration/ods-core.env
 preserve cm:quickstarters.properties:/data
 preserve pvc:/spec/volumeMode
+preserve pvc:/metadata/annotations/volume.beta.kubernetes.io/storage-class
 preserve-immutable-fields true
 ignore-unknown-parameters true
 

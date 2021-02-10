@@ -4,5 +4,6 @@ param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 preserve-immutable-fields true
 preserve pvc:/spec/volumeMode
+preserve pvc:/metadata/annotations/volume.beta.kubernetes.io/storage-class
 
 dc,is,pvc,route,svc
