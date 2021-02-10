@@ -16,7 +16,6 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     finalizers:
     - kubernetes.io/pvc-protection
@@ -27,4 +26,5 @@ objects:
     resources:
       requests:
         storage: ${PROV_APP_HISTORY_CAPACITY}
+    storageClassName: ${STORAGE_CLASS_DATA}
     volumeMode: Filesystem
