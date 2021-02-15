@@ -30,23 +30,17 @@
     ],
     "provisioners": [
         {
-            "type": "shell",
-            "inline": [
-                "echo 'Create .ssh directory'",
-                "mkdir -p ~/.ssh",
-                "chmod go-xrw ~/.ssh",
-                "echo '...done!'"
-            ]
-        },
-        {
             "type": "file",
             "source": "{{user `pub_key`}}",
-            "destination": "~/.ssh/odsbox.pub"
+            "destination": "~/tmp/odsbox.pub"
         },
         {
             "type": "shell",
             "inline": [
                 "echo 'Adding odsbox.pub to authorized keys'",
+                "mkdir -p ~/.ssh",
+                "chmod go-xrw ~/.ssh",
+                "mv ~/tmp/odsbox.pub ~/.ssh/odsbox.pub",
                 "touch ~/.ssh/authorized_keys",
                 "cat ~/.ssh/odsbox.pub >> ~/.ssh/authorized_keys",
                 "chmod go-xrw ~/.ssh/*",

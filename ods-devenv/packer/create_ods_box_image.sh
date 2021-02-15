@@ -4,7 +4,7 @@ aws_access_key=
 aws_secret_key=
 
 # default public key to be added to the odsbox authorized_keys
-pub_key=ods-devenv/packer/odsbox.pub
+pub_key=
 
 ods_branch=master
 
@@ -206,6 +206,15 @@ function create_ods_box_ami() {
         echo "done."
         exit 0
     else
+        if [[ -z ${pub_key:=""} ]]; then
+            pub_key="not-valid.pub"
+            echo "A public key was not provided... creating not-valid.pub file ($pub_key) as placeholder!"
+            echo "#define the pub_key parameter to be able to include your public key" > $pub_key
+            pwd
+            cat $pub_key
+            echo "... done: created placeholder not-valid.pub file ($pub_key)!"
+        fi
+
         time packer build -on-error=ask \
             -var "aws_access_key=${aws_access_key}" \
             -var "aws_secret_key=${aws_secret_key}" \
