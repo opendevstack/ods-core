@@ -33,5 +33,5 @@ build_path="${HOME}/opendevstack/builds"
 build_result_path="${HOME}/opendevstack/packer_build_result"
 
 # path to public key to be injected in AMI images
-# e.g pub_key=~/.ssh/jenkins.pub
-pub_key=
+# e.g pub-key=~/.ssh/jenkins.pub
+pub-key=
