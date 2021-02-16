@@ -1,7 +1,8 @@
 {
     "variables": {
         "aws_access_key": "",
-        "aws_secret_key": ""
+        "aws_secret_key": "",
+        "pub_key": ""
     },
     "builders": [
         {
@@ -28,6 +29,25 @@
         }
     ],
     "provisioners": [
+        {
+            "type": "file",
+            "source": "{{user `pub_key`}}",
+            "destination": "~/tmp/odsbox.pub"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo 'Adding odsbox.pub to authorized keys'",
+                "mkdir -p ~/.ssh",
+                "chmod go-xrw ~/.ssh",
+                "mv ~/tmp/odsbox.pub ~/.ssh/odsbox.pub",
+                "touch ~/.ssh/authorized_keys",
+                "cat ~/.ssh/odsbox.pub >> ~/.ssh/authorized_keys",
+                "chmod go-xrw ~/.ssh/*",
+                "ls -lart ~/.ssh",
+                "echo '...done!'"
+            ]
+        },
         {
             "type": "file",
             "source": "ods-devenv/ods-service/startup_ods.sh",
