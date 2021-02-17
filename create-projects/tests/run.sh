@@ -47,10 +47,6 @@ oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-test' --times 1
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd' --times 1
 
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-dev' --times 1
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-test' --times 1
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd' --times 1
-
 ../create-projects.sh --project foo
 
 oc mock --verify
@@ -68,10 +64,6 @@ oc mock --receive 'policy add-role-to-user admin baz.qux@example.com -n foo-cd' 
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev' --times 1
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-test' --times 1
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd' --times 1
-
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-dev' --times 1
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-test' --times 1
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd' --times 1
 
 ../create-projects.sh --project foo --admins foo.bar@example.com,baz.qux@example.com --groups=
 
@@ -99,10 +91,6 @@ oc mock --receive 'policy add-role-to-group admin bar -n foo-cd' --times 1
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev' --times 0
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-test' --times 0
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd' --times 0
-
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-dev' --times 0
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-test' --times 0
-oc mock --receive 'policy add-role-to-group edit system:authenticated -n foo-cd' --times 0
 
 ../create-projects.sh --project foo --groups USERGROUP=foo,ADMINGROUP=bar,READONLYGROUP=baz
 
