@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
 
