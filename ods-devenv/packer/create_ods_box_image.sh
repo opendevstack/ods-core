@@ -3,6 +3,9 @@
 aws_access_key=
 aws_secret_key=
 
+# default public key to be added to the odsbox authorized_keys
+pub_key=
+
 ods_branch=master
 
 s3_bucket_name=
@@ -36,6 +39,9 @@ while [[ "$#" -gt 0 ]]; do
 
     --output-directory) output_directory="$2"; shift;;
     --output-directory=*) output_directory="${1#*=}";;
+
+    --pub-key) pub_key="$2"; shift;;
+    --pub-key=*) pub_key="${1#*=}";;
 
     --target) target="$2"; shift;;
 
@@ -76,6 +82,7 @@ function display_usage() {
     echo "  Build an ODS Box AMI based on the previously uploaded CentOS box on AWS"
     echo "      --aws-access-key        AWS credentials"
     echo "      --aws-secret-key        AWS credentials"
+    echo "      --pub-key               Public key to be added to the odsbox authorized servers"
     echo "      --ods-branch            branch to build ODS box against, e.g master"
     echo "      --instance-type         AWS EC2 instance type to run the AMI build on. Defaults to m5ad.4xlarge."
     echo "                              Options: t2.2xlarge, m5ad.4xlarge"
@@ -174,6 +181,21 @@ function create_ods_box_ami() {
                 --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
 
+    echo "ami-id=${ami_id}"
+    echo "ods_branch=${ods_branch}"
+
+    if [[ -z ${pub_key:=""} ]]
+    then
+        pub_key="not-valid.pub"
+        echo "A public key was not provided... creating not-valid.pub file ($pub_key) as placeholder!"
+        echo "#define the pub_key parameter to be able to include your public key" > $pub_key
+        pwd
+        cat $pub_key
+        echo "... done: created placeholder not-valid.pub file ($pub_key)!"
+    else
+        echo "pub_key=${pub_key}"
+    fi
+
     time packer build -on-error=ask \
         -var "aws_access_key=${aws_access_key}" \
         -var "aws_secret_key=${aws_secret_key}" \
@@ -183,6 +205,7 @@ function create_ods_box_ami() {
         -var "name_tag=ODS Box $(date)" \
         -var "ods_branch=${ods_branch}" \
         -var "instance_type=${instance_type}" \
+        -var "pub_key=${pub_key}" \
         ods-devenv/packer/CentOS2ODSBox.json
 }
 
