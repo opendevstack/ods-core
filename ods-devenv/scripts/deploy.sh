@@ -1770,7 +1770,7 @@ function run_smoke_tests() {
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    make test
+    time make test
     popd
     git reset --hard
 
@@ -1785,7 +1785,7 @@ function run_smoke_tests() {
     echo "bitbucket up and running."
 
     pushd tests
-        make test-quickstarter
+        time make test-quickstarter
     popd
 
     # clean up after tests
