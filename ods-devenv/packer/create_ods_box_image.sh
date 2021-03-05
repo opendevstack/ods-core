@@ -250,6 +250,12 @@ function create_ods_box_from_base_vm_ami() {
     echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
 
+    if [[ -z ${ami_id:=""} ]]
+    then
+        echo "No ami-id was found! [ami-id=${ami_id}]";
+        exit 2
+    fi
+
     if [[ "${dryrun}" == "true" ]]
     then
         echo -n "dryrun"
@@ -335,7 +341,7 @@ function create_base_vm_ami() {
             -var "ami_id=${ami_id}" \
             -var 'username=openshift' \
             -var 'password=openshift' \
-            -var "name_tag=ODS Box $(date)" \
+            -var "name_tag=Base VM Box $(date)" \
             -var "ods_branch=${ods_branch}" \
             -var "instance_type=${instance_type}" \
             -var "pub_key=${pub_key}" \
