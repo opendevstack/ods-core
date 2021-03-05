@@ -238,10 +238,18 @@ function create_ods_box_ami() {
 #   instance_type
 #######################################
 function create_ods_box_from_base_vm_ami() {
+
+    echo "Running create_ods_box_from_base_vm_ami!"
+
+    aws ec2 describe-images \
+                --owners 275438041116 \
+                --filters "Name=name,Values=Base VM Setup ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
+                --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId'
+
     local ami_id
     ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=Base VM Setup ${target_git_ref} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
+                --filters "Name=name,Values=Base VM Setup ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
 
     echo "ami-id=${ami_id}"
@@ -249,11 +257,12 @@ function create_ods_box_from_base_vm_ami() {
     echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
     echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
+    echo "instance_type=${instance_type}"
 
-    if [[ -z ${ami_id:=""} ]]
+    if [[ "$ami_id" == "null" ]]
     then
         echo "No ami-id was found! [ami-id=${ami_id}]";
-        exit 2
+        exit 1
     fi
 
     if [[ "${dryrun}" == "true" ]]
@@ -312,6 +321,12 @@ function create_base_vm_ami() {
     echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
     echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
+
+    if [[ "$ami_id" == "null" ]]
+    then
+        echo "No ami-id was found! [ami-id=${ami_id}]";
+        exit 1
+    fi
 
     if [[ "${dryrun}" == "true" ]]
     then
