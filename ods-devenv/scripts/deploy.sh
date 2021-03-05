@@ -1910,6 +1910,76 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
+function basic_vm_without_ods_setup() {
+    check_system_setup
+    setup_rdp
+    setup_dnsmasq
+    # optional
+    setup_vscode
+    setup_google_chrome
+    install_docker
+    setup_openshift_cluster
+    download_tailor
+    print_system_setup
+    # download atlassian stack backup files for unattented setup.
+    # either use prepare_atlassian_stack
+    # or
+    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
+    prepare_atlassian_stack
+    startup_and_follow_atlassian_mysql
+    # initialize_atlassian_jiradb
+    startup_atlassian_crowd
+    # currently nothing is waiting on Jira to become available, can just run in
+    # the background
+    startup_atlassian_jira &
+    # initialize_atlassian_bitbucketdb
+    startup_and_follow_bitbucket
+    # TODO: push to function
+    sudo systemctl restart dnsmasq
+
+    configure_bitbucket2crowd
+
+    # TODO wait until BitBucket (and Jira) becomes available
+    create_empty_ods_repositories
+    configure_jira2crowd
+
+    # TODO: dump all variables in a file for later reuse
+}
+
+function ods_on_basic_vm_setup() {
+
+    create_configuration
+    push_ods_repositories
+    set_shared_library_ref
+
+    install_ods_project
+    # Install components in OpenShift
+    setup_nexus | tee "${log_folder}"/nexus_setup.log
+    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
+    setup_jenkins | tee "${log_folder}"/jenkins_setup.log
+    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
+    setup_docgen | tee "${log_folder}"/docgen_setup.log
+
+    local fail_count
+    fail_count=0
+    for job in $(jobs -p)
+    do
+        echo "Waiting for openshift build ${job} to complete."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+        # TODO fail if any job fails
+    done
+
+    setup_jenkins_agents
+
+    run_smoke_tests
+    setup_ods_crontab
+
+    echo "Installation completed."
+    echo "Now start a new terminal session or run:"
+    echo "source /etc/bash_completion.d/oc"
+}
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 
