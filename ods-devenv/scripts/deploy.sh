@@ -1792,6 +1792,28 @@ function run_smoke_tests() {
     oc delete project unitt-cd unitt-dev unitt-test
 }
 
+function startup_atlassian_stack() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
+    # for sonarqube
+    echo "Setting vm.max_map_count=262144"
+    sudo sysctl -w vm.max_map_count=262144
+
+    setup_dnsmasq
+
+    # restart and follow mysql
+    restart_atlassian_mysql
+    printf "Waiting for mysqld to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "mysqld up and running."
+
+    restart_atlassian_suite
+}
+
 function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
@@ -1918,9 +1940,9 @@ function basic_vm_without_ods_setup() {
     setup_vscode
     setup_google_chrome
     install_docker
-    setup_openshift_cluster
-    download_tailor
-    print_system_setup
+#    setup_openshift_cluster
+#    download_tailor
+#    print_system_setup
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
     # or
@@ -1948,14 +1970,11 @@ function basic_vm_without_ods_setup() {
 
 function ods_on_basic_vm_setup() {
 
-    startup_and_follow_atlassian_mysql
-    # initialize_atlassian_jiradb
-    startup_atlassian_crowd
-    # currently nothing is waiting on Jira to become available, can just run in
-    # the background
-    startup_atlassian_jira &
-    # initialize_atlassian_bitbucketdb
-    startup_and_follow_bitbucket
+    time setup_openshift_cluster
+    time download_tailor
+    time print_system_setup
+
+    time startup_atlassian_stack
 
     sudo systemctl restart dnsmasq
 

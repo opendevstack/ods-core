@@ -19,9 +19,9 @@
             "instance_type": "{{user `instance_type`}}",
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
-            "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "ami_name": "NG-CI ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
             "run_tags": {
-                "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
+                "Name": "NG-CI ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
             },
             "tags": {
                 "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
