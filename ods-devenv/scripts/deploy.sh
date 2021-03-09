@@ -1814,6 +1814,30 @@ function startup_atlassian_stack() {
     restart_atlassian_suite
 }
 
+function startup_ods_only() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
+    # for sonarqube
+    echo "Setting vm.max_map_count=262144"
+    sudo sysctl -w vm.max_map_count=262144
+
+    setup_dnsmasq
+
+    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    if ! grep "nameserver ${public_hostname}" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    then
+        echo "ERROR: could not update kubedns/resolv.con!"
+        return 1
+    fi
+
+    # allow for OpenShifts to be resolved within OpenShift network
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    startup_openshift_cluster
+    echo "set iptables"
+}
+
+
 function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
@@ -1949,6 +1973,8 @@ function plain_ods_vm_setup() {
 }
 
 function atlassian_stack_on_ods_setup() {
+
+    startup_ods_only
 
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
