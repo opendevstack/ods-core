@@ -60,10 +60,6 @@
         },
         {
             "type": "shell",
-            "script": "ods-devenv/packer/stop_ods.sh"
-        },
-        {
-            "type": "shell",
             "script": "ods-devenv/packer/pwd_sudo.sh",
             "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
         }

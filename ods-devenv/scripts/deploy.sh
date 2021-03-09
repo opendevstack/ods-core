@@ -1943,6 +1943,9 @@ function plain_ods_vm_setup() {
     setup_openshift_cluster
     download_tailor
     print_system_setup
+
+    echo "Stopping ods cluster"
+    oc cluster down
 }
 
 function atlassian_stack_on_ods_setup() {
