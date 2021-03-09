@@ -1932,7 +1932,7 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
-function basic_vm_without_ods_setup() {
+function plain_ods_vm_setup() {
     check_system_setup
     setup_rdp
     setup_dnsmasq
@@ -1940,9 +1940,13 @@ function basic_vm_without_ods_setup() {
     setup_vscode
     setup_google_chrome
     install_docker
-#    setup_openshift_cluster
-#    download_tailor
-#    print_system_setup
+    setup_openshift_cluster
+    download_tailor
+    print_system_setup
+}
+
+function atlassian_stack_on_ods_setup() {
+
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
     # or
@@ -1960,23 +1964,9 @@ function basic_vm_without_ods_setup() {
     sudo systemctl restart dnsmasq
 
     configure_bitbucket2crowd
-
     # TODO wait until BitBucket (and Jira) becomes available
     create_empty_ods_repositories
     configure_jira2crowd
-
-    # TODO: dump all variables in a file for later reuse
-}
-
-function ods_on_basic_vm_setup() {
-
-    time setup_openshift_cluster
-    time download_tailor
-    time print_system_setup
-
-    time startup_atlassian_stack
-
-    sudo systemctl restart dnsmasq
 
     create_configuration
     push_ods_repositories
@@ -2009,6 +1999,7 @@ function ods_on_basic_vm_setup() {
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
 }
+
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
