@@ -55,7 +55,7 @@
         },
         {
             "type": "shell",
-            "script": "ods-devenv/scripts/plain_ods_vm_setup.sh",
+            "script": "ods-devenv/scripts/bootstrap-plain-ods-vm-setup.sh",
             "execute_command": "{{ .Path }}  --branch {{user `ods_branch`}}"
         },
         {
