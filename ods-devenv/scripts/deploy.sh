@@ -1956,7 +1956,7 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
-function plain_ods_vm_setup() {
+function base_vm_setup() {
     check_system_setup
     setup_rdp
     setup_dnsmasq
@@ -1967,15 +1967,6 @@ function plain_ods_vm_setup() {
     setup_openshift_cluster
     download_tailor
     print_system_setup
-
-    echo "Stopping ods cluster"
-    oc cluster down
-}
-
-function atlassian_stack_on_ods_setup() {
-
-    startup_ods_only
-
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
     # or
@@ -1991,6 +1982,13 @@ function atlassian_stack_on_ods_setup() {
     startup_and_follow_bitbucket
     # TODO: push to function
     sudo systemctl restart dnsmasq
+
+    stop_ods
+}
+
+function ods_setup() {
+
+    startup_ods
 
     configure_bitbucket2crowd
     # TODO wait until BitBucket (and Jira) becomes available

@@ -28,4 +28,4 @@ chmod u+x ./repos.sh
 ./repos.sh --git-ref "${ods_git_ref}" --verbose
 
 cd ods-core
-time bash ods-devenv/scripts/deploy.sh --branch "${ods_git_ref}" --target atlassian_stack_on_ods_setup
+time bash ods-devenv/scripts/deploy.sh --branch "${ods_git_ref}" --target ods_setup
