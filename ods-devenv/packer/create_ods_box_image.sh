@@ -229,7 +229,7 @@ function create_ods_box_ami() {
     fi
 }
 
-function create_base_vm_ami() {
+function create_base_oc_vm_ami() {
     local ami_id
     ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
@@ -280,11 +280,11 @@ function create_base_vm_ami() {
             -var "ods_branch=${ods_branch}" \
             -var "instance_type=${instance_type}" \
             -var "pub_key=${pub_key}" \
-            ods-devenv/packer/CentOS2BaseVM.json
+            ods-devenv/packer/CentOS2BaseOCVM.json
     fi
 }
 
-function create_ods_box_from_base_vm_ami() {
+function create_ods_box_from_base_oc_vm_ami() {
 
     echo "Running create_ods_box_from_base_vm_ami!"
 
@@ -344,7 +344,7 @@ function create_ods_box_from_base_vm_ami() {
             -var "ods_branch=${ods_branch}" \
             -var "instance_type=${instance_type}" \
             -var "pub_key=${pub_key}" \
-            ods-devenv/packer/BaseVM2ODSBox.json
+            ods-devenv/packer/BaseOCVM2ODSBox.json
     fi
 }
 

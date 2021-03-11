@@ -1813,11 +1813,11 @@ function run_qs_smoke_tests() {
     echo "Running qs smoke test..."
 
     oc get is -n "${NAMESPACE}"
+
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
 
-    pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    popd
+
     git reset --hard
 
     # buying extra time for the quickstarter tests
@@ -2006,7 +2006,7 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
-function base_vm_setup() {
+function base_oc_atlasssian_vm_setup() {
     check_system_setup
     setup_rdp
     setup_dnsmasq
@@ -2076,6 +2076,16 @@ function ods_setup() {
     echo "ODS Installation completed."
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
+}
+
+function ci_run_ods_smoke_tests() {
+
+    echo "Running ci qs smoke test..."
+
+    run_qs_smoke_tests
+
+    echo "...done with ci qs smoke test!"
+
 }
 
 
