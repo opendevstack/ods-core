@@ -1792,6 +1792,56 @@ function run_smoke_tests() {
     oc delete project unitt-cd unitt-dev unitt-test
 }
 
+function run_ods_smoke_tests() {
+
+    echo "Running ods smoke test..."
+
+    oc get is -n "${NAMESPACE}"
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    pushd tests
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    time make test
+    popd
+    git reset --hard
+
+    echo "...done with ods smoke test!"
+}
+
+function run_qs_smoke_tests() {
+
+    echo "Running qs smoke test..."
+
+    oc get is -n "${NAMESPACE}"
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    pushd tests
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    popd
+    git reset --hard
+
+    # buying extra time for the quickstarter tests
+    # restart_atlassian_suite
+    echo -n "Waiting for bitbucket to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo "bitbucket up and running."
+
+    echo "running quickstarter tests"
+    pushd tests
+        time make test-quickstarter
+    popd
+
+    # clean up after tests
+    oc delete project unitt-cd unitt-dev unitt-test
+
+    echo "...done with qs smoke test!"
+
+}
+
 function startup_atlassian_stack() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
@@ -2019,10 +2069,11 @@ function ods_setup() {
 
     setup_jenkins_agents
 
-    run_smoke_tests
+    run_ods_smoke_tests
+
     setup_ods_crontab
 
-    echo "Installation completed."
+    echo "ODS Installation completed."
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
 }
