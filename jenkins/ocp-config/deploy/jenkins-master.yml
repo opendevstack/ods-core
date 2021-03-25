@@ -196,7 +196,7 @@ objects:
                 secretKeyRef:
                   key: auth-token
                   name: sonarqube
-            - name: SONAR_EDITION
+            - name: SONARQUBE_EDITION
               value: '${SONAR_EDITION}'                  
             - name: SHARED_LIBRARY_REPOSITORY
               value: '${SHARED_LIBRARY_REPOSITORY}'
