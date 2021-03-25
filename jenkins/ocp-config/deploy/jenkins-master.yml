@@ -54,6 +54,9 @@ parameters:
   required: true
 - name: SONAR_AUTH_TOKEN_B64
   required: true
+- name: SONAR_EDITION
+  description: SonarQube Edition to use, e.g community or enterprise.
+  required: true
 - name: SHARED_LIBRARY_REPOSITORY
   required: true
 - name: DOCKER_REGISTRY
@@ -193,6 +196,8 @@ objects:
                 secretKeyRef:
                   key: auth-token
                   name: sonarqube
+            - name: SONAR_EDITION
+              value: '${SONAR_EDITION}'                  
             - name: SHARED_LIBRARY_REPOSITORY
               value: '${SHARED_LIBRARY_REPOSITORY}'
             - name: DOCKER_REGISTRY
