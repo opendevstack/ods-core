@@ -4,6 +4,7 @@
 - Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
+- Sonar edition not set in Jenkins master DeploymentConfig ([#966](https://github.com/opendevstack/ods-core/issues/966))
 
 ### Added
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
