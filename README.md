@@ -49,7 +49,7 @@ b) inside the [tests](tests) directory. </p> The tests can be started with `make
 ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version of ODS on a plain linux vm. Simply execute [bootstrap.sh](ods-devenv/scripts/bootstrap.sh)
 
 ## Current AMI build log
-[Current AMI build logs are available here.](https://327164e4f0dd.ngrok.io/images/current_log_master.tar.gz)
+[Current AMI build logs are available here.](https://9659ca82cc90.ngrok.io/images/current_log_master.tar.gz)
 
 Since the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
 
