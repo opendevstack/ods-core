@@ -1,7 +1,7 @@
 # ODS core & infrastructure
 
 ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master)
-![](https://5e5956068688.ngrok.io/.ngrok.io/images/buildStatus_master.svg)
+![](https://5e5956068688.ngrok.io/images/buildStatus_master.svg)
 ![](https://5e5956068688.ngrok.io/images/buildStatus_3.x.svg)
 ![](https://5e5956068688.ngrok.io/images/buildStatus_feature_ods-devenv.svg)
 
