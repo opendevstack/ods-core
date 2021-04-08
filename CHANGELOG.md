@@ -23,6 +23,7 @@
 - Add PHP plugin to Sonarqube ([#536](https://github.com/opendevstack/ods-core/issues/536))
 - add doc gen service and new selectors ([#515](https://github.com/opendevstack/ods-core/pull/515))
 - Add SonarQube readiness probe ([#495](https://github.com/opendevstack/ods-core/pull/495))
+- Add AWS quickstarter into the Prov-app config map ([#970](https://github.com/opendevstack/ods-core/pull/970))
 
 ### Changed
 - Updated start-and-follow-build script to wait for OpenShift build to complete sucessfully ([#939](https://github.com/opendevstack/ods-core/pull/939))
