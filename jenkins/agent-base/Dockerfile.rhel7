@@ -77,7 +77,7 @@ RUN if [ -z $AQUA_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation!' 
     && mv aquasec /usr/local/bin \
     && chmod +rwx /usr/local/bin/aquasec \
     && echo 'AquaSec CLI version:' \
-    && aquasec --version \
+    && aquasec version \
     && echo 'Aqua installation completed!'; \
     fi
 
