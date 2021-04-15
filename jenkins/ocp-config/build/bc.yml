@@ -180,3 +180,4 @@ objects:
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
     nodeSelector: null
+    
