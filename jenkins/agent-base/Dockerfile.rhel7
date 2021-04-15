@@ -11,6 +11,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
+ARG AQUA_SCANNERCLI_URL
 
 RUN yum -y install \
     openssl \
@@ -68,6 +69,16 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
     && echo 'Snyk CLI version:' \
     && snyk --version \
     && echo 'Snyk installation completed!'; \
+    fi
+
+# Optionally install Aquasec.
+RUN if [ -z $AQUA_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation!' ; else echo 'Installing AquaSec... getting binary from' $AQUA_SCANNERCLI_URL \
+    && curl -Lv $AQUA_SCANNERCLI_URL --output aquasec \
+    && mv aquasec /usr/local/bin \
+    && chmod +rwx /usr/local/bin/aquasec \
+    && echo 'AquaSec CLI version:' \
+    && aquasec --version \
+    && echo 'Aqua installation completed!'; \
     fi
 
 # Set java proxy var.
