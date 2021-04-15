@@ -179,4 +179,5 @@ objects:
       type: Docker
     successfulBuildsHistoryLimit: 5
     failedBuildsHistoryLimit: 5
-    nodeSelector: null    
+    nodeSelector: null
+    
