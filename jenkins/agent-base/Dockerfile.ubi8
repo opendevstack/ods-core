@@ -68,7 +68,7 @@ RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ;
 
 # Optionally install Aquasec.
 RUN if [ -z $AQUA_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation!' ; else echo 'Installing AquaSec... getting binary from' $AQUA_SCANNERCLI_URL \
-    && curl -Lv $AQUA_SCANNERCLI_URL --output aquasec \
+    && wget $AQUA_SCANNERCLI_URL -O aquasec \
     && mv aquasec /usr/local/bin \
     && chmod +rwx /usr/local/bin/aquasec \
     && echo 'AquaSec CLI version:' \
