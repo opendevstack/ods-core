@@ -333,9 +333,6 @@ objects:
       jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
       jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
-
       # Frontend quickstarters
       jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
       jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
