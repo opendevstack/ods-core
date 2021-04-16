@@ -343,6 +343,10 @@ objects:
       jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
+      # Infra quickstarters
+      jenkinspipeline.quickstarter.inf-terraform-aws.desc=Infra - AWS Terraform
+      jenkinspipeline.quickstarter.inf-terraform-aws.repo=ods-quickstarters
+
       # Other quickstarters
       jenkinspipeline.quickstarter.be-fe-mono-repo-plain.desc=FE/BE MonoRepo
       jenkinspipeline.quickstarter.be-fe-mono-repo-plain.repo=ods-quickstarters
