@@ -189,7 +189,8 @@ expectedPlugins=( "crowd:2.1.3"
                   "php:3.3.0.5166"
                   "csharp:8.6.1.17183"
                   "groovy:1.6" 
-                  "r:0.1.3" )
+                  "r:0.1.3"
+                  "apex:1.8.2.1946" )
 
 actualPlugins=$(curl -sSf ${INSECURE} \
     --user "$CURL_ADMIN_AUTH" \
