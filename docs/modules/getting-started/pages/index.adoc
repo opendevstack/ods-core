@@ -60,7 +60,7 @@ Planned work (subject to change):
 - OpenShift 4 support (keeping 3.11 compatibility)
 - Support deploying to multiple Q/P clusters in the orchestration pipeline
 - New/Reworked machine learning quickstarter
-- Integration with Aqua Security
+- Integration with AquaSec Security
 - Implement health checks for quickstarters
 - Provisioning App: Support config of multiple identity providers and enable new UI by default
 
