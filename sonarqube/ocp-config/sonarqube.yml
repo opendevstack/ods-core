@@ -142,7 +142,7 @@ objects:
             value: ${SONAR_DISTRIBUTION_URL}
           - name: APP_DNS
             value: ${APP_DNS}
-          - name: SONAR_EDITION
+          - name: sonarEdition
             value: ${SONAR_EDITION}
       type: Docker
     successfulBuildsHistoryLimit: 5
