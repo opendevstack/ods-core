@@ -70,6 +70,8 @@ parameters:
   description: "Sonarqube distribution url. Example community edition: https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-7.3.zip"
 - name: SONAR_VERSION
   description: "Sonarqube version specified in the variable SONAR_DISTRIBUTION_URL"
+- name: SONAR_EDITION
+  description: "Sonarqube edition specified in the variable SONAR_EDITION"
 - name: SONAR_AUTH_CROWD
   description: "Set to true, if you want to use crowd as identity provider"
 - name: APP_DNS
@@ -140,6 +142,8 @@ objects:
             value: ${SONAR_DISTRIBUTION_URL}
           - name: APP_DNS
             value: ${APP_DNS}
+          - name: SONAR_EDITION
+            value: ${SONAR_EDITION}
       type: Docker
     successfulBuildsHistoryLimit: 5
 - apiVersion: v1
