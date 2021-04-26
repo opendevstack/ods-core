@@ -63,7 +63,7 @@ ADMIN_USER_DEFAULT_PASSWORD="admin"
 
 if ! $VERIFY_ONLY; then
 
-    case ${SONAR_EDITION} in
+    case $SONAR_EDITION in
 
         community)
             SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip"
@@ -210,7 +210,7 @@ fi
 
 echo "Check if plugins are installed in correct versions"
 
-case ${SONAR_EDITION} in
+case $SONAR_EDITION in
 
         community | developer)
             expectedPlugins=( "crowd:2.1.3"
