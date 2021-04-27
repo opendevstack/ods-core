@@ -244,7 +244,7 @@ case $SONAR_EDITION in
                 "csharp:8.6.1.17183"
                 "groovy:1.6" 
                 "r:0.1.3"
-                "sonarpaex:1.8.2.1946" )
+                "sonarapex:1.8.2.1946" )
         ;;
 
     *)
