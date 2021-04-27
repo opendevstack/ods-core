@@ -10,6 +10,7 @@
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 - Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
 - Added SonarQube test for commercial editions ([#978](https://github.com/opendevstack/ods-core/pull/978))
+- Added SonarQube apex plugin for enterprise and datacenter editions ([#977](https://github.com/opendevstack/ods-core/pull/977))
 
 ## [3.0] - 2020-08-11
 
