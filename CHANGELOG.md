@@ -6,6 +6,7 @@
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 
 ### Added
+- Added SonarQube test for commercial editions ([#978](https://github.com/opendevstack/ods-core/pull/978))
 
 ### Changed
 
