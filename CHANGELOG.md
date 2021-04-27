@@ -7,6 +7,7 @@
 
 ### Added
 - Added SonarQube test for commercial editions ([#978](https://github.com/opendevstack/ods-core/pull/978))
+- Added SonarQube apex plugin for enterprise and datacenter editions ([#977](https://github.com/opendevstack/ods-core/pull/977))
 
 ### Changed
 
