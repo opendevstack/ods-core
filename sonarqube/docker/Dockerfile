@@ -3,6 +3,7 @@ FROM adoptopenjdk/openjdk11:alpine-jre
 ARG sonarDistributionUrl
 ARG sonarVersion
 ARG APP_DNS
+ARG sonarEdition
 
 ENV SONARQUBE_HOME=/opt/sonarqube \
     SONARQUBE_JDBC_USERNAME=sonar \
@@ -66,6 +67,11 @@ ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plu
 ADD https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-8.6.1.17183.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.6/sonar-groovy-plugin-1.6.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.1.3/sonar-r-plugin-0.1.3.jar /opt/configuration/sonarqube/plugins/
+
+# Aditional plugins for Enterprise and Datacenter editions
+RUN if [[ "$sonarEdition" == "enterprise" || "$sonarEdition" == "datacenter" ]] ; \
+        then wget https://binaries.sonarsource.com/CommercialDistribution/sonar-apex-plugin/sonar-apex-plugin-1.8.2.1946.jar -O /opt/configuration/sonarqube/plugins/sonar-apex-plugin-1.8.2.1946.jar ; \
+    else echo No aditional plugins for developer and community editions ; fi
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \
