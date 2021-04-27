@@ -243,7 +243,8 @@ case $SONAR_EDITION in
                 "php:3.3.0.5166"
                 "csharp:8.6.1.17183"
                 "groovy:1.6" 
-                "r:0.1.3" )
+                "r:0.1.3"
+                "sonarapex:1.8.2.1946" )
         ;;
 
     *)
