@@ -1,16 +1,27 @@
 # Changelog
 
 ## Unreleased
-- Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
-- Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
-- Add script to generate the OpenVPN client profile for the ODS in a box
-- ds-ml-service deprecated and moved to extra-quickstarters ([#568](https://github.com/opendevstack/ods-quickstarters/issues/568))
+
 
 ### Added
+
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 - Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
 - Added SonarQube test for commercial editions ([#978](https://github.com/opendevstack/ods-core/pull/978))
 - Added SonarQube apex plugin for enterprise and datacenter editions ([#977](https://github.com/opendevstack/ods-core/pull/977))
+- Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
+- Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
+- Add script to generate the OpenVPN client profile for the ODS in a box
+
+### Changed
+
+- ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
+
+### Fixed
+
+### Removed
+
+- ds-ml-service deprecated and moved to extra-quickstarters ([#568](https://github.com/opendevstack/ods-quickstarters/issues/568))
 
 ## [3.0] - 2020-08-11
 

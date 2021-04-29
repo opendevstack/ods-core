@@ -327,8 +327,8 @@ objects:
       jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
 
       # Data Science quickstarters
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.ds-jupyter-lab.desc=Data Science - Jupyter Lab
+      jenkinspipeline.quickstarter.ds-jupyter-lab.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
       jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
