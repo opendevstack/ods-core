@@ -14,7 +14,7 @@ The extended, most up to date, user friendly documentation can be found @ [opend
 
 ## Contents
 1. [Jenkins master](jenkins/master) & base agent - the basis of the ODS build engine<br>
-The [base agent](jenkins/agent-base) provides plugins for Sonarqube, optionally Snyk, CNES, skopeo and is HTTP proxy aware.
+The [base agent](jenkins/agent-base) provides plugins for Sonarqube, optionally Snyk, AquaSec, CNES, skopeo and is HTTP proxy aware.
 Specific [quickstarters / boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master) require different technologies e.g. `gradle`, `NPM/Yarn` etc. to build, hence warrant their own `builder agents`. These `agents` are based on the ods `jenkins base agent` and are hosted in the [ods-quickstarter repository](https://github.com/opendevstack/ods-quickstarters/tree/master/common/jenkins-agents) - next to their respective [boilerplates](https://github.com/opendevstack/ods-quickstarters/tree/master). <br>During `jenkins` builds, instances/pods of those `builder / agent` images can be found within the project specific `cd` namespace.
 <br>*Deployment:* one global Jenkins instance in the central `ods` namespace
 
