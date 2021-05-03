@@ -50,6 +50,8 @@ parameters:
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
 - name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
   description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+- name: JENKINS_AGENT_BASE_AQUASEC_SCANNERCLI_URL
+  description: optional uri that points to the aquasec binary distribution (i.e. https://download.aquasec.com/scanner/6.0.0/scannercli)
 - name: SONAR_EDITION
   description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
 - name: SONAR_VERSION
@@ -155,6 +157,8 @@ objects:
             value: ${APP_DNS}
           - name: SNYK_DISTRIBUTION_URL
             value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
+          - name: AQUASEC_SCANNERCLI_URL
+            value: ${JENKINS_AGENT_BASE_AQUASEC_SCANNERCLI_URL}
         from:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
