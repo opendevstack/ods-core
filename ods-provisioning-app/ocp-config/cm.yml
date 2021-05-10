@@ -327,14 +327,11 @@ objects:
       jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
 
       # Data Science quickstarters
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.ds-jupyter-lab.desc=Data Science - Jupyter Lab
+      jenkinspipeline.quickstarter.ds-jupyter-lab.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
       jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
-
-      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
 
       # Frontend quickstarters
       jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
@@ -342,6 +339,10 @@ objects:
 
       jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
+
+      # Infra quickstarters
+      jenkinspipeline.quickstarter.inf-terraform-aws.desc=Infra - AWS Terraform
+      jenkinspipeline.quickstarter.inf-terraform-aws.repo=ods-quickstarters
 
       # Other quickstarters
       jenkinspipeline.quickstarter.be-fe-mono-repo-plain.desc=FE/BE MonoRepo

@@ -12,3 +12,7 @@ deployments (`jenkins` and `webhook-proxy`) to point to the new image tags
 (`4.x`), and trigger a deployment.
 
 include::jenkins-shared-library:partial$update-to-4x.adoc[]
+
+== Notes about quickstarters
+
+include::quickstarters:partial$notes-4x.adoc[]
