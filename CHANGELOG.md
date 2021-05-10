@@ -19,6 +19,7 @@
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 
 ### Fixed
+- Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
 
 ### Removed
 
