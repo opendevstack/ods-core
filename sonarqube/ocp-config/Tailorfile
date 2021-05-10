@@ -4,5 +4,6 @@ param-file ../../../ods-configuration/ods-core.env
 ignore-unknown-parameters true
 preserve-immutable-fields true
 preserve pvc:/spec/volumeMode
+preserve svc:/spec/clusterIPs
 
 bc,dc,is,pvc,route,svc,secret,configmap
