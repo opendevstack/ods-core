@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -eux
 
-#ods_git_ref=
-#
-#while [[ "$#" -gt 0 ]]; do
-#  case $1 in
-#
-#  --branch) ods_git_ref="$2"; shift;;
-#
-#esac; shift; done
-#
-#ods_git_ref="${ods_git_ref:-master}"
+ods_git_ref=
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+
+  --branch) ods_git_ref="$2"; shift;;
+
+esac; shift; done
+
+ods_git_ref="${ods_git_ref:-master}"
 # echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 
 # install modern git version as required by repos.sh

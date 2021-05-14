@@ -31,12 +31,12 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "ods-devenv/packer/pwd_less_sudo.sh",
-            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
-        },
-        {
-            "type": "shell",
-            "script": "startup_ods.sh"
+            "inline": [
+                "echo 'Starting openshift'",
+                "ls -lart /home/openshift/tmp/*.*",
+                "ls -lart /usr/local/sbin/*.*",
+                "/usr/local/sbin/startup_ods.sh"
+                ]
         },
         {
             "type": "shell",
@@ -45,12 +45,7 @@
         },
         {
             "type": "shell",
-            "script": "stop_ods.sh"
-        },
-        {
-            "type": "shell",
-            "script": "ods-devenv/packer/pwd_sudo.sh",
-            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+            "script": "ods-devenv/packer/stop_ods.sh"
         }
     ]
 }

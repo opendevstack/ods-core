@@ -354,13 +354,13 @@ function create_ods_box_for_qs_test_ami() {
 
     aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=NG-CI ODS Box ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
+                --filters "Name=name,Values=NG-CI ODS iin a Box ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId'
 
     local ami_id
     ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
-                --filters "Name=name,Values=NG-CI ODS Box ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
+                --filters "Name=name,Values=NG-CI ODS in a Box ${ods_branch} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
 
     echo "ami-id=${ami_id}"

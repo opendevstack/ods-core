@@ -1812,14 +1812,6 @@ function run_qs_smoke_tests() {
 
     echo "Running qs smoke test..."
 
-    oc get is -n "${NAMESPACE}"
-
-    export GITHUB_WORKSPACE="${HOME}/opendevstack"
-
-    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-
-    git reset --hard
-
     # buying extra time for the quickstarter tests
     # restart_atlassian_suite
     echo -n "Waiting for bitbucket to become available"
@@ -1829,6 +1821,14 @@ function run_qs_smoke_tests() {
         sleep 1
     done
     echo "bitbucket up and running."
+
+    oc get is -n "${NAMESPACE}"
+
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+
+#    git reset --hard
 
     echo "running quickstarter tests"
     pushd tests
