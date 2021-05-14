@@ -2078,15 +2078,15 @@ function ods_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
-function ci_run_ods_smoke_tests() {
-
-    echo "Running ci qs smoke test..."
-
-    run_qs_smoke_tests
-
-    echo "...done with ci qs smoke test!"
-
-}
+#function ci_run_ods_smoke_tests() {
+#
+#    echo "Running ci qs smoke test..."
+#
+#    run_qs_smoke_tests
+#
+#    echo "...done with ci qs smoke test!"
+#
+#}
 
 
 while [[ "$#" -gt 0 ]]; do
