@@ -118,3 +118,6 @@ else
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-test"
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-cd"
 fi
+
+echo "Adding Aqua config map"
+oc create configmap aqua --from-literal=enabled=true -n "${PROJECT_ID}-cd"
