@@ -20,6 +20,7 @@
 
 ### Fixed
 - Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
+- Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
 
 ### Removed
 
