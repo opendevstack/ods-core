@@ -36,6 +36,10 @@ parameters:
   name: CROWD_URL
   description: url under which crowd is reachable from sonaruqbe
 - displayName: Database JDBC URL
+  name: SONAR_DATABASE_IMAGE
+  description: Image to use for the PostgreSQL database, e.g. registry.redhat.io/rhel8/postgresql-12
+  required: true
+- displayName: Database JDBC URL
   name: SONAR_DATABASE_JDBC_URL
   description: database jdbc url, e.g. jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
   required: true
@@ -188,7 +192,7 @@ objects:
               configMapKeyRef:
                 key: database-name
                 name: sonarqube
-          image: ''
+          image: ${SONAR_DATABASE_IMAGE}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -241,15 +245,6 @@ objects:
             claimName: sonarqube-postgresql
     test: false
     triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - postgresql
-        from:
-          kind: ImageStreamTag
-          name: postgresql:9.6
-          namespace: openshift
-      type: ImageChange
     - type: ConfigChange
 - apiVersion: v1
   kind: DeploymentConfig
