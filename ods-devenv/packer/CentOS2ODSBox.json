@@ -20,6 +20,9 @@
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
             "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "ami_groups": [
+                "all"
+            ],
             "run_tags": {
                 "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
             },
