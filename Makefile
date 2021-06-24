@@ -42,6 +42,10 @@ prepare-config:
 install-ods-project:
 	cd ods-setup && ./setup-ods-project.sh --namespace $(ODS_NAMESPACE) --reveal-secrets
 
+# AQUA SETUP
+## Setup central "ods" project.
+setup-aqua-configmap: install-ods-project
+	cd ods-setup && ./setup-aqua-configmap.sh --namespace $(ODS_NAMESPACE) --reveal-secrets
 
 # JENKINS
 ## Install or update Jenkins resources.

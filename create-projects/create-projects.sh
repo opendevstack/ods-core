@@ -120,4 +120,10 @@ else
 fi
 
 echo "Adding Aqua config map"
-oc create configmap aqua --from-literal=enabled=true -n "${PROJECT_ID}-cd"
+AQUA_ENABLED=$(grep '^AQUA_ENABLED_FOR_PROJECT' ../ods-configuration/ods-core.env || errorCode=$?)
+AQUA_ENABLED=${AQUA_ENABLED#AQUA_ENABLED_FOR_PROJECT=}
+if [ "${AQUA_ENABLED}" == "" ]; then
+  AQUA_ENABLED=true
+fi
+
+oc create configmap aqua --from-literal=enabled=${AQUA_ENABLED} -n "${PROJECT_ID}-cd"
