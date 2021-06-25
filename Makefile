@@ -44,7 +44,7 @@ install-ods-project:
 
 # AQUA SETUP
 ## Setup central "ods" project.
-setup-aqua-configmap: install-ods-project
+setup-aqua-configmap:
 	cd ods-setup && ./setup-aqua-configmap.sh --namespace $(ODS_NAMESPACE) --reveal-secrets
 
 # JENKINS
