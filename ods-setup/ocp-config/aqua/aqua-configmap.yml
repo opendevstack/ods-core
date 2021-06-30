@@ -18,6 +18,9 @@ parameters:
     - name: AQUA_ALERT_EMAILS
       description: List of alert emails
       required: true
+    - name: AQUA_NEXUS_REPOSITORY
+      description: Repository to store Aqua reports
+      required: true
 objects:
 - apiVersion: v1
   kind: ConfigMap
@@ -29,4 +32,5 @@ objects:
     secretName: ${AQUA_SECRET_NAME}
     url: ${AQUA_URL}
     alertEmails: ${AQUA_ALERT_EMAILS}
+    nexusRepository: ${AQUA_NEXUS_REPOSITORY}
 

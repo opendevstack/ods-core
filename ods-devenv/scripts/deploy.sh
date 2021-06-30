@@ -1516,7 +1516,9 @@ function create_configuration() {
     sed -i "s|AQUA_REGISTRY?.*$|AQUA_REGISTRY=internal|" ods-core.env
     sed -i "s|AQUA_URL?.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
     sed -i "s|AQUA_SECRET_NAME?.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
-    sed -i "s|AQUA_ALERT_EMAILS?.*$|AQUA_ALERT_EMAILS=openshift,project-admin|" ods-core.env
+    sed -i "s|AQUA_ALERT_EMAILS?.*$|AQUA_ALERT_EMAILS=mail@test.com|" ods-core.env
+    sed -i "s|AQUA_NEXUS_REPOSITORY?.*$|AQUA_NEXUS_REPOSITORY=leva-documentation|" ods-core.env
+
 
     git add -- .
     git commit -m "updated config for EDP box"
