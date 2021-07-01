@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 
 ### Added
 
