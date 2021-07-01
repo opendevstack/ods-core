@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.10_9
 
 ARG sonarDistributionUrl
 ARG sonarVersion
@@ -36,7 +36,7 @@ RUN set -x \
     && chown -R sonarqube:root /opt/configuration/sonarqube
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh   
+RUN import_certs.sh
 
 VOLUME "$SONARQUBE_HOME/data"
 
