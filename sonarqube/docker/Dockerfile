@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.10_9
 
 ARG sonarDistributionUrl
 ARG sonarVersion

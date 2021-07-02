@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 
 ### Added
 
@@ -23,6 +23,7 @@
 ### Fixed
 - Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
 - Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
+- Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683)) 
 
 ### Removed
 
