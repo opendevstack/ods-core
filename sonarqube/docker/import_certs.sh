@@ -15,7 +15,7 @@ if [[ ! -z ${APP_DNS:=""} ]]; then
 
         echo "Importing DNS=$DNS PORT=$PORT"
         cert_bundle_path="/usr/local/share/ca-certificates/${DNS}.crt"
-        libressl s_client -showcerts -host ${DNS} -port ${PORT} </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > "${cert_bundle_path}"
+        openssl s_client -showcerts -host ${DNS} -port ${PORT} </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > "${cert_bundle_path}"
         $JAVA_HOME/bin/keytool -import -noprompt -trustcacerts -file ${cert_bundle_path} -alias ${DNS} -keystore ${KEYSTORE} -storepass changeit
     done
     update-ca-certificates
