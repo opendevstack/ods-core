@@ -20,9 +20,10 @@ RUN set -x \
     && apk update \
     && apk add --no-cache ca-certificates \
     && apk add --no-cache gnupg unzip \
-    && apk add --no-cache libressl wget \
+    && apk add --no-cache openssl wget \
     && apk add --no-cache su-exec \
     && apk add --no-cache bash \
+    && apk fix \
     && mkdir -p /opt \
     && cd /opt \
     && wget -O sonarqube.zip --no-verbose $sonarDistributionUrl \
@@ -36,7 +37,7 @@ RUN set -x \
     && chown -R sonarqube:root /opt/configuration/sonarqube
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh   
+RUN import_certs.sh
 
 VOLUME "$SONARQUBE_HOME/data"
 
