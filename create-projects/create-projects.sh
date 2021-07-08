@@ -119,15 +119,3 @@ else
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-cd"
 fi
 
-echo "Adding Aqua config map"
-errorCode=0
-AQUA_ENABLED=true
-AQUA_ENABLED_FOR_PROJECT=$(grep '^AQUA_ENABLED_FOR_PROJECT' ../ods-configuration/ods-core.env) || errorCode=$?
-if [ $errorCode -eq 0 ] ; then
-  AQUA_ENABLED=${AQUA_ENABLED_FOR_PROJECT#AQUA_ENABLED_FOR_PROJECT=}
-  if [ "${AQUA_ENABLED}" == "" ]; then
-    AQUA_ENABLED=true
-  fi
-fi
-
-oc create configmap aqua --from-literal=enabled=${AQUA_ENABLED} -n "${PROJECT_ID}-cd"
