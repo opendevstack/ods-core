@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
+- Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 
 ### Added
 
@@ -13,12 +15,16 @@
 - Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
+- Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
 
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 
 ### Fixed
+- Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
+- Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
+- Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
 
 ### Removed
 
