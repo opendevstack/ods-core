@@ -71,6 +71,7 @@ jobs:
     strategy:
       matrix:
         version: ['7.9', '8.2.0.32929'] # 7.9 = LTS, 8.2 = latest version
+        edition: ['community', 'enterprise']
     steps:
       -
         name: Checkout repository
@@ -82,7 +83,7 @@ jobs:
       -
         name: Run tests
         run: |
-          cd sonarqube && ./test.sh --sq-version=${{ matrix.version }}
+          cd sonarqube && ./test.sh --sq-version=${{ matrix.version }} --sq-edition=${{ matrix.edition }}
 
   nexus:
     name: Nexus tests

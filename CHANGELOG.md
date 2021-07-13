@@ -2,9 +2,33 @@
 
 ## Unreleased
 
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
+- Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
+
 ### Added
 - Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
+- Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
+- Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
+- Added SonarQube test for commercial editions ([#978](https://github.com/opendevstack/ods-core/pull/978))
+- Added SonarQube apex plugin for enterprise and datacenter editions ([#977](https://github.com/opendevstack/ods-core/pull/977))
+- Add pub key parameter to buildbot ([#956](https://github.com/opendevstack/ods-core/pull/956))
+- Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
+- Add script to generate the OpenVPN client profile for the ODS in a box
+- Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
+
+### Changed
+
+- ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
+
+### Fixed
+- Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
+- Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
+- Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
+
+### Removed
+
+- ds-ml-service deprecated and moved to extra-quickstarters ([#568](https://github.com/opendevstack/ods-quickstarters/issues/568))
 
 ## [3.0] - 2020-08-11
 
@@ -20,6 +44,7 @@
 - Add PHP plugin to Sonarqube ([#536](https://github.com/opendevstack/ods-core/issues/536))
 - add doc gen service and new selectors ([#515](https://github.com/opendevstack/ods-core/pull/515))
 - Add SonarQube readiness probe ([#495](https://github.com/opendevstack/ods-core/pull/495))
+- Add AWS quickstarter into the Prov-app config map ([#970](https://github.com/opendevstack/ods-core/pull/970))
 
 ### Changed
 - Updated start-and-follow-build script to wait for OpenShift build to complete sucessfully ([#939](https://github.com/opendevstack/ods-core/pull/939))

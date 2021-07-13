@@ -128,9 +128,4 @@ else
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-dev"
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-test"
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-cd"
-
-  echo "Allow all authenticated users to edit the project"
-  oc policy add-role-to-group edit system:authenticated -n "${PROJECT_ID}-dev"
-  oc policy add-role-to-group edit system:authenticated -n "${PROJECT_ID}-test"
-  oc policy add-role-to-group edit system:authenticated -n "${PROJECT_ID}-cd"
 fi
