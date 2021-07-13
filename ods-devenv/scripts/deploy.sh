@@ -1513,7 +1513,6 @@ function create_configuration() {
 
     # Aqua
     sed -i "s|AQUA_ENABLED=.*$|AQUA_ENABLED=false|" ods-core.env
-    sed -i "s|AQUA_ENABLED_FOR_PROJECT=.*$|AQUA_ENABLED_FOR_PROJECT=true|" ods-core.env
     sed -i "s|AQUA_REGISTRY=.*$|AQUA_REGISTRY=internal|" ods-core.env
     sed -i "s|AQUA_URL=.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
     sed -i "s|AQUA_SECRET_NAME=.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
