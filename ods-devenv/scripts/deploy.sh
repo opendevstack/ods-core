@@ -1154,6 +1154,7 @@ function startup_atlassian_bitbucket() {
 
     echo "Adding access to bitbucket_data folder"
     sudo chmod -R 777 ${HOME}/bitbucket_data
+    ls -la ${HOME}/bitbucket_data
 
     echo "Starting bitbucket docker container"
     docker container run \
@@ -1184,6 +1185,7 @@ function startup_atlassian_bitbucket() {
 
     echo "Is bitbucket running..."
     docker ps | grep bitbucket
+    ls -la ${HOME}/bitbucket_data
 
 }
 
