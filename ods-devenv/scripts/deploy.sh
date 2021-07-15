@@ -1963,7 +1963,7 @@ function basic_vm_setup() {
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
-    startup_atlassian_jira &
+    startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
     # TODO: push to function
