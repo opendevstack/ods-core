@@ -1153,7 +1153,7 @@ function startup_atlassian_bitbucket() {
     local
 
     echo "Adding access to bitbucket_data folder"
-    sudo chmod 777 ${HOME}/bitbucket_data
+    sudo chmod -R 777 ${HOME}/bitbucket_data
 
     echo "Starting bitbucket docker container"
     docker container run \
@@ -1977,9 +1977,9 @@ function basic_vm_setup() {
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
-    startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
+    startup_atlassian_jira
     # TODO: push to function
     sudo systemctl restart dnsmasq
 
@@ -2041,9 +2041,9 @@ function base_oc_atlasssian_vm_setup() {
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
-    startup_atlassian_jira &
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
+    startup_atlassian_jira
     # TODO: push to function
     sudo systemctl restart dnsmasq
 
