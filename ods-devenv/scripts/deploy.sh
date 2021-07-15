@@ -1153,7 +1153,10 @@ function startup_atlassian_bitbucket() {
     local
 
     echo "Adding access to bitbucket_data folder"
-    sudo chmod -R 777 ${HOME}/bitbucket_data
+    # 2003 is the user id of bitbucket
+    sudo chown -R 2003:2003 ${HOME}/bitbucket_data
+    # sudo chmod -R 777 ${HOME}/bitbucket_data
+
     ls -la ${HOME}/bitbucket_data
 
     echo "Starting bitbucket docker container"
