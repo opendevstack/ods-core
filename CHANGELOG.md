@@ -11,6 +11,7 @@
 ### Changed
 
 ### Fixed
+- ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
 
 
 ## [3.0] - 2020-08-11
