@@ -1155,7 +1155,7 @@ function startup_atlassian_bitbucket() {
     echo "Adding access to bitbucket_data folder"
     # 2003 is the user id of bitbucket
     sudo chown -R 2003:2003 ${HOME}/bitbucket_data
-    # sudo chmod -R 777 ${HOME}/bitbucket_data
+    sudo chmod -R 777 ${HOME}/bitbucket_data
 
     ls -la ${HOME}/bitbucket_data
 
