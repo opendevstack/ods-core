@@ -851,6 +851,10 @@ function startup_atlassian_jira() {
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
+    echo "Adding access to bitbucket_data folder"
+    # 2003 is the user id of bitbucket
+    sudo chown -R 2001:2001 ${HOME}/jira_data
+
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
