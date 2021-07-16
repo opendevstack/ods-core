@@ -1042,6 +1042,11 @@ function startup_atlassian_bitbucket() {
 
     local
 
+    echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
+    # 2003 is the user id of bitbucket
+    sudo chown -R 2003:2003 ${HOME}/bitbucket_data
+
+    echo "Starting bitbucket docker container"
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ -n "$(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects)" ]' \
@@ -1054,10 +1059,15 @@ function startup_atlassian_bitbucket() {
         ods-bitbucket-docker:latest \
         > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
+    echo "Executing bash command in bitbucket container"
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
+
+    echo "Copy file to bitbucket container"
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
+
     inspect_bitbucket_ip
+
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
