@@ -1993,13 +1993,11 @@ function basic_vm_setup() {
     # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
-    # initialize_atlassian_jiradb
+
     startup_atlassian_crowd
-    # currently nothing is waiting on Jira to become available, can just run in
-    # the background
-    # initialize_atlassian_bitbucketdb
+    startup_and_follow_jira
     startup_and_follow_bitbucket
-    startup_atlassian_jira
+
     # TODO: push to function
     sudo systemctl restart dnsmasq
 
