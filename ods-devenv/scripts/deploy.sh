@@ -669,12 +669,14 @@ function startup_and_follow_bitbucket() {
 
 function startup_and_follow_jira() {
     startup_atlassian_jira
+    echo
     echo -n "Waiting for jira to become available"
-    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_jira_container_name})" == 'healthy' ]]
+    until [[ "$(docker inspect --format '{{.State.Status}}' ${atlassian_jira_container_name})" == 'running' ]]
     do
         echo -n "."
         sleep 1
     done
+    echo
     echo "jira up and running."
 }
 
@@ -866,6 +868,7 @@ function startup_atlassian_jira() {
     # 2001 is the user id of jira
     sudo chown -R 2001:2001 ${HOME}/jira_data
 
+    echo "Start jira container"
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
