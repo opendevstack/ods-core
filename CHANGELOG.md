@@ -22,6 +22,7 @@
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 
 ### Fixed
+- ODS AMI build failed due to  to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
 - ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
 - Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
 - Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
