@@ -95,6 +95,9 @@ parameters:
 - name: PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED
   required: true
   description: parameter that (de)activate cleanup of projects that were left incomplete due an error on provision new project
+- name: PROV_APP_FRONT_SPA_ENABLED
+  required: true
+  description: (de)activate provisioning app single-page client
 - name: JIRA_PROJECT_TEMPLATE_KEY_NAMES
   required: true
   description: list of jira project templates key names
@@ -126,6 +129,8 @@ objects:
       server.connection-timeout=90000
       spring.session.timeout=240
       spring.mvc.async.request-timeout=90000
+
+      frontend.spa.enabled=${PROV_APP_FRONT_SPA_ENABLED}
 
       # server port
       server.port=8080
