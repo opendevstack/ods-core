@@ -667,6 +667,17 @@ function startup_and_follow_bitbucket() {
     echo "bitbucket up and running."
 }
 
+function startup_and_follow_jira() {
+    startup_atlassian_jira
+    echo -n "Waiting for jira to become available"
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_jira_container_name})" == 'healthy' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo "jira up and running."
+}
+
 #######################################
 # When Jira and Crowd both are up and running, this function can be used
 # to configure a Jira directory service against Crowd.
@@ -851,8 +862,8 @@ function startup_atlassian_jira() {
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
-    echo "Adding access to bitbucket_data folder"
-    # 2003 is the user id of bitbucket
+    echo "Adding access to jira_data folder"
+    # 2001 is the user id of jira
     sudo chown -R 2001:2001 ${HOME}/jira_data
 
     docker container run \
@@ -2047,11 +2058,17 @@ function base_oc_atlasssian_vm_setup() {
     startup_atlassian_crowd
     # currently nothing is waiting on Jira to become available, can just run in
     # the background
+    startup_and_follow_jira
+    # startup_atlassian_jira
     # initialize_atlassian_bitbucketdb
     startup_and_follow_bitbucket
-    startup_atlassian_jira
     # TODO: push to function
     sudo systemctl restart dnsmasq
+
+    configure_bitbucket2crowd
+    # TODO wait until BitBucket (and Jira) becomes available
+    create_empty_ods_repositories
+    configure_jira2crowd
 
     stop_ods
 }
@@ -2060,10 +2077,10 @@ function ods_setup() {
 
     startup_ods
 
-    configure_bitbucket2crowd
-    # TODO wait until BitBucket (and Jira) becomes available
-    create_empty_ods_repositories
-    configure_jira2crowd
+#    configure_bitbucket2crowd
+#    # TODO wait until BitBucket (and Jira) becomes available
+#    create_empty_ods_repositories
+#    configure_jira2crowd
 
     create_configuration
     push_ods_repositories
