@@ -80,17 +80,6 @@ if [ -n "${PROJECT_ADMINS}" ]; then
     oc policy add-role-to-user admin "${admin_user}" -n "${PROJECT_ID}-test"
     oc policy add-role-to-user admin "${admin_user}" -n "${PROJECT_ID}-cd"
   done
-  
-  echo "Assign the owner as a label to the OpenShift project"
-  # Take the first in the list as owner of the project.
-  # Labels do not allow the '@' char so let's replace it with '_at_'
-  # For instance, foo@bar.com will be converted to foo_at_bar.com
-  # resulting in the following label: opendevstack.org/project.owner=foot_at_bar.com
-  namespace_owner=$(echo "${PROJECT_ADMINS}" | cut -d "," -f1 | sed -r 's/@/_at_/g')
-
-  oc label namespace "${PROJECT_ID}-dev" opendevstack.org/project.owner="${namespace_owner}"
-  oc label namespace "${PROJECT_ID}-test" opendevstack.org/project.owner="${namespace_owner}"
-  oc label namespace "${PROJECT_ID}-cd" opendevstack.org/project.owner="${namespace_owner}"
 fi
 
 if [ -n "${PROJECT_GROUPS}" ]; then
