@@ -11,6 +11,7 @@
 ### Changed
 
 ### Fixed
+- ODS AMI build failed due to  to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
 - ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
 
 

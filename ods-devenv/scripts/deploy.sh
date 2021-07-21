@@ -558,6 +558,19 @@ function startup_and_follow_bitbucket() {
     echo "bitbucket up and running."
 }
 
+function startup_and_follow_jira() {
+    startup_atlassian_jira
+    echo
+    echo -n "Waiting for jira to become available"
+    until [[ "$(docker inspect --format '{{.State.Status}}' ${atlassian_jira_container_name})" == 'running' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo
+    echo "jira up and running."
+}
+
 #######################################
 # When Jira and Crowd both are up and running, this function can be used
 # to configure a Jira directory service against Crowd.
@@ -741,6 +754,10 @@ function startup_atlassian_jira() {
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
+    echo "Assigning ownership of jira_data folder to jira user (id 2001)"
+    sudo chown -R 2001:2001 ${HOME}/jira_data
+
+    echo "Start jira container"
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
@@ -1043,7 +1060,6 @@ function startup_atlassian_bitbucket() {
     local
 
     echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
-    # 2003 is the user id of bitbucket
     sudo chown -R 2003:2003 ${HOME}/bitbucket_data
 
     echo "Starting bitbucket docker container"
@@ -1747,13 +1763,11 @@ function basic_vm_setup() {
     # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
-    # initialize_atlassian_jiradb
+
     startup_atlassian_crowd
-    # currently nothing is waiting on Jira to become available, can just run in
-    # the background
-    startup_atlassian_jira &
-    # initialize_atlassian_bitbucketdb
+    startup_and_follow_jira
     startup_and_follow_bitbucket
+
     # TODO: push to function
     sudo systemctl restart dnsmasq
 
