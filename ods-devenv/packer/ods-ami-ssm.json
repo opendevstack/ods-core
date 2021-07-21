@@ -1,0 +1,76 @@
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "profile": "{{ user `profile`}}",
+            "region": "{{ user `region`}}",
+            "source_ami_filter": {
+                "filters": {
+                    "name": "CentOS*"
+                },
+                "owners": "275438041116",
+                "most_recent": true
+            },
+            "instance_type": "{{user `instance_type`}}",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "ssh_interface": "session_manager",
+            "communicator": "ssh",
+            "iam_instance_profile": "{{user `iam_instance_profile`}}",
+            "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "run_tags": {
+                "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
+            },
+            "tags": {
+                "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "../ods-service/startup_ods.sh",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "../ods-service/stop_ods.sh",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "../ods-service/ods.service",
+            "destination": "/home/openshift/tmp/"
+        },
+        {
+            "type": "shell",
+            "script": "pwd_less_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "script": "../scripts/bootstrap.sh",
+            "execute_command": "{{ .Path }}  --branch {{user `ods_branch`}}"
+        },
+        {
+            "type": "shell",
+            "script": "stop_ods.sh"
+        },
+        {
+            "type": "shell",
+            "script": "pwd_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo Installing ODS service",
+                "echo openshift | sudo -S cp /home/openshift/tmp/ods.service /etc/systemd/system/ods.service",
+                "sudo cp /home/openshift/tmp/startup_ods.sh /usr/local/sbin/startup_ods.sh",
+                "sudo cp /home/openshift/tmp/stop_ods.sh /usr/local/sbin/stop_ods.sh",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl enable --now ods.service"
+            ]
+        }
+    ]
+}
