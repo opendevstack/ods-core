@@ -1,0 +1,5 @@
+param-file  ../../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
+selector app=aqua
+
+cm
