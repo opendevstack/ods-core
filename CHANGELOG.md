@@ -4,6 +4,8 @@
 
 - Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
+- Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
+- Configure buildbot to build 4.x branch ([1016](https://github.com/opendevstack/ods-core/pull/1016))
 
 ### Added
 - Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
@@ -17,6 +19,7 @@
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
 - Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
+- Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
 
 ### Changed
 

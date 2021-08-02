@@ -35,6 +35,11 @@ atlassian_bitbucket_port_internal=7990
 atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/mysql_data.tar.gz
 atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
+aqua_enabled=false
+aqua_registry=internal
+aqua_secret_name=aqua-user-with-password
+aqua_url=http://aqua-web.aqua.svc.cluster.local:8080
+aqua_nexus_repository=leva-documentation
 
 # git ref to build ods box against
 ods_git_ref=
@@ -1532,6 +1537,15 @@ function create_configuration() {
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
 
+    # Aqua
+    sed -i "s|AQUA_ENABLED=.*$|AQUA_ENABLED=false|" ods-core.env
+    sed -i "s|AQUA_REGISTRY=.*$|AQUA_REGISTRY=internal|" ods-core.env
+    sed -i "s|AQUA_URL=.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
+    sed -i "s|AQUA_SECRET_NAME=.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
+    sed -i "s|AQUA_ALERT_EMAILS=.*$|AQUA_ALERT_EMAILS=mail@test.com|" ods-core.env
+    sed -i "s|AQUA_NEXUS_REPOSITORY=.*$|AQUA_NEXUS_REPOSITORY=leva-documentation|" ods-core.env
+
+
     git add -- .
     git commit -m "updated config for EDP box"
     git push
@@ -1862,6 +1876,9 @@ function stop_ods() {
     oc cluster down
 }
 
+function setup_aqua() {
+    oc create configmap aqua --from-literal=registry=${aqua_registry} --from-literal=secretName=${aqua_secret_name} --from-literal=url=${aqua_url} --from-literal=nexusRepository=${aqua_nexus_repository} --from-literal=enabled=${aqua_enabled} -n ods
+}
 #######################################
 # this utility function will call some functions in a meaningful order
 # to prep a fresh CentOS box for EDP/ODS installation.
@@ -1926,6 +1943,7 @@ function basic_vm_setup() {
 
     setup_jenkins_agents
 
+    setup_aqua
     run_smoke_tests
     setup_ods_crontab
 
