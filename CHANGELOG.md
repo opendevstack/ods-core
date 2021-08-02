@@ -28,6 +28,7 @@
 - Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
 - Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
 - Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
+- Jenkins plugins version for OCP 3 ([#1000](https://github.com/opendevstack/ods-core/issues/1000))
 
 ### Removed
 
