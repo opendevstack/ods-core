@@ -6,6 +6,7 @@
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
 - Configure buildbot to build 4.x branch ([1016](https://github.com/opendevstack/ods-core/pull/1016))
+- Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
 
 ### Added
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
