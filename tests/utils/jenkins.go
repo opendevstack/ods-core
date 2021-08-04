@@ -140,7 +140,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				jenkinsNamespace,
 			}, []string{})
 		if errJPod != nil {
-			fmt.Printf("Error creating getting jenkins pod logs: %s", errJPod)
+			fmt.Printf("Error creating getting jenkins pod logs: %s\n%s", errJPod, stderrJPod)
 		} else {
 			fmt.Printf("Jenkins pod logs: \n%s \nerr:%s", stdoutJPod, stderrJPod)
 		}
