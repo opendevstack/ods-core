@@ -6,6 +6,7 @@
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
 - Update plugins.rhel7.txt (backport 4.x) ([1024](https://github.com/opendevstack/ods-core/pull/1024))
+- `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
 
 ### Added
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
