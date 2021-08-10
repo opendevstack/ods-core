@@ -8,6 +8,7 @@
 - Configure buildbot to build 4.x branch ([1016](https://github.com/opendevstack/ods-core/pull/1016))
 - Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
 - Update plugins.rhel7.txt ([1023](https://github.com/opendevstack/ods-core/pull/1023))
+- `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
 
 ### Added
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
