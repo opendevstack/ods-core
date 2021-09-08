@@ -135,8 +135,8 @@ for i in *.env.sample; do
     echo_warn "Actual param file ${actualFile} does not exist yet and will be created. Please review its contents carefully."
     cp $i $actualFile
   else
-    sampleParams=$(cat $i | grep "[A-Z1-9_]\+=" | awk -F'=' '{print $1}')
-    actualParams=($(cat $actualFile | grep "[A-Z1-9_]\+=" | awk -F'=' '{print $1"="}'))
+    sampleParams=$(cat $i | grep "^[A-Z1-9_]\+=" | awk -F'=' '{print $1}')
+    actualParams=($(cat $actualFile | grep "^[A-Z1-9_]\+=" | awk -F'=' '{print $1"="}'))
     for sampleParam in $sampleParams; do
       if ! (elementIn "${sampleParam}=" "${actualParams[@]}"); then
         anyDrift=true
