@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Rename Dockerfile.rhel7 to Dockerfile.centos7 as it was using a Centos7 base image and create a Dockerfile.rhel7 that uses RHEL7 docker image
+- Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
 - Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
