@@ -33,10 +33,10 @@ parameters:
   required: true
   description: Base image for Jenkins agent base
 - name: JENKINS_MASTER_DOCKERFILE_PATH
-  value: Dockerfile.rhel7
+  value: Dockerfile.centos7
   description: Dockerfile variant to use
 - name: JENKINS_AGENT_DOCKERFILE_PATH
-  value: Dockerfile.rhel7
+  value: Dockerfile.centos7
   description: Dockerfile variant to use
 - name: JENKINS_AGENT_BASE_BUILD_CPU_REQUEST
   value: 200m
