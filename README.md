@@ -1,10 +1,12 @@
 # ODS core & infrastructure
 
-| `master` brach | Other branches |
+| Build | Status |
 | ------------- | ------------- |
-| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild)  |
-| ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild)  | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild)  |
-| - | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-feature_ods_devenv-branch&build=lastBuild)
+| Github CI | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | 
+| [Master](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-master-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) |
+| [4.x](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-4_x-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) |
+| [3.x](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-3_x-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) |
+| [feature/ods-devenv](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-feature_ods_devenv-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-feature_ods_devenv-branch&build=lastBuild) |
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
