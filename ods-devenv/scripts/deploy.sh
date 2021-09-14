@@ -35,6 +35,11 @@ atlassian_bitbucket_port_internal=7990
 atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/mysql_data.tar.gz
 atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
+aqua_enabled=false
+aqua_registry=internal
+aqua_secret_name=aqua-user-with-password
+aqua_url=http://aqua-web.aqua.svc.cluster.local:8080
+aqua_nexus_repository=leva-documentation
 
 # git ref to build ods box against
 ods_git_ref=
@@ -112,7 +117,8 @@ function check_system_setup() {
         sudo yum remove -y git*
     fi
 
-    sudo yum update -y
+    # remove full update /cut 20210901
+    # sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
     go get github.com/ericchiang/pup
@@ -864,8 +870,7 @@ function startup_atlassian_jira() {
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
-    echo "Adding access to jira_data folder"
-    # 2001 is the user id of jira
+    echo "Assigning ownership of jira_data folder to jira user (id 2001)"
     sudo chown -R 2001:2001 ${HOME}/jira_data
 
     echo "Start jira container"
@@ -1170,10 +1175,8 @@ function startup_atlassian_bitbucket() {
 
     local
 
-    echo "Adding access to bitbucket_data folder"
-    # 2003 is the user id of bitbucket
+    echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
     sudo chown -R 2003:2003 ${HOME}/bitbucket_data
-    # sudo chmod -R 777 ${HOME}/bitbucket_data
 
     echo "Starting bitbucket docker container"
     docker container run \
@@ -1195,16 +1198,11 @@ function startup_atlassian_bitbucket() {
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
 
-    echo "Inspect bitbucket ip"
     inspect_bitbucket_ip
 
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
-
-    echo "Is bitbucket running..."
-    docker ps | grep bitbucket
-
 }
 
 #######################################
@@ -1540,6 +1538,15 @@ function create_configuration() {
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
 
+    # Aqua
+    sed -i "s|AQUA_ENABLED=.*$|AQUA_ENABLED=false|" ods-core.env
+    sed -i "s|AQUA_REGISTRY=.*$|AQUA_REGISTRY=internal|" ods-core.env
+    sed -i "s|AQUA_URL=.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
+    sed -i "s|AQUA_SECRET_NAME=.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
+    sed -i "s|AQUA_ALERT_EMAILS=.*$|AQUA_ALERT_EMAILS=mail@test.com|" ods-core.env
+    sed -i "s|AQUA_NEXUS_REPOSITORY=.*$|AQUA_NEXUS_REPOSITORY=leva-documentation|" ods-core.env
+
+
     git add -- .
     git commit -m "updated config for EDP box"
     git push
@@ -1804,7 +1811,7 @@ function run_smoke_tests() {
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    time make test
+    make test
     popd
     git reset --hard
 
@@ -1819,108 +1826,12 @@ function run_smoke_tests() {
     echo "bitbucket up and running."
 
     pushd tests
-        time make test-quickstarter
+        make test-quickstarter
     popd
 
     # clean up after tests
     oc delete project unitt-cd unitt-dev unitt-test
 }
-
-function run_ods_smoke_tests() {
-
-    echo "Running ods smoke test..."
-
-    oc get is -n "${NAMESPACE}"
-    export GITHUB_WORKSPACE="${HOME}/opendevstack"
-
-    pushd tests
-    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    time make test
-    popd
-    git reset --hard
-
-    echo "...done with ods smoke test!"
-}
-
-function run_qs_smoke_tests() {
-
-    echo "Running qs smoke test..."
-
-    # buying extra time for the quickstarter tests
-    # restart_atlassian_suite
-    echo -n "Waiting for bitbucket to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
-    do
-        echo -n "."
-        sleep 1
-    done
-    echo "bitbucket up and running."
-
-    oc get is -n "${NAMESPACE}"
-
-    export GITHUB_WORKSPACE="${HOME}/opendevstack"
-
-    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-
-#    git reset --hard
-
-    echo "running quickstarter tests"
-    pushd tests
-        time make test-quickstarter
-    popd
-
-    # clean up after tests
-    oc delete project unitt-cd unitt-dev unitt-test
-
-    echo "...done with qs smoke test!"
-
-}
-
-function startup_atlassian_stack() {
-    # for machines derived from legacy images and login-shells that do not source .bashrc
-    export GOPROXY="https://goproxy.io,direct"
-    # for sonarqube
-    echo "Setting vm.max_map_count=262144"
-    sudo sysctl -w vm.max_map_count=262144
-
-    setup_dnsmasq
-
-    # restart and follow mysql
-    restart_atlassian_mysql
-    printf "Waiting for mysqld to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
-    do
-        printf .
-        sleep 1
-    done
-    echo "mysqld up and running."
-
-    restart_atlassian_suite
-}
-
-function startup_ods_only() {
-    # for machines derived from legacy images and login-shells that do not source .bashrc
-    export GOPROXY="https://goproxy.io,direct"
-    # for sonarqube
-    echo "Setting vm.max_map_count=262144"
-    sudo sysctl -w vm.max_map_count=262144
-
-    setup_dnsmasq
-
-    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
-    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
-    if ! grep "nameserver ${public_hostname}" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
-    then
-        echo "ERROR: could not update kubedns/resolv.con!"
-        return 1
-    fi
-
-    # allow for OpenShifts to be resolved within OpenShift network
-    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-    startup_openshift_cluster
-    echo "set iptables"
-}
-
 
 function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
@@ -1966,6 +1877,9 @@ function stop_ods() {
     oc cluster down
 }
 
+function setup_aqua() {
+    oc create configmap aqua --from-literal=registry=${aqua_registry} --from-literal=secretName=${aqua_secret_name} --from-literal=url=${aqua_url} --from-literal=nexusRepository=${aqua_nexus_repository} --from-literal=enabled=${aqua_enabled} -n ods
+}
 #######################################
 # this utility function will call some functions in a meaningful order
 # to prep a fresh CentOS box for EDP/ODS installation.
@@ -2030,6 +1944,7 @@ function basic_vm_setup() {
 
     setup_jenkins_agents
 
+    setup_aqua
     run_smoke_tests
     setup_ods_crontab
 
@@ -2037,95 +1952,6 @@ function basic_vm_setup() {
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
 }
-
-function base_oc_atlasssian_vm_setup() {
-    check_system_setup
-    setup_rdp
-    setup_dnsmasq
-    # optional
-    setup_vscode
-    setup_google_chrome
-    install_docker
-    setup_openshift_cluster
-    download_tailor
-    print_system_setup
-    # download atlassian stack backup files for unattented setup.
-    # either use prepare_atlassian_stack
-    # or
-    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
-    prepare_atlassian_stack
-    startup_and_follow_atlassian_mysql
-    # initialize_atlassian_jiradb
-    startup_atlassian_crowd
-    # currently nothing is waiting on Jira to become available, can just run in
-    # the background
-    startup_and_follow_jira
-    # startup_atlassian_jira
-    # initialize_atlassian_bitbucketdb
-    startup_and_follow_bitbucket
-    # TODO: push to function
-    sudo systemctl restart dnsmasq
-
-    configure_bitbucket2crowd
-    # TODO wait until BitBucket (and Jira) becomes available
-    create_empty_ods_repositories
-    configure_jira2crowd
-
-    stop_ods
-}
-
-function ods_setup() {
-
-    startup_ods
-
-#    configure_bitbucket2crowd
-#    # TODO wait until BitBucket (and Jira) becomes available
-#    create_empty_ods_repositories
-#    configure_jira2crowd
-
-    create_configuration
-    push_ods_repositories
-    set_shared_library_ref
-
-    install_ods_project
-    # Install components in OpenShift
-    setup_nexus | tee "${log_folder}"/nexus_setup.log
-    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
-    setup_jenkins | tee "${log_folder}"/jenkins_setup.log
-    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
-    setup_docgen | tee "${log_folder}"/docgen_setup.log
-
-    local fail_count
-    fail_count=0
-    for job in $(jobs -p)
-    do
-        echo "Waiting for openshift build ${job} to complete."
-        wait "${job}" || fail_count=$((fail_count + 1))
-        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
-        # TODO fail if any job fails
-    done
-
-    setup_jenkins_agents
-
-    run_ods_smoke_tests
-
-    setup_ods_crontab
-
-    echo "ODS Installation completed."
-    echo "Now start a new terminal session or run:"
-    echo "source /etc/bash_completion.d/oc"
-}
-
-#function ci_run_ods_smoke_tests() {
-#
-#    echo "Running ci qs smoke test..."
-#
-#    run_qs_smoke_tests
-#
-#    echo "...done with ci qs smoke test!"
-#
-#}
-
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in

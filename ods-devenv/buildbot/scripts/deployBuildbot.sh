@@ -45,7 +45,7 @@ publicDNS=
 buildbotUser=centos
 
 # configure which branches the buildbot shall build initially
-branchesToBuild=master,3.x,feature/ods-devenv
+branchesToBuild=master,3.x,feature/ods-devenv,4.x
 
 ############################################################################
 ## resolveArgs

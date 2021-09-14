@@ -17,7 +17,7 @@ COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 RUN import_certs.sh
 
 # Copy configuration and plugins.
-COPY plugins.txt /opt/openshift/configuration/plugins.txt
+COPY plugins.ubi8.txt /opt/openshift/configuration/plugins.txt
 COPY kube-slave-common.sh /usr/local/bin/kube-slave-common.sh
 RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && rm -r /opt/openshift/configuration/jobs/OpenShift* || true \

@@ -1,9 +1,9 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 parameters:
 - name: ODS_BITBUCKET_PROJECT
   description: Bitbucket project name.
-  value: opendevstack  
+  value: opendevstack
 - name: ODS_IMAGE_TAG
   description: OpenDevStack image tag to use.
   required: true

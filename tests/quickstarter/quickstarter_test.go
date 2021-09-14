@@ -162,6 +162,10 @@ func TestQuickstarter(t *testing.T) {
 							Value: config["ODS_IMAGE_TAG"],
 						},
 						{
+							Name:  "ODS_BITBUCKET_PROJECT",
+							Value: config["ODS_BITBUCKET_PROJECT"],
+						},
+						{
 							Name:  "AGENT_IMAGE_TAG",
 							Value: agentImageTag,
 						},

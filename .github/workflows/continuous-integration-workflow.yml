@@ -9,12 +9,12 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v2.0.0
       -
-        name: Build RHEL7 docker image
+        name: Build CENTOS docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
           --imagename ods-jenkins-master-centos7 \
           --dockerdir jenkins/master \
-          --dockerfile Dockerfile.rhel7
+          --dockerfile Dockerfile.centos7
       -
         name: Build UBI8 docker image
         run: |
@@ -29,12 +29,12 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v2.0.0
-      - name: Build RHEL7 docker image
+      - name: Build CENTOS docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
           --imagename ods-jenkins-agent-base-centos7 \
           --dockerdir jenkins/agent-base \
-          --dockerfile Dockerfile.rhel7 \
+          --dockerfile Dockerfile.centos7 \
           --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.217.3/snyk-linux"
       - name: Push RHEL7 docker image
         if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'

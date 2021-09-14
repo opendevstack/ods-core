@@ -1,0 +1,36 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: aqua
+parameters:
+    - name: AQUA_ENABLED
+      description: is aqua enabled at cluster level
+      required: true
+    - name: AQUA_REGISTRY
+      description: Registry used to scan images
+      required: true
+    - name: AQUA_SECRET_NAME
+      description: Secret name to use to connect to aqua
+      required: true
+    - name: AQUA_URL
+      description: Url of aqua instance
+      required: true
+    - name: AQUA_ALERT_EMAILS
+      description: List of alert emails
+      required: true
+    - name: AQUA_NEXUS_REPOSITORY
+      description: Repository to store Aqua reports
+      required: true
+objects:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: aqua
+  data:
+    enabled: ${AQUA_ENABLED}
+    registry: ${AQUA_REGISTRY}
+    secretName: ${AQUA_SECRET_NAME}
+    url: ${AQUA_URL}
+    alertEmails: ${AQUA_ALERT_EMAILS}
+    nexusRepository: ${AQUA_NEXUS_REPOSITORY}
+

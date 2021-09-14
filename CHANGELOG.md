@@ -2,11 +2,17 @@
 
 ## Unreleased
 
+- Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
 - Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
-
+- Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
+- Configure buildbot to build 4.x branch ([1016](https://github.com/opendevstack/ods-core/pull/1016))
+- Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
+- Update plugins.rhel7.txt ([1023](https://github.com/opendevstack/ods-core/pull/1023))
+- `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
+- Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
+- 
 ### Added
-- Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 - Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
@@ -16,15 +22,22 @@
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
 - Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
+- Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
 
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 
 ### Fixed
+- ODS AMI build failed due to  to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
+- ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
 - Preserve clusterIPs of services ([#983](https://github.com/opendevstack/ods-core/pull/983))
 - Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
 - Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
+- Jenkins plugins version for OCP 3 ([#1000](https://github.com/opendevstack/ods-core/issues/1000))
+- fix openshift templates deprecation notice ([#639](https://github.com/opendevstack/ods-quickstarters/issues/639))
+- Fix config check ([#1036](https://github.com/opendevstack/ods-core/pull/1036))
+- Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
 
 ### Removed
 
