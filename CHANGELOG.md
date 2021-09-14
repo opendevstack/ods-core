@@ -10,7 +10,8 @@
 - Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
 - Update plugins.rhel7.txt ([1023](https://github.com/opendevstack/ods-core/pull/1023))
 - `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
-
+- Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
+- 
 ### Added
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
