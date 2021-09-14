@@ -5,8 +5,6 @@
 | Github CI | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | 
 | [Master](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-master-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) |
 | [4.x](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-4_x-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) |
-| [3.x](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-3_x-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) |
-| [feature/ods-devenv](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-feature_ods_devenv-branch/lastBuild/console) | ![](https://ods-ci.ngrok.io/buildStatus/icon?job=ods-ci%2Fods-build-feature_ods_devenv-branch&build=lastBuild) |
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
@@ -53,9 +51,7 @@ ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be
 
 ## Current AMI build logs 
 [Master branch of current AMI build logs are available here.](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-master-branch/lastBuild/console)<br>
-[3.x branch of current AMI build logs are available here.](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-3_x-branch/lastBuild/console)
 [4.x branch of current AMI build logs are available here.](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-4_x-branch/lastBuild/console)
-[feature/ods-devenv branch of current AMI build logs are available here.](https://ods-ci.ngrok.io/job/ods-ci/job/ods-build-feature_ods_devenv-branch/lastBuild/console)
 
 Since the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
 
