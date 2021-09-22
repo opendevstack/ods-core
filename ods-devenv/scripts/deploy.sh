@@ -1424,6 +1424,7 @@ function delete_ods_repositories() {
 #   None
 #######################################
 function push_ods_repositories() {
+    exit_if_ods_git_ref_is_undefined
     pwd
     ./scripts/push-local-repos.sh --bitbucket-url "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --ods-git-ref "${ods_git_ref}"
 }
@@ -1439,6 +1440,7 @@ function push_ods_repositories() {
 #   None
 #######################################
 function set_shared_library_ref() {
+    exit_if_ods_git_ref_is_undefined
     pwd
     ./scripts/set-shared-library-ref.sh --ods-git-ref "${ods_git_ref}"
 }
@@ -1474,6 +1476,7 @@ function inspect_mysql_ip() {
 #   None
 #######################################
 function create_configuration() {
+    exit_if_ods_git_ref_is_undefined
     echo "create configuration"
     pwd
     ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
@@ -1953,6 +1956,13 @@ function basic_vm_setup() {
     echo "source /etc/bash_completion.d/oc"
 }
 
+function exit_if_ods_git_ref_is_undefined() {
+    if [ -n "${ods_git_ref}" ]; then
+      echo "error: undefined variable 'ods_git_ref'!"
+      exit 1
+    fi
+}
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 
@@ -1967,7 +1977,5 @@ esac; shift; done
 # bash deployments.sh install_docker
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
-ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
 target="${target:-display_usage}"
-echo "Will build ods box against git-ref ${ods_git_ref}"
 ${target}
