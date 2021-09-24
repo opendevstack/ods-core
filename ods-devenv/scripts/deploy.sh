@@ -1957,8 +1957,8 @@ function basic_vm_setup() {
 }
 
 function exit_if_ods_git_ref_is_undefined() {
-    if [ -n "${ods_git_ref}" ]; then
-      echo "error: undefined variable 'ods_git_ref'!"
+    if [[ -z "${ods_git_ref}" ]]; then
+      echo "error: empty variable 'ods_git_ref' [ods_git_ref=${ods_git_ref}]!"
       exit 1
     fi
 }
