@@ -77,6 +77,10 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   # to /var/lib/jenkins/plugins during boot. RHEL then thinks we "manage the version", but
   # in fact we just copy the version defined by them - and since we do this on every boot,
   # it has the same effect that the symlinks would have.
+
+  echo "Copy audit-trail plugin configuration ..."
+  cp -n /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
+
   echo "Enforcing plugin versions defined in the image ..."
   if [ "$(ls /opt/openshift/plugins/* 2>/dev/null)" ]; then
     echo "Copying $(ls /opt/openshift/plugins/* | wc -l) files to ${JENKINS_HOME} ..."
