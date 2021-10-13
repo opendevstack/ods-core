@@ -117,7 +117,8 @@ function check_system_setup() {
         sudo yum remove -y git*
     fi
 
-    sudo yum update -y
+    # remove full update /cut 20210901
+    # sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
     go get github.com/ericchiang/pup

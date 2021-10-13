@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
 - Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
@@ -9,6 +10,8 @@
 - Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
 - Update plugins.rhel7.txt ([1023](https://github.com/opendevstack/ods-core/pull/1023))
 - `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
+- Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
+- Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 
 ### Added
@@ -22,6 +25,7 @@
 - Add script to generate the OpenVPN client profile for the ODS in a box
 - Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
 - Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
+- Add new plugin for Jenkins ([#999](https://github.com/opendevstack/ods-core/issues/999))
 
 ### Changed
 
@@ -35,6 +39,8 @@
 - Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
 - Jenkins plugins version for OCP 3 ([#1000](https://github.com/opendevstack/ods-core/issues/1000))
 - fix openshift templates deprecation notice ([#639](https://github.com/opendevstack/ods-quickstarters/issues/639))
+- Fix config check ([#1036](https://github.com/opendevstack/ods-core/pull/1036))
+- Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
 
 ### Removed
 
