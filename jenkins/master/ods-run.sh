@@ -79,7 +79,7 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   # it has the same effect that the symlinks would have.
 
   echo "Copy audit-trail plugin configuration ..."
-  cp /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
+  cp -n /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
 
   echo "Enforcing plugin versions defined in the image ..."
   if [ "$(ls /opt/openshift/plugins/* 2>/dev/null)" ]; then
