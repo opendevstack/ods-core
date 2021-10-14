@@ -2,8 +2,8 @@
 
 | `master` brach | Other branches |
 | ------------- | ------------- |
-| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_4.x.svg)  |
-| ![](https://9659ca82cc90.ngrok.io/images/buildStatus_master.svg)  | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_3.x.svg)  |
+| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_4.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_4.x.tar.gz) |
+| ![](https://9659ca82cc90.ngrok.io/images/buildStatus_master.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_master.tar.gz) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_3.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_3.x.tar.gz)|
 | - | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_feature_ods-devenv.svg)
 
 ## Introduction
@@ -49,11 +49,8 @@ b) inside the [tests](tests) directory. </p> The tests can be started with `make
 1. [ODS Development Environment / ODS in a box](ods-devenv)<br>
 ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version of ODS on a plain linux vm. Simply execute [bootstrap.sh](ods-devenv/scripts/bootstrap.sh)
 
-## Current AMI build log (master and 3.x)
-[Master branch of current AMI build logs are available here.](https://9659ca82cc90.ngrok.io/images/current_log_master.tar.gz)<br>
-[3.x branch of current AMI build logs are available here.](https://9659ca82cc90.ngrok.io/images/current_log_3.x.tar.gz)
-
-Since the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
+## Current AMI build logs
+the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
 
 
 ```
