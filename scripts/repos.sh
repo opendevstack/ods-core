@@ -160,8 +160,8 @@ for REPO in ${REPOS//,/ }; do
         else
             echo_info "Creating new branch based on '${REMOTE_NAME}/${CHECKOUT_REF}'."
             git checkout -b "${CHECKOUT_REF}" "${REMOTE_NAME}/${CHECKOUT_REF}" --no-track
-            echo_info "Repository: ${REPO} is now at $(git log -1 --oneline)" 
         fi
+        echo_info "Repository: ${REPO} is now at commit: $(git log -1 --format=%H)" 
     fi
 
     echo_done "Prepared ${REPO}."
