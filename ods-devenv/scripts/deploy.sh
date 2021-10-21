@@ -374,7 +374,7 @@ EOF
 function setup_google_chrome() {
     if [[ -z $(command -v google-chrome) ]]
     then
-        curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
         sudo yum install -y ./google-chrome-stable_current_*.rpm
         rm ./google-chrome-stable_current_*.rpm
     fi
