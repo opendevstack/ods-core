@@ -9,3 +9,4 @@ pipeline-utility-steps:2.5.0
 parameterized-trigger:2.39
 pipeline-rest-api:2.10
 workflow-cps-global-lib:2.11
+audit-trail:3.10
