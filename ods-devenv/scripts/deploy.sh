@@ -372,10 +372,15 @@ EOF
 #######################################
 function setup_google_chrome() {
     if [[ -z $(command -v google-chrome) ]]
+
+    chrome_version=94.0.4606.81
+
     then
-        curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
-        sudo yum install -y ./google-chrome-stable_current_*.rpm
-        rm ./google-chrome-stable_current_*.rpm
+        echo "Download and install chrome (google-chrome-stable-${chrome_version}-1.x86_64.rpm)!"
+        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        rm ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        echo "... chrome installation completed!"
     fi
 }
 
