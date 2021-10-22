@@ -18,7 +18,7 @@ ARG AQUASEC_SCANNERCLI_URL
 # Add CentOS 8 repositories.
 COPY yum.repos.d/centos8.repo /etc/yum.repos.d/centos8.repo
 
-RUN yum -y install glibc-langpack-en openssl \
+RUN yum -y install make glibc-langpack-en openssl \
     && yum clean all \
     && rm -rf /var/cache/yum/*
 

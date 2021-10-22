@@ -1,0 +1,12 @@
+greenballs:1.15
+email-ext:2.69
+sonar:2.6.1
+ansicolor:0.7.0
+blueocean:1.18.0
+kubernetes:1.25.2
+openshift-sync:1.0.45
+pipeline-utility-steps:2.5.0
+parameterized-trigger:2.39
+pipeline-rest-api:2.10
+workflow-cps-global-lib:2.11
+audit-trail:3.10

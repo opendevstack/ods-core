@@ -118,3 +118,4 @@ else
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-test"
   oc policy add-role-to-group view system:authenticated -n "${PROJECT_ID}-cd"
 fi
+

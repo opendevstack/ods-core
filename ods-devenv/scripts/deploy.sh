@@ -35,6 +35,11 @@ atlassian_bitbucket_port_internal=7990
 atlassian_mysql_dump_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/mysql_data.tar.gz
 atlassian_jira_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/jira_data.tar.gz
 atlassian_bitbucket_backup_url=https://bi-ods-dev-env.s3.eu-central-1.amazonaws.com/atlassian_files/bitbucket_data.tar.gz
+aqua_enabled=false
+aqua_registry=internal
+aqua_secret_name=aqua-user-with-password
+aqua_url=http://aqua-web.aqua.svc.cluster.local:8080
+aqua_nexus_repository=leva-documentation
 
 # git ref to build ods box against
 ods_git_ref=
@@ -112,7 +117,8 @@ function check_system_setup() {
         sudo yum remove -y git*
     fi
 
-    sudo yum update -y
+    # remove full update /cut 20210901
+    # sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
     go get github.com/ericchiang/pup
@@ -367,10 +373,15 @@ EOF
 #######################################
 function setup_google_chrome() {
     if [[ -z $(command -v google-chrome) ]]
+
+    chrome_version=94.0.4606.81
+
     then
-        curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
-        sudo yum install -y ./google-chrome-stable_current_*.rpm
-        rm ./google-chrome-stable_current_*.rpm
+        echo "Download and install chrome (google-chrome-stable-${chrome_version}-1.x86_64.rpm)!"
+        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        rm ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        echo "... chrome installation completed!"
     fi
 }
 
@@ -1532,6 +1543,15 @@ function create_configuration() {
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
 
+    # Aqua
+    sed -i "s|AQUA_ENABLED=.*$|AQUA_ENABLED=false|" ods-core.env
+    sed -i "s|AQUA_REGISTRY=.*$|AQUA_REGISTRY=internal|" ods-core.env
+    sed -i "s|AQUA_URL=.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
+    sed -i "s|AQUA_SECRET_NAME=.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
+    sed -i "s|AQUA_ALERT_EMAILS=.*$|AQUA_ALERT_EMAILS=mail@test.com|" ods-core.env
+    sed -i "s|AQUA_NEXUS_REPOSITORY=.*$|AQUA_NEXUS_REPOSITORY=leva-documentation|" ods-core.env
+
+
     git add -- .
     git commit -m "updated config for EDP box"
     git push
@@ -1862,6 +1882,9 @@ function stop_ods() {
     oc cluster down
 }
 
+function setup_aqua() {
+    oc create configmap aqua --from-literal=registry=${aqua_registry} --from-literal=secretName=${aqua_secret_name} --from-literal=url=${aqua_url} --from-literal=nexusRepository=${aqua_nexus_repository} --from-literal=enabled=${aqua_enabled} -n ods
+}
 #######################################
 # this utility function will call some functions in a meaningful order
 # to prep a fresh CentOS box for EDP/ODS installation.
@@ -1926,6 +1949,7 @@ function basic_vm_setup() {
 
     setup_jenkins_agents
 
+    setup_aqua
     run_smoke_tests
     setup_ods_crontab
 

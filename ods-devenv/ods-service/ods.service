@@ -1,6 +1,6 @@
 [Unit]
 Description=Start and stop ODS service gracefully on machine boot and shutdown
-After=network.target
+After=network-online.target docker.service
 
 [Service]
 Type=forking

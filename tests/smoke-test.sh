@@ -20,7 +20,7 @@ fi
 if [ -f test-smoketest-results.txt ]; then
     rm test-smoketest-results.txt
 fi
-go test -v -count=1 -timeout 60m github.com/opendevstack/ods-core/tests/smoketest | tee test-smoketest-results.txt 2>&1
+go test -v -count=1 -timeout 140m github.com/opendevstack/ods-core/tests/smoketest | tee test-smoketest-results.txt 2>&1
 exitcode=$?
 if [ -f test-smoketest-results.txt ]; then
     set -e

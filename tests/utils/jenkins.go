@@ -130,6 +130,22 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		count++
 	}
 
+	// in case the the build was sort of never really started - get the jenkins pod log, maybe there
+	// is a plugin / sync problem?
+	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending {
+		// get the jenkins pod log
+		stdoutJPod, stderrJPod, errJPod := RunScriptFromBaseDir(
+			"tests/scripts/print-jenkins-pod-log.sh",
+			[]string{
+				jenkinsNamespace,
+			}, []string{})
+		if errJPod != nil {
+			fmt.Printf("Error getting jenkins pod logs: %s\nerr:%s", errJPod, stderrJPod)
+		} else {
+			fmt.Printf("Jenkins pod logs: \n%s \nerr:%s", stdoutJPod, stderrJPod)
+		}
+	}
+
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-log.sh",
@@ -146,6 +162,9 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		)
 	}
 
+	// print in any case, otherwise when err != nil no logs are shown
+	fmt.Printf("buildlog: %s\n%s", buildName, stdout)
+
 	// still running, or we could not find it ...
 	if count >= max {
 		return "", fmt.Errorf(
@@ -154,7 +173,6 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 			stdout,
 			stderr)
 	}
-	fmt.Printf("buildlog: %s\n%s", buildName, stdout)
 
 	// get (executed) jenkins stages from run - the caller can compare against the golden record
 	stdout, stderr, err = RunScriptFromBaseDir(
