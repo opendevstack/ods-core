@@ -25,6 +25,7 @@
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
 - Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
+- Updated test suite README.md with proxy and jq requirements
 - Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
 - Add new plugin for Jenkins ([#999](https://github.com/opendevstack/ods-core/issues/999))
 
