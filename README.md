@@ -2,9 +2,9 @@
 
 | `master` branch | other branches |
 | ------------- | ------------- |
-| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_4.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_4.x.tar.gz) |
-| ![](https://9659ca82cc90.ngrok.io/images/buildStatus_master.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_master.tar.gz) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_3.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_3.x.tar.gz)|
-| - | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_feature_ods-devenv.svg)
+| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://1f97d931d969.ngrok.io/images/buildStatus_4.x.svg) <br>[latest build logs](https://1f97d931d969.ngrok.io/images/current_log_4.x.tar.gz) |
+| ![](https://1f97d931d969.ngrok.io/images/buildStatus_master.svg) <br>[latest build logs](https://1f97d931d969.ngrok.io/images/current_log_master.tar.gz) | ![](https://1f97d931d969.ngrok.io/images/buildStatus_3.x.svg) <br>[latest build logs](https://1f97d931d969.ngrok.io/images/current_log_3.x.tar.gz)|
+| - | ![](https://1f97d931d969.ngrok.io/images/buildStatus_feature_ods-devenv.svg)
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
