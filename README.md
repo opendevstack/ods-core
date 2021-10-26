@@ -1,10 +1,10 @@
 # ODS core & infrastructure
 
-| `master` branch | other branches |
+| `master` brach | Other branches |
 | ------------- | ------------- |
-| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_4.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_4.x.tar.gz) |
-| ![](https://9659ca82cc90.ngrok.io/images/buildStatus_master.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_master.tar.gz) | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_3.x.svg) <br>[latest build logs](https://9659ca82cc90.ngrok.io/images/current_log_3.x.tar.gz)|
-| - | ![](https://9659ca82cc90.ngrok.io/images/buildStatus_feature_ods-devenv.svg)
+| ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild)  |
+| ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild)  | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild)  |
+| - | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-feature_ods_devenv-branch&build=lastBuild)
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
