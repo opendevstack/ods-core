@@ -2,9 +2,9 @@
 
 | branch | E2E test status | CI test status | 
 | ------------- | ------------- | ------------- |
-| master | ![https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-master-branch/lastBuild/consoleText](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) |
-| 4.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=4.x) |
-| 3.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=3.x) |
+| []| ![https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-master-branch/lastBuild/consoleText](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) [logs](https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-master-branch/lastBuild/consoleText) |
+| 4.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=4.x) [logs]((https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-master-branch/lastBuild/consoleText) [logs](https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-4_x-branch/lastBuild/consoleText) |
+| 3.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=3.x) [logs](https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-3_x-branch/lastBuild/consoleText) |
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
