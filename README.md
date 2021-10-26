@@ -2,7 +2,7 @@
 
 | branch | E2E test status | CI test status | 
 | ------------- | ------------- | ------------- |
-| master | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) |
+| master | ![https://ods-ci.apps.bix-digital.com/job/ods-ci/job/ods-build-master-branch/lastBuild/consoleText](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) |
 | 4.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=4.x) |
 | 3.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=3.x) |
 
@@ -48,12 +48,3 @@ b) inside the [tests](tests) directory. </p> The tests can be started with `make
 
 1. [ODS Development Environment / ODS in a box](ods-devenv)<br>
 ODS also ships as Amazon AMI - ready to go. The scripts to create the AMI can be found in ods-devenv. These scripts can be used also be used to install a `developer` version of ODS on a plain linux vm. Simply execute [bootstrap.sh](ods-devenv/scripts/bootstrap.sh)
-
-## Current AMI build logs
-the log files contain color coding, they are best viewed using a tool supporting color coding, like tail. E.g.:
-
-
-```
-# after untaring view the log file 'current' like so:
-tail -fn +1 current
-```
