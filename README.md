@@ -2,9 +2,9 @@
 
 | branch | E2E test status | CI test status | 
 | ------------- | ------------- | ------------- |
-| master | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) |
-| 4.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=4.x) |
-| 3.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=lastBuild) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=3.x) |
+| master | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-master-branch&build=last,-1) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=master) |
+| 4.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-4_x-branch&build=last,-1) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=4.x) |
+| 3.x | ![](https://ods-ci.apps.bix-digital.com/buildStatus/icon?job=ods-ci%2Fods-build-3_x-branch&build=last,-1) | ![](https://github.com/opendevstack/ods-core/workflows/Continous%20Integration%20Tests/badge.svg?branch=3.x) |
 
 ## Introduction
 OpenDevStack (ODS) Core houses all the central infrastructure components.
