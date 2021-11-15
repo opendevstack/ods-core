@@ -112,7 +112,8 @@ function check_system_setup() {
         sudo yum remove -y git*
     fi
 
-    sudo yum update -y
+    # remove full update /cut 20210901
+    # sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
     go get github.com/ericchiang/pup
@@ -367,10 +368,15 @@ EOF
 #######################################
 function setup_google_chrome() {
     if [[ -z $(command -v google-chrome) ]]
+
+    chrome_version=94.0.4606.81
+
     then
-        curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
-        sudo yum install -y ./google-chrome-stable_current_*.rpm
-        rm ./google-chrome-stable_current_*.rpm
+        echo "Download and install chrome (google-chrome-stable-${chrome_version}-1.x86_64.rpm)!"
+        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        rm ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        echo "... chrome installation completed!"
     fi
 }
 
@@ -667,6 +673,19 @@ function startup_and_follow_bitbucket() {
     echo "bitbucket up and running."
 }
 
+function startup_and_follow_jira() {
+    startup_atlassian_jira
+    echo
+    echo -n "Waiting for jira to become available"
+    until [[ "$(docker inspect --format '{{.State.Status}}' ${atlassian_jira_container_name})" == 'running' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo
+    echo "jira up and running."
+}
+
 #######################################
 # When Jira and Crowd both are up and running, this function can be used
 # to configure a Jira directory service against Crowd.
@@ -851,6 +870,10 @@ function startup_atlassian_jira() {
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-jira-docker:latest .
     popd
 
+    echo "Assigning ownership of jira_data folder to jira user (id 2001)"
+    sudo chown -R 2001:2001 ${HOME}/jira_data
+
+    echo "Start jira container"
     docker container run \
         --name ${atlassian_jira_container_name} \
         -v "$HOME/jira_data:/var/atlassian/application-data/jira" \
@@ -1152,6 +1175,10 @@ function startup_atlassian_bitbucket() {
 
     local
 
+    echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
+    sudo chown -R 2003:2003 ${HOME}/bitbucket_data
+
+    echo "Starting bitbucket docker container"
     docker container run \
         --name ${atlassian_bitbucket_container_name} \
         --health-cmd '[ -n "$(curl -X GET --user openshift:openshift http://localhost:7990/rest/api/1.0/projects)" ]' \
@@ -1164,10 +1191,15 @@ function startup_atlassian_bitbucket() {
         ods-bitbucket-docker:latest \
         > "${HOME}/tmp/bitbucket_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
+    echo "Executing bash command in bitbucket container"
     docker container exec bitbucket bash -c "mkdir -p /var/atlassian/application-data/bitbucket/lib; chown bitbucket:bitbucket /var/atlassian/application-data/bitbucket/lib"
+
+    echo "Copy file to bitbucket container"
     docker container cp "${download_dir}/${db_driver_file}" bitbucket:/var/atlassian/application-data/bitbucket/lib/mysql-connector-java-8.0.20.jar
     rm -rf "${download_dir}"
+
     inspect_bitbucket_ip
+
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
     echo -n "Configuring /etc/hosts with bitbucket ip by "
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
@@ -1392,6 +1424,7 @@ function delete_ods_repositories() {
 #   None
 #######################################
 function push_ods_repositories() {
+    exit_if_ods_git_ref_is_undefined
     pwd
     ./scripts/push-local-repos.sh --bitbucket-url "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --ods-git-ref "${ods_git_ref}"
 }
@@ -1407,6 +1440,7 @@ function push_ods_repositories() {
 #   None
 #######################################
 function set_shared_library_ref() {
+    exit_if_ods_git_ref_is_undefined
     pwd
     ./scripts/set-shared-library-ref.sh --ods-git-ref "${ods_git_ref}"
 }
@@ -1442,6 +1476,7 @@ function inspect_mysql_ip() {
 #   None
 #######################################
 function create_configuration() {
+    exit_if_ods_git_ref_is_undefined
     echo "create configuration"
     pwd
     ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
@@ -1505,6 +1540,15 @@ function create_configuration() {
     # OpenShift
     sed -i "s|OPENSHIFT_CONSOLE_HOST=.*$|OPENSHIFT_CONSOLE_HOST=https://ocp.${odsbox_domain}:8443|" ods-core.env
     sed -i "s|OPENSHIFT_APPS_BASEDOMAIN=.*$|OPENSHIFT_APPS_BASEDOMAIN=.ocp.${odsbox_domain}|" ods-core.env
+
+    # Aqua
+    sed -i "s|AQUA_ENABLED=.*$|AQUA_ENABLED=false|" ods-core.env
+    sed -i "s|AQUA_REGISTRY=.*$|AQUA_REGISTRY=internal|" ods-core.env
+    sed -i "s|AQUA_URL=.*$|AQUA_URL=http://aqua-web.aqua.svc.cluster.local:8080|" ods-core.env
+    sed -i "s|AQUA_SECRET_NAME=.*$|AQUA_SECRET_NAME=aqua-user-with-password|" ods-core.env
+    sed -i "s|AQUA_ALERT_EMAILS=.*$|AQUA_ALERT_EMAILS=mail@test.com|" ods-core.env
+    sed -i "s|AQUA_NEXUS_REPOSITORY=.*$|AQUA_NEXUS_REPOSITORY=leva-documentation|" ods-core.env
+
 
     git add -- .
     git commit -m "updated config for EDP box"
@@ -1932,6 +1976,9 @@ function stop_ods() {
     oc cluster down
 }
 
+function setup_aqua() {
+    oc create configmap aqua --from-literal=registry=${aqua_registry} --from-literal=secretName=${aqua_secret_name} --from-literal=url=${aqua_url} --from-literal=nexusRepository=${aqua_nexus_repository} --from-literal=enabled=${aqua_enabled} -n ods
+}
 #######################################
 # this utility function will call some functions in a meaningful order
 # to prep a fresh CentOS box for EDP/ODS installation.
@@ -1959,13 +2006,11 @@ function basic_vm_setup() {
     # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
-    # initialize_atlassian_jiradb
+
     startup_atlassian_crowd
-    # currently nothing is waiting on Jira to become available, can just run in
-    # the background
-    startup_atlassian_jira &
-    # initialize_atlassian_bitbucketdb
+    startup_and_follow_jira
     startup_and_follow_bitbucket
+
     # TODO: push to function
     sudo systemctl restart dnsmasq
 
@@ -1998,12 +2043,20 @@ function basic_vm_setup() {
 
     setup_jenkins_agents
 
+    setup_aqua
     run_smoke_tests
     setup_ods_crontab
 
     echo "Installation completed."
     echo "Now start a new terminal session or run:"
     echo "source /etc/bash_completion.d/oc"
+}
+
+function exit_if_ods_git_ref_is_undefined() {
+    if [[ -z "${ods_git_ref}" ]]; then
+      echo "error: empty variable 'ods_git_ref' [ods_git_ref=${ods_git_ref}]!"
+      exit 1
+    fi
 }
 
 function base_oc_atlasssian_vm_setup() {
@@ -2068,6 +2121,7 @@ function ods_setup() {
     done
 
     setup_jenkins_agents
+    setup_aqua
 
     run_ods_smoke_tests
 
