@@ -117,8 +117,7 @@ function check_system_setup() {
         sudo yum remove -y git*
     fi
 
-    # remove full update /cut 20210901
-    # sudo yum update -y
+    sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install firewalld git2u-all glances golang jq tree
     go get github.com/ericchiang/pup
@@ -1819,7 +1818,7 @@ function run_smoke_tests() {
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    make test
+    time make test
     popd
     git reset --hard
 
@@ -1834,12 +1833,108 @@ function run_smoke_tests() {
     echo "bitbucket up and running."
 
     pushd tests
-        make test-quickstarter
+        time make test-quickstarter
     popd
 
     # clean up after tests
     oc delete project unitt-cd unitt-dev unitt-test
 }
+
+function run_ods_smoke_tests() {
+
+    echo "Running ods smoke test..."
+
+    oc get is -n "${NAMESPACE}"
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    pushd tests
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    time make test
+    popd
+    git reset --hard
+
+    echo "...done with ods smoke test!"
+}
+
+function run_qs_smoke_tests() {
+
+    echo "Running qs smoke test..."
+
+    # buying extra time for the quickstarter tests
+    # restart_atlassian_suite
+    echo -n "Waiting for bitbucket to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
+    do
+        echo -n "."
+        sleep 1
+    done
+    echo "bitbucket up and running."
+
+    oc get is -n "${NAMESPACE}"
+
+    export GITHUB_WORKSPACE="${HOME}/opendevstack"
+
+    export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+
+#    git reset --hard
+
+    echo "running quickstarter tests"
+    pushd tests
+        time make test-quickstarter
+    popd
+
+    # clean up after tests
+    oc delete project unitt-cd unitt-dev unitt-test
+
+    echo "...done with qs smoke test!"
+
+}
+
+function startup_atlassian_stack() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
+    # for sonarqube
+    echo "Setting vm.max_map_count=262144"
+    sudo sysctl -w vm.max_map_count=262144
+
+    setup_dnsmasq
+
+    # restart and follow mysql
+    restart_atlassian_mysql
+    printf "Waiting for mysqld to become available"
+    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
+    do
+        printf .
+        sleep 1
+    done
+    echo "mysqld up and running."
+
+    restart_atlassian_suite
+}
+
+function startup_ods_only() {
+    # for machines derived from legacy images and login-shells that do not source .bashrc
+    export GOPROXY="https://goproxy.io,direct"
+    # for sonarqube
+    echo "Setting vm.max_map_count=262144"
+    sudo sysctl -w vm.max_map_count=262144
+
+    setup_dnsmasq
+
+    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    if ! grep "nameserver ${public_hostname}" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    then
+        echo "ERROR: could not update kubedns/resolv.con!"
+        return 1
+    fi
+
+    # allow for OpenShifts to be resolved within OpenShift network
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    startup_openshift_cluster
+    echo "set iptables"
+}
+
 
 function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
@@ -1968,6 +2063,90 @@ function exit_if_ods_git_ref_is_undefined() {
     fi
 }
 
+function base_oc_atlasssian_vm_setup() {
+    check_system_setup
+    setup_rdp
+    setup_dnsmasq
+    # optional
+    setup_vscode
+    setup_google_chrome
+    install_docker
+    setup_openshift_cluster
+    download_tailor
+    print_system_setup
+    # download atlassian stack backup files for unattented setup.
+    # either use prepare_atlassian_stack
+    # or
+    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
+    prepare_atlassian_stack
+    startup_and_follow_atlassian_mysql
+    # initialize_atlassian_jiradb
+    startup_atlassian_crowd
+    # currently nothing is waiting on Jira to become available, can just run in
+    # the background
+    startup_atlassian_jira &
+    # initialize_atlassian_bitbucketdb
+    startup_and_follow_bitbucket
+    # TODO: push to function
+    sudo systemctl restart dnsmasq
+
+    stop_ods
+}
+
+function ods_setup() {
+
+    startup_ods
+
+    configure_bitbucket2crowd
+    # TODO wait until BitBucket (and Jira) becomes available
+    create_empty_ods_repositories
+    configure_jira2crowd
+
+    create_configuration
+    push_ods_repositories
+    set_shared_library_ref
+
+    install_ods_project
+    # Install components in OpenShift
+    setup_nexus | tee "${log_folder}"/nexus_setup.log
+    setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
+    setup_jenkins | tee "${log_folder}"/jenkins_setup.log
+    setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
+    setup_docgen | tee "${log_folder}"/docgen_setup.log
+
+    local fail_count
+    fail_count=0
+    for job in $(jobs -p)
+    do
+        echo "Waiting for openshift build ${job} to complete."
+        wait "${job}" || fail_count=$((fail_count + 1))
+        echo "build job ${job} returned. Number of failed jobs is ${fail_count}"
+        # TODO fail if any job fails
+    done
+
+    setup_jenkins_agents
+    setup_aqua
+
+    run_ods_smoke_tests
+
+    setup_ods_crontab
+
+    echo "ODS Installation completed."
+    echo "Now start a new terminal session or run:"
+    echo "source /etc/bash_completion.d/oc"
+}
+
+#function ci_run_ods_smoke_tests() {
+#
+#    echo "Running ci qs smoke test..."
+#
+#    run_qs_smoke_tests
+#
+#    echo "...done with ci qs smoke test!"
+#
+#}
+
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 
@@ -1982,5 +2161,7 @@ esac; shift; done
 # bash deployments.sh install_docker
 # bash is used here to start a subshell in case there is an exit command in a function to not to
 # kill the parent shell from where the script is getting called.
+ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
 target="${target:-display_usage}"
+echo "Will build ods box against git-ref ${ods_git_ref}"
 ${target}
