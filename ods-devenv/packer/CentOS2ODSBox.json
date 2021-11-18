@@ -26,8 +26,7 @@
             "tags": {
                 "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
             },
-            "encrypt_boot" : "false",
-            "encrypted" : "false"
+            "encrypt_boot" : "false"
         }
     ],
     "provisioners": [
