@@ -23,7 +23,7 @@ echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -p "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
-curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/scripts/repos.sh
+curl -LO "https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/scripts/repos.sh"
 chmod u+x ./repos.sh
 ./repos.sh --git-ref "${ods_git_ref}" --verbose
 
