@@ -627,9 +627,9 @@ function startup_atlassian_mysql() {
     docker container run -dp ${atlassian_mysql_port}:3306 \
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
-        --sql-mode="${atlassian_mysql_sql_mode}" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
+        --sql-mode="${atlassian_mysql_sql_mode}" \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \
