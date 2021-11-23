@@ -15,6 +15,7 @@
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 
 ### Added
+- Set sql-mode to ANSI_QUOTES in the creation of atlassian_mysql container to accept querys with double quotes in column and tables names
 - Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
 - Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
