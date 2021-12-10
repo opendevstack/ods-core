@@ -8,6 +8,7 @@ atlassian_mysql_container_name=atlassian_mysql
 atlassian_mysql_ip=
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
+atlassian_mysql_sql_mode=ANSI_QUOTES
 atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
 atlassian_crowd_port=48080
@@ -628,6 +629,7 @@ function startup_atlassian_mysql() {
         --health-cmd "mysqladmin ping --silent" \
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
+        --sql-mode="${atlassian_mysql_sql_mode}" \
         --character-set-server=utf8 \
         --collation-server=utf8_bin \
         --default-storage-engine=INNODB \

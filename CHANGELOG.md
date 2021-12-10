@@ -29,6 +29,7 @@
 - Updated test suite README.md with proxy and jq requirements
 - Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
 - Add new plugin for Jenkins ([#999](https://github.com/opendevstack/ods-core/issues/999))
+- Set sql-mode to ANSI_QUOTES in the creation of atlassian_mysql container to accept querys with double quotes in column and tables names ([#1072](https://github.com/opendevstack/ods-core/pull/1072))
 
 ### Changed
 
