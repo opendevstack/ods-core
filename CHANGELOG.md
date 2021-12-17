@@ -34,6 +34,7 @@
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
+- Updated Tailor to 1.3.3 ([#1077](https://github.com/opendevstack/ods-core/pull/1077))
 
 ### Fixed
 - ODS AMI build failed due to an installation error of chrome package ([#1054](https://github.com/opendevstack/ods-core/pull/1054))
