@@ -46,6 +46,7 @@
 - fix openshift templates deprecation notice ([#639](https://github.com/opendevstack/ods-quickstarters/issues/639))
 - Fix config check ([#1036](https://github.com/opendevstack/ods-core/pull/1036))
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
+- Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 
 ### Removed
 
