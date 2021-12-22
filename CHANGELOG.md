@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
+
 ## [4.0] - 2021-18-11
 
 ### Added
