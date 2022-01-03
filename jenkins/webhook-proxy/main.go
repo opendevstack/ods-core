@@ -337,7 +337,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 			component := componentParam
 			if component == "" {
-				component = strings.Replace(req.Repository, project+"-", "", -1)
+				component = extractComponent(req.Repository, project)
 			}
 			pipeline := makePipelineName(project, component, req.Branch)
 
@@ -393,7 +393,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, project+"-", "", -1)
+					component = extractComponent(repo, project)
 				}
 				branch = req.Changes[0].Ref.DisplayID
 				if req.Changes[0].Type == "DELETE" {
@@ -412,7 +412,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
-					component = strings.Replace(repo, project+"-", "", -1)
+					component = extractComponent(repo, project)
 				}
 				branch = req.PullRequest.FromRef.DisplayID
 				if req.EventKey == "pr:opened" {
@@ -863,6 +863,12 @@ func isProtectedBranch(protectedBranches []string, branch string) bool {
 		}
 	}
 	return false
+}
+
+// extractComponent returns the component part of the given repository.
+// The component is equal to the repository without any project prefix.
+func extractComponent(repository, project string) string {
+	return strings.TrimPrefix(strings.ToLower(repository), strings.ToLower(project+"-"))
 }
 
 // includes checks if needle is in haystack
