@@ -876,3 +876,36 @@ func TestGetBuildConfig(t *testing.T) {
 		t.Errorf("Not the same, have: %s, want: %s", actual, expected)
 	}
 }
+
+func TestExtractComponent(t *testing.T) {
+	tests := map[string]struct {
+		repository    string
+		project       string
+		wantComponent string
+	}{
+		"repository contains project prefix": {
+			repository:    "prj-example",
+			project:       "PRJ",
+			wantComponent: "example",
+		},
+		"repository does not contain project prefix": {
+			repository:    "proj-example",
+			project:       "PRJ",
+			wantComponent: "proj-example",
+		},
+		"repository contains project but not as prefix": {
+			repository:    "prj-example-prj-test",
+			project:       "PRJ",
+			wantComponent: "example-prj-test",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := extractComponent(tc.repository, tc.project)
+			if got != tc.wantComponent {
+				t.Fatalf("Got: %s, want: %s", got, tc.wantComponent)
+			}
+		})
+	}
+}
