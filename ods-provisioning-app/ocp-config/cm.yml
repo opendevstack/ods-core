@@ -360,6 +360,10 @@ objects:
       jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
       jenkinspipeline.quickstarter.release-manager.create-webhook=false
 
+      jenkinspipeline.quickstarter.saas-documentation.desc=Other - SAAS documentation component
+      jenkinspipeline.quickstarter.saas-documentation.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.saas-documentation.create-webhook=false
+
       # E2E quickstarters
       jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
       jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
