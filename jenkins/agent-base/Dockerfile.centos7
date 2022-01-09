@@ -61,6 +61,7 @@ RUN cd /tmp \
     && mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm \
     && chmod a+x /usr/local/bin/helm \
     && helm version \
+    && rm -rf $HOME/.cache/helm/plugins/https-github.com-databus23-helm-diff || true \
     && helm plugin install https://github.com/databus23/helm-diff --version v${HELM_PLUGIN_DIFF_VERSION} \
     && helm plugin install https://github.com/jkroepke/helm-secrets --version v${HELM_PLUGIN_SECRETS_VERSION} \
     && sops --version \
