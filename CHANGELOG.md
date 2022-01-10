@@ -13,6 +13,7 @@
 - Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
 - Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
+- ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083)) 
 
 ### Added
 - Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
