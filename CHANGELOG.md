@@ -4,6 +4,7 @@
 
 ### Fixed
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
+- ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 
 ## [4.0] - 2021-18-11
 
