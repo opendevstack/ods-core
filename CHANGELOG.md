@@ -6,6 +6,7 @@
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 - Fix SonarQube build issue when using libressl, moving to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
+- Fix skopeo broken installation ([1087](https://github.com/opendevstack/ods-core/issues/1087))
 
 ### Added
 
