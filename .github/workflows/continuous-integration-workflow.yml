@@ -70,8 +70,8 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        version: ['7.9', '8.2.0.32929'] # 7.9 = LTS, 8.2 = latest version
-        edition: ['community', 'enterprise']
+        version: ['8.9.6.50800'] # 8.9 = LTS
+        edition: ['community', 'developer', 'enterprise']
     steps:
       -
         name: Checkout repository

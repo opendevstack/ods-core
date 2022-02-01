@@ -212,39 +212,11 @@ echo "Check if plugins are installed in correct versions"
 
 case $SONAR_EDITION in
 
-    community | developer)
+    community | developer | enterprise | datacenter)
         expectedPlugins=( "crowd:2.1.3"
-                "authoidc:1.1.0"
-                "scmgit:1.9.1.1834"
-                "java:6.2.0.21135"
-                "jacoco:1.0.2.475"
-                "go:1.6.0.719"
-                "javascript:6.1.0.11503"
-                "python:2.1.0.5269"
-                "typescript:2.1.0.4359"
-                "sonarscala:1.5.0.315"
-                "php:3.3.0.5166"
-                "csharp:8.6.1.17183"
-                "groovy:1.6" 
-                "r:0.1.3" )
-        ;;
-
-    enterprise | datacenter)
-        expectedPlugins=( "crowd:2.1.3"
-                "authoidc:1.1.0"
-                "scmgit:1.9.1.1834"
-                "java:6.2.0.21135"
-                "jacoco:1.0.2.475"
-                "go:1.6.0.719"
-                "javascript:6.1.0.11503"
-                "python:2.1.0.5269"
-                "typescript:2.1.0.4359"
-                "sonarscala:1.5.0.315"
-                "php:3.3.0.5166"
-                "csharp:8.6.1.17183"
-                "groovy:1.6" 
-                "r:0.1.3"
-                "sonarapex:1.8.2.1946" )
+                "authoidc:2.1.1"
+                "groovy:1.8" 
+                "r:0.2.1" )
         ;;
 
     *)

@@ -54,25 +54,10 @@ COPY run.sh $SONARQUBE_HOME/bin/
 RUN mkdir -p /opt/configuration/sonarqube/plugins
 # General plugins
 ADD https://github.com/deepy/sonar-crowd/releases/download/2.1.3/sonar-crowd-plugin-2.1.3.jar /opt/configuration/sonarqube/plugins/
-ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v1.1.0/sonar-auth-oidc-plugin-1.1.0.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-scm-git-plugin/sonar-scm-git-plugin-1.9.1.1834.jar /opt/configuration/sonarqube/plugins/
-# Language plugins
-ADD https://binaries.sonarsource.com/Distribution/sonar-java-plugin/sonar-java-plugin-6.2.0.21135.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-jacoco-plugin/sonar-jacoco-plugin-1.0.2.475.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-go-plugin/sonar-go-plugin-1.6.0.719.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.1.0.11503.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-python-plugin-2.1.0.5269.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-2.1.0.4359.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-scala-plugin/sonar-scala-plugin-1.5.0.315.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plugin-3.3.0.5166.jar /opt/configuration/sonarqube/plugins/
-ADD https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-8.6.1.17183.jar /opt/configuration/sonarqube/plugins/
-ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.6/sonar-groovy-plugin-1.6.jar /opt/configuration/sonarqube/plugins/
-ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.1.3/sonar-r-plugin-0.1.3.jar /opt/configuration/sonarqube/plugins/
-
-# Aditional plugins for Enterprise and Datacenter editions
-RUN if [[ "$sonarEdition" == "enterprise" || "$sonarEdition" == "datacenter" ]] ; \
-        then wget https://binaries.sonarsource.com/CommercialDistribution/sonar-apex-plugin/sonar-apex-plugin-1.8.2.1946.jar -O /opt/configuration/sonarqube/plugins/sonar-apex-plugin-1.8.2.1946.jar ; \
-    else echo No aditional plugins for developer and community editions ; fi
+ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v2.1.1/sonar-auth-oidc-plugin-2.1.1.jar /opt/configuration/sonarqube/plugins/
+# Language plugins not bundled
+ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.8/sonar-groovy-plugin-1.8.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.2.1/sonar-r-plugin-0.2.1.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \
