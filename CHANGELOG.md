@@ -5,6 +5,7 @@
 ### Fixed
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
+- Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 
 ### Changed
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
