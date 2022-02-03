@@ -52,6 +52,7 @@
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
+- Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
 
 ### Removed
 
