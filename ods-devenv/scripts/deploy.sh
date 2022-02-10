@@ -20,7 +20,7 @@ atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
 atlassian_jira_jdwp_port=15005
-atlassian_jira_software_version=8.5.8
+atlassian_jira_software_version=8.20.5
 # docker network internal jira port
 atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
@@ -57,13 +57,16 @@ log_folder="${HOME}/logs"
 NAMESPACE=ods
 
 function display_usage() {
+    ME="$(basename $0)"
     echo
     echo "This script provides functions to install and configure various parts of an EDP/ODS installation."
     echo "The first argument to this script must always be the ods git ref to build against, e.g. master or feature/ods-devenv."
     echo "Functions in this script can be called like in the sample calls below:"
-    echo "deploy.sh feature/ods-devenv display_usage"
-    echo "deploy.sh feature/ods-devenv install_docker"
-    echo "deploy.sh feature/ods-devenv startup_atlassian_bitbucket"
+    echo " "
+    echo "${ME} --branch feature/ods-devenv --target display_usage"
+    echo "${ME} --branch feature/ods-devenv --target install_docker"
+    echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
+    echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset" 
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
@@ -572,6 +575,42 @@ function print_system_setup() {
     echo "git version: $(git --version)"
     echo "docker version: $(docker --version)"
 }
+
+######
+#
+#
+######
+function atlassian_stack_reset() {
+
+    echo "atlassian_stack_reset: "
+
+    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ; 
+	do 
+		docker stop $container_id 
+		docker rm $container_id  
+	done 
+
+    echo "Folders that need to be removed manually: ~/bitbucket_data ~/jira_data ~/mysql_data"
+    for data_file in bitbucket_data jira_data mysql_data
+    do
+	if [ -d "${HOME}/$data_file" ]; then
+		echo "Removing ${HOME}/$data_file ... "
+		sudo rm -fR ${HOME}/$data_file 
+	fi
+    done
+
+    prepare_atlassian_stack
+    startup_and_follow_atlassian_mysql
+
+    startup_atlassian_crowd
+    startup_and_follow_jira
+    startup_and_follow_bitbucket
+
+    stop_ods
+    startup_ods
+}
+
+
 
 #######################################
 # Retrieve database dump and backup files for Atlassian stack components
@@ -1974,4 +2013,7 @@ esac; shift; done
 ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
 target="${target:-display_usage}"
 echo "Will build ods box against git-ref ${ods_git_ref}"
+echo "Target: ${target} "
+
 ${target}
+
