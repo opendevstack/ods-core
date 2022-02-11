@@ -49,6 +49,7 @@
 - Jenkins plugins version for OCP 3 ([#1000](https://github.com/opendevstack/ods-core/issues/1000))
 - Fix config check ([#1037](https://github.com/opendevstack/ods-core/pull/1037))
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
+- Update centos mirror ([#1097](https://github.com/opendevstack/ods-core/issues/1097))
 
 ### Removed
 
