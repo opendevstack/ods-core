@@ -16,6 +16,7 @@
 - ODS AMI build failed due to an installation error of chrome package ([#1054](https://github.com/opendevstack/ods-core/pull/1054))
 - ODS AMI build failed due to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
 - ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
+- Update centos mirror ([#1097](https://github.com/opendevstack/ods-core/issues/1097))
 
 
 ## [3.0] - 2020-08-11
