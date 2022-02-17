@@ -13,8 +13,10 @@
 - Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
 - Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
+- ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 
 ### Added
+
 - Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
 - Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
@@ -34,9 +36,10 @@
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
-- Updated Tailor to 1.3.3 ([#1077](https://github.com/opendevstack/ods-core/pull/1077))
+- Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
 
 ### Fixed
+
 - ODS AMI build failed due to an installation error of chrome package ([#1054](https://github.com/opendevstack/ods-core/pull/1054))
 - ODS AMI build failed due to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
 - ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
@@ -48,6 +51,8 @@
 - Fix config check ([#1036](https://github.com/opendevstack/ods-core/pull/1036))
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
+- Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
+- Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
 
 ### Removed
 
