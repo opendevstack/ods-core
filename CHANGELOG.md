@@ -38,6 +38,7 @@
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
 - Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
+- Simplify force auth configuration for sonarqube ([#986](https://github.com/opendevstack/ods-core/issues/986))
 
 ### Fixed
 

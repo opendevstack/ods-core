@@ -13,6 +13,9 @@ if [ "${SONAR_AUTH_CROWD}" = "true" ]; then
   } >> conf/sonar.properties
 fi
 
+# enforce authentication to sonar
+echo "sonar.forceAuthentication=true" >> conf/sonar.properties
+
 # Copy plugins into volume
 rm "${SONARQUBE_HOME}"/extensions/plugins/*.jar || true
 ls -lah /opt/configuration/sonarqube/plugins
