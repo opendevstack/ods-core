@@ -53,6 +53,7 @@
 - Fix config check ([#1037](https://github.com/opendevstack/ods-core/pull/1037))
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
 - Update centos mirror ([#1097](https://github.com/opendevstack/ods-core/issues/1097))
+- Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ### Removed
 
