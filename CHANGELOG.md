@@ -53,6 +53,8 @@
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
+- Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
+- Bump antora page version from 4.x to 5.x in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ### Removed
 

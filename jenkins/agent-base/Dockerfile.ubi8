@@ -9,17 +9,17 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     HELM_PLUGIN_DIFF_VERSION=3.3.2 \
     HELM_PLUGIN_SECRETS_VERSION=3.3.5 \
     GIT_LFS_VERSION=2.6.1 \
-    SKOPEO_VERSION=1.2.2-6.module_el8.5.0+736+58cc1a5a.x86_64 \
     JAVA_HOME=/usr/lib/jvm/jre
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
 
-# Add CentOS 8 repositories.
-COPY yum.repos.d/centos8.repo /etc/yum.repos.d/centos8.repo
+# Add UBI repositories.
+COPY yum.repos.d/ubi.repo /etc/yum.repos.d/ubi.repo
 
-RUN yum -y install make glibc-langpack-en openssl \
+RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
+    && yum -y install make glibc-langpack-en openssl \
     && yum clean all \
     && rm -rf /var/cache/yum/*
 
@@ -57,6 +57,7 @@ RUN cd /tmp \
     && mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm \
     && chmod a+x /usr/local/bin/helm \
     && helm version \
+    && helm env \
     && helm plugin install https://github.com/databus23/helm-diff --version v${HELM_PLUGIN_DIFF_VERSION} \
     && helm plugin install https://github.com/jkroepke/helm-secrets --version v${HELM_PLUGIN_SECRETS_VERSION} \
     && sops --version \
@@ -102,9 +103,7 @@ RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client
 COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 
 # Add skopeo.
-RUN yum install -y \
-    http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/containers-common-${SKOPEO_VERSION}.module_el8.5.0+1006+8d0e68a2.x86_64.rpm \
-    http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/skopeo-${SKOPEO_VERSION}.module_el8.5.0+1006+8d0e68a2.x86_64.rpm \
+RUN yum install -y skopeo \
     && yum clean all \
     && rm -rf /var/cache/yum/* \
     && skopeo --version
