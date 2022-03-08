@@ -14,6 +14,7 @@
 - Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
+- ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 
 ### Added
 
