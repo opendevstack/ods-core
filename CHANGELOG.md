@@ -8,6 +8,7 @@
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
+- ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 
 ### Changed
 

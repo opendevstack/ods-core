@@ -1535,7 +1535,7 @@ function create_configuration() {
     sed -i "s|PROV_APP_CONFLUENCE_ADAPTER_ENABLED=.*$|PROV_APP_CONFLUENCE_ADAPTER_ENABLED=false|" ods-core.env
     sed -i "s|PROV_APP_AUTH_BASIC_AUTH_ENABLED=.*$|PROV_APP_AUTH_BASIC_AUTH_ENABLED=true|" ods-core.env
     sed -i "s|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=.*$|PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true|" ods-core.env
-    sed -i "s|PROV_APP_OPENSHIFT_SERVICE_ENABLED=.*$|PROV_APP_OPENSHIFT_SERVICE_ENABLED=true|" ods-core.env
+    sed -i "s|PROV_APP_OPENSHIFT_SERVICE_ENABLED=.*$|PROV_APP_OPENSHIFT_SERVICE_ENABLED=false|" ods-core.env
     sed -i "s|OPENSHIFT_API_URL=.*$|OPENSHIFT_API_URL=https://api.odsbox.lan:8443|" ods-core.env
 
     # OpenShift
