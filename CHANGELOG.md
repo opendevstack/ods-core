@@ -15,6 +15,7 @@
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
+- Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 
 ### Added
 
