@@ -9,6 +9,7 @@
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
+- Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 
 ### Changed
 
