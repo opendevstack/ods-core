@@ -4,3 +4,8 @@ sonar:2.6.1
 ansicolor:0.7.0
 blueocean:1.18.0
 audit-trail:3.10
+parameterized-trigger:2.39
+pipeline-rest-api:2.15
+workflow-cps-global-lib:2.17
+junit:1.53
+token-macro:267.vcdaea6462991
