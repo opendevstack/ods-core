@@ -21,7 +21,7 @@ atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
 atlassian_jira_jdwp_port=15005
-atlassian_jira_software_version=8.20.5
+atlassian_jira_software_version=8.20.6
 # docker network internal jira port
 atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
@@ -67,7 +67,7 @@ function display_usage() {
     echo "${ME} --branch feature/ods-devenv --target display_usage"
     echo "${ME} --branch feature/ods-devenv --target install_docker"
     echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
-    echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset" 
+    echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset"
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
@@ -586,18 +586,18 @@ function atlassian_stack_reset() {
 
     echo "atlassian_stack_reset: "
 
-    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ; 
-	do 
-		docker stop $container_id 
-		docker rm $container_id  
-	done 
+    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
+	do
+		docker stop $container_id
+		docker rm $container_id
+	done
 
     echo "Folders that need to be removed manually: ~/bitbucket_data ~/jira_data ~/mysql_data"
     for data_file in bitbucket_data jira_data mysql_data
     do
 	if [ -d "${HOME}/$data_file" ]; then
 		echo "Removing ${HOME}/$data_file ... "
-		sudo rm -fR ${HOME}/$data_file 
+		sudo rm -fR ${HOME}/$data_file
 	fi
     done
 
