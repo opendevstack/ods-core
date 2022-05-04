@@ -46,6 +46,7 @@ prep-tools:
 ## Lint
 lint:
 	echo "Checking code ..."
+	golangci-lint --version
 	golangci-lint run --go=1.18
 .PHONY: lint
 
