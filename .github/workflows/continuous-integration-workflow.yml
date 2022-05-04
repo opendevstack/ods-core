@@ -116,7 +116,7 @@ jobs:
       -
         name: Download goimports
         run: |
-          go get -v golang.org/x/tools/cmd/goimports
+          go install -v golang.org/x/tools/cmd/goimports@latest
       -
         name: Download golangci-lint
         run: |
