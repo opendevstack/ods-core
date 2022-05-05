@@ -16,6 +16,7 @@
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
+- Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
 
 ### Added
 
@@ -55,8 +56,6 @@
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
-- Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
-- Bump antora page version from 4.x to 5.x in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ### Removed
 
