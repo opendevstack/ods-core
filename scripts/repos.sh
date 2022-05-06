@@ -161,6 +161,7 @@ for REPO in ${REPOS//,/ }; do
             echo_info "Creating new branch based on '${REMOTE_NAME}/${CHECKOUT_REF}'."
             echo_info "We first check if the branch we need exists. "
             echo_info "Fetching everything... "
+            git remote -v
             git fetch --all
             echo_info "Listing all the existing branches... "
             git branch -a
