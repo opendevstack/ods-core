@@ -159,6 +159,12 @@ for REPO in ${REPOS//,/ }; do
             fi
         else
             echo_info "Creating new branch based on '${REMOTE_NAME}/${CHECKOUT_REF}'."
+            echo_info "We first check if the branch we need exists. "
+            echo_info "Fetching everything... "
+            git fetch --all
+            echo_info "Listing all the existing branches... "
+            git branch -a
+            echo_info "Creating the local branch from the existing one... "
             git checkout -b "${CHECKOUT_REF}" "${REMOTE_NAME}/${CHECKOUT_REF}" --no-track
         fi
     fi
