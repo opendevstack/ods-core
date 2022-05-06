@@ -757,6 +757,7 @@ function configure_jira2crowd() {
 
     # setting atl_token
     atl_token=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+        -u "openshift:openshift" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "newDirectoryType=CROWD&next=Next" \
