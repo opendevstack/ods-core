@@ -74,7 +74,7 @@ function display_usage() {
     echo "setup script in a proper sequence."
 }
 
-get_ssh_key_pwds() {
+function get_ssh_key_pwds() {
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file}; done
 }
