@@ -413,6 +413,9 @@ function setup_rdp() {
     sudo firewall-cmd --reload
 }
 
+function install_extra_utils() {
+    sudo yum -y install iproute
+}
 #######################################
 # Sets up the docker daemon and configures insecure registries.
 # Globals:
@@ -554,9 +557,9 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.3.4/tailor-linux-amd64"
+    curl -sS -LO "https://github.com/opendevstack/tailor/releases/download/v1.3.4/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
-    sudo mv tailor-linux-amd64 /usr/bin/tailor
+    sudo mv -vf tailor-linux-amd64 /usr/bin/tailor
 }
 
 #######################################
@@ -746,6 +749,8 @@ function startup_and_follow_jira() {
 function configure_jira2crowd() {
     local cookie_jar_path
     cookie_jar_path="${HOME}/tmp/jira_cookie_jar.txt"
+
+    jira_login_reply="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Configure Jira against Crowd directory ..."
     # login to Jira
     curl -sS 'http://172.17.0.1:18080/login.jsp' \
@@ -753,19 +758,21 @@ function configure_jira2crowd() {
         -c "${cookie_jar_path}" \
         --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
         --compressed \
-        --insecure --silent --location -o /dev/null
+        --insecure --silent --location --output ${jira_login_reply}
+    cat ${jira_login_reply}
     echo "Logged into Jira"
 
     # setting atl_token
     atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
+    echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
     curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
             -u "openshift:openshift" \
             -b "${cookie_jar_path}" \
             -c "${cookie_jar_path}" \
             --data "newDirectoryType=CROWD&next=Next" \
             --compressed \
-            --insecure --location --silent > ${atl_token_fn}
-    cat ${atl_token_fn}
+            --insecure --location --silent --output ${atl_token_fn}
+    cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
     atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
@@ -1944,6 +1951,7 @@ function setup_aqua() {
 function basic_vm_setup() {
     check_system_setup
     setup_rdp
+    install_extra_utils
     setup_dnsmasq
     # optional
     setup_vscode
