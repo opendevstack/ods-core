@@ -76,7 +76,7 @@ function display_usage() {
 
 function get_ssh_key_data() {
     echo "Show current ssh passwords. We need them to connect and debug."
-    ls -1a ${HOME}/.ssh | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file}; done
+    ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
 }
 
 #######################################
