@@ -74,6 +74,11 @@ function display_usage() {
     echo "setup script in a proper sequence."
 }
 
+get_ssh_key_pwds() {
+    echo "Show current ssh passwords. We need them to connect and debug."
+    ls -1a ${HOME}/.ssh | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file}; done
+}
+
 #######################################
 # Fix the CentOS 7 setup before starting Openshift / ODS setup.
 # - Install modern git version.
@@ -1959,6 +1964,7 @@ function setup_aqua() {
 #   None
 #######################################
 function basic_vm_setup() {
+    get_ssh_pairs
     check_system_setup
     setup_rdp
     install_extra_utils
