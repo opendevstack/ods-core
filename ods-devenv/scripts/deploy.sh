@@ -759,13 +759,14 @@ function configure_jira2crowd() {
         --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
         --compressed \
         --insecure --silent --location --output ${jira_login_reply}
-    cat ${jira_login_reply}
+    ls -lah ${jira_login_reply}
     echo "Logged into Jira"
 
     # setting atl_token
     atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
-    curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+    curl -sS --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
             -u "openshift:openshift" \
             -b "${cookie_jar_path}" \
             -c "${cookie_jar_path}" \
