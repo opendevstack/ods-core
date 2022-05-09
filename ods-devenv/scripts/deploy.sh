@@ -74,7 +74,7 @@ function display_usage() {
     echo "setup script in a proper sequence."
 }
 
-function get_ssh_key_pwds() {
+function get_ssh_key_data() {
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file}; done
 }
@@ -1964,7 +1964,7 @@ function setup_aqua() {
 #   None
 #######################################
 function basic_vm_setup() {
-    get_ssh_pairs
+    get_ssh_key_data
     check_system_setup
     setup_rdp
     install_extra_utils
