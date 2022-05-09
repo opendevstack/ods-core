@@ -762,6 +762,10 @@ function configure_jira2crowd() {
     ls -lah ${jira_login_reply}
     echo "Logged into Jira"
 
+    free -h || echo "Problem getting memory usage !! "
+    ps -AfH
+    docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+
     # setting atl_token
     atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
@@ -774,6 +778,11 @@ function configure_jira2crowd() {
             --compressed \
             --insecure --location --silent --output ${atl_token_fn}
     cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
+    docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+    echo " "
+    echo "Server sleeps 3600 secs (2h) for debugging purposes !! "
+    echo " "
+    sleep 3600
     atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
