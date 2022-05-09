@@ -18,7 +18,7 @@ if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
 sudo yum update -y
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
 sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-sudo yum -y install git
+sudo yum -y install git iproute
 
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -p "${opendevstack_dir}"

@@ -636,6 +636,7 @@ function prepare_atlassian_stack() {
     curl -LO ${atlassian_mysql_dump_url}
     curl -LO ${atlassian_jira_backup_url}
     curl -LO ${atlassian_bitbucket_backup_url}
+    ls -la
     echo "Extracting files"
     for data_file in bitbucket_data jira_data mysql_data
     do
@@ -747,7 +748,7 @@ function configure_jira2crowd() {
     cookie_jar_path="${HOME}/tmp/jira_cookie_jar.txt"
     echo "Configure Jira against Crowd directory ..."
     # login to Jira
-    curl 'http://172.17.0.1:18080/login.jsp' \
+    curl -sS 'http://172.17.0.1:18080/login.jsp' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
@@ -756,17 +757,20 @@ function configure_jira2crowd() {
     echo "Logged into Jira"
 
     # setting atl_token
-    atl_token=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
-        -u "openshift:openshift" \
-        -b "${cookie_jar_path}" \
-        -c "${cookie_jar_path}" \
-        --data "newDirectoryType=CROWD&next=Next" \
-        --compressed \
-        --insecure --location --silent | pup 'input[name="atl_token"] attr{value}')
+    atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
+    curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+            -u "openshift:openshift" \
+            -b "${cookie_jar_path}" \
+            -c "${cookie_jar_path}" \
+            --data "newDirectoryType=CROWD&next=Next" \
+            --compressed \
+            --insecure --location --silent > ${atl_token_fn}
+    cat ${atl_token_fn}
+    atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
     # WebSudo authentication - sign in as admin
-    curl 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
+    curl -sS 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
@@ -847,7 +851,7 @@ function configure_bitbucket2crowd() {
     echo "Configured Crowd directory on BitBucket, got crowd directory id ${crowd_directory_id}."
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
@@ -858,27 +862,27 @@ function configure_bitbucket2crowd() {
     sleep 10
 
     # adding after sync groups to global permissions to enable users in the following groups to be able to login
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=bitbucket-users" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=bitbucket-users" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=ADMIN&name=bitbucket-administrators" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=ADMIN&name=bitbucket-administrators" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-team-members" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-team-members" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=LICENSED_USER&name=project-readonly-users" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=LICENSED_USER&name=project-readonly-users" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
