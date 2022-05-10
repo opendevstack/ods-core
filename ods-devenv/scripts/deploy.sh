@@ -940,8 +940,10 @@ function startup_atlassian_jira() {
     local download_dir="downloads_jira"
     # local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
     local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.28/mysql-connector-java-8.0.28.jar"
     # local db_driver_file="mysql-connector-java-8.0.20.jar"
-    local db_driver_file="mysql-connector-java-8.0.29.jar"
+    # local db_driver_file="mysql-connector-java-8.0.29.jar"
+    local db_driver_file="mysql-connector-java-8.0.28.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
     pushd ods-devenv/jira-docker
@@ -1211,7 +1213,7 @@ function download_file_to_folder() {
     pushd "${download_dir}"
     local counter=0
     local wait_interval=5
-    while ! curl -LO "${download_url}" && [[ counter -lt 10 ]]
+    while ! curl -sS -LO "${download_url}" && [[ counter -lt 10 ]]
     do
         if [[ counter -eq 9 ]]
         then
