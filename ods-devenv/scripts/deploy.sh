@@ -974,7 +974,7 @@ function startup_atlassian_jira() {
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
     echo -n "Preparing jira container for connection to local mysql database."
-    prepare_jira_container "${download_dir}"
+    prepare_jira_container "${download_dir}" "${db_driver_file}"
     while ! (docker container exec -i jira bash -c "grep -q ${atlassian_mysql_container_name}.${odsbox_domain} dbconfig.xml")
     do
         # this race condition of the container getting ready and writing to dbconfig.xml
@@ -982,7 +982,7 @@ function startup_atlassian_jira() {
         # Alternative approach: start container, stop container, cp driver, restart container ...
         sleep 1
         echo -n "."
-        prepare_jira_container "${download_dir}"
+        prepare_jira_container "${download_dir}" "${db_driver_file}"
     done
     echo "done"
 
@@ -995,7 +995,8 @@ function startup_atlassian_jira() {
 
 function prepare_jira_container() {
     local download_dir="${1:?null}"
-    docker container cp "${download_dir}/mysql-connector-java-8.0.20.jar" jira:/opt/atlassian/jira/lib/
+    local db_driver_file="${2:?null}"
+    docker container cp "${download_dir}/${db_driver_file}" jira:/opt/atlassian/jira/lib/
     docker container exec -i jira bash -c "sed -i \"s|172.17.0.6|${atlassian_mysql_container_name}.${odsbox_domain}|\" dbconfig.xml"
 }
 
