@@ -76,16 +76,14 @@ function display_usage() {
 
 function configure_sshd_server() {
     echo "Configuring sshd server..."
-    sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
-    sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
-    sed -i "s@.*GSSAPIAuthentication\ .*@GSSAPIAuthentication no@g" /etc/ssh/sshd_config
-    sed -i "s@.*KerberosAuthentication\ .*@KerberosAuthentication no@g" /etc/ssh/sshd_config
-    systemctl restart sshd
-    systemctl status sshd
+    sudo sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*GSSAPIAuthentication\ .*@GSSAPIAuthentication no@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*KerberosAuthentication\ .*@KerberosAuthentication no@g" /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+    sudo systemctl status sshd
     sleep 5
-    cat /etc/ssh/sshd_config
-    # echo "Sleep 7200"
-    # sleep 7200
+    sudo cat /etc/ssh/sshd_config
 }
 
 function configure_sshd_openshift_keys() {
