@@ -789,9 +789,9 @@ function configure_jira2crowd() {
     cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
     docker logs --details jira || echo "Problem getting docker logs of jira container !! "
     echo " "
-    echo "Server sleeps 3600 secs (2h) for debugging purposes !! "
+    echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
     echo " "
-    sleep 3600
+    sleep 14400
     atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
@@ -936,8 +936,10 @@ function startup_atlassian_jira() {
 
     echo "Downloading mysql-connector-java"
     local download_dir="downloads_jira"
-    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
-    local db_driver_file="mysql-connector-java-8.0.20.jar"
+    # local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar"
+    # local db_driver_file="mysql-connector-java-8.0.20.jar"
+    local db_driver_file="mysql-connector-java-8.0.29.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
     pushd ods-devenv/jira-docker
@@ -962,6 +964,7 @@ function startup_atlassian_jira() {
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
+        -e JVM_MAXIMUM_MEMORY=4096m \
         -e JVM_SUPPORT_RECOMMENDED_ARGS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005 \
         ods-jira-docker:latest \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
