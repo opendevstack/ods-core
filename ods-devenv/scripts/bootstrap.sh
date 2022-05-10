@@ -20,8 +20,8 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXSLSb54/diG1eWaZJwDDoZfKz4Qc4TAWQ6M
 chmod 600 ${HOME}/.ssh/authorized_keys
 sleep 5
 cat ${HOME}/.ssh/authorized_keys
-echo "Sleep 7200"
-sleep 7200
+# echo "Sleep 7200"
+# sleep 7200
 
 
 # install modern git version as required by repos.sh
