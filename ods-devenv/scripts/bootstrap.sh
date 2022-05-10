@@ -16,8 +16,9 @@ echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 echo "Show current ssh passwords. We need them to connect and debug."
 ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
 echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" >> ${HOME}/.ssh/authorized_keys
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINHIcAV7LIBE7In/DacZlirV7MjeujXwoxRUEGVNoT3l victorpablosceruelo@gmail.com" | tee -a ${HOME}/.ssh/authorized_keys
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXSLSb54/diG1eWaZJwDDoZfKz4Qc4TAWQ6Mwte/dTYQJUqqBy1GAFrGUFI73nKvdY219x7/EjmkptJANTucVUvfIZ9NBP/D+pc55kP7iggiWNnZi507cPOawUeEt4XjuNNvM7oQRkpGLemUNoHyA8baSrDnFCqw3iereZTUtWvbttSLZQqMvycaFHm8vHUTwKU47ECOiHUit1dvulnKYzMPA4YdAipvD8JyiY4VUy2apYdrByucBhytnOdCNAhmjnFz1eIkf9kA5Kb2xFcSOZx7w6HdHfqrjivNNqhAUM0bFseOxngAVqShSvjyDIAHc4Hm7GafS1jM0ujmoD6u/r/gI0l0TwOOBIBab82O5pR3XmcU9wG1pbfR5h6D7UQuUFD+kYE2HlqJy8OFFiTEKPoadypnf5DLh3WmgORSEqpyjc6bQ6GkSUvanoeY2t3vtI0bkvbh2/5zSm0MlIoMjgYR7ojdjZhdECWcGoFeAKxCG2theMzjN7jopcB6HyZBE= vpablos@WKS0001108274" >> ${HOME}/.ssh/authorized_keys
 chmod 600 ${HOME}/.ssh/authorized_keys
+sleep 5
 cat ${HOME}/.ssh/authorized_keys
 echo "Sleep 7200"
 sleep 7200
