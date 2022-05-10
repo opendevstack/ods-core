@@ -16,8 +16,9 @@ echo "bootstrap: Will build ods box against git-ref ${ods_git_ref}"
 echo "Show current ssh passwords. We need them to connect and debug."
 ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
 
-grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys
-if [ 1 -eq $? ]; then
+local needsKey=0
+grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
+if [ 1 -eq $needsKey ]; then
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCw7exPbJcynoOi2R5TuLCJa9g2yLKUG4fnCzo2Yxxm+xgyTmQoVMww1pYCS9ri1I2l/SOsuu1mXeoXv89H1KXxxxdocqSUgpf5fHSNeN88GaR0P2dQKyf68bDb3DPclRCi09LgHrbYG6bIx8L4pSzZIOzi4K7CPidcb4aSou0nZfHDI/m6uwvv3kkJ6E2aaMIngm4KAFo89iTIoT/YqhfC+2PwSOARhvklBouli8BkQosjUgQrA4TDZM/L3zvaP350EfLV8eJbK4hmEA+nfwe3LGISx81OsA++JBG4t3pNqQfOCjadmrtfjCt8XTjxh86sakkO4BKki7p+d68hURBYNutGzcllGMiTQVan88oMrYdVAgIQUEC2p5BuXGQ1lu4R+tt0iNW0rz37RRF4nB/S39BvuLQ0kkvAhx8Hx9TdQmmo1nCmUvzbN9jHgKSNISm8Bs3NcqCYE3AsAEi3zSPhsVBGFH123q9s8VqMMlPcdcQXLm2gIX1ROiLhOb3uQmk= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
     sleep 5
     cat ${HOME}/.ssh/authorized_keys
