@@ -664,10 +664,10 @@ function atlassian_stack_reset() {
 function prepare_atlassian_stack() {
     echo "Downloading data dumps for Atlassian stack."
     pushd "${HOME}"
-    curl -LO ${atlassian_mysql_dump_url}
-    curl -LO ${atlassian_jira_backup_url}
-    curl -LO ${atlassian_bitbucket_backup_url}
-    ls -la
+    curl -sS -LO ${atlassian_mysql_dump_url}
+    curl -sS -LO ${atlassian_jira_backup_url}
+    curl -sS -LO ${atlassian_bitbucket_backup_url}
+    ls -lah bitbucket_data jira_data mysql_data
     echo "Extracting files"
     for data_file in bitbucket_data jira_data mysql_data
     do
@@ -675,7 +675,7 @@ function prepare_atlassian_stack() {
         rm -rf "${HOME:?}/${data_file:?}"
         # download and expand archives
         tar xzf "${data_file}.tar.gz"
-        rm "${data_file}.tar.gz"
+        rm -vf "${data_file}.tar.gz"
     done
     popd
     echo "Finished downloading and extracting Atlassian stack data dumps."
