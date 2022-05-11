@@ -667,10 +667,12 @@ function prepare_atlassian_stack() {
     curl -sS -LO ${atlassian_mysql_dump_url}
     curl -sS -LO ${atlassian_jira_backup_url}
     curl -sS -LO ${atlassian_bitbucket_backup_url}
-    ls -lah bitbucket_data jira_data mysql_data
+    ls -lh
     echo "Extracting files"
     for data_file in bitbucket_data jira_data mysql_data
     do
+        # Show size of file we are playing with
+        ls -lh "${data_file}.tar.gz"
         # cleaning up (stale) files and folders
         rm -rf "${HOME:?}/${data_file:?}"
         # download and expand archives
