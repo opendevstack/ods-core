@@ -208,12 +208,13 @@ function create_ods_box_ami() {
         exit 0
     else
         if [[ -z ${pub_key:=""} ]]; then
-            pub_key="not-valid.pub"
-            echo "A public key was not provided... creating not-valid.pub file ($pub_key) as placeholder!"
-            echo "#define the pub_key parameter to be able to include your public key" > $pub_key
+            pub_key="ssh-tmp-key.pub"
+            ssh_private_key_file_path="./ssh-tmp-key"
+            echo "A public key was not provided... creating tmp ssh key ($pub_key)..."
+            ssh-keygen -t rsa -n "openshift@odsbox.lan" -C "openshift@odsbox.lan" -m PEM -P "" -f "${ssh_private_key_file_path}"
             pwd
-            cat $pub_key
-            echo "... done: created placeholder not-valid.pub file ($pub_key)!"
+            cat
+            cat ./ssh-tmp-key $pub_key
         fi
 
         time packer build -on-error=ask \
@@ -226,6 +227,7 @@ function create_ods_box_ami() {
             -var "ods_branch=${ods_branch}" \
             -var "instance_type=${instance_type}" \
             -var "pub_key=${pub_key}" \
+            -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
             ods-devenv/packer/CentOS2ODSBox.json
     fi
 }
