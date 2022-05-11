@@ -19,7 +19,7 @@ ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo 
 needsKey=0
 grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
 if [ 1 -eq $needsKey ]; then
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCw7exPbJcynoOi2R5TuLCJa9g2yLKUG4fnCzo2Yxxm+xgyTmQoVMww1pYCS9ri1I2l/SOsuu1mXeoXv89H1KXxxxdocqSUgpf5fHSNeN88GaR0P2dQKyf68bDb3DPclRCi09LgHrbYG6bIx8L4pSzZIOzi4K7CPidcb4aSou0nZfHDI/m6uwvv3kkJ6E2aaMIngm4KAFo89iTIoT/YqhfC+2PwSOARhvklBouli8BkQosjUgQrA4TDZM/L3zvaP350EfLV8eJbK4hmEA+nfwe3LGISx81OsA++JBG4t3pNqQfOCjadmrtfjCt8XTjxh86sakkO4BKki7p+d68hURBYNutGzcllGMiTQVan88oMrYdVAgIQUEC2p5BuXGQ1lu4R+tt0iNW0rz37RRF4nB/S39BvuLQ0kkvAhx8Hx9TdQmmo1nCmUvzbN9jHgKSNISm8Bs3NcqCYE3AsAEi3zSPhsVBGFH123q9s8VqMMlPcdcQXLm2gIX1ROiLhOb3uQmk= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXwKT01BaNoSUXaqzrmaM+mRFyx+ERrmVq7v+1Xgtiru+c07l6vaIK6/GE+E/GH4QESB7phl9dLMlmKOXZZqMixa1MD0V0eaFP4YXCaaTGEPyLaNRNhTXert0IihfAucOIzdFGWn1795IshJ7rj/GdQQ0qrAMVYguz4iC+hR1IznuTkJivIvDCuDo5LG+DksisJlGTLpdTZIeCCJgUUFpevJbtcZKwbUqzd6fo0tQiuk/J0TtO4SlXUvDge7mWGxMCIFPTM+e6AFSI6deviiiyhOHzcP9luJQPBpONBXzGcLXMqm1UsYaOl4OsKcyJSk5PgSKBM0KV4RX2Pm3i0vlz7gbvK65sJKQQlBZBm+W16mT3Ke8ytg9I1Kf9/kplKSvSwxOkmClgWCKzxIT7vsozLnSBuPSyTLZ98RuUFhjDvHMFvmGe0oTGaUB0/QQdhROzYRtw7+/CQOzWuZx32B0CtLpd55iyL8261StbY/92B8QDdIQXg9bzsfx6hXSNLlc= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
     sleep 5
     cat ${HOME}/.ssh/authorized_keys
 else
