@@ -796,6 +796,11 @@ function configure_jira2crowd() {
     # ps -AfH
     # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
 
+    login_page_fn="/tmp/login-page-`date +%Y%m%d_%H%M%S`.log"
+    curl -sS --insecure --location --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/' -u "openshift:openshift" --output ${login_page_fn}
+    cat ${login_page_fn} || echo "File with login page (${login_page_fn}) is EMPTY or does NOT exist !!! "
+
     # setting atl_token
     atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
