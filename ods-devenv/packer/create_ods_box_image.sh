@@ -181,6 +181,7 @@ EOF
 #   instance_type
 #######################################
 function create_ods_box_ami() {
+    echo "Retrieving from AWS latest image with name import-ami-*, root-device-type=ebs and tag Name=CentOS* "
     local ami_id
     ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
