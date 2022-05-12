@@ -31,13 +31,13 @@ chmod -c 600 ${HOME}/.ssh/authorized_keys
 
 # install modern git version as required by repos.sh
 if [[ -n $(command -v git) ]]; then sudo yum remove -y git*; fi
-sudo yum update -y
-sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-sudo yum -y install git iproute
+sudo yum update -y || true
+sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm || true
+sudo yum -y install git gitk iproute || true
 
 opendevstack_dir="${HOME}/opendevstack"
-mkdir -p "${opendevstack_dir}"
+mkdir -pv "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
 curl -LO https://raw.githubusercontent.com/opendevstack/ods-core/${ods_git_ref}/scripts/repos.sh
 chmod u+x ./repos.sh
