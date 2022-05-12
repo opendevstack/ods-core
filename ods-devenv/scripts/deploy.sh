@@ -500,7 +500,9 @@ function install_docker() {
     }
 EOF
     sudo tee /etc/docker/daemon.json
-    sudo systemctl restart docker.service
+    echo "Restarting docker service..."
+    sudo systemctl stop docker.service || sudo systemctl status docker.service
+    sudo systemctl start docker.service || sudo systemctl status docker.service
 
     echo "Configuring firewall for docker containers:"
     sudo firewall-cmd --permanent --new-zone dockerc
@@ -525,7 +527,7 @@ function startup_openshift_cluster() {
 
     register_dns ocp "${ip_address}"
     echo "oc cluster up ..."
-    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
+    oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan" --loglevel=5 --server-loglevel=5
 
     echo "Log into oc cluster with system:admin"
     oc login -u system:admin
