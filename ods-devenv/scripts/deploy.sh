@@ -404,14 +404,19 @@ EOF
 #   None
 #######################################
 function setup_google_chrome() {
-    if [[ -z $(command -v google-chrome) ]]
+    if ! sudo yum list installed 2>&1 | grep -iq google-chrome ; then
+        echo "Google chrome is installed. Not installing it. "
+        return 0
+    fi
 
     chrome_version=94.0.4606.81
-
+    if command -v google-chrome ;
     then
+        echo "Not installing google chrome because binary found."
+    else
         echo "Download and install chrome (google-chrome-stable-${chrome_version}-1.x86_64.rpm)!"
-        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
-        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        curl -sS -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm || true
         rm ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
         echo "... chrome installation completed!"
     fi
