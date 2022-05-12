@@ -434,10 +434,14 @@ function setup_google_chrome() {
 #######################################
 function setup_rdp() {
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
-    sudo yum -y install xrdp || true
-    sudo systemctl start xrdp
+    if ! sudo yum list installed 2>&1 | grep -iq xrdp ; then
+        sudo yum -y install xrdp || true
+    else
+        echo "Not installing xrdp because it was installed before."
+    fi
+    sudo systemctl start xrdp || sudo systemctl status xrdp
     sudo netstat -antup | grep xrdp
-    sudo systemctl enable xrdp
+    sudo systemctl enable xrdp || echo "No need to enable xrdp service in systemctl. "
     sudo chcon --type=bin_t /usr/sbin/xrdp
     sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
     sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN
