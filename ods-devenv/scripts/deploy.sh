@@ -428,8 +428,8 @@ function setup_google_chrome() {
 #   None
 #######################################
 function setup_rdp() {
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install xrdp
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    sudo yum -y install xrdp || true
     sudo systemctl start xrdp
     sudo netstat -antup | grep xrdp
     sudo systemctl enable xrdp
@@ -442,8 +442,9 @@ function setup_rdp() {
 }
 
 function install_extra_utils() {
-    sudo yum -y install iproute
+    sudo yum -y install iproute || true
 }
+
 #######################################
 # Sets up the docker daemon and configures insecure registries.
 # Globals:
