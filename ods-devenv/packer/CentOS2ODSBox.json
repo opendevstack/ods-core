@@ -31,6 +31,10 @@
     ],
     "provisioners": [
         {
+            "type": "shell",
+            "inline": ["echo 'Create ~/tmp folder if not there... '", "mkdir -pv ~/tmp"]
+        },
+        {
             "type": "file",
             "source": "{{user `pub_key`}}",
             "destination": "~/tmp/odsbox.pub"
