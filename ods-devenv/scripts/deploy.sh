@@ -477,9 +477,14 @@ function install_extra_utils() {
 #   None
 #######################################
 function install_docker() {
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    echo "installing docker-ce packages"
-    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
+    if ! sudo yum list installed 2>&1 | grep -iq docker-ce ; then
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        echo "installing docker-ce packages"
+        sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
+    else
+        echo "Docker ce does not need to be installed."
+    fi
+
     echo "enabling docker in systemctl"
     sudo systemctl enable --now docker || sudo systemctl status docker
 
@@ -503,6 +508,7 @@ EOF
     echo "Restarting docker service..."
     sudo systemctl stop docker.service || sudo systemctl status docker.service
     sudo systemctl start docker.service || sudo systemctl status docker.service
+    sudo systemctl status docker.service
 
     echo "Configuring firewall for docker containers:"
     sudo firewall-cmd --permanent --new-zone dockerc
@@ -511,6 +517,11 @@ EOF
     sudo firewall-cmd --permanent --zone dockerc --add-port 53/udp
     sudo firewall-cmd --permanent --zone dockerc --add-port 8053/udp
     sudo firewall-cmd --reload
+
+    echo "Checking docker installation..."
+    docker --version
+    docker ps --all
+    docker images --all
 }
 
 # checks whether cluster runs and if so shuts it down

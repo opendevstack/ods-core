@@ -40,3 +40,11 @@ sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
 sudo yum -y install firewalld git2u-all glances golang jq tree
 
+sudo usermod -a -G docker openshift
+
+echo " "
+echo " "
+echo "Please remember after running all this scripts you need to reboot the AMI image, so users and group changes are loaded."
+echo "To do it, run (for example) shutdown -r now "
+echo " "
+echo " "
