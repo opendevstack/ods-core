@@ -151,8 +151,8 @@ function check_system_setup() {
 
     # remove full update /cut 20210901
     # sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install firewalld git2u-all glances golang jq tree
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    sudo yum -y install firewalld git2u-all glances golang jq tree || true
     go get github.com/ericchiang/pup
     mv "${HOME}/go/bin/pup" "${HOME}/bin/"
 

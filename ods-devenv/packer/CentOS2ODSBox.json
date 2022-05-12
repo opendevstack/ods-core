@@ -32,7 +32,10 @@
     "provisioners": [
         {
             "type": "shell",
-            "inline": ["echo 'Create ~/tmp folder if not there... '", "mkdir -pv ~/tmp"]
+            "inline": [
+                "echo 'Create folders structure needed ( ~/tmp, ~/bin, ... )... '",
+                "mkdir -pv ~/tmp ~/bin"
+            ]
         },
         {
             "type": "file",
