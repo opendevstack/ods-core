@@ -150,8 +150,8 @@ function check_system_setup() {
     fi
 
     # remove full update /cut 20210901
-    # sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    install_packages_yum_utils_epel_release
+
     sudo yum -y install firewalld git2u-all glances golang jq tree lsof || true
     go get github.com/ericchiang/pup
     mv "${HOME}/go/bin/pup" "${HOME}/bin/"
@@ -422,6 +422,18 @@ function setup_google_chrome() {
     fi
 }
 
+function install_packages_yum_utils_epel_release() {
+    local already_installed="y"
+    sudo yum list installed 2>&1 | grep -iq 'yum-utils' || already_installed="n"
+    sudo yum list installed 2>&1 | grep -iq 'epel-release' || already_installed="n"
+
+    if [ "y" != "$already_installed" ] ; then
+        sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
+    else
+        echo "Packages yum-utils epel-release already installed "
+    fi
+}
+
 #######################################
 # Install remote desktop protocol.
 # Connect to the openshift user session using MS Remote Desktop.
@@ -433,14 +445,15 @@ function setup_google_chrome() {
 #   None
 #######################################
 function setup_rdp() {
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    install_packages_yum_utils_epel_release
+
     if ! sudo yum list installed 2>&1 | grep -iq xrdp ; then
         sudo yum -y install xrdp || true
     else
         echo "Not installing xrdp because it was installed before."
     fi
-    sudo systemctl start xrdp || sudo systemctl status xrdp
-    sudo netstat -antup | grep xrdp
+    sudo systemctl start xrdp || sudo systemctl status xrdp || echo "Error starting xrdp service..."
+    sudo netstat -antup | grep xrdp || echo "Error checking if xrdp ports are listening for connections..."
     sudo systemctl enable xrdp || echo "No need to enable xrdp service in systemctl. "
     sudo chcon --type=bin_t /usr/sbin/xrdp
     sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
