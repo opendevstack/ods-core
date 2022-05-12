@@ -466,9 +466,9 @@ function install_extra_utils() {
 function install_docker() {
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     echo "installing docker-ce packages"
-    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
+    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
     echo "enabling docker in systemctl"
-    sudo systemctl enable --now docker
+    sudo systemctl enable --now docker || sudo systemctl status docker
 
     echo "updating docker insecure registries"
     cat <<EOF |
@@ -511,6 +511,7 @@ function startup_openshift_cluster() {
     cluster_dir="${HOME}/openshift.local.clusterup"
 
     register_dns ocp "${ip_address}"
+    echo "oc cluster up ..."
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
 
     echo "Log into oc cluster with system:admin"
@@ -528,8 +529,8 @@ function startup_openshift_cluster() {
 #######################################
 function setup_openshift_cluster() {
     echo "Installing OpenShift client"
-    sudo yum install -y centos-release-openshift-origin311
-    sudo yum install -y origin-clients
+    sudo yum install -y centos-release-openshift-origin311 || true
+    sudo yum install -y origin-clients || true
     source /etc/bash_completion.d/oc
 
     echo "Starting up oc cluster for the first time"
@@ -1468,8 +1469,7 @@ function register_dns() {
         fi
     done
 
-
-    sudo systemctl restart dnsmasq.service
+    sudo systemctl restart dnsmasq.service || sudo systemctl status dnsmasq.service
 }
 
 #######################################
@@ -2020,7 +2020,7 @@ function basic_vm_setup() {
     setup_dnsmasq
     configure_sshd_server
     # optional
-    setup_vscode
+    # setup_vscode
     setup_google_chrome
     install_docker
     setup_openshift_cluster
