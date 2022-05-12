@@ -14,7 +14,6 @@ sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.r
 sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
 sudo yum -y install git gitk iproute lsof
 curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
 sudo yum -y install xrdp
