@@ -1255,8 +1255,10 @@ function initialize_atlassian_jiradb() {
     local mysql_ip
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h "${mysql_ip}" -u root -p -e \
-        "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
+    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} \
+        --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci \
+        mysql -h "${mysql_ip}" -u root -p -e \
+        "create database ${atlassian_jira_db_name} character set utf8mb4 collate utf8mb4_bin; \
         GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
         flush privileges;"
 }
