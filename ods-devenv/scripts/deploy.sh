@@ -89,7 +89,8 @@ function configure_sshd_server() {
 function configure_sshd_openshift_keys() {
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
-    local needsKey=0
+    local needsKey
+    needsKey=0
     grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
     if [ 1 -eq $needsKey ]; then
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXwKT01BaNoSUXaqzrmaM+mRFyx+ERrmVq7v+1Xgtiru+c07l6vaIK6/GE+E/GH4QESB7phl9dLMlmKOXZZqMixa1MD0V0eaFP4YXCaaTGEPyLaNRNhTXert0IihfAucOIzdFGWn1795IshJ7rj/GdQQ0qrAMVYguz4iC+hR1IznuTkJivIvDCuDo5LG+DksisJlGTLpdTZIeCCJgUUFpevJbtcZKwbUqzd6fo0tQiuk/J0TtO4SlXUvDge7mWGxMCIFPTM+e6AFSI6deviiiyhOHzcP9luJQPBpONBXzGcLXMqm1UsYaOl4OsKcyJSk5PgSKBM0KV4RX2Pm3i0vlz7gbvK65sJKQQlBZBm+W16mT3Ke8ytg9I1Kf9/kplKSvSwxOkmClgWCKzxIT7vsozLnSBuPSyTLZ98RuUFhjDvHMFvmGe0oTGaUB0/QQdhROzYRtw7+/CQOzWuZx32B0CtLpd55iyL8261StbY/92B8QDdIQXg9bzsfx6hXSNLlc= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
@@ -768,15 +769,26 @@ function startup_atlassian_mysql() {
 }
 
 function fix_atlassian_mysql_loaded_data() {
-    local atlassian_mysql_root_password="${1}"
+    local atlassian_mysql_root_password="${1:?null}"
 
     echo "fix_atlassian_mysql_loaded_data starts..."
     date +%H%M%S_%s
 
+    docker exec -it atlassian_mysql bash -c \
+        "echo '[client]' > ~/.my.cnf ; echo 'user=root' >> ~/.my.cnf ; \
+         echo \"password=${atlassian_mysql_root_password}\" >> ~/.my.cnf ; cat ~/.my.cnf"
+
+    local test_mysql_is_up=1
+    while [ 0 -ne ${test_mysql_is_up} ];
+    do
+        sleep 5
+        ( docker exec -it atlassian_mysql bash -c "mysql -e 'SHOW DATABASES' || exit 1" && test_mysql_is_up=0 ) || true
+    done
+
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
     docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
 
-    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+    docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, \
         '\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;') \
         FROM information_schema.TABLES AS T, \
@@ -785,7 +797,7 @@ function fix_atlassian_mysql_loaded_data() {
         AND ( C.CHARACTER_SET_NAME != 'utf8mb4' OR  C.COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
         >> /tmp/atlassian_mysql_fixes.txt "
 
-    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+    docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
         DATA_TYPE, '(', CHARACTER_MAXIMUM_LENGTH, ') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
@@ -793,7 +805,7 @@ function fix_atlassian_mysql_loaded_data() {
         ( CHARACTER_SET_NAME != 'utf8mb4'    OR    COLLATION_NAME != 'utf8mb4_unicode_ci');\" \
         >> /tmp/atlassian_mysql_fixes.txt "
 
-    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+    docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
         DATA_TYPE, ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
@@ -803,7 +815,7 @@ function fix_atlassian_mysql_loaded_data() {
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=1;' >> /tmp/atlassian_mysql_fixes.txt "
 
-    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+    docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
         \"source /tmp/atlassian_mysql_fixes.txt\""
 
     echo "fix_atlassian_mysql_loaded_data ended."
@@ -1350,8 +1362,6 @@ function startup_atlassian_bitbucket() {
     sed -i "s|__base-image__|bitbucket-server|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-bitbucket-docker:latest .
     popd
-
-    local
 
     echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
     sudo chown -R 2003:2003 ${HOME}/bitbucket_data
@@ -1937,7 +1947,8 @@ function setup_jenkins_agents() {
         popd
     done
 
-    local return_value=0
+    local return_value
+    return_value=0
     for job in $(jobs -p)
     do
         echo "Waiting for openshift build configuration ${job} to be created."
