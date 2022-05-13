@@ -1239,31 +1239,6 @@ function crowd_echo_backup_cmd() {
 }
 
 #######################################
-# Initialize Jira database. Requires database service to be running.
-# Is to be used mutually exclusively with prepare_atlassian_stack.
-# Globals:
-#   atlassian_jira_db_name
-#   atlassian_mysql_container_name
-#   atlassian_mysql_port
-#   atlassian_mysql_version
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function initialize_atlassian_jiradb() {
-    local mysql_ip
-    mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
-    echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} \
-        --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci \
-        mysql -h "${mysql_ip}" -u root -p -e \
-        "create database ${atlassian_jira_db_name} character set utf8mb4 collate utf8mb4_bin; \
-        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
-        flush privileges;"
-}
-
-#######################################
 # Will download the file specified by the url in the 1st argument
 # and save it to the download directory specified
 # Globals:
@@ -2063,7 +2038,6 @@ function basic_vm_setup() {
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
     # or
-    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
 
