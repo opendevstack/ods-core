@@ -782,7 +782,13 @@ function fix_atlassian_mysql_loaded_data() {
     while [ 0 -ne ${test_mysql_is_up} ];
     do
         sleep 5
-        ( docker exec -i atlassian_mysql bash -c "mysql -e 'SHOW DATABASES' || exit 1" && test_mysql_is_up=0 ) || true
+        echo " "
+        echo "Testing if mysqld is up..."
+        if docker exec -i atlassian_mysql bash -c "mysql -e 'SHOW DATABASES'" ; then
+            test_mysql_is_up=0
+        else
+            echo "Trying again because mysqld seems to be down..."
+        fi
     done
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
