@@ -739,11 +739,13 @@ function prepare_atlassian_stack() {
 #   None
 #######################################
 function startup_atlassian_mysql() {
+    local atlassian_mysql_root_password="jiradbrpwd"
+
     echo "Setting up a mysql instance for the Atlassian tool suite."
     docker container run -dp ${atlassian_mysql_port}:3306 \
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
-        -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
+        -e "MYSQL_ROOT_PASSWORD=${atlassian_mysql_root_password}" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --sql-mode="${atlassian_mysql_sql_mode}" \
         --character-set-server=utf8mb4 \
@@ -758,9 +760,52 @@ function startup_atlassian_mysql() {
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
 
+    fix_atlassian_mysql_loaded_data "${atlassian_mysql_root_password}"
+
     inspect_mysql_ip
     echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
     register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
+}
+
+function fix_atlassian_mysql_loaded_data() {
+    local atlassian_mysql_root_password="${1}"
+
+    echo "fix_atlassian_mysql_loaded_data starts..."
+
+    docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
+    docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
+
+    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, \
+        '\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;') \
+        FROM information_schema.TABLES AS T, \
+        information_schema.\\\`COLLATION_CHARACTER_SET_APPLICABILITY\\\` AS C \
+        WHERE C.collation_name = T.table_collation AND T.table_schema = 'jiradb' \
+        AND ( C.CHARACTER_SET_NAME != 'utf8mb4' OR  C.COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
+        >> /tmp/atlassian_mysql_fixes.txt "
+
+    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
+        DATA_TYPE, '(', CHARACTER_MAXIMUM_LENGTH, ') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
+        (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
+        FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE = 'varchar' AND \
+        ( CHARACTER_SET_NAME != 'utf8mb4'    OR    COLLATION_NAME != 'utf8mb4_unicode_ci');\" \
+        >> /tmp/atlassian_mysql_fixes.txt "
+
+    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
+        DATA_TYPE, ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
+        (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
+        FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE != 'varchar' AND \
+        ( CHARACTER_SET_NAME != 'utf8mb4' OR COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
+        >> /tmp/atlassian_mysql_fixes.txt "
+
+    docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=1;' >> /tmp/atlassian_mysql_fixes.txt "
+
+    echo "${atlassian_mysql_root_password}" | docker exec -i atlassian_mysql bash -c "mysql -u root -p -sN -e \
+        \"source /tmp/atlassian_mysql_fixes.txt\""
+
+    echo "fix_atlassian_mysql_loaded_data ended."
 }
 
 #######################################
