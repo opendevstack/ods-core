@@ -771,6 +771,7 @@ function fix_atlassian_mysql_loaded_data() {
     local atlassian_mysql_root_password="${1}"
 
     echo "fix_atlassian_mysql_loaded_data starts..."
+    date +%H%M%S_%s
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
     docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
@@ -806,6 +807,7 @@ function fix_atlassian_mysql_loaded_data() {
         \"source /tmp/atlassian_mysql_fixes.txt\""
 
     echo "fix_atlassian_mysql_loaded_data ended."
+    date +%H%M%S_%s
 }
 
 #######################################
