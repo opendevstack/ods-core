@@ -772,6 +772,7 @@ function fix_atlassian_mysql_loaded_data() {
     local atlassian_mysql_root_password="${1:?null}"
 
     echo "fix_atlassian_mysql_loaded_data starts..."
+    rm -fv /tmp/atlassian_mysql_fixes.txt
     date +%H%M%S_%s
 
     docker exec -i atlassian_mysql bash -c \
@@ -801,7 +802,7 @@ function fix_atlassian_mysql_loaded_data() {
         information_schema.\\\`COLLATION_CHARACTER_SET_APPLICABILITY\\\` AS C \
         WHERE C.collation_name = T.table_collation AND T.table_schema = 'jiradb' \
         AND ( C.CHARACTER_SET_NAME != 'utf8mb4' OR  C.COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
-        >> /tmp/atlassian_mysql_fixes.txt "
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
@@ -809,7 +810,7 @@ function fix_atlassian_mysql_loaded_data() {
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
         FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE = 'varchar' AND \
         ( CHARACTER_SET_NAME != 'utf8mb4'    OR    COLLATION_NAME != 'utf8mb4_unicode_ci');\" \
-        >> /tmp/atlassian_mysql_fixes.txt "
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
@@ -817,13 +818,20 @@ function fix_atlassian_mysql_loaded_data() {
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
         FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE != 'varchar' AND \
         ( CHARACTER_SET_NAME != 'utf8mb4' OR COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
-        >> /tmp/atlassian_mysql_fixes.txt "
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=1;' >> /tmp/atlassian_mysql_fixes.txt "
 
     echo "Loading script to fix the database. Amount of lines in script: "
     docker exec -i atlassian_mysql bash -c \
         "wc -l /tmp/atlassian_mysql_fixes.txt; mysql -sN -e \"source /tmp/atlassian_mysql_fixes.txt\""
+
+    local remaining_lines=$( wc -l /tmp/atlassian_mysql_fixes.txt | cut -d ' ' -f 1 )
+    if [ "0" != "${remaining_lines}" ]; then
+        echo "Calling again to check that database has all the fixes it needs... "
+        echo "Lines processed this iteration: ${remaining_lines}"
+        fix_atlassian_mysql_loaded_data "${atlassian_mysql_root_password}"
+    fi
 
     echo "fix_atlassian_mysql_loaded_data ended."
     date +%H%M%S_%s
