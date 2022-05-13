@@ -16,7 +16,7 @@ sudo yum -y install git gitk iproute lsof
 curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-sudo yum -y install xrdp
+sudo yum -y install xrdp tigervnc-server remmina
 rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
@@ -40,6 +40,23 @@ sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.r
 sudo yum -y install firewalld git2u-all glances golang jq tree
 
 sudo usermod -a -G docker openshift
+
+# etckeeper
+sudo yum install -y etckeeper
+cd /etc/
+sudo etckeeper init
+sudo etckeeper commit -m "Initial commit"
+
+# GUI:
+sudo firewall-cmd --add-port=3389/tcp --permanent
+sudo firewall-cmd --add-port=3350/tcp --permanent
+sudo firewall-cmd --reload
+sudo yum groupinstall -y "MATE Desktop"
+sudo systemctl enable xrdp
+sudo chcon --type=bin_t /usr/sbin/xrdp
+sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
+sudo sed -i 's/^\s*ListenAddress=127.0.0.1\s*$/ListenAddress=0.0.0.0/g' /etc/xrdp/sesman.ini
+
 
 echo " "
 echo " "
