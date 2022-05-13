@@ -746,8 +746,8 @@ function startup_atlassian_mysql() {
         -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --sql-mode="${atlassian_mysql_sql_mode}" \
-        --character-set-server=utf8 \
-        --collation-server=utf8_bin \
+        --character-set-server=utf8mb4 \
+        --collation-server=utf8mb4_unicode_ci \
         --default-storage-engine=INNODB \
         --innodb-default-row-format=DYNAMIC \
         --innodb-large-prefix=ON \
