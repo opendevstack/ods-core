@@ -774,7 +774,7 @@ function fix_atlassian_mysql_loaded_data() {
     echo "fix_atlassian_mysql_loaded_data starts..."
     date +%H%M%S_%s
 
-    docker exec -it atlassian_mysql bash -c \
+    docker exec -i atlassian_mysql bash -c \
         "echo '[client]' > ~/.my.cnf ; echo 'user=root' >> ~/.my.cnf ; \
          echo \"password=${atlassian_mysql_root_password}\" >> ~/.my.cnf ; cat ~/.my.cnf"
 
@@ -782,7 +782,7 @@ function fix_atlassian_mysql_loaded_data() {
     while [ 0 -ne ${test_mysql_is_up} ];
     do
         sleep 5
-        ( docker exec -it atlassian_mysql bash -c "mysql -e 'SHOW DATABASES' || exit 1" && test_mysql_is_up=0 ) || true
+        ( docker exec -i atlassian_mysql bash -c "mysql -e 'SHOW DATABASES' || exit 1" && test_mysql_is_up=0 ) || true
     done
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
