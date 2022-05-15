@@ -803,7 +803,7 @@ function fix_atlassian_mysql_loaded_data() {
     done
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \"ALTER DATABASE jiradb \
-        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_character_set};\""
+        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation};\""
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
     docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
