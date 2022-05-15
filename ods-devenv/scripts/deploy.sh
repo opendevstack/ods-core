@@ -938,8 +938,11 @@ function configure_jira2crowd() {
             -c "${cookie_jar_path}" \
             --data "newDirectoryType=CROWD&next=Next" \
             --compressed \
-            --insecure --location --silent --output ${atl_token_fn} 2>&1 | tee -a ${errors_file}
+            --insecure --location --silent --output ${atl_token_fn} --stderr ${errors_file}
+    sleep 5
+    echo "Results from curl setting atl token: "
     cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
+    cat ${errors_file}
 
     if grep -q "HTTP/1.1 503" ; then
         # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
