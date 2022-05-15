@@ -797,6 +797,9 @@ function fix_atlassian_mysql_loaded_data() {
         fi
     done
 
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"ALTER DATABASE jiradb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\""
+
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
     docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
 
@@ -840,6 +843,24 @@ function fix_atlassian_mysql_loaded_data() {
 
     echo "fix_atlassian_mysql_loaded_data ended."
     date +%H%M%S_%s
+    fix_atlassian_mysql_loaded_data_checks
+}
+
+function fix_atlassian_mysql_loaded_data_checks() {
+    echo " "
+    echo "fix_atlassian_mysql_loaded_data_checks STARTS"
+    echo " "
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"SELECT @@character_set_database, @@collation_database; \
+        SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_COLLATION FROM INFORMATION_SCHEMA.TABLES; \
+        SELECT TABLE_NAME, COLUMN_NAME, COLLATION_NAME FROM INFORMATION_SCHEMA.COLUMNS;\"" \
+        > /tmp/fix_atlassian_mysql_loaded_data_checks.txt
+
+    grep -i jiradb /tmp/fix_atlassian_mysql_loaded_data_checks.txt
+
+    echo " "
+    echo "fix_atlassian_mysql_loaded_data_checks ENDS"
+    echo " "
 }
 
 #######################################
@@ -948,6 +969,9 @@ function configure_jira2crowd() {
 
     if grep -iq "HTTP/1.1 503" ${errors_file} ; then
         # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+
+        fix_atlassian_mysql_loaded_data_checks
+
         echo " "
         echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
         echo " "
@@ -1147,6 +1171,9 @@ function startup_atlassian_jira() {
         prepare_jira_container "${download_dir}" "${db_driver_file}"
     done
     echo "done"
+
+    # This is necessary because jira reloads using worng character set and collation.
+    # fix_atlassian_mysql_loaded_data
 
     rm -rf "${download_dir}"
     inspect_jira_ip
