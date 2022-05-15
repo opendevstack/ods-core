@@ -775,9 +775,13 @@ function fix_atlassian_mysql_loaded_data() {
     rm -fv /tmp/atlassian_mysql_fixes.txt
     date +%H%M%S_%s
 
-    docker exec -i atlassian_mysql bash -c \
-        "echo '[client]' > ~/.my.cnf ; echo 'user=root' >> ~/.my.cnf ; \
-         echo \"password=${atlassian_mysql_root_password}\" >> ~/.my.cnf ; cat ~/.my.cnf"
+    if [ "null" != "${atlassian_mysql_root_password}" ]; then
+        docker exec -i atlassian_mysql bash -c \
+            "echo '[client]' > ~/.my.cnf ; echo 'user=root' >> ~/.my.cnf ; \
+            echo \"password=${atlassian_mysql_root_password}\" >> ~/.my.cnf ; cat ~/.my.cnf"
+    else
+        echo "Not setting mysql pwd in .my.cnf because it has a wrong value."
+    fi
 
     local test_mysql_is_up=1
     while [ 0 -ne ${test_mysql_is_up} ];
@@ -897,6 +901,10 @@ function configure_jira2crowd() {
     local cookie_jar_path
     cookie_jar_path="${HOME}/tmp/jira_cookie_jar.txt"
 
+    local errors_file
+    errors_file="/tmp/errors_jira2crowd.txt"
+    rm -fv ${errors_file}
+
     jira_login_reply="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Configure Jira against Crowd directory ..."
     # login to Jira
@@ -916,7 +924,9 @@ function configure_jira2crowd() {
     login_page_fn="/tmp/login-page-`date +%Y%m%d_%H%M%S`.log"
     curl -sS --insecure --location --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
             'http://172.17.0.1:18080/' -u "openshift:openshift" --output ${login_page_fn}
-    cat ${login_page_fn} || echo "File with login page (${login_page_fn}) is EMPTY or does NOT exist !!! "
+    if [ ! -f ${login_page_fn} ]; then
+        echo "WARNING: File with login page (${login_page_fn}) is EMPTY or does NOT exist !!! "
+    fi
 
     # setting atl_token
     atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
@@ -928,14 +938,18 @@ function configure_jira2crowd() {
             -c "${cookie_jar_path}" \
             --data "newDirectoryType=CROWD&next=Next" \
             --compressed \
-            --insecure --location --silent --output ${atl_token_fn}
+            --insecure --location --silent --output ${atl_token_fn} 2>&1 | tee -a ${errors_file}
     cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
 
-    # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
-    echo " "
-    echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
-    echo " "
-    sleep 14400
+    if grep -q "HTTP/1.1 503" ; then
+        # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+        echo " "
+        echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
+        echo " "
+        sleep 14400
+    else
+        echo "No error 503 configuring Jira. Perfect !!! "
+    fi
 
     atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
