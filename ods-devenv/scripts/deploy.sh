@@ -944,8 +944,9 @@ function configure_jira2crowd() {
     echo "Results from curl setting atl token: "
     cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
     cat ${errors_file}
+    sleep 5
 
-    if grep -q "HTTP/1.1 503" ; then
+    if grep -iq "HTTP/1.1 503" ${errors_file} ; then
         # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
         echo " "
         echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
