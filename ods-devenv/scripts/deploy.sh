@@ -9,6 +9,11 @@ atlassian_mysql_ip=
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
 atlassian_mysql_sql_mode=ANSI_QUOTES
+
+atlassian_mysql_character_set="utf8mb4"
+atlassian_mysql_collation="utf8mb4_bin"
+
+
 atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
 atlassian_crowd_port=48080
@@ -750,8 +755,8 @@ function startup_atlassian_mysql() {
         -e "MYSQL_ROOT_PASSWORD=${atlassian_mysql_root_password}" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
         --sql-mode="${atlassian_mysql_sql_mode}" \
-        --character-set-server=utf8mb4 \
-        --collation-server=utf8mb4_unicode_ci \
+        --character-set-server="${atlassian_mysql_character_set}" \
+        --collation-server="${atlassian_mysql_collation}" \
         --default-storage-engine=INNODB \
         --innodb-default-row-format=DYNAMIC \
         --innodb-large-prefix=ON \
@@ -797,35 +802,39 @@ function fix_atlassian_mysql_loaded_data() {
         fi
     done
 
-    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
-        \"ALTER DATABASE jiradb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\""
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \"ALTER DATABASE jiradb \
+        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_character_set};\""
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
     docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, \
-        '\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;') \
+        '\\\` CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation};') \
         FROM information_schema.TABLES AS T, \
         information_schema.\\\`COLLATION_CHARACTER_SET_APPLICABILITY\\\` AS C \
         WHERE C.collation_name = T.table_collation AND T.table_schema = 'jiradb' \
-        AND ( C.CHARACTER_SET_NAME != 'utf8mb4' OR  C.COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
+        AND ( C.CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+              C.COLLATION_NAME != '${atlassian_mysql_collation}' );\" \
         | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
-        DATA_TYPE, '(', CHARACTER_MAXIMUM_LENGTH, ') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
+        DATA_TYPE, '(', CHARACTER_MAXIMUM_LENGTH, ') \
+        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation}', \
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
         FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE = 'varchar' AND \
-        ( CHARACTER_SET_NAME != 'utf8mb4'    OR    COLLATION_NAME != 'utf8mb4_unicode_ci');\" \
+        ( CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+          COLLATION_NAME != '${atlassian_mysql_collation}');\" \
         | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "mysql -sN -e \
         \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
-        DATA_TYPE, ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', \
+        DATA_TYPE, ' CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation}', \
         (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
         FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE != 'varchar' AND \
-        ( CHARACTER_SET_NAME != 'utf8mb4' OR COLLATION_NAME != 'utf8mb4_unicode_ci' );\" \
+        ( CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+          COLLATION_NAME != '${atlassian_mysql_collation}' );\" \
         | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
 
     docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=1;' >> /tmp/atlassian_mysql_fixes.txt "
