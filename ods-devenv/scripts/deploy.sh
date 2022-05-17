@@ -150,10 +150,10 @@ function check_system_setup() {
     sudo chattr +i /etc/sudoers
 
     # remove obsolete version of git
-    if [[ -n $(command -v git) ]]
-    then
-        sudo yum remove -y git*
-    fi
+    # if [[ -n $(command -v git) ]]
+    # then
+    #     sudo yum remove -y git*
+    # fi
 
     # remove full update /cut 20210901
     install_packages_yum_utils_epel_release
