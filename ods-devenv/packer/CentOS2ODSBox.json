@@ -19,23 +19,24 @@
             "instance_type": "{{user `instance_type`}}",
             "ssh_username": "{{user `username`}}",
             "ssh_password": "{{user `password`}}",
+            "ssh_private_key_file": "{{user `ssh_private_key_file_path`}}",
             "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
             "run_tags": {
                 "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
             },
             "tags": {
                 "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
-            },
-            "encrypt_boot" : "false",
-            "launch_block_device_mappings": [
-                {
-                    "device_name": "/dev/sda1",
-                    "encrypted": false
-                }
-            ]
+            }
         }
     ],
     "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "echo 'Create folders structure needed ( ~/tmp, ~/bin, ... )... '",
+                "mkdir -pv ~/tmp ~/bin"
+            ]
+        },
         {
             "type": "file",
             "source": "{{user `pub_key`}}",
