@@ -2054,7 +2054,7 @@ function setup_jenkins_agents() {
     # done
 
     local foundErrorInTechnologies=0
-    for technologies_index_aux in ${!technologies[@]};
+    for technologies_index_aux in ${!technologies[@]}; do
         technology=${technologies[$technologies_index_aux]}
         echo "Waiting for the result of building jenkins-agent for technology ${technology}"
         wait ${pids[$technologies_index_aux]}
