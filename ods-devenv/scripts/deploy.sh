@@ -666,6 +666,7 @@ function print_system_setup() {
 function atlassian_stack_reset() {
 
     echo "atlassian_stack_reset: "
+    echo "IMPORTANT: remove from /etc/hosts lines with references to jira and bitbucket before run this method"
 
     docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
 	do
@@ -673,24 +674,11 @@ function atlassian_stack_reset() {
 		docker rm $container_id
 	done
 
-    echo "Folders that need to be removed manually: ~/bitbucket_data ~/jira_data ~/mysql_data"
-    for data_file in bitbucket_data jira_data mysql_data
-    do
-	if [ -d "${HOME}/$data_file" ]; then
-		echo "Removing ${HOME}/$data_file ... "
-		sudo rm -fR ${HOME}/$data_file
-	fi
-    done
-
-    prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
 
     startup_atlassian_crowd
     startup_and_follow_jira
     startup_and_follow_bitbucket
-
-    stop_ods
-    startup_ods
 }
 
 
@@ -1587,6 +1575,10 @@ function register_dns() {
 
     # register new ip with /etc/hosts
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
+
+    # remove previous entries if is needed
+    grep -v "${ip}" /etc/hosts > /tmp/temporalHosts
+    sudo cp /tmp/temporalHosts /etc/hosts
 
     while ! grep -q "${ip}" /etc/hosts
     do
