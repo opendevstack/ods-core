@@ -2042,7 +2042,7 @@ function setup_jenkins_agents() {
         technologies[${technologies_index}]=${technology}
 
         echo "Starting (in background) build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>$1 &
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
         pids[${technologies_index}]=$!
 
     done
