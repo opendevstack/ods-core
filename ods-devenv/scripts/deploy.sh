@@ -468,10 +468,11 @@ function setup_rdp() {
     sudo firewall-cmd --zone=public --permanent --add-port=3350/tcp
     sudo firewall-cmd --reload
 
-    echo "exec /usr/bin/mate-session" > ${HOME}/.xinitrc
-    echo "exec /usr/bin/mate-session" > ${HOME}/startwm.sh
-    echo "exec /usr/bin/mate-session" > ${HOME}/.Xclients
-    chmod +x ${HOME}/.xinitrc ${HOME}/startwm.sh ${HOME}/.Xclients
+    # Recommended, but not mandatory.
+    # echo "exec /usr/bin/mate-session" > ${HOME}/.xinitrc
+    # echo "exec /usr/bin/mate-session" > ${HOME}/startwm.sh
+    # echo "exec /usr/bin/mate-session" > ${HOME}/.Xclients
+    # chmod +x ${HOME}/.xinitrc ${HOME}/startwm.sh ${HOME}/.Xclients
 
 }
 
