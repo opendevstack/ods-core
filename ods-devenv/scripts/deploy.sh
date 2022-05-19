@@ -1574,12 +1574,12 @@ function register_dns() {
     local ip
     ip=$2
 
+    echo "Checking if ip or service name entries are in /etc/hosts ... "
+    # remove previous entries if is needed
+    grep -i "\(${ip}\|${service_name}\)" /etc/hosts || true
+
     # register new ip with /etc/hosts
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
-
-    # remove previous entries if is needed
-    grep -v "${ip}" /etc/hosts > /tmp/temporalHosts
-    sudo cp /tmp/temporalHosts /etc/hosts
 
     while ! grep -q "${ip}" /etc/hosts
     do
@@ -2025,13 +2025,45 @@ function setup_jenkins_agents() {
         echo "build configuration job ${job} returned."
     done
 
+    local technologies
+    local technologies_index
+
+    technologies_index=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
-        echo "Starting build of jenkins-agent for technology ${technology}."
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow | tee "${log_folder}/${technology}_build.log"
+        technologies[${technologies_index}]=${technology}
+
+        echo "Starting (in background) build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
+        pids[${technologies_index}]=$!
+
     done
     popd
+
+    # for pid in ${[*]}; do
+    #     wait $pid
+    #     return_value=$?
+    # done
+
+    local foundErrorInTechnologies=0
+    for technologies_index_aux in ${!technologies[@]}; do
+        technology=${technologies[$technologies_index_aux]}
+        echo "Waiting for the result of building jenkins-agent for technology ${technology}"
+        wait ${pids[$technologies_index_aux]}
+        return_value=$?
+        cat ${log_folder}/${technology}_build.log
+        if [ 0 -ne ${return_value} ]; then
+            echo "Failed building jenkins-agent for technology ${technology}"
+            foundErrorInTechnologies=1
+        fi
+    done
+
+    if [ 0 -ne ${foundErrorInTechnologies} ]; then
+        echo "Look for the line 'Failed building jenkins-agent for technology' above."
+        echo "Exiting because we have errors building a jenkins-agent. "
+        exit 1
+    fi
 
     for job in $(jobs -p)
     do
