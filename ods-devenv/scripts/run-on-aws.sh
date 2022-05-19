@@ -6,7 +6,7 @@ install=
 target_git_ref=
 
 instance_type="m5ad.4xlarge"
-volume_size=100
+volume_size=150
 ami_id=
 host=
 keypair=
