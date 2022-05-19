@@ -13,6 +13,8 @@ s3_upload_folder=image_upload
 output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 
+dryrun=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
 
@@ -44,6 +46,8 @@ while [[ "$#" -gt 0 ]]; do
     --pub-key=*) pub_key="${1#*=}";;
 
     --target) target="$2"; shift;;
+
+    --dryrun) dryrun=true;;
 
     --help) target=display_usage;;
 
@@ -86,6 +90,8 @@ function display_usage() {
     echo "      --ods-branch            branch to build ODS box against, e.g master"
     echo "      --instance-type         AWS EC2 instance type to run the AMI build on. Defaults to m5ad.4xlarge."
     echo "                              Options: t2.2xlarge, m5ad.4xlarge"
+    echo "      --dry-run               only query for ami-id, log parameters, wait a bit, and then exit without"
+    echo "                              actually calling packer"
     echo
 }
 
@@ -175,6 +181,7 @@ EOF
 #   instance_type
 #######################################
 function create_ods_box_ami() {
+    echo "Retrieving from AWS latest image with name import-ami-*, root-device-type=ebs and tag Name=CentOS* "
     local ami_id
     ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
@@ -182,31 +189,47 @@ function create_ods_box_ami() {
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
 
     echo "ami-id=${ami_id}"
+    echo "PACKER_LOG=${PACKER_LOG}"
+    echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
+    echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
 
-    if [[ -z ${pub_key:=""} ]]
+    if [[ "${dryrun}" == "true" ]]
     then
-        pub_key="not-valid.pub"
-        echo "A public key was not provided... creating not-valid.pub file ($pub_key) as placeholder!"
-        echo "#define the pub_key parameter to be able to include your public key" > $pub_key
-        pwd
-        cat $pub_key
-        echo "... done: created placeholder not-valid.pub file ($pub_key)!"
+        echo -n "dryrun"
+        local counter=0
+        while (( counter <= 10 ))
+        do
+            sleep 1
+            counter=$((counter + 1))
+            echo -n '.'
+        done
+        echo "done."
+        exit 0
     else
-        echo "pub_key=${pub_key}"
-    fi
+        if [[ -z ${pub_key:=""} ]]; then
+            pub_key="ssh-tmp-key.pub"
+            ssh_private_key_file_path="./ssh-tmp-key"
+            echo "A public key was not provided... creating tmp ssh key ($pub_key)..."
+            ssh-keygen -t rsa -n "openshift@odsbox.lan" -C "openshift@odsbox.lan" -m PEM -P "" -f "${ssh_private_key_file_path}"
+            pwd
+            cat
+            cat ./ssh-tmp-key $pub_key
+        fi
 
-    time packer build -on-error=ask \
-        -var "aws_access_key=${aws_access_key}" \
-        -var "aws_secret_key=${aws_secret_key}" \
-        -var "ami_id=${ami_id}" \
-        -var 'username=openshift' \
-        -var 'password=openshift' \
-        -var "name_tag=ODS Box $(date)" \
-        -var "ods_branch=${ods_branch}" \
-        -var "instance_type=${instance_type}" \
-        -var "pub_key=${pub_key}" \
-        ods-devenv/packer/CentOS2ODSBox.json
+        time packer build -on-error=ask \
+            -var "aws_access_key=${aws_access_key}" \
+            -var "aws_secret_key=${aws_secret_key}" \
+            -var "ami_id=${ami_id}" \
+            -var 'username=openshift' \
+            -var 'password=openshift' \
+            -var "name_tag=ODS Box $(date)" \
+            -var "ods_branch=${ods_branch}" \
+            -var "instance_type=${instance_type}" \
+            -var "pub_key=${pub_key}" \
+            -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
+            ods-devenv/packer/CentOS2ODSBox.json
+    fi
 }
 
 target="${target:-display_usage}"

@@ -196,7 +196,7 @@ else
     echo "Developer access possible"
 fi
 
-artifact_url="${NEXUS_URL}/repository/jcenter/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
+artifact_url="${NEXUS_URL}/repository/maven-public/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
 
 echo "Downloading sample artifact: $artifact_url"
 # retrieves an xml doc.

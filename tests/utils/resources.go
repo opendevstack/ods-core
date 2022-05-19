@@ -22,6 +22,9 @@ func CheckImageTags(namespace string, imageTags []ImageTag, config *rest.Config,
 	}
 
 	images, err := imageClient.ImageStreams(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		t.Error(err)
+	}
 
 	for _, imageTag := range imageTags {
 		if err = FindImageTag(images, imageTag); err != nil {
@@ -42,6 +45,9 @@ func CheckImageStreams(namespace string, imageStreams []string, config *rest.Con
 	}
 
 	images, err := imageClient.ImageStreams(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		t.Error(err)
+	}
 
 	for _, imageStream := range imageStreams {
 		if err = FindImageStream(images, imageStream); err != nil {
@@ -110,6 +116,9 @@ func CheckServices(namespace string, services []string, config *rest.Config, t *
 
 	serviceClient := clientset.CoreV1().Services(namespace)
 	serviceList, err := serviceClient.List(metav1.ListOptions{})
+	if err != nil {
+		t.Error(err)
+	}
 
 	for _, service := range services {
 		if err = FindServiceHasPods(serviceList, service); err != nil {
