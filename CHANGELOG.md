@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Needed changes to run CI again, ported from task/upgrade-atlassian-stack.
+
 ### Fixed
 
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))

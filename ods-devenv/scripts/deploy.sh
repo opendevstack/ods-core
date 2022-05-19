@@ -8,6 +8,12 @@ atlassian_mysql_container_name=atlassian_mysql
 atlassian_mysql_ip=
 atlassian_mysql_port=3306
 atlassian_mysql_version=5.7
+atlassian_mysql_sql_mode=ANSI_QUOTES
+
+atlassian_mysql_character_set="utf8mb4"
+atlassian_mysql_collation="utf8mb4_bin"
+
+
 atlassian_crowd_software_version=3.7.0
 atlassian_crowd_container_name=crowd
 atlassian_crowd_port=48080
@@ -20,7 +26,7 @@ atlassian_jira_host="jira.${odsbox_domain}"
 atlassian_jira_ip=
 atlassian_jira_port=18080
 atlassian_jira_jdwp_port=15005
-atlassian_jira_software_version=8.5.8
+atlassian_jira_software_version=8.20.6
 # docker network internal jira port
 atlassian_jira_port_internal=8080
 atlassian_bitbucket_ip=
@@ -57,17 +63,49 @@ log_folder="${HOME}/logs"
 NAMESPACE=ods
 
 function display_usage() {
+    ME="$(basename $0)"
     echo
     echo "This script provides functions to install and configure various parts of an EDP/ODS installation."
     echo "The first argument to this script must always be the ods git ref to build against, e.g. master or feature/ods-devenv."
     echo "Functions in this script can be called like in the sample calls below:"
-    echo "deploy.sh feature/ods-devenv display_usage"
-    echo "deploy.sh feature/ods-devenv install_docker"
-    echo "deploy.sh feature/ods-devenv startup_atlassian_bitbucket"
+    echo " "
+    echo "${ME} --branch feature/ods-devenv --target display_usage"
+    echo "${ME} --branch feature/ods-devenv --target install_docker"
+    echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
+    echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset"
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
     echo "setup script in a proper sequence."
+}
+
+function configure_sshd_server() {
+    echo "Configuring sshd server..."
+    sudo sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*GSSAPIAuthentication\ .*@GSSAPIAuthentication no@g" /etc/ssh/sshd_config
+    sudo sed -i "s@.*KerberosAuthentication\ .*@KerberosAuthentication no@g" /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+    sudo systemctl status sshd
+    sleep 5
+    sudo cat /etc/ssh/sshd_config
+}
+
+function configure_sshd_openshift_keys() {
+    echo "Show current ssh passwords. We need them to connect and debug."
+    ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
+    local needsKey
+    needsKey=0
+    grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
+    if [ 1 -eq $needsKey ]; then
+        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXwKT01BaNoSUXaqzrmaM+mRFyx+ERrmVq7v+1Xgtiru+c07l6vaIK6/GE+E/GH4QESB7phl9dLMlmKOXZZqMixa1MD0V0eaFP4YXCaaTGEPyLaNRNhTXert0IihfAucOIzdFGWn1795IshJ7rj/GdQQ0qrAMVYguz4iC+hR1IznuTkJivIvDCuDo5LG+DksisJlGTLpdTZIeCCJgUUFpevJbtcZKwbUqzd6fo0tQiuk/J0TtO4SlXUvDge7mWGxMCIFPTM+e6AFSI6deviiiyhOHzcP9luJQPBpONBXzGcLXMqm1UsYaOl4OsKcyJSk5PgSKBM0KV4RX2Pm3i0vlz7gbvK65sJKQQlBZBm+W16mT3Ke8ytg9I1Kf9/kplKSvSwxOkmClgWCKzxIT7vsozLnSBuPSyTLZ98RuUFhjDvHMFvmGe0oTGaUB0/QQdhROzYRtw7+/CQOzWuZx32B0CtLpd55iyL8261StbY/92B8QDdIQXg9bzsfx6hXSNLlc= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
+        sleep 5
+        cat ${HOME}/.ssh/authorized_keys
+    else
+        echo "Key for openshift@odsbox.lan was previously in file ${HOME}/.ssh/authorized_keys "
+    fi
+    chmod -c 600 ${HOME}/.ssh/authorized_keys
+
 }
 
 #######################################
@@ -112,14 +150,15 @@ function check_system_setup() {
     sudo chattr +i /etc/sudoers
 
     # remove obsolete version of git
-    if [[ -n $(command -v git) ]]
-    then
-        sudo yum remove -y git*
-    fi
+    # if [[ -n $(command -v git) ]]
+    # then
+    #     sudo yum remove -y git*
+    # fi
 
-    sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install firewalld git2u-all glances golang jq tree
+    # remove full update /cut 20210901
+    install_packages_yum_utils_epel_release
+
+    sudo yum -y install firewalld git2u-all glances golang jq tree lsof || true
     go get github.com/ericchiang/pup
     mv "${HOME}/go/bin/pup" "${HOME}/bin/"
 
@@ -371,16 +410,33 @@ EOF
 #   None
 #######################################
 function setup_google_chrome() {
-    if [[ -z $(command -v google-chrome) ]]
+    if ! sudo yum list installed 2>&1 | grep -iq google-chrome ; then
+        echo "Google chrome is installed. Not installing it. "
+        return 0
+    fi
 
     chrome_version=94.0.4606.81
-
+    if command -v google-chrome ;
     then
+        echo "Not installing google chrome because binary found."
+    else
         echo "Download and install chrome (google-chrome-stable-${chrome_version}-1.x86_64.rpm)!"
-        curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
-        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        curl -sS -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-${chrome_version}-1.x86_64.rpm
+        sudo yum install -y ./google-chrome-stable-${chrome_version}-1.x86_64.rpm || true
         rm ./google-chrome-stable-${chrome_version}-1.x86_64.rpm
         echo "... chrome installation completed!"
+    fi
+}
+
+function install_packages_yum_utils_epel_release() {
+    local already_installed="y"
+    sudo yum list installed 2>&1 | grep -iq 'yum-utils' || already_installed="n"
+    sudo yum list installed 2>&1 | grep -iq 'epel-release' || already_installed="n"
+
+    if [ "y" != "$already_installed" ] ; then
+        sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
+    else
+        echo "Packages yum-utils epel-release already installed "
     fi
 }
 
@@ -395,17 +451,32 @@ function setup_google_chrome() {
 #   None
 #######################################
 function setup_rdp() {
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install xrdp
-    sudo systemctl start xrdp
-    sudo netstat -antup | grep xrdp
-    sudo systemctl enable xrdp
+    install_packages_yum_utils_epel_release
+
+    if ! sudo yum list installed 2>&1 | grep -iq xrdp ; then
+        sudo yum -y install xrdp || true
+    else
+        echo "Not installing xrdp because it was installed before."
+    fi
+    sudo systemctl start xrdp || sudo systemctl status xrdp || echo "Error starting xrdp service..."
+    sudo netstat -antup | grep xrdp || echo "Error checking if xrdp ports are listening for connections..."
+    sudo systemctl enable xrdp || echo "No need to enable xrdp service in systemctl. "
     sudo chcon --type=bin_t /usr/sbin/xrdp
     sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
     sudo lsof +c 15 -nP -iTCP -sTCP:LISTEN
     sudo firewall-cmd --zone=public --permanent --add-port=3389/tcp
     sudo firewall-cmd --zone=public --permanent --add-port=3350/tcp
     sudo firewall-cmd --reload
+
+    echo "exec /usr/bin/mate-session" > ${HOME}/.xinitrc
+    echo "exec /usr/bin/mate-session" > ${HOME}/startwm.sh
+    echo "exec /usr/bin/mate-session" > ${HOME}/.Xclients
+    chmod +x ${HOME}/.xinitrc ${HOME}/startwm.sh ${HOME}/.Xclients
+
+}
+
+function install_extra_utils() {
+    sudo yum -y install iproute || true
 }
 
 #######################################
@@ -418,11 +489,16 @@ function setup_rdp() {
 #   None
 #######################################
 function install_docker() {
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    echo "installing docker-ce packages"
-    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
+    if ! sudo yum list installed 2>&1 | grep -iq docker-ce ; then
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        echo "installing docker-ce packages"
+        sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
+    else
+        echo "Docker ce does not need to be installed."
+    fi
+
     echo "enabling docker in systemctl"
-    sudo systemctl enable --now docker
+    sudo systemctl enable --now docker || sudo systemctl status docker
 
     echo "updating docker insecure registries"
     cat <<EOF |
@@ -441,7 +517,10 @@ function install_docker() {
     }
 EOF
     sudo tee /etc/docker/daemon.json
-    sudo systemctl restart docker.service
+    echo "Restarting docker service..."
+    sudo systemctl stop docker.service || sudo systemctl status docker.service
+    sudo systemctl start docker.service || sudo systemctl status docker.service
+    sudo systemctl status docker.service
 
     echo "Configuring firewall for docker containers:"
     sudo firewall-cmd --permanent --new-zone dockerc
@@ -450,6 +529,11 @@ EOF
     sudo firewall-cmd --permanent --zone dockerc --add-port 53/udp
     sudo firewall-cmd --permanent --zone dockerc --add-port 8053/udp
     sudo firewall-cmd --reload
+
+    echo "Checking docker installation..."
+    docker --version
+    docker ps --all
+    docker images --all
 }
 
 # checks whether cluster runs and if so shuts it down
@@ -465,7 +549,9 @@ function startup_openshift_cluster() {
     cluster_dir="${HOME}/openshift.local.clusterup"
 
     register_dns ocp "${ip_address}"
+    echo "oc cluster up ..."
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
+    # Only if something fails, please... --loglevel=5 --server-loglevel=5
 
     echo "Log into oc cluster with system:admin"
     oc login -u system:admin
@@ -482,8 +568,8 @@ function startup_openshift_cluster() {
 #######################################
 function setup_openshift_cluster() {
     echo "Installing OpenShift client"
-    sudo yum install -y centos-release-openshift-origin311
-    sudo yum install -y origin-clients
+    sudo yum install -y centos-release-openshift-origin311 || true
+    sudo yum install -y origin-clients || true
     source /etc/bash_completion.d/oc
 
     echo "Starting up oc cluster for the first time"
@@ -549,9 +635,9 @@ function setup_openshift_cluster() {
 #######################################
 function download_tailor() {
     echo "Download tailor"
-    curl -LO "https://github.com/opendevstack/tailor/releases/download/v1.3.4/tailor-linux-amd64"
+    curl -sS -LO "https://github.com/opendevstack/tailor/releases/download/v1.3.4/tailor-linux-amd64"
     chmod +x tailor-linux-amd64
-    sudo mv tailor-linux-amd64 /usr/bin/tailor
+    sudo mv -vf tailor-linux-amd64 /usr/bin/tailor
 }
 
 #######################################
@@ -573,6 +659,30 @@ function print_system_setup() {
     echo "docker version: $(docker --version)"
 }
 
+######
+#
+#
+######
+function atlassian_stack_reset() {
+
+    echo "atlassian_stack_reset: "
+    echo "IMPORTANT: remove from /etc/hosts lines with references to jira and bitbucket before run this method"
+
+    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
+	do
+		docker stop $container_id
+		docker rm $container_id
+	done
+
+    startup_and_follow_atlassian_mysql
+
+    startup_atlassian_crowd
+    startup_and_follow_jira
+    startup_and_follow_bitbucket
+}
+
+
+
 #######################################
 # Retrieve database dump and backup files for Atlassian stack components
 # initialized with timebomb licenses and ODS users from backup in the cloud.
@@ -592,17 +702,20 @@ function print_system_setup() {
 function prepare_atlassian_stack() {
     echo "Downloading data dumps for Atlassian stack."
     pushd "${HOME}"
-    curl -LO ${atlassian_mysql_dump_url}
-    curl -LO ${atlassian_jira_backup_url}
-    curl -LO ${atlassian_bitbucket_backup_url}
+    curl -sS -LO ${atlassian_mysql_dump_url}
+    curl -sS -LO ${atlassian_jira_backup_url}
+    curl -sS -LO ${atlassian_bitbucket_backup_url}
+    ls -lh
     echo "Extracting files"
     for data_file in bitbucket_data jira_data mysql_data
     do
+        # Show size of file we are playing with
+        ls -lh "${data_file}.tar.gz"
         # cleaning up (stale) files and folders
         rm -rf "${HOME:?}/${data_file:?}"
         # download and expand archives
         tar xzf "${data_file}.tar.gz"
-        rm "${data_file}.tar.gz"
+        rm -vf "${data_file}.tar.gz"
     done
     popd
     echo "Finished downloading and extracting Atlassian stack data dumps."
@@ -621,14 +734,17 @@ function prepare_atlassian_stack() {
 #   None
 #######################################
 function startup_atlassian_mysql() {
+    local atlassian_mysql_root_password="jiradbrpwd"
+
     echo "Setting up a mysql instance for the Atlassian tool suite."
     docker container run -dp ${atlassian_mysql_port}:3306 \
         --name ${atlassian_mysql_container_name} \
         --health-cmd "mysqladmin ping --silent" \
-        -e "MYSQL_ROOT_PASSWORD=jiradbrpwd" \
+        -e "MYSQL_ROOT_PASSWORD=${atlassian_mysql_root_password}" \
         -v "${HOME}/mysql_data:/var/lib/mysql" "mysql:${atlassian_mysql_version}" --default-storage-engine=INNODB \
-        --character-set-server=utf8 \
-        --collation-server=utf8_bin \
+        --sql-mode="${atlassian_mysql_sql_mode}" \
+        --character-set-server="${atlassian_mysql_character_set}" \
+        --collation-server="${atlassian_mysql_collation}" \
         --default-storage-engine=INNODB \
         --innodb-default-row-format=DYNAMIC \
         --innodb-large-prefix=ON \
@@ -639,9 +755,109 @@ function startup_atlassian_mysql() {
     mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
     echo "The Atlassian mysql instance is listening on ${mysql_ip}:${atlassian_mysql_port}"
 
+    fix_atlassian_mysql_loaded_data "${atlassian_mysql_root_password}"
+
     inspect_mysql_ip
     echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
     register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
+}
+
+function fix_atlassian_mysql_loaded_data() {
+    local atlassian_mysql_root_password="${1:?null}"
+
+    echo "fix_atlassian_mysql_loaded_data starts..."
+    rm -fv /tmp/atlassian_mysql_fixes.txt
+    date +%H%M%S_%s
+
+    if [ "null" != "${atlassian_mysql_root_password}" ]; then
+        docker exec -i atlassian_mysql bash -c \
+            "echo '[client]' > ~/.my.cnf ; echo 'user=root' >> ~/.my.cnf ; \
+            echo \"password=${atlassian_mysql_root_password}\" >> ~/.my.cnf ; cat ~/.my.cnf"
+    else
+        echo "Not setting mysql pwd in .my.cnf because it has a wrong value."
+    fi
+
+    local test_mysql_is_up=1
+    while [ 0 -ne ${test_mysql_is_up} ];
+    do
+        sleep 5
+        echo " "
+        echo "Testing if mysqld is up..."
+        if docker exec -i atlassian_mysql bash -c "mysql -e 'SHOW DATABASES'" ; then
+            test_mysql_is_up=0
+        else
+            echo "Trying again because mysqld seems to be down..."
+        fi
+    done
+
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \"ALTER DATABASE jiradb \
+        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation};\""
+
+    docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=0;' > /tmp/atlassian_mysql_fixes.txt "
+    docker exec -i atlassian_mysql bash -c "echo 'USE jiradb;' > /tmp/atlassian_mysql_fixes.txt "
+
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, \
+        '\\\` CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation};') \
+        FROM information_schema.TABLES AS T, \
+        information_schema.\\\`COLLATION_CHARACTER_SET_APPLICABILITY\\\` AS C \
+        WHERE C.collation_name = T.table_collation AND T.table_schema = 'jiradb' \
+        AND ( C.CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+              C.COLLATION_NAME != '${atlassian_mysql_collation}' );\" \
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
+
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
+        DATA_TYPE, '(', CHARACTER_MAXIMUM_LENGTH, ') \
+        CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation}', \
+        (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
+        FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE = 'varchar' AND \
+        ( CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+          COLLATION_NAME != '${atlassian_mysql_collation}');\" \
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
+
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` MODIFY \\\`', column_name, '\\\` ', \
+        DATA_TYPE, ' CHARACTER SET ${atlassian_mysql_character_set} COLLATE ${atlassian_mysql_collation}', \
+        (CASE WHEN IS_NULLABLE = 'NO' THEN ' NOT NULL' ELSE '' END), ';') \
+        FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'jiradb' AND DATA_TYPE != 'varchar' AND \
+        ( CHARACTER_SET_NAME != '${atlassian_mysql_character_set}' OR \
+          COLLATION_NAME != '${atlassian_mysql_collation}' );\" \
+        | tee -a /tmp/atlassian_mysql_fixes.txt " >> /tmp/atlassian_mysql_fixes.txt
+
+    docker exec -i atlassian_mysql bash -c "echo 'SET FOREIGN_KEY_CHECKS=1;' >> /tmp/atlassian_mysql_fixes.txt "
+
+    echo "Loading script to fix the database. Amount of lines in script: "
+    docker exec -i atlassian_mysql bash -c \
+        "wc -l /tmp/atlassian_mysql_fixes.txt; mysql -sN -e \"source /tmp/atlassian_mysql_fixes.txt\""
+
+    local remaining_lines=$( wc -l /tmp/atlassian_mysql_fixes.txt | cut -d ' ' -f 1 )
+    if [ "0" != "${remaining_lines}" ]; then
+        echo "Calling again to check that database has all the fixes it needs... "
+        echo "Lines processed this iteration: ${remaining_lines}"
+        fix_atlassian_mysql_loaded_data "${atlassian_mysql_root_password}"
+    fi
+
+    echo "fix_atlassian_mysql_loaded_data ended."
+    date +%H%M%S_%s
+    fix_atlassian_mysql_loaded_data_checks
+}
+
+function fix_atlassian_mysql_loaded_data_checks() {
+    echo " "
+    echo "fix_atlassian_mysql_loaded_data_checks STARTS"
+    echo " "
+    docker exec -i atlassian_mysql bash -c "mysql -sN -e \
+        \"SELECT @@character_set_database, @@collation_database; \
+        SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_COLLATION FROM INFORMATION_SCHEMA.TABLES; \
+        SELECT TABLE_NAME, COLUMN_NAME, COLLATION_NAME FROM INFORMATION_SCHEMA.COLUMNS;\"" \
+        > /tmp/fix_atlassian_mysql_loaded_data_checks.txt
+
+    grep -i jiradb /tmp/fix_atlassian_mysql_loaded_data_checks.txt
+
+    echo " "
+    echo "fix_atlassian_mysql_loaded_data_checks ENDS"
+    echo " "
 }
 
 #######################################
@@ -703,27 +919,69 @@ function startup_and_follow_jira() {
 function configure_jira2crowd() {
     local cookie_jar_path
     cookie_jar_path="${HOME}/tmp/jira_cookie_jar.txt"
+
+    local errors_file
+    errors_file="/tmp/errors_jira2crowd.txt"
+    rm -fv ${errors_file}
+
+    jira_login_reply="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
     echo "Configure Jira against Crowd directory ..."
     # login to Jira
-    curl 'http://172.17.0.1:18080/login.jsp' \
+    curl -sS 'http://172.17.0.1:18080/login.jsp' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
         --compressed \
-        --insecure --silent --location -o /dev/null
+        --insecure --silent --location --output ${jira_login_reply}
+    ls -lah ${jira_login_reply}
     echo "Logged into Jira"
 
+    # free -h || echo "Problem getting memory usage !! "
+    # ps -AfH
+    # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+
+    login_page_fn="/tmp/login-page-`date +%Y%m%d_%H%M%S`.log"
+    curl -sS --insecure --location --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/' -u "openshift:openshift" --output ${login_page_fn}
+    if [ ! -f ${login_page_fn} ]; then
+        echo "WARNING: File with login page (${login_page_fn}) is EMPTY or does NOT exist !!! "
+    fi
+
     # setting atl_token
-    atl_token=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
-        -b "${cookie_jar_path}" \
-        -c "${cookie_jar_path}" \
-        --data "newDirectoryType=CROWD&next=Next" \
-        --compressed \
-        --insecure --location --silent | pup 'input[name="atl_token"] attr{value}')
+    atl_token_fn="/tmp/atl_token-`date +%Y%m%d_%H%M%S`.log"
+    echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
+    curl -sS --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+            -u "openshift:openshift" \
+            -b "${cookie_jar_path}" \
+            -c "${cookie_jar_path}" \
+            --data "newDirectoryType=CROWD&next=Next" \
+            --compressed \
+            --insecure --location --silent --output ${atl_token_fn} --stderr ${errors_file}
+    sleep 5
+    echo "Results from curl setting atl token: "
+    cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
+    cat ${errors_file}
+    sleep 5
+
+    if grep -iq "HTTP/1.1 503" ${errors_file} ; then
+        # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
+
+        fix_atlassian_mysql_loaded_data_checks
+
+        echo " "
+        echo "Server sleeps 14400 secs (4h) for debugging purposes !! "
+        echo " "
+        sleep 14400
+    else
+        echo "No error 503 configuring Jira. Perfect !!! "
+    fi
+
+    atl_token=$(cat ${atl_token_fn} | pup 'input[name="atl_token"] attr{value}')
     echo "Retrieved Jira xsrf atl_token ${atl_token}."
 
     # WebSudo authentication - sign in as admin
-    curl 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
+    curl -sS 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
@@ -804,7 +1062,7 @@ function configure_bitbucket2crowd() {
     echo "Configured Crowd directory on BitBucket, got crowd directory id ${crowd_directory_id}."
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
@@ -815,27 +1073,27 @@ function configure_bitbucket2crowd() {
     sleep 10
 
     # adding after sync groups to global permissions to enable users in the following groups to be able to login
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=bitbucket-users" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=bitbucket-users" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=ADMIN&name=bitbucket-administrators" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=ADMIN&name=bitbucket-administrators" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-admins" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-team-members" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=PROJECT_CREATE&name=project-team-members" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
 
-    curl "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=LICENSED_USER&name=project-readonly-users" \
+    curl -sS "http://172.17.0.1:${atlassian_bitbucket_port}/rest/api/1.0/admin/permissions/groups?permission=LICENSED_USER&name=project-readonly-users" \
         -X 'PUT' \
         -H 'Authorization: Basic b3BlbnNoaWZ0Om9wZW5zaGlmdA==' \
         -H 'Accept: application/json'
@@ -863,8 +1121,12 @@ function startup_atlassian_jira() {
 
     echo "Downloading mysql-connector-java"
     local download_dir="downloads_jira"
-    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
-    local db_driver_file="mysql-connector-java-8.0.20.jar"
+    # local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.20/mysql-connector-java-8.0.20.jar"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar"
+    local download_url="https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.28/mysql-connector-java-8.0.28.jar"
+    # local db_driver_file="mysql-connector-java-8.0.20.jar"
+    # local db_driver_file="mysql-connector-java-8.0.29.jar"
+    local db_driver_file="mysql-connector-java-8.0.28.jar"
     download_file_to_folder "${download_url}" "${download_dir}"
 
     pushd ods-devenv/jira-docker
@@ -889,12 +1151,13 @@ function startup_atlassian_jira() {
         -e ATL_DB_DRIVER=com.mysql.jdbc.Driver \
         -e ATL_DB_TYPE=mysql \
         -e ATL_DB_SCHEMA_NAME= \
+        -e JVM_MAXIMUM_MEMORY=4096m \
         -e JVM_SUPPORT_RECOMMENDED_ARGS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005 \
         ods-jira-docker:latest \
         > "${HOME}/tmp/jira_docker_download.log" 2>&1 # reduce noise in log output from docker image download
 
     echo -n "Preparing jira container for connection to local mysql database."
-    prepare_jira_container "${download_dir}"
+    prepare_jira_container "${download_dir}" "${db_driver_file}"
     while ! (docker container exec -i jira bash -c "grep -q ${atlassian_mysql_container_name}.${odsbox_domain} dbconfig.xml")
     do
         # this race condition of the container getting ready and writing to dbconfig.xml
@@ -902,9 +1165,12 @@ function startup_atlassian_jira() {
         # Alternative approach: start container, stop container, cp driver, restart container ...
         sleep 1
         echo -n "."
-        prepare_jira_container "${download_dir}"
+        prepare_jira_container "${download_dir}" "${db_driver_file}"
     done
     echo "done"
+
+    # This is necessary because jira reloads using worng character set and collation.
+    # fix_atlassian_mysql_loaded_data
 
     rm -rf "${download_dir}"
     inspect_jira_ip
@@ -915,7 +1181,8 @@ function startup_atlassian_jira() {
 
 function prepare_jira_container() {
     local download_dir="${1:?null}"
-    docker container cp "${download_dir}/mysql-connector-java-8.0.20.jar" jira:/opt/atlassian/jira/lib/
+    local db_driver_file="${2:?null}"
+    docker container cp "${download_dir}/${db_driver_file}" jira:/opt/atlassian/jira/lib/
     docker container exec -i jira bash -c "sed -i \"s|172.17.0.6|${atlassian_mysql_container_name}.${odsbox_domain}|\" dbconfig.xml"
 }
 
@@ -1089,29 +1356,6 @@ function crowd_echo_backup_cmd() {
 }
 
 #######################################
-# Initialize Jira database. Requires database service to be running.
-# Is to be used mutually exclusively with prepare_atlassian_stack.
-# Globals:
-#   atlassian_jira_db_name
-#   atlassian_mysql_container_name
-#   atlassian_mysql_port
-#   atlassian_mysql_version
-# Arguments:
-#   n/a
-# Returns:
-#   None
-#######################################
-function initialize_atlassian_jiradb() {
-    local mysql_ip
-    mysql_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${atlassian_mysql_container_name})
-    echo "Setting up jiradb on ${mysql_ip}:${atlassian_mysql_port}."
-    echo "jiradbrpwd" | docker container run -i --rm mysql:${atlassian_mysql_version} mysql -h "${mysql_ip}" -u root -p -e \
-        "create database ${atlassian_jira_db_name} character set utf8 collate utf8_bin; \
-        GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,ALTER,INDEX,CREATE TEMPORARY TABLES on jiradb.* TO 'jira_user'@'%' IDENTIFIED BY 'jira_password'; \
-        flush privileges;"
-}
-
-#######################################
 # Will download the file specified by the url in the 1st argument
 # and save it to the download directory specified
 # Globals:
@@ -1133,7 +1377,7 @@ function download_file_to_folder() {
     pushd "${download_dir}"
     local counter=0
     local wait_interval=5
-    while ! curl -LO "${download_url}" && [[ counter -lt 10 ]]
+    while ! curl -sS -LO "${download_url}" && [[ counter -lt 10 ]]
     do
         if [[ counter -eq 9 ]]
         then
@@ -1176,8 +1420,6 @@ function startup_atlassian_bitbucket() {
     sed -i "s|__base-image__|bitbucket-server|g" Dockerfile
     docker image build --build-arg APP_DNS="docker-registry-default.ocp.odsbox.lan" -t ods-bitbucket-docker:latest .
     popd
-
-    local
 
     echo "Assigning ownership of bitbucket_data folder to bitbucket user (id 2003)"
     sudo chown -R 2003:2003 ${HOME}/bitbucket_data
@@ -1334,6 +1576,10 @@ function register_dns() {
     # register new ip with /etc/hosts
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
 
+    # remove previous entries if is needed
+    grep -v "${ip}" /etc/hosts > /tmp/temporalHosts
+    sudo cp /tmp/temporalHosts /etc/hosts
+
     while ! grep -q "${ip}" /etc/hosts
     do
         if grep -q "${service_name}" < /etc/hosts
@@ -1351,8 +1597,7 @@ function register_dns() {
         fi
     done
 
-
-    sudo systemctl restart dnsmasq.service
+    sudo systemctl restart dnsmasq.service || sudo systemctl status dnsmasq.service
 }
 
 #######################################
@@ -1764,7 +2009,8 @@ function setup_jenkins_agents() {
         popd
     done
 
-    local return_value=0
+    local return_value
+    return_value=0
     for job in $(jobs -p)
     do
         echo "Waiting for openshift build configuration ${job} to be created."
@@ -1895,11 +2141,15 @@ function setup_aqua() {
 #   None
 #######################################
 function basic_vm_setup() {
+    configure_sshd_openshift_keys
+    configure_sshd_server
     check_system_setup
     setup_rdp
+    install_extra_utils
     setup_dnsmasq
+    configure_sshd_server
     # optional
-    setup_vscode
+    # setup_vscode
     setup_google_chrome
     install_docker
     setup_openshift_cluster
@@ -1908,7 +2158,6 @@ function basic_vm_setup() {
     # download atlassian stack backup files for unattented setup.
     # either use prepare_atlassian_stack
     # or
-    # initialize_atlassian_jiradb and initialize_atlassian_bitbucketdb
     prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
 
@@ -1974,4 +2223,7 @@ esac; shift; done
 ods_git_ref="${ods_git_ref:-feature/ods-devenv}"
 target="${target:-display_usage}"
 echo "Will build ods box against git-ref ${ods_git_ref}"
+echo "Target: ${target} "
+
 ${target}
+
