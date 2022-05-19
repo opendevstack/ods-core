@@ -107,20 +107,21 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v2.0.0
+        uses: actions/checkout@v3
       -
-        name: Setup Go 1.12
-        uses: actions/setup-go@v2
+        name: Setup Go 1.18
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.12
+          go-version: 1.18
       -
         name: Download goimports
         run: |
-          go get golang.org/x/tools/cmd/goimports
+          go install golang.org/x/tools/cmd/goimports@latest
       -
         name: Download golangci-lint
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+          curl -sSfL --output /tmp/golangci-lint.sh https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
       -
         name: Run linter
         working-directory: jenkins/webhook-proxy
@@ -181,7 +182,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v2.0.0
+        uses: actions/checkout@v3
       -
         name: Verify all Go files are formatted with gofmt
         working-directory: tests
@@ -190,14 +191,16 @@ jobs:
           [ -z "$unformatted" ] && exit 0
           echo >&2 "Go files must be formatted with gofmt. Please run:"
           for fn in $unformatted; do
+              echo >&2 "Differences found:"
+              gofmt -d $fn
               echo >&2 "  gofmt -w $fn"
           done
           exit 1
       -
         name: Verify all Go tests pass linting
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.29
+          version: v1.46.2
           working-directory: tests
       -
         name: Verify all Go tests can be compiled
