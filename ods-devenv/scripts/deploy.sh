@@ -959,11 +959,18 @@ function configure_jira2crowd() {
             --data "newDirectoryType=CROWD&next=Next" \
             --compressed \
             --insecure --location --silent --output ${atl_token_fn} --stderr ${errors_file}
-    sleep 5
-    echo "Results from curl setting atl token: "
-    cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
-    cat ${errors_file}
-    sleep 5
+
+    echo "Evaluating results from curl setting atl token: "
+    if [ ! -f ${atl_token_fn} ]; then
+        echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
+    fi
+    if [ -f ${errors_file} ]; then
+        sleep 5
+        cat ${errors_file}
+        sleep 5
+    else
+        echo " " >> ${errors_file}
+    fi
 
     if grep -iq "HTTP/1.1 503" ${errors_file} ; then
         # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
@@ -992,9 +999,9 @@ function configure_jira2crowd() {
     # send crowd config data
     local crowd_service_name
     crowd_service_name="crowd.odsbox.lan"
-    echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
+    echo "Assuming crowd service listens at ${crowd_service_name}:8095"
     local crowd_directory_id
-    crowd_directory_id=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
+    crowd_directory_id=$(curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
@@ -1003,9 +1010,10 @@ function configure_jira2crowd() {
         --location \
         | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
         | tr -d "[:space:]")
+    echo "Crowd directory id: ${crowd_directory_id}"
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl -sS "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
@@ -1674,6 +1682,8 @@ function delete_ods_repositories() {
 #   None
 #######################################
 function push_ods_repositories() {
+    echo " "
+    echo "Pushing ODS repositories..."
     pwd
     ./scripts/push-local-repos.sh --bitbucket-url "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --ods-git-ref "${ods_git_ref}"
 }
@@ -1689,6 +1699,8 @@ function push_ods_repositories() {
 #   None
 #######################################
 function set_shared_library_ref() {
+    echo " "
+    echo "Setting shared library reference to ${ods_git_ref}"
     pwd
     ./scripts/set-shared-library-ref.sh --ods-git-ref "${ods_git_ref}"
 }
@@ -1724,7 +1736,8 @@ function inspect_mysql_ip() {
 #   None
 #######################################
 function create_configuration() {
-    echo "create configuration"
+    echo " "
+    echo "Create the environment configuration and upload it to Bitbucket ods-configuration repository..."
     pwd
     ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
     pushd ../ods-configuration
@@ -1804,6 +1817,8 @@ function create_configuration() {
 }
 
 function install_ods_project() {
+    echo " "
+    echo "Installing ods project..."
     ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
 }
 
