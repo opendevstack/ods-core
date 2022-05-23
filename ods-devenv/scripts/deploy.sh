@@ -94,18 +94,6 @@ function configure_sshd_server() {
 function configure_sshd_openshift_keys() {
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
-    local needsKey
-    needsKey=0
-    grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
-    if [ 1 -eq $needsKey ]; then
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXwKT01BaNoSUXaqzrmaM+mRFyx+ERrmVq7v+1Xgtiru+c07l6vaIK6/GE+E/GH4QESB7phl9dLMlmKOXZZqMixa1MD0V0eaFP4YXCaaTGEPyLaNRNhTXert0IihfAucOIzdFGWn1795IshJ7rj/GdQQ0qrAMVYguz4iC+hR1IznuTkJivIvDCuDo5LG+DksisJlGTLpdTZIeCCJgUUFpevJbtcZKwbUqzd6fo0tQiuk/J0TtO4SlXUvDge7mWGxMCIFPTM+e6AFSI6deviiiyhOHzcP9luJQPBpONBXzGcLXMqm1UsYaOl4OsKcyJSk5PgSKBM0KV4RX2Pm3i0vlz7gbvK65sJKQQlBZBm+W16mT3Ke8ytg9I1Kf9/kplKSvSwxOkmClgWCKzxIT7vsozLnSBuPSyTLZ98RuUFhjDvHMFvmGe0oTGaUB0/QQdhROzYRtw7+/CQOzWuZx32B0CtLpd55iyL8261StbY/92B8QDdIQXg9bzsfx6hXSNLlc= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
-        sleep 5
-        cat ${HOME}/.ssh/authorized_keys
-    else
-        echo "Key for openshift@odsbox.lan was previously in file ${HOME}/.ssh/authorized_keys "
-    fi
-    chmod -c 600 ${HOME}/.ssh/authorized_keys
-
 }
 
 #######################################
