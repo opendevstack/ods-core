@@ -43,12 +43,18 @@
             "destination": "~/tmp/odsbox.pub"
         },
         {
+            "type": "file",
+            "source": "{{user `ssh_private_key_file_path`}}",
+            "destination": "~/tmp/odsbox"
+        },
+        {
             "type": "shell",
             "inline": [
                 "echo 'Adding odsbox.pub to authorized keys'",
                 "mkdir -p ~/.ssh",
                 "chmod go-xrw ~/.ssh",
                 "mv ~/tmp/odsbox.pub ~/.ssh/odsbox.pub",
+                "mv ~/tmp/odsbox ~/.ssh/odsbox",
                 "touch ~/.ssh/authorized_keys",
                 "cat ~/.ssh/odsbox.pub >> ~/.ssh/authorized_keys",
                 "chmod go-xrw ~/.ssh/*",
