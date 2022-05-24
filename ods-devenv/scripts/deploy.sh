@@ -1986,6 +1986,15 @@ function setup_docgen() {
 #   None
 #######################################
 function setup_jenkins_agents() {
+
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "-------------------------------------------------------"
+    echo "----------- Setting up jenkins agents ... -------------"
+    echo "-------------------------------------------------------"
+    echo " "
+
     # to be save login as developer again
     oc login -u developer -p anypwd
 
@@ -2002,7 +2011,6 @@ function setup_jenkins_agents() {
     fi
 
     pushd "${quickstarters_jenkins_agents_dir}"
-    # create build configurations in parallel
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
@@ -2028,19 +2036,32 @@ function setup_jenkins_agents() {
         echo "build configuration job ${job} returned."
     done
 
-    local technologies
-    local technologies_index
+    # We tried to run tasks in parallel, but logs get combined and you cannot read them anymore.
+    # Besides, there is no real improvement with respect to time spent in pipeline.
 
-    technologies_index=0
+    # local technologies
+    # local technologies_index
+
+    # technologies_index=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
-        technologies[${technologies_index}]=${technology}
+        # technologies[${technologies_index}]=${technology}
 
-        echo "Starting (in background) build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
-        pids[${technologies_index}]=$!
+        sleep 5
+        echo " "
+        echo "Starting build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
+        echo " "
 
+        # oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
+        # pids[${technologies_index}]=$!
+
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait | tee "${log_folder}/${technology}_build.log"
+        if [ 0 -ne ${PIPESTATUS[0]} ]; then
+            echo " "
+            echo "ERROR: Could not build jenkins-agent for technology ${technology}"
+            echo " "
+        fi
     done
     popd
 
@@ -2049,37 +2070,46 @@ function setup_jenkins_agents() {
     #     return_value=$?
     # done
 
-    local foundErrorInTechnologies=0
-    for technologies_index_aux in ${!technologies[@]}; do
-        technology=${technologies[$technologies_index_aux]}
-        echo "Waiting for the result of building jenkins-agent for technology ${technology}"
-        wait ${pids[$technologies_index_aux]}
-        return_value=$?
-        cat ${log_folder}/${technology}_build.log
-        if [ 0 -ne ${return_value} ]; then
-            echo "Failed building jenkins-agent for technology ${technology}"
-            foundErrorInTechnologies=1
-        fi
-    done
+    # local foundErrorInTechnologies=0
+    # for technologies_index_aux in ${!technologies[@]}; do
+    #    technology=${technologies[$technologies_index_aux]}
+    #    echo "Waiting for the result of building jenkins-agent for technology ${technology}"
+    #    wait ${pids[$technologies_index_aux]}
+    #    return_value=$?
+    #    cat ${log_folder}/${technology}_build.log
+    #    if [ 0 -ne ${return_value} ]; then
+    #        echo "Failed building jenkins-agent for technology ${technology}"
+    #        foundErrorInTechnologies=1
+    #    fi
+    # done
 
-    if [ 0 -ne ${foundErrorInTechnologies} ]; then
-        echo "Look for the line 'Failed building jenkins-agent for technology' above."
-        echo "Exiting because we have errors building a jenkins-agent. "
-        exit 1
-    fi
+    # if [ 0 -ne ${foundErrorInTechnologies} ]; then
+    #    echo "Look for the line 'Failed building jenkins-agent for technology' above."
+    #    echo "Exiting because we have errors building a jenkins-agent. "
+    #    exit 1
+    # fi
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-agent builds ${job} to complete."
+        echo "Waiting for jenkins-agent build job ${job} to complete."
         wait "${job}"
         return_value=$?
         if [[ "${return_value}" != 0 ]]
         then
-            echo "Jenkins agent setup failed."
+            echo " "
+            echo "ERROR: Jenkins agent setup failed."
+            echo " "
             exit 1
         fi
         echo "build job ${job} returned."
     done
+
+    sleep 5
+    echo " "
+    echo "-------------------------------------------------------"
+    echo "-------- ENDED Setting up jenkins agents ... ----------"
+    echo "-------------------------------------------------------"
+    echo " "
 }
 
 #######################################
