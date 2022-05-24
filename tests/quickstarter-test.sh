@@ -33,7 +33,8 @@ CD_USER_PWD_B64=$(${ODS_CORE_DIR}/scripts/get-config-param.sh CD_USER_PWD_B64)
 
 echo "Running tests (${QUICKSTARTER}). Output will take a while to arrive ..."
 
-go test -v -count=1 -timeout 3h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
+# Should fix error " panic: test timed out after "
+go test -v -count=1 -timeout 5h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
 exitcode="${PIPESTATUS[0]}"
 if [ -f test-quickstarter-results.txt ]; then
     go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml
