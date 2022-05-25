@@ -72,6 +72,12 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
+		// Run cleanup operations to ensure we always have enough resources.
+		stdout, stderr, err := RunScriptFromBaseDir(
+        		"tests/scripts/free-unused-resources.sh",
+        		[]string{}, []string{}
+        )
+
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
 		t.Run(quickstarterName, func(t *testing.T) {
