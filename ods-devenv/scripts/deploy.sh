@@ -2146,7 +2146,7 @@ function run_smoke_tests() {
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
-    pwd 
+    pwd
     echo "make test"
     make test
     popd
