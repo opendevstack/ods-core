@@ -1990,9 +1990,9 @@ function setup_jenkins_agents() {
     # Wait for logs so they do not get mixed with logs of the following part.
     sleep 5
     echo " "
-    echo "-------------------------------------------------------"
-    echo "----------- Setting up jenkins agents ... -------------"
-    echo "-------------------------------------------------------"
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Creating build configurations... ------------"
+    echo "----------------------------------------------------------------------------------"
     echo " "
 
     # to be save login as developer again
@@ -2013,6 +2013,8 @@ function setup_jenkins_agents() {
     pushd "${quickstarters_jenkins_agents_dir}"
     for technology in $(ls -d -- */)
     do
+        echo " "
+        echo " "
         technology=${technology%/*}
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
@@ -2036,6 +2038,15 @@ function setup_jenkins_agents() {
         echo "build configuration job ${job} returned."
     done
 
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Building from configurations... -------------"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
+
+
     # We tried to run tasks in parallel, but logs get combined and you cannot read them anymore.
     # Besides, there is no real improvement with respect to time spent in pipeline.
 
@@ -2049,6 +2060,7 @@ function setup_jenkins_agents() {
         # technologies[${technologies_index}]=${technology}
 
         sleep 5
+        echo " "
         echo " "
         echo "Starting build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
         echo " "
