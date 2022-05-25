@@ -125,7 +125,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				}
 			}
 		} else {
-			fmt.Printf("Waiting for build to complete: %s. Current status: %s\n", buildName, build.Status.Phase)
+			fmt.Printf("Waiting (%s/%s) for build to complete: %s. Current status: %s\n", count, max, buildName, build.Status.Phase)
 		}
 		count++
 	}
