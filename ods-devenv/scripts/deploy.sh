@@ -2134,11 +2134,20 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    sleep 5
+    echo " "
+    echo "---------------------------------------------------------"
+    echo "-------- STARTING execution of SMOKE TESTS ... ----------"
+    echo "---------------------------------------------------------"
+    echo " "
+
     oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    pwd 
+    echo "make test"
     make test
     popd
     git reset --hard
@@ -2153,12 +2162,29 @@ function run_smoke_tests() {
     done
     echo "bitbucket up and running."
 
+    sleep 5
+    echo " "
+    echo "-----------------------------------------------------------------"
+    echo "-------- STARTING execution of QUICKSTARTERS TESTS ... ----------"
+    echo "-----------------------------------------------------------------"
+    echo " "
+
     pushd tests
-        make test-quickstarter
+    pwd
+    echo "make test-quickstarter"
+    make test-quickstarter
     popd
 
     # clean up after tests
     oc delete project unitt-cd unitt-dev unitt-test
+
+    sleep 5
+    echo " "
+    echo "--------------------------------------------------------------"
+    echo "-------- ENDED execution of QUICKSTARTERS TESTS ... ----------"
+    echo "--------------------------------------------------------------"
+    echo " "
+
 }
 
 function startup_ods() {
