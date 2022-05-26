@@ -37,7 +37,12 @@ CD_USER_PWD_B64=$(${ODS_CORE_DIR}/scripts/get-config-param.sh CD_USER_PWD_B64)
 echo " "
 echo "${THIS_SCRIPT}: Cleaning a little bit the host machine to not suffer from limitated resources... "
 echo " "
-docker ps -a | grep 'Exited .* ago' | sed 's/\s\+/ /g' | cut -d ' ' -f 1 | while read id; do echo "docker rm $id"; docker rm $id; done
+if [ -f ./scripts/free-unused-resources.sh ]; then
+    chmod +x ./scripts/free-unused-resources.sh
+    ./scripts/free-unused-resources.sh || true
+else
+    echo "Not found script ./scripts/free-unused-resources.sh "
+fi
 
 echo " "
 echo "${THIS_SCRIPT}: Running tests (${QUICKSTARTER}). Output will take a while to arrive ..."

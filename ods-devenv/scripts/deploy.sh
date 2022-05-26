@@ -88,12 +88,15 @@ function configure_sshd_server() {
     sudo systemctl restart sshd
     sudo systemctl status sshd
     sleep 5
-    sudo cat /etc/ssh/sshd_config
+    echo "Showing sshd_config important settings: "
+    sudo cat /etc/ssh/sshd_config | grep -v '\(^\s*#.*$\|^\s*$\)'
 }
 
 function configure_sshd_openshift_keys() {
+    sleep 5
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
+    sleep 1
 }
 
 #######################################
@@ -146,7 +149,7 @@ function check_system_setup() {
     # remove full update /cut 20210901
     install_packages_yum_utils_epel_release
 
-    sudo yum -y install firewalld git2u-all glances golang jq tree lsof || true
+    sudo yum -y install firewalld git2u-all glances golang jq tree lsof iproute || true
     go get github.com/ericchiang/pup
     mv "${HOME}/go/bin/pup" "${HOME}/bin/"
 
@@ -2062,7 +2065,9 @@ function setup_jenkins_agents() {
         sleep 5
         echo " "
         echo " "
+        echo "----------------------------------------------------------------------------------------------------------- "
         echo "Starting build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
+        echo "----------------------------------------------------------------------------------------------------------- "
         echo " "
 
         # oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
