@@ -151,7 +151,8 @@ function check_system_setup() {
 
     sudo yum -y install firewalld git2u-all glances golang jq tree lsof iproute || true
     go get github.com/ericchiang/pup
-    mv "${HOME}/go/bin/pup" "${HOME}/bin/"
+    cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
+    which go-junit-report || go install github.com/jstemmer/go-junit-report
 
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
