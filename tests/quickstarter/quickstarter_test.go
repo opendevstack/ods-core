@@ -74,9 +74,9 @@ func TestQuickstarter(t *testing.T) {
 
 		// Run cleanup operations to ensure we always have enough resources.
 		stdout, stderr, err := utils.RunScriptFromBaseDir(
-        		"tests/scripts/free-unused-resources.sh",
-        		[]string{}, []string{},
-        )
+			"tests/scripts/free-unused-resources.sh",
+			[]string{}, []string{},
+		)
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
