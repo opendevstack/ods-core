@@ -154,11 +154,16 @@ function check_system_setup() {
     sleep 1
     echo " "
     echo "Installing go dependencies... "
+    echo -n "Working directory: "
     pwd
+    echo "go get github.com/ericchiang/pup"
     go get github.com/ericchiang/pup
     cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
 
+    pushd tests
+    echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
+    popd
 
     echo " "
     if ! systemctl status firewalld | grep -i running; then
