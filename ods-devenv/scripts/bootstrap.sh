@@ -32,9 +32,6 @@ sudo yum -y install git gitk iproute lsof xrdp tigervnc-server remmina firewalld
             adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre \
             || true
 
-which go-junit-report || go install github.com/jstemmer/go-junit-report
-
-
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -pv "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
