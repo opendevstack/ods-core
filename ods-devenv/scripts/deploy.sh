@@ -642,6 +642,13 @@ function download_tailor() {
 #   None
 #######################################
 function print_system_setup() {
+    echo " "
+    yum whatprovides *bin/ip || true
+    sudo yum -y install iproute || true
+    echo " "
+    echo "-------------------"
+    echo "-- System setup: --"
+    echo "-------------------"
     echo "network interfaces: $(ip a)"
     echo "tailor version: $(tailor version)"
     echo "oc version: $(oc version)"
@@ -649,6 +656,8 @@ function print_system_setup() {
     echo "go version: $(go version)"
     echo "git version: $(git --version)"
     echo "docker version: $(docker --version)"
+    echo "-------------------"
+    echo " "
 }
 
 ######
