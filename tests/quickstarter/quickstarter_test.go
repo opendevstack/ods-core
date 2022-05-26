@@ -73,10 +73,16 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterName := filepath.Base(quickstarterPath)
 
 		// Run cleanup operations to ensure we always have enough resources.
-		utils.RunScriptFromBaseDir(
+		stdout, stderr, err := utils.RunScriptFromBaseDir(
 			"tests/scripts/free-unused-resources.sh",
 			[]string{}, []string{},
 		)
+
+		if err != nil {
+			t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
+		} else {
+			fmt.Printf("Cleaned cluster state.\n")
+		}
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
