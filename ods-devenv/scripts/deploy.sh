@@ -157,7 +157,7 @@ function check_system_setup() {
     echo -n "Working directory: "
     pwd
     echo "go get github.com/ericchiang/pup"
-    go get -u github.com/ericchiang/pup
+    go get -u -x github.com/ericchiang/pup
     cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
 
     echo "Installing 'tests' folder go dependencies... "
@@ -165,7 +165,10 @@ function check_system_setup() {
     echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
 
-    go mod download
+    go mod download | true 
+    go get ./... | true
+    go list -f '{{ join .Imports "\n" }}' | true
+    go get -u -v -f all | true
     popd
 
     echo " "
