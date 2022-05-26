@@ -160,9 +160,12 @@ function check_system_setup() {
     go get -u github.com/ericchiang/pup
     cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
 
+    echo "Installing 'tests' folder go dependencies... "
     pushd tests
     echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
+
+    go mod download
     popd
 
     echo " "
