@@ -157,7 +157,7 @@ function check_system_setup() {
     echo -n "Working directory: "
     pwd
     echo "go get github.com/ericchiang/pup"
-    go get github.com/ericchiang/pup
+    go get -u github.com/ericchiang/pup
     cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
 
     pushd tests
