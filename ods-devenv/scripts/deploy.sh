@@ -2152,6 +2152,10 @@ function run_smoke_tests() {
     popd
     git reset --hard
 
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
+
     # buying extra time for the quickstarter tests
     restart_atlassian_suite
     echo -n "Waiting for bitbucket to become available"
@@ -2184,6 +2188,10 @@ function run_smoke_tests() {
     echo "-------- ENDED execution of QUICKSTARTERS TESTS ... ----------"
     echo "--------------------------------------------------------------"
     echo " "
+
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
 
 }
 
