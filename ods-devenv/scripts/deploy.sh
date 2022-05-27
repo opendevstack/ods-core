@@ -88,12 +88,15 @@ function configure_sshd_server() {
     sudo systemctl restart sshd
     sudo systemctl status sshd
     sleep 5
-    sudo cat /etc/ssh/sshd_config
+    echo "Showing sshd_config important settings: "
+    sudo cat /etc/ssh/sshd_config | grep -v '\(^\s*#.*$\|^\s*$\)'
 }
 
 function configure_sshd_openshift_keys() {
+    sleep 5
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
+    sleep 1
 }
 
 #######################################
@@ -146,10 +149,29 @@ function check_system_setup() {
     # remove full update /cut 20210901
     install_packages_yum_utils_epel_release
 
-    sudo yum -y install firewalld git2u-all glances golang jq tree lsof || true
-    go get github.com/ericchiang/pup
-    mv "${HOME}/go/bin/pup" "${HOME}/bin/"
+    sudo yum -y install firewalld git2u-all glances golang jq tree lsof iproute || true
 
+    sleep 1
+    echo " "
+    echo "Installing go dependencies... "
+    echo -n "Working directory: "
+    pwd
+    echo "go get github.com/ericchiang/pup"
+    go get -u -x github.com/ericchiang/pup
+    cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
+
+    echo "Installing 'tests' folder go dependencies... "
+    pushd tests
+    echo "go install github.com/jstemmer/go-junit-report"
+    which go-junit-report || go install github.com/jstemmer/go-junit-report
+
+    go mod download | true 
+    go get ./... | true
+    go list -f '{{ join .Imports "\n" }}' | true
+    go get -u -v -f all | true
+    popd
+
+    echo " "
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
     fi
@@ -639,6 +661,13 @@ function download_tailor() {
 #   None
 #######################################
 function print_system_setup() {
+    echo " "
+    yum whatprovides *bin/ip || true
+    sudo yum -y install iproute || true
+    echo " "
+    echo "-------------------"
+    echo "-- System setup: --"
+    echo "-------------------"
     echo "network interfaces: $(ip a)"
     echo "tailor version: $(tailor version)"
     echo "oc version: $(oc version)"
@@ -646,6 +675,8 @@ function print_system_setup() {
     echo "go version: $(go version)"
     echo "git version: $(git --version)"
     echo "docker version: $(docker --version)"
+    echo "-------------------"
+    echo " "
 }
 
 ######
@@ -1986,6 +2017,15 @@ function setup_docgen() {
 #   None
 #######################################
 function setup_jenkins_agents() {
+
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Creating build configurations... ------------"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
+
     # to be save login as developer again
     oc login -u developer -p anypwd
 
@@ -2002,9 +2042,10 @@ function setup_jenkins_agents() {
     fi
 
     pushd "${quickstarters_jenkins_agents_dir}"
-    # create build configurations in parallel
     for technology in $(ls -d -- */)
     do
+        echo " "
+        echo " "
         technology=${technology%/*}
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
@@ -2028,19 +2069,44 @@ function setup_jenkins_agents() {
         echo "build configuration job ${job} returned."
     done
 
-    local technologies
-    local technologies_index
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Building from configurations... -------------"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
 
-    technologies_index=0
+
+    # We tried to run tasks in parallel, but logs get combined and you cannot read them anymore.
+    # Besides, there is no real improvement with respect to time spent in pipeline.
+
+    # local technologies
+    # local technologies_index
+
+    # technologies_index=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
-        technologies[${technologies_index}]=${technology}
+        # technologies[${technologies_index}]=${technology}
 
-        echo "Starting (in background) build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
-        pids[${technologies_index}]=$!
+        sleep 5
+        echo " "
+        echo " "
+        echo "----------------------------------------------------------------------------------------------------------- "
+        echo "Starting build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
+        echo "----------------------------------------------------------------------------------------------------------- "
+        echo " "
 
+        # oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
+        # pids[${technologies_index}]=$!
+
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait | tee "${log_folder}/${technology}_build.log"
+        if [ 0 -ne ${PIPESTATUS[0]} ]; then
+            echo " "
+            echo "ERROR: Could not build jenkins-agent for technology ${technology}"
+            echo " "
+        fi
     done
     popd
 
@@ -2049,37 +2115,46 @@ function setup_jenkins_agents() {
     #     return_value=$?
     # done
 
-    local foundErrorInTechnologies=0
-    for technologies_index_aux in ${!technologies[@]}; do
-        technology=${technologies[$technologies_index_aux]}
-        echo "Waiting for the result of building jenkins-agent for technology ${technology}"
-        wait ${pids[$technologies_index_aux]}
-        return_value=$?
-        cat ${log_folder}/${technology}_build.log
-        if [ 0 -ne ${return_value} ]; then
-            echo "Failed building jenkins-agent for technology ${technology}"
-            foundErrorInTechnologies=1
-        fi
-    done
+    # local foundErrorInTechnologies=0
+    # for technologies_index_aux in ${!technologies[@]}; do
+    #    technology=${technologies[$technologies_index_aux]}
+    #    echo "Waiting for the result of building jenkins-agent for technology ${technology}"
+    #    wait ${pids[$technologies_index_aux]}
+    #    return_value=$?
+    #    cat ${log_folder}/${technology}_build.log
+    #    if [ 0 -ne ${return_value} ]; then
+    #        echo "Failed building jenkins-agent for technology ${technology}"
+    #        foundErrorInTechnologies=1
+    #    fi
+    # done
 
-    if [ 0 -ne ${foundErrorInTechnologies} ]; then
-        echo "Look for the line 'Failed building jenkins-agent for technology' above."
-        echo "Exiting because we have errors building a jenkins-agent. "
-        exit 1
-    fi
+    # if [ 0 -ne ${foundErrorInTechnologies} ]; then
+    #    echo "Look for the line 'Failed building jenkins-agent for technology' above."
+    #    echo "Exiting because we have errors building a jenkins-agent. "
+    #    exit 1
+    # fi
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-agent builds ${job} to complete."
+        echo "Waiting for jenkins-agent build job ${job} to complete."
         wait "${job}"
         return_value=$?
         if [[ "${return_value}" != 0 ]]
         then
-            echo "Jenkins agent setup failed."
+            echo " "
+            echo "ERROR: Jenkins agent setup failed."
+            echo " "
             exit 1
         fi
         echo "build job ${job} returned."
     done
+
+    sleep 5
+    echo " "
+    echo "-------------------------------------------------------"
+    echo "-------- ENDED Setting up jenkins agents ... ----------"
+    echo "-------------------------------------------------------"
+    echo " "
 }
 
 #######################################
@@ -2092,14 +2167,27 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    sleep 5
+    echo " "
+    echo "---------------------------------------------------------"
+    echo "-------- STARTING execution of SMOKE TESTS ... ----------"
+    echo "---------------------------------------------------------"
+    echo " "
+
     oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    pwd
+    echo "make test"
     make test
     popd
     git reset --hard
+
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
 
     # buying extra time for the quickstarter tests
     restart_atlassian_suite
@@ -2111,12 +2199,33 @@ function run_smoke_tests() {
     done
     echo "bitbucket up and running."
 
+    sleep 5
+    echo " "
+    echo "-----------------------------------------------------------------"
+    echo "-------- STARTING execution of QUICKSTARTERS TESTS ... ----------"
+    echo "-----------------------------------------------------------------"
+    echo " "
+
     pushd tests
-        make test-quickstarter
+    pwd
+    echo "make test-quickstarter"
+    make test-quickstarter
     popd
 
     # clean up after tests
     oc delete project unitt-cd unitt-dev unitt-test
+
+    sleep 5
+    echo " "
+    echo "--------------------------------------------------------------"
+    echo "-------- ENDED execution of QUICKSTARTERS TESTS ... ----------"
+    echo "--------------------------------------------------------------"
+    echo " "
+
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
+
 }
 
 function startup_ods() {

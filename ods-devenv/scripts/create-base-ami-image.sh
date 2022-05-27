@@ -12,12 +12,12 @@ fi
 sudo yum update -y
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
 sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-sudo yum -y install git gitk iproute lsof
+sudo yum -y install git gitk iproute lsof xrdp tigervnc-server remmina firewalld git2u-all glances golang jq tree htop etckeeper
+
 curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-sudo yum -y install xrdp tigervnc-server remmina
 rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
 sudo yum install -y centos-release-openshift-origin311
@@ -34,29 +34,29 @@ sudo systemctl status sshd
 sudo adduser openshift
 echo -e "openshift\nopenshift" | sudo passwd openshift
 sudo usermod -a -G wheel openshift
-sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
-
-sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-sudo yum -y install firewalld git2u-all glances golang jq tree
+sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
 
 sudo usermod -a -G docker openshift
 
 # etckeeper
-sudo yum install -y etckeeper
 cd /etc/
 sudo etckeeper init
 sudo etckeeper commit -m "Initial commit"
 
 # GUI:
+sudo yum groupinstall -y "MATE Desktop"
+sudo yum groups -y install "GNOME Desktop"
+
+# GUI access via XRDP
 sudo firewall-cmd --add-port=3389/tcp --permanent
 sudo firewall-cmd --add-port=3350/tcp --permanent
 sudo firewall-cmd --reload
-sudo yum groupinstall -y "MATE Desktop"
 sudo systemctl enable xrdp
 sudo chcon --type=bin_t /usr/sbin/xrdp
 sudo chcon --type=bin_t /usr/sbin/xrdp-sesman
 sudo sed -i 's/^\s*ListenAddress=127.0.0.1\s*$/ListenAddress=0.0.0.0/g' /etc/xrdp/sesman.ini
 
+# JDK
 cat <<EOF > /tmp/adoptopenjdk.repo
 [AdoptOpenJDK]
 name=AdoptOpenJDK
@@ -68,9 +68,11 @@ EOF
 
 sudo mv /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
-sudo yum install adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre
+sudo yum -y install adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre
 
-sudo yum -y install firewalld git2u-all glances golang jq tree lsof
+sudo sed -i 's/.*crypt_level=.*/crypt_level=none/g' /etc/xrdp/xrdp.ini
+sudo sed -i 's/.*max_bpp=.*/max_bpp=24/g' /etc/xrdp/xrdp.ini
+sudo sed -i 's/.*xserverbpp=.*/xserverbpp=24/g' /etc/xrdp/xrdp.ini
 
 
 echo " "
