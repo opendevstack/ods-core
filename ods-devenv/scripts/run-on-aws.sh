@@ -163,7 +163,7 @@ if [[ -z "${host}" ]]; then
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
     aws ec2 wait instance-running --instance-ids "$instance_id"
     echo "Instance with ID=${instance_id} running"
-    
+
     aws ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
     echo "Started new EC2 instance with name \"${ec2_instance_name}\""
 
