@@ -88,24 +88,15 @@ function configure_sshd_server() {
     sudo systemctl restart sshd
     sudo systemctl status sshd
     sleep 5
-    sudo cat /etc/ssh/sshd_config
+    echo "Showing sshd_config important settings: "
+    sudo cat /etc/ssh/sshd_config | grep -v '\(^\s*#.*$\|^\s*$\)'
 }
 
 function configure_sshd_openshift_keys() {
+    sleep 5
     echo "Show current ssh passwords. We need them to connect and debug."
     ls -1a ${HOME}/.ssh | grep -v "^\.\.*$" | while read -r file; do echo " "; echo ${file}; echo "----"; cat ${HOME}/.ssh/${file} || true; done
-    local needsKey
-    needsKey=0
-    grep -q "openshift@odsbox.lan" ~/.ssh/authorized_keys || needsKey=1
-    if [ 1 -eq $needsKey ]; then
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXwKT01BaNoSUXaqzrmaM+mRFyx+ERrmVq7v+1Xgtiru+c07l6vaIK6/GE+E/GH4QESB7phl9dLMlmKOXZZqMixa1MD0V0eaFP4YXCaaTGEPyLaNRNhTXert0IihfAucOIzdFGWn1795IshJ7rj/GdQQ0qrAMVYguz4iC+hR1IznuTkJivIvDCuDo5LG+DksisJlGTLpdTZIeCCJgUUFpevJbtcZKwbUqzd6fo0tQiuk/J0TtO4SlXUvDge7mWGxMCIFPTM+e6AFSI6deviiiyhOHzcP9luJQPBpONBXzGcLXMqm1UsYaOl4OsKcyJSk5PgSKBM0KV4RX2Pm3i0vlz7gbvK65sJKQQlBZBm+W16mT3Ke8ytg9I1Kf9/kplKSvSwxOkmClgWCKzxIT7vsozLnSBuPSyTLZ98RuUFhjDvHMFvmGe0oTGaUB0/QQdhROzYRtw7+/CQOzWuZx32B0CtLpd55iyL8261StbY/92B8QDdIQXg9bzsfx6hXSNLlc= openshift@odsbox.lan" >> ${HOME}/.ssh/authorized_keys
-        sleep 5
-        cat ${HOME}/.ssh/authorized_keys
-    else
-        echo "Key for openshift@odsbox.lan was previously in file ${HOME}/.ssh/authorized_keys "
-    fi
-    chmod -c 600 ${HOME}/.ssh/authorized_keys
-
+    sleep 1
 }
 
 #######################################
@@ -158,10 +149,29 @@ function check_system_setup() {
     # remove full update /cut 20210901
     install_packages_yum_utils_epel_release
 
-    sudo yum -y install firewalld git2u-all glances golang jq tree lsof || true
-    go get github.com/ericchiang/pup
-    mv "${HOME}/go/bin/pup" "${HOME}/bin/"
+    sudo yum -y install firewalld git2u-all glances golang jq tree lsof iproute || true
 
+    sleep 1
+    echo " "
+    echo "Installing go dependencies... "
+    echo -n "Working directory: "
+    pwd
+    echo "go get github.com/ericchiang/pup"
+    go get -u -x github.com/ericchiang/pup
+    cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
+
+    echo "Installing 'tests' folder go dependencies... "
+    pushd tests
+    echo "go install github.com/jstemmer/go-junit-report"
+    which go-junit-report || go install github.com/jstemmer/go-junit-report
+
+    go mod download | true 
+    go get ./... | true
+    go list -f '{{ join .Imports "\n" }}' | true
+    go get -u -v -f all | true
+    popd
+
+    echo " "
     if ! systemctl status firewalld | grep -i running; then
         systemctl start firewalld
     fi
@@ -468,10 +478,11 @@ function setup_rdp() {
     sudo firewall-cmd --zone=public --permanent --add-port=3350/tcp
     sudo firewall-cmd --reload
 
-    echo "exec /usr/bin/mate-session" > ${HOME}/.xinitrc
-    echo "exec /usr/bin/mate-session" > ${HOME}/startwm.sh
-    echo "exec /usr/bin/mate-session" > ${HOME}/.Xclients
-    chmod +x ${HOME}/.xinitrc ${HOME}/startwm.sh ${HOME}/.Xclients
+    # Recommended, but not mandatory.
+    # echo "exec /usr/bin/mate-session" > ${HOME}/.xinitrc
+    # echo "exec /usr/bin/mate-session" > ${HOME}/startwm.sh
+    # echo "exec /usr/bin/mate-session" > ${HOME}/.Xclients
+    # chmod +x ${HOME}/.xinitrc ${HOME}/startwm.sh ${HOME}/.Xclients
 
 }
 
@@ -650,6 +661,13 @@ function download_tailor() {
 #   None
 #######################################
 function print_system_setup() {
+    echo " "
+    yum whatprovides *bin/ip || true
+    sudo yum -y install iproute || true
+    echo " "
+    echo "-------------------"
+    echo "-- System setup: --"
+    echo "-------------------"
     echo "network interfaces: $(ip a)"
     echo "tailor version: $(tailor version)"
     echo "oc version: $(oc version)"
@@ -657,6 +675,8 @@ function print_system_setup() {
     echo "go version: $(go version)"
     echo "git version: $(git --version)"
     echo "docker version: $(docker --version)"
+    echo "-------------------"
+    echo " "
 }
 
 ######
@@ -666,6 +686,7 @@ function print_system_setup() {
 function atlassian_stack_reset() {
 
     echo "atlassian_stack_reset: "
+    echo "IMPORTANT: remove from /etc/hosts lines with references to jira and bitbucket before run this method"
 
     docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
 	do
@@ -673,24 +694,11 @@ function atlassian_stack_reset() {
 		docker rm $container_id
 	done
 
-    echo "Folders that need to be removed manually: ~/bitbucket_data ~/jira_data ~/mysql_data"
-    for data_file in bitbucket_data jira_data mysql_data
-    do
-	if [ -d "${HOME}/$data_file" ]; then
-		echo "Removing ${HOME}/$data_file ... "
-		sudo rm -fR ${HOME}/$data_file
-	fi
-    done
-
-    prepare_atlassian_stack
     startup_and_follow_atlassian_mysql
 
     startup_atlassian_crowd
     startup_and_follow_jira
     startup_and_follow_bitbucket
-
-    stop_ods
-    startup_ods
 }
 
 
@@ -970,11 +978,18 @@ function configure_jira2crowd() {
             --data "newDirectoryType=CROWD&next=Next" \
             --compressed \
             --insecure --location --silent --output ${atl_token_fn} --stderr ${errors_file}
-    sleep 5
-    echo "Results from curl setting atl token: "
-    cat ${atl_token_fn} || echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
-    cat ${errors_file}
-    sleep 5
+
+    echo "Evaluating results from curl setting atl token: "
+    if [ ! -f ${atl_token_fn} ]; then
+        echo "File with Jira xsrf atl_token (${atl_token_fn}) is EMPTY or does NOT exist !!! "
+    fi
+    if [ -f ${errors_file} ]; then
+        sleep 5
+        cat ${errors_file}
+        sleep 5
+    else
+        echo " " >> ${errors_file}
+    fi
 
     if grep -iq "HTTP/1.1 503" ${errors_file} ; then
         # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
@@ -1003,9 +1018,9 @@ function configure_jira2crowd() {
     # send crowd config data
     local crowd_service_name
     crowd_service_name="crowd.odsbox.lan"
-    echo "Assuming crowd service to listen at ${crowd_service_name}:8095"
+    echo "Assuming crowd service listens at ${crowd_service_name}:8095"
     local crowd_directory_id
-    crowd_directory_id=$(curl 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
+    crowd_directory_id=$(curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
@@ -1014,9 +1029,10 @@ function configure_jira2crowd() {
         --location \
         | pup 'table#directory-list tbody tr:nth-child(even) td.id-column text{}' \
         | tr -d "[:space:]")
+    echo "Crowd directory id: ${crowd_directory_id}"
 
     # sync bitbucket with crowd directory
-    curl "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+    curl -sS "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \
@@ -1585,6 +1601,10 @@ function register_dns() {
     local ip
     ip=$2
 
+    echo "Checking if ip or service name entries are in /etc/hosts ... "
+    # remove previous entries if is needed
+    grep -i "\(${ip}\|${service_name}\)" /etc/hosts || true
+
     # register new ip with /etc/hosts
     echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
 
@@ -1681,6 +1701,8 @@ function delete_ods_repositories() {
 #   None
 #######################################
 function push_ods_repositories() {
+    echo " "
+    echo "Pushing ODS repositories..."
     pwd
     ./scripts/push-local-repos.sh --bitbucket-url "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}" --bitbucket-ods-project OPENDEVSTACK --ods-git-ref "${ods_git_ref}"
 }
@@ -1696,6 +1718,8 @@ function push_ods_repositories() {
 #   None
 #######################################
 function set_shared_library_ref() {
+    echo " "
+    echo "Setting shared library reference to ${ods_git_ref}"
     pwd
     ./scripts/set-shared-library-ref.sh --ods-git-ref "${ods_git_ref}"
 }
@@ -1731,7 +1755,8 @@ function inspect_mysql_ip() {
 #   None
 #######################################
 function create_configuration() {
-    echo "create configuration"
+    echo " "
+    echo "Create the environment configuration and upload it to Bitbucket ods-configuration repository..."
     pwd
     ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
     pushd ../ods-configuration
@@ -1811,6 +1836,8 @@ function create_configuration() {
 }
 
 function install_ods_project() {
+    echo " "
+    echo "Installing ods project..."
     ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
 }
 
@@ -1990,6 +2017,15 @@ function setup_docgen() {
 #   None
 #######################################
 function setup_jenkins_agents() {
+
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Creating build configurations... ------------"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
+
     # to be save login as developer again
     oc login -u developer -p anypwd
 
@@ -2006,9 +2042,10 @@ function setup_jenkins_agents() {
     fi
 
     pushd "${quickstarters_jenkins_agents_dir}"
-    # create build configurations in parallel
     for technology in $(ls -d -- */)
     do
+        echo " "
+        echo " "
         technology=${technology%/*}
         echo "Current user $(oc whoami)"
         pushd "${technology}/${ocp_config_folder}"
@@ -2032,19 +2069,44 @@ function setup_jenkins_agents() {
         echo "build configuration job ${job} returned."
     done
 
-    local technologies
-    local technologies_index
+    # Wait for logs so they do not get mixed with logs of the following part.
+    sleep 5
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "--------- Setting up jenkins agents. Building from configurations... -------------"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
 
-    technologies_index=0
+
+    # We tried to run tasks in parallel, but logs get combined and you cannot read them anymore.
+    # Besides, there is no real improvement with respect to time spent in pipeline.
+
+    # local technologies
+    # local technologies_index
+
+    # technologies_index=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
-        technologies[${technologies_index}]=${technology}
+        # technologies[${technologies_index}]=${technology}
 
-        echo "Starting (in background) build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
-        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
-        pids[${technologies_index}]=$!
+        sleep 5
+        echo " "
+        echo " "
+        echo "----------------------------------------------------------------------------------------------------------- "
+        echo "Starting build of jenkins-agent for technology ${technology}. Logs to ${log_folder}/${technology}_build.log "
+        echo "----------------------------------------------------------------------------------------------------------- "
+        echo " "
 
+        # oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait > "${log_folder}/${technology}_build.log" 2>&1 &
+        # pids[${technologies_index}]=$!
+
+        oc start-build -n "${NAMESPACE}" "jenkins-agent-${technology}" --follow --wait | tee "${log_folder}/${technology}_build.log"
+        if [ 0 -ne ${PIPESTATUS[0]} ]; then
+            echo " "
+            echo "ERROR: Could not build jenkins-agent for technology ${technology}"
+            echo " "
+        fi
     done
     popd
 
@@ -2053,37 +2115,46 @@ function setup_jenkins_agents() {
     #     return_value=$?
     # done
 
-    local foundErrorInTechnologies=0
-    for technologies_index_aux in ${!technologies[@]}; do
-        technology=${technologies[$technologies_index_aux]}
-        echo "Waiting for the result of building jenkins-agent for technology ${technology}"
-        wait ${pids[$technologies_index_aux]}
-        return_value=$?
-        cat ${log_folder}/${technology}_build.log
-        if [ 0 -ne ${return_value} ]; then
-            echo "Failed building jenkins-agent for technology ${technology}"
-            foundErrorInTechnologies=1
-        fi
-    done
+    # local foundErrorInTechnologies=0
+    # for technologies_index_aux in ${!technologies[@]}; do
+    #    technology=${technologies[$technologies_index_aux]}
+    #    echo "Waiting for the result of building jenkins-agent for technology ${technology}"
+    #    wait ${pids[$technologies_index_aux]}
+    #    return_value=$?
+    #    cat ${log_folder}/${technology}_build.log
+    #    if [ 0 -ne ${return_value} ]; then
+    #        echo "Failed building jenkins-agent for technology ${technology}"
+    #        foundErrorInTechnologies=1
+    #    fi
+    # done
 
-    if [ 0 -ne ${foundErrorInTechnologies} ]; then
-        echo "Look for the line 'Failed building jenkins-agent for technology' above."
-        echo "Exiting because we have errors building a jenkins-agent. "
-        exit 1
-    fi
+    # if [ 0 -ne ${foundErrorInTechnologies} ]; then
+    #    echo "Look for the line 'Failed building jenkins-agent for technology' above."
+    #    echo "Exiting because we have errors building a jenkins-agent. "
+    #    exit 1
+    # fi
 
     for job in $(jobs -p)
     do
-        echo "Waiting for jenkins-agent builds ${job} to complete."
+        echo "Waiting for jenkins-agent build job ${job} to complete."
         wait "${job}"
         return_value=$?
         if [[ "${return_value}" != 0 ]]
         then
-            echo "Jenkins agent setup failed."
+            echo " "
+            echo "ERROR: Jenkins agent setup failed."
+            echo " "
             exit 1
         fi
         echo "build job ${job} returned."
     done
+
+    sleep 5
+    echo " "
+    echo "-------------------------------------------------------"
+    echo "-------- ENDED Setting up jenkins agents ... ----------"
+    echo "-------------------------------------------------------"
+    echo " "
 }
 
 #######################################
@@ -2096,14 +2167,27 @@ function setup_jenkins_agents() {
 #   None
 #######################################
 function run_smoke_tests() {
+    sleep 5
+    echo " "
+    echo "---------------------------------------------------------"
+    echo "-------- STARTING execution of SMOKE TESTS ... ----------"
+    echo "---------------------------------------------------------"
+    echo " "
+
     oc get is -n "${NAMESPACE}"
     export GITHUB_WORKSPACE="${HOME}/opendevstack"
 
     pushd tests
     export PROVISION_API_HOST=https://prov-app-ods.ocp.odsbox.lan
+    pwd
+    echo "make test"
     make test
     popd
     git reset --hard
+
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
 
     # buying extra time for the quickstarter tests
     restart_atlassian_suite
@@ -2115,12 +2199,33 @@ function run_smoke_tests() {
     done
     echo "bitbucket up and running."
 
+    sleep 5
+    echo " "
+    echo "-----------------------------------------------------------------"
+    echo "-------- STARTING execution of QUICKSTARTERS TESTS ... ----------"
+    echo "-----------------------------------------------------------------"
+    echo " "
+
     pushd tests
-        make test-quickstarter
+    pwd
+    echo "make test-quickstarter"
+    make test-quickstarter
     popd
 
     # clean up after tests
     oc delete project unitt-cd unitt-dev unitt-test
+
+    sleep 5
+    echo " "
+    echo "--------------------------------------------------------------"
+    echo "-------- ENDED execution of QUICKSTARTERS TESTS ... ----------"
+    echo "--------------------------------------------------------------"
+    echo " "
+
+    if [ -x ./tests/scripts/free-unused-resources.sh ]; then
+        ./tests/scripts/free-unused-resources.sh
+    fi
+
 }
 
 function startup_ods() {

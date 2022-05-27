@@ -61,14 +61,28 @@ func TestQuickstarter(t *testing.T) {
 		t.Fatalf("Error decoding cd_user password: %s", err)
 	}
 
-	fmt.Printf("Running test steps found in following directories:\n")
+	fmt.Printf("\n\nRunning test steps found in the following directories:\n")
 	for _, quickstarterPath := range quickstarterPaths {
 		fmt.Printf("- %s\n", quickstarterPath)
 	}
+	fmt.Printf("\n\n")
+
 	for _, quickstarterPath := range quickstarterPaths {
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
+
+		// Run cleanup operations to ensure we always have enough resources.
+		stdout, stderr, err := utils.RunScriptFromBaseDir(
+			"tests/scripts/free-unused-resources.sh",
+			[]string{}, []string{},
+		)
+
+		if err != nil {
+			t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
+		} else {
+			fmt.Printf("Cleaned cluster state.\n")
+		}
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
@@ -85,7 +99,7 @@ func TestQuickstarter(t *testing.T) {
 					step.ComponentID = s.ComponentID
 				}
 				fmt.Printf(
-					"Run step #%d (%s) of quickstarter %s/%s ... %s\n",
+					"\n\nRun step #%d (%s) of quickstarter %s/%s ... %s\n",
 					(i + 1),
 					step.Type,
 					quickstarterRepo,
