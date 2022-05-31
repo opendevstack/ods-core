@@ -165,7 +165,7 @@ function check_system_setup() {
     echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
 
-    go mod download | true 
+    go mod download | true
     go get ./... | true
     go list -f '{{ join .Imports "\n" }}' | true
     go get -u -v -f all | true
@@ -2085,6 +2085,7 @@ function setup_jenkins_agents() {
     # local technologies_index
 
     # technologies_index=0
+    local errors_building_jenkins_agent=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
@@ -2106,9 +2107,19 @@ function setup_jenkins_agents() {
             echo " "
             echo "ERROR: Could not build jenkins-agent for technology ${technology}"
             echo " "
+            errors_building_jenkins_agent=$((errors_building_jenkins_agent++))
         fi
     done
     popd
+
+    if [ 0 -ne ${errors_building_jenkins_agent} ]; then
+        echo " "
+        echo "ERROR: We could not build jenkins agent for some technology. We'll abort pipeline."
+        echo "ERROR: Problem building the jenkins agent for ${errors_building_jenkins_agent} technologies."
+        echo "TIP: To get more deatils, look for the string 'Could not build jenkins-agent for technology'"
+        echo " "
+        exit 1
+    fi
 
     # for pid in ${[*]}; do
     #     wait $pid
