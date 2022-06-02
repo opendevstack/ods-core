@@ -17,7 +17,8 @@
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 - Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
-- Upgrades needed by IC to generate ods boxes with new atlassian suite. Includes some pipeline modifications to detect errors early.
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
+- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
 
 ### Added
 
