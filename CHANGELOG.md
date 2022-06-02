@@ -7,7 +7,9 @@
 - Fix SonarQube build issue when using libressl, moving to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
 - `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
 - Fix skopeo broken installation ([1087](https://github.com/opendevstack/ods-core/issues/1087))
-- Needed changes to run CI again, ported from task/upgrade-atlassian-stack.
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early. Ported from task/upgrade-atlassian-stack.
+- Updates Atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)). Ported from task/upgrade-atlassian-stack.
+
 
 ### Added
 

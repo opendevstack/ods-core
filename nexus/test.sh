@@ -6,18 +6,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-NEXUS_VERSION="3.22.0"
+NEXUS_IMAGE=$("${ODS_CORE_DIR}"/scripts/get-sample-param.sh NEXUS_FROM_IMAGE)
 
 function usage {
     printf "Test Nexus setup.\n\n"
-    printf "\t-h|--help\t\tPrint usage\n"
-    printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t--verify\t\tSkips setup of local docker container and instead checks existing nexus setup based on ods-core.env\n"
-    printf "\t-n|--no-prompts\t\tDo not prompt for passwords which were not passed in.\n"
+    printf "\t-h|--help\t\t\tPrint usage\n"
+    printf "\t-v|--verbose\t\t\tEnable verbose mode\n"
+    printf "\t--verify\t\t\tSkips setup of local docker container and instead checks existing nexus setup based on ods-core.env\n"
+    printf "\t-n|--no-prompts\t\t\tDo not prompt for passwords which were not passed in.\n"
     printf "\t-a|--admin-password\t\tUse given admin password.\n"
     printf "\t-d|--developer-password\t\tUse given developer password.\n"
-    printf "\t-s|--nexus-version\t\tNexus version, e.g. '3.22.0' (defaults to %s)\n" "${NEXUS_VERSION}"
-    printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
+    printf "\t-s|--nexus-image\t\tNexus image (defaults to: %s)\n" "${NEXUS_IMAGE}"
+    printf "\t-i|--insecure\t\t\tAllow insecure server connections when using SSL\n"
 }
 
 VERIFY_ONLY=false
@@ -45,14 +45,13 @@ while [[ "$#" -gt 0 ]]; do
     -d|--developer-password) DEVELOPER_PASSWORD="$2"; shift;;
     -d=*|--developer-password=*) DEVELOPER_PASSWORD="${1#*=}";;
 
-    -s|--nexus-version) NEXUS_VERSION="$2"; shift;;
-    -s=*|--nexus-version=*) NEXUS_VERSION="${1#*=}";;
+    -s|--nexus-image) NEXUS_IMAGE="$2"; shift;;
+    -s=*|--nexus-image=*) NEXUS_IMAGE="${1#*=}";;
 
     *) echo "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 if ! $VERIFY_ONLY; then
-    CONTAINER_IMAGE="sonatype/nexus3:${NEXUS_VERSION}"
     HOST_PORT="8081"
 
     # HTTP_PROXY="someproxy.local"
@@ -62,8 +61,8 @@ if ! $VERIFY_ONLY; then
     # NO_PROXY=".local,.svc,jcenter.bintray.com"
     NO_PROXY=
 
-    echo "Run container using image ${CONTAINER_IMAGE}"
-    containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" "${CONTAINER_IMAGE}")
+    echo "Run container using image ${NEXUS_IMAGE}"
+    containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" "${NEXUS_IMAGE}")
 
     function cleanup {
         echo "Cleanup"
@@ -77,8 +76,8 @@ if ! $VERIFY_ONLY; then
     NEXUS_USERNAME="developer"
     NEXUS_PASSWORD=${DEVELOPER_PASSWORD:-"geHeim"}
 
-    echo "Run ./configure.sh"
-    ./configure.sh \
+    echo "Run configure.sh"
+    "${SCRIPT_DIR}"/configure.sh \
         --admin-password="${NEXUS_ADMIN_PASSWORD}" \
         --developer-password="${NEXUS_PASSWORD}" \
         --nexus="${NEXUS_URL}" \
@@ -91,10 +90,12 @@ else
     fi
     # Now we read the NEXUS variables from ods-core.env
     # - Since we use set -u in this script undefined variables will
-    #   cause the sscript to exit
+    #   cause the script to exit
     # - ods-core.env contains some passwords which makes a plain source
     #   hickup, therfore we are filtering this to only NEXUS variables.
-    source <( grep NEXUS "$ods_core_env_file")
+    grep NEXUS "$ods_core_env_file" > verify-nexus.env
+    source verify-nexus.env
+    rm verify-nexus.env
 
     NEXUS_USERNAME=${NEXUS_USERNAME-"developer"}
     NEXUS_ADMIN_USERNAME=${NEXUS_ADMIN_USERNAME-"admin"}

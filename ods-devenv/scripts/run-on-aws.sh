@@ -108,25 +108,23 @@ if [[ -z "${host}" ]]; then
       exit 1
     fi
     if [[ -z "${ami_id}" ]]; then
-        if [[ -n "${install}" ]]
-        then
+        if [[ -n "${install}" ]]; then
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
                 --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
-            ec2_instance_name="ODS in a box Install (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
             echo "You are in install mode using CentOS 7 image ${ami_id}."
         else
             ami_id=$(aws ec2 describe-images \
                 --owners 275438041116 \
                 --filters "Name=name,Values=ODS in a Box ${target_git_ref} *" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=${instance_type}*" \
                 --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
-            ec2_instance_name="ODS in a box Startup (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
             echo "You are in startup mode using ODS in a box image ${ami_id}."
         fi
-    else
-      ec2_instance_name="ODS in a box Startup (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
     fi
+
+    user_name="$(aws iam get-user | jq -r '.User.UserName')"
+    ec2_instance_name="${user_name}: ODS-in-a-Box (${target_git_ref}) $(date '+%Y-%m-%d %H:%M:%S')"
 
     if [[ -z "${ami_id}" ]] || [[ "${ami_id}" == "null" ]]
     then
@@ -165,9 +163,9 @@ if [[ -z "${host}" ]]; then
     echo "Created instance with ID=${instance_id}, waiting for it to be running ..."
     aws ec2 wait instance-running --instance-ids "$instance_id"
     echo "Instance with ID=${instance_id} running"
-    
+
     aws ec2 create-tags --resources "${instance_id}" --tags "Key=Name,Value=${ec2_instance_name}"
-    echo "Started new EC2 instance with name ${ec2_instance_name}"
+    echo "Started new EC2 instance with name \"${ec2_instance_name}\""
 
     wait="yes"
   fi
