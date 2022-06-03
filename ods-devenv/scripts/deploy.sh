@@ -169,7 +169,7 @@ function check_system_setup() {
 
     # Try to get dependencies, but do not fail if not available at this point.
     go mod download || echo "ERROR: Failed to execute go mod download "
-    go get -x -u ./... || echo "ERROR: Failed to execute go get -x -u ./... "
+    go get -x ./... || echo "ERROR: Failed to execute go get -x -u ./... "
     go list -u -m all || echo "ERROR: Failed to execute go list -u -m all "
     popd
     echo " "
