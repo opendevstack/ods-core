@@ -160,16 +160,20 @@ function check_system_setup() {
     go get -u -x github.com/ericchiang/pup
     cp -vf "${HOME}/go/bin/pup" "${HOME}/bin/"
 
-    echo "Installing 'tests' folder go dependencies... "
+    echo " "
+    echo "INFO: Installing 'tests' folder go dependencies to fail early if they are not available"
+    echo " "
     pushd tests
     echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
 
-    go mod download | true
-    go get ./... | true
-    go list -f '{{ join .Imports "\n" }}' | true
-    go get -u -v -f all | true
+    # Try to get dependencies, but do not fail if not available at this point.
+    go mod download || echo "ERROR: Failed to execute go mod download "
+    go get -x -u ./... || echo "ERROR: Failed to execute go get -x -u ./... "
+    go list -u -m all || echo "ERROR: Failed to execute go list -u -m all "
     popd
+    echo " "
+    echo " "
 
     echo " "
     if ! systemctl status firewalld | grep -i running; then
