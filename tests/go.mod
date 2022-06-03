@@ -36,3 +36,5 @@ require (
 	k8s.io/klog v1.0.0 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
+
+replace github.com/googleapis/gnostic => github.com/google/gnostic v0.4.0
