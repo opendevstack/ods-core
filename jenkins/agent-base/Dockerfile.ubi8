@@ -20,6 +20,7 @@ COPY yum.repos.d/ubi.repo /etc/yum.repos.d/ubi.repo
 
 RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
     && yum -y install make glibc-langpack-en openssl \
+    && yum -y update \
     && yum clean all \
     && rm -rf /var/cache/yum/*
 

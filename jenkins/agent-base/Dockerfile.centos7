@@ -16,16 +16,14 @@ ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
 
-RUN yum -y install \
-    openssl \
-    && yum clean all \
-    && rm -rf /var/cache/yum/*
-
 ENV JAVA_HOME=/usr/lib/jvm/jre
 
-RUN yum -y install java-1.8.0-openjdk-devel.x86_64 \
+RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
+    && yum -y install openssl \
+    && yum -y install java-1.8.0-openjdk-devel.x86_64 \
+    && yum -y update \
     && yum clean all \
-    && rm -rf /var/cache/yum/*
+    && rm -rf /var/cache/yum/* 
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 RUN import_certs.sh
