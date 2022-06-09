@@ -79,7 +79,7 @@ function setup_xrdp() {
     cd xrdp/
     git clone https://github.com/neutrinolabs/xorgxrdp.git
 
-    sudo yum remove xorgxrdp xrdp xrdp-selinux || true
+    sudo yum -y remove xorgxrdp xrdp xrdp-selinux || true
 
     cd xorgxrdp
     ./bootstrap
@@ -130,8 +130,23 @@ function setup_xrdp() {
 
 }
 
-# general_configuration
+function fix_locales() {
+
+    echo ' ' | sudo tee -a /etc/profile.d/sh.local
+    echo 'export LC_ALL="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
+    echo 'export LC_CTYPE="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
+    echo 'export LANGUAGE="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
+    echo 'export LANG="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
+
+    cd /etc
+    sudo git add .
+    sudo git commit -a -m "Configured centos locales."
+
+}
+
+general_configuration
 setup_xrdp
+fix_locales
 
 echo " "
 echo " "
