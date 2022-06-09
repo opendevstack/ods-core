@@ -164,6 +164,7 @@ function check_system_setup() {
     pushd tests
     echo "go install github.com/jstemmer/go-junit-report"
     which go-junit-report || go install github.com/jstemmer/go-junit-report
+    go get github.com/opendevstack/ods-core/tests/smoketest || echo "ERROR: Could not install go module 'smoketest'."
 
     go mod download | true
     go get ./... | true
