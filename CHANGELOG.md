@@ -59,6 +59,7 @@
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
 - Fixes bugs introduced while upgrading atlassian stack ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
+- Point Aqua credential id to project-specific CD user ([#1125](https://github.com/opendevstack/ods-core/issues/1125))
 
 ### Removed
 
