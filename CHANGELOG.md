@@ -11,6 +11,7 @@
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 - Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early. Ported from task/upgrade-atlassian-stack.
+- Fixes bugs introduced while upgrading atlassian stack ([#1149](https://github.com/opendevstack/ods-core/pull/1149)). Backport of ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
 
 ### Changed
 
