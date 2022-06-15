@@ -1356,7 +1356,19 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
 }
 
 function wait_until_atlassian_crowd_is_up() {
-    wait_until_http_svc_is_up "crowd" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/"
+    wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/"
+}
+
+function wait_until_atlassian_bitbucket_is_up() {
+    wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/"
+}
+
+function wait_until_atlassian_jira_is_up() {
+    wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/"
+}
+
+function wait_until_ocp_is_up() {
+    wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/"
 }
 
 function wait_until_http_svc_is_up() {
@@ -1365,20 +1377,30 @@ function wait_until_http_svc_is_up() {
     CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
 
-    local isUp="false"
-    while [ "true" != "${isUp}" ]; do
-        echo "Testing (again) if service ${SVC_NAME} is up... "
-        sleep 10
+    echo " "
 
-        curl --insecure -sSL --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE}
-        if [ 0 -ne $? ]; then
-            echo "Service ${SVC_NAME} is *NOT* up yet..."
-            cat ${CURL_SVC_HEADERS_FILE}
-            continue
+    local isUp="false"
+    local retryNum=0
+    local retryMax=100
+    while [ "true" != "${isUp}" ]; do
+        echo "Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
+        let retryNum+=1
+        if [ ${retryMax} -le ${retryNum} ]; then
+            echo "Maximum amount of retries reached: $retryNum / $retryMax "
+            sleep 1
+            exit 1
+        fi
+        if [ 0 -ne ${retryNum} ]; then
+            sleep 10
         fi
 
-        grep -q '^\s*HTTP.* 200 OK\s*$' ${CURL_SVC_HEADERS_FILE}
-        if [ 0 -ne $? ]; then
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE}
+        if ! curl --insecure -sSL --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
+            echo "Curl replied != 0 for query to ${SVC_HTTP_URL} "
+            echo "Checking if it was caused by a redirect... "
+        fi
+
+        if ! grep -q '^\s*HTTP/[0-9\.]*\s*200[\s]*' ${CURL_SVC_HEADERS_FILE} ; then
             echo "Service ${SVC_NAME} is *NOT* up yet..."
             cat ${CURL_SVC_HEADERS_FILE}
             continue
@@ -1388,6 +1410,7 @@ function wait_until_http_svc_is_up() {
     done
 
     echo "Service ${SVC_NAME} is up at ${SVC_HTTP_URL}"
+    echo " "
     return 0
 }
 
@@ -1556,6 +1579,8 @@ function restart_atlassian_bitbucket() {
     inspect_bitbucket_ip
     echo "New BitBucket container got ip ${atlassian_bitbucket_ip}. Registering with dns svc..."
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
+
+    wait_until_atlassian_bitbucket_is_up
 }
 
 function restart_atlassian_mysql() {
@@ -1587,6 +1612,8 @@ function restart_atlassian_jira() {
     inspect_jira_ip
     echo "New Jira container got ip ${atlassian_jira_ip}. Registering with dns svc..."
     register_dns "${atlassian_jira_container_name}" "${atlassian_jira_ip}"
+
+    wait_until_atlassian_jira_is_up
 }
 
 #######################################
@@ -1608,6 +1635,8 @@ function restart_atlassian_crowd() {
     inspect_crowd_ip
     echo "New Crowd container got ip ${atlassian_crowd_ip}. Registering with dns svc..."
     register_dns "${atlassian_crowd_container_name}" "${atlassian_crowd_ip}"
+
+    wait_until_atlassian_crowd_is_up
 }
 
 #######################################
@@ -2302,16 +2331,43 @@ function startup_ods() {
 
     restart_atlassian_suite
 
+    local KUBEDNS_RESOLV_FILE
     echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
-    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
-    if ! grep "nameserver ${public_hostname}" "${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    KUBEDNS_RESOLV_FILE="${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+
+    local NEEDS_NEW_KUBEDNS_RESOLV_FILE
+    NEEDS_NEW_KUBEDNS_RESOLV_FILE="false"
+
+    if [ ! -f ${KUBEDNS_RESOLV_FILE} ]; then
+        NEEDS_NEW_KUBEDNS_RESOLV_FILE="true"
+    else
+        local KUBEDNS_RESOLV_FILE_SIZE
+        KUBEDNS_RESOLV_FILE_SIZE="$(wc -l ${KUBEDNS_RESOLV_FILE} | cut -d ' ' -f 1)"
+        if [ "0" == "${KUBEDNS_RESOLV_FILE_SIZE}" ]; then
+            NEEDS_NEW_KUBEDNS_RESOLV_FILE="true"
+        fi
+    fi
+
+    if [ "true" == "${NEEDS_NEW_KUBEDNS_RESOLV_FILE}" ]; then
+        echo "Kubedns/resolv.conf file is broken."
+        echo "We'll create a new one from /etc/resolv.conf..."
+        cp -vf /etc/resolv.conf ${KUBEDNS_RESOLV_FILE}
+    fi
+
+    cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}-backup-$(date +%Y%m%d-%H%M%S)"
+    sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" ${KUBEDNS_RESOLV_FILE}
+    rm -fv ${KUBEDNS_RESOLV_FILE}.tmp
+    cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}.tmp"
+    cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+
+    if ! grep "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
     then
-        echo "ERROR: could not update kubedns/resolv.con!"
+        echo "ERROR: Could not update kubedns/resolv.conf ! (File ${HOME}/openshift.local.clusterup/kubedns/resolv.conf )"
         return 1
     fi
-    cat ${HOME}/openshift.local.clusterup/kubedns/resolv.conf | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+
     echo "Contents of file ${HOME}/openshift.local.clusterup/kubedns/resolv.conf: "
-    cat ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+    cat "${KUBEDNS_RESOLV_FILE}"
     echo " "
 
     # allow for OpenShifts to be resolved within OpenShift network
@@ -2320,6 +2376,7 @@ function startup_ods() {
 
     startup_openshift_cluster
 
+    wait_until_ocp_is_up
 }
 
 function stop_ods() {
