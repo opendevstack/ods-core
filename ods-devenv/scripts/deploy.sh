@@ -1345,20 +1345,50 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
     rm crowd_sessionid_cookie.txt
 
     inspect_crowd_ip
-    echo -n "Configuring /etc/hosts with crowd ip by "
-    if grep -q crowd < /etc/hosts
-    then
-        echo "replacing the previous value."
-        sudo sed -i "s|^.*crowd.odsbox.lan|${atlassian_crowd_ip}    crowd.odsbox.lan|" /etc/hosts
-    else
-        echo "appending the new value... "
-        echo "${atlassian_crowd_ip}    crowd.odsbox.lan" | sudo tee -a /etc/hosts
-    fi
+
+    register_dns "crowd.odsbox.lan" "${atlassian_crowd_ip}"
+    register_dns "${atlassian_crowd_container_name}" "${atlassian_crowd_ip}"
     echo
     echo "Atlassian Crowd installation is done and server listening on ${atlassian_crowd_host}:${atlassian_crowd_port_internal}, http://${atlassian_crowd_ip}:${atlassian_crowd_port_internal} and ${public_hostname}:${atlassian_crowd_port}"
     echo
 
-    register_dns "${atlassian_crowd_container_name}" "${atlassian_crowd_ip}"
+    wait_until_atlassian_crowd_is_up
+}
+
+function wait_until_atlassian_crowd_is_up() {
+    wait_until_http_svc_is_up "crowd" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/"
+}
+
+function wait_until_http_svc_is_up() {
+    SVC_NAME="${1}"
+    SVC_HTTP_URL="${2}"
+    CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
+    CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+
+    local isUp="false"
+    while [ "true" != "${isUp}" ]; do
+        echo "Testing (again) if service ${SVC_NAME} is up... "
+        sleep 10
+
+        curl --insecure -sSL --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE}
+        if [ 0 -ne $? ]; then
+            echo "Service ${SVC_NAME} is *NOT* up yet..."
+            cat ${CURL_SVC_HEADERS_FILE}
+            continue
+        fi
+
+        grep -q '^\s*HTTP.* 200 OK\s*$' ${CURL_SVC_HEADERS_FILE}
+        if [ 0 -ne $? ]; then
+            echo "Service ${SVC_NAME} is *NOT* up yet..."
+            cat ${CURL_SVC_HEADERS_FILE}
+            continue
+        fi
+
+        isUp="true"
+    done
+
+    echo "Service ${SVC_NAME} is up at ${SVC_HTTP_URL}"
+    return 0
 }
 
 # Helper function for local development of crowd setup
@@ -1471,7 +1501,6 @@ function startup_atlassian_bitbucket() {
     inspect_bitbucket_ip
 
     echo "Atlassian BitBucket is listening on ${atlassian_bitbucket_host}, ${atlassian_bitbucket_ip}:${atlassian_bitbucket_port_internal} and ${public_hostname}:${atlassian_bitbucket_port}"
-    echo -n "Configuring /etc/hosts with bitbucket ip by "
     register_dns "${atlassian_bitbucket_container_name}" "${atlassian_bitbucket_ip}"
 }
 
@@ -1597,31 +1626,48 @@ function register_dns() {
     local ip
     ip=$2
 
-    echo "Checking if ip or service name entries are in /etc/hosts ... "
+
+    if ! echo "${service_name}" | grep -q '\.odsbox\.lan' ; then
+        service_name="${service_name}.odsbox.lan"
+    fi
+
+    echo "Regitering dns entry for service / ip : ${service_name} / ${ip} "
+    echo "Checking if ip (${ip}) or service name (${service_name}) values are in /etc/hosts ... "
     # remove previous entries if is needed
     grep -i "\(${ip}\|${service_name}\)" /etc/hosts || true
 
-    # register new ip with /etc/hosts
-    echo -n "Configuring /etc/hosts with ${service_name} with ip ${ip} by "
+    if grep -q "${ip}.*${service_name}" /etc/hosts ; then
+        echo "No need to change file /etc/hosts. "
+        return 0
+    fi
 
-    while ! grep -q "${ip}" /etc/hosts
+    if grep -q "\(${ip}\|${service_name}\)" /etc/hosts ; then
+        sudo sed -i "s@${service_name}@@g" /etc/hosts || true
+        sudo sed -i "s@^\s*${ip}\s*\$@@g" /etc/hosts || true
+        sudo sed -i "s@^\s*[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\s*\$@@g" /etc/hosts || true
+        echo "Current contents of /etc/hosts: "
+        grep -i "\(${ip}\|${service_name}\)" /etc/hosts || true
+    fi
+
+    # register new ip with /etc/hosts
+    echo "Writing to /etc/hosts dns entry for ${service_name} with ip ${ip} ... "
+
+    while ! grep -q "${ip}.*${service_name}" /etc/hosts
     do
-        if grep -q "${service_name}" < /etc/hosts
-        then
-            echo "replacing the previous value with ${ip}    ${service_name}.odsbox.lan."
-            sudo sed -i "s|^.*${service_name}.odsbox.lan|${ip}    ${service_name}.odsbox.lan|" /etc/hosts
-        else
-            echo "appending the new value ${ip}    ${service_name}.odsbox.lan."
-            echo "${ip}    ${service_name}.odsbox.lan" | sudo tee -a /etc/hosts
-        fi
-        if ! grep "${ip}" /etc/hosts
+        echo "${ip}    ${service_name}" | sudo tee -a /etc/hosts
+
+        if ! grep -q "\(${ip}\|${service_name}\)" /etc/hosts
         then
             echo "WARN: Could not set $service_name in /etc/hosts. Trying again ..."
             sleep 1
         fi
     done
 
-    sudo systemctl restart dnsmasq.service || sudo systemctl status dnsmasq.service
+    if ! sudo systemctl restart dnsmasq.service ; then
+        echo "ERROR: Could *NOT* restart dnsmasq service. "
+        sudo systemctl status dnsmasq.service || true
+    fi
+    return 0
 }
 
 #######################################
@@ -2263,11 +2309,17 @@ function startup_ods() {
         echo "ERROR: could not update kubedns/resolv.con!"
         return 1
     fi
+    cat ${HOME}/openshift.local.clusterup/kubedns/resolv.conf | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+    echo "Contents of file ${HOME}/openshift.local.clusterup/kubedns/resolv.conf: "
+    cat ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+    echo " "
 
     # allow for OpenShifts to be resolved within OpenShift network
-    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-    startup_openshift_cluster
     echo "set iptables"
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+
+    startup_openshift_cluster
+
 }
 
 function stop_ods() {
