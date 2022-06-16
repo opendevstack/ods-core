@@ -19,6 +19,7 @@
 - Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
 - Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
 - Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
+- deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
 
 ### Added
 
