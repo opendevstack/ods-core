@@ -18,6 +18,7 @@
 
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
 - Updates Atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)). Ported from task/upgrade-atlassian-stack.
+- Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
 
 ## [4.0] - 2021-18-11
 
