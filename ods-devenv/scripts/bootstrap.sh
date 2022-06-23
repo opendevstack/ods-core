@@ -42,7 +42,7 @@ echo "Checking the by default configured java: "
 ls -la /bin/java /usr/bin/java /etc/alternatives/java || true
 
 echo "Setting/Evaluating JAVA_HOME configuration..."
-if grep -q 'JAVA_HOME' /etc/bashrc ; then
+if ! grep -q 'JAVA_HOME' /etc/bashrc ; then
     echo "Configuring JAVA_HOME...";
     echo " " >> /etc/bashrc
     echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" >> /etc/bashrc
