@@ -2156,7 +2156,7 @@ function setup_jenkins_agents() {
     # local technologies_index
 
     # technologies_index=0
-    local errors_building_jenkins_agent=0
+    local errors_building_jenkins_agents=0
     for technology in $(ls -d -- */)
     do
         technology=${technology%/*}
@@ -2178,15 +2178,16 @@ function setup_jenkins_agents() {
             echo " "
             echo "ERROR: Could not build jenkins-agent for technology ${technology}"
             echo " "
-            errors_building_jenkins_agent=$((errors_building_jenkins_agent++))
+            let "errors_building_jenkins_agents=errors_building_jenkins_agents +1"
+            echo "errors_building_jenkins_agents= $errors_building_jenkins_agents"
         fi
     done
     popd
 
-    if [ 0 -ne ${errors_building_jenkins_agent} ]; then
+    if [ 0 -ne ${errors_building_jenkins_agents} ]; then
         echo " "
         echo "ERROR: We could not build jenkins agent for some technology. We'll abort pipeline."
-        echo "ERROR: Problem building the jenkins agent for ${errors_building_jenkins_agent} technologies."
+        echo "ERROR: Problem building the jenkins agent for ${errors_building_jenkins_agents} technologies."
         echo "TIP: To get more deatils, look for the string 'Could not build jenkins-agent for technology'"
         echo " "
         exit 1
