@@ -44,11 +44,13 @@ ls -la /bin/java /usr/bin/java /etc/alternatives/java || true
 echo "Setting/Evaluating JAVA_HOME configuration..."
 if ! grep -q 'JAVA_HOME' /etc/bashrc ; then
     echo "Configuring JAVA_HOME...";
-    echo " " >> /etc/bashrc
-    echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" >> /etc/bashrc
+    echo " " | sudo tee -a /etc/bashrc
+    echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" | sudo tee -a /etc/bashrc
+    echo "Checking... "
+    grep -i 'JAVA_HOME' /etc/bashrc
 else
     echo "No need to configure JAVA_HOME. Current configuration:";
-    grep -i 'JAVA_HOME' /etc/bashrc 
+    grep -i 'JAVA_HOME' /etc/bashrc
 fi
 echo " "
 
