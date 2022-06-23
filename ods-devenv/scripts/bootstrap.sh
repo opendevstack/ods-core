@@ -41,6 +41,17 @@ yum list installed | grep -i "\(jre\|java\|jdk\)" || true
 echo "Checking the by default configured java: "
 ls -la /bin/java /usr/bin/java /etc/alternatives/java || true
 
+echo "Setting/Evaluating JAVA_HOME configuration..."
+if grep -q 'JAVA_HOME' /etc/bashrc ; then
+    echo "Configuring JAVA_HOME...";
+    echo " " >> /etc/bashrc
+    echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" >> /etc/bashrc
+else
+    echo "No need to configure JAVA_HOME. Current configuration:";
+    grep -i 'JAVA_HOME' /etc/bashrc || true
+fi
+echo " "
+
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -pv "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
