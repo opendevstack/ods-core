@@ -32,6 +32,15 @@ sudo yum -y install git gitk iproute lsof tigervnc-server remmina firewalld git2
             adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre \
             || true
 
+echo "Ensure problematic packages are not installed or uninstall them..."
+sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
+                   java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
+                   java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+echo "Checking installed packages for java (jre, jdk):"
+yum list installed | grep -i "\(jre\|java\|jdk\)" || true
+echo "Checking the by default configured java: "
+ls -la /bin/java /usr/bin/java /etc/alternatives/java || true
+
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -pv "${opendevstack_dir}"
 cd "${opendevstack_dir}" || return
