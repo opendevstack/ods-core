@@ -48,7 +48,7 @@ if ! grep -q 'JAVA_HOME' /etc/bashrc ; then
     echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" >> /etc/bashrc
 else
     echo "No need to configure JAVA_HOME. Current configuration:";
-    grep -i 'JAVA_HOME' /etc/bashrc || true
+    grep -i 'JAVA_HOME' /etc/bashrc 
 fi
 echo " "
 
