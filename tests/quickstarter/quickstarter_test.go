@@ -260,7 +260,7 @@ func collectTestableQuickstarters(t *testing.T, dir string) []string {
 		}
 	}
 
-	sortedTestableQuickstarters = utils.sortTestableQuickstarters(t, dir, testableQuickstarters)
+	sortedTestableQuickstarters = utils.SortTestableQuickstarters(t, dir, testableQuickstarters)
 
 	return sortedTestableQuickstarters
 }
