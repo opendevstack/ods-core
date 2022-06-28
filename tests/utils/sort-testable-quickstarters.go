@@ -10,8 +10,7 @@ import (
 
 func SortTestableQuickstarters(t *testing.T, dir string, quickstarterPaths []string) []string {
 
-	var filePath string
-	filePath = fmt.Sprintf("%s/../ods-core/tests/%s", dir, "quickStartersBuildPriority.txt")
+	var filePath string = fmt.Sprintf("%s/../ods-core/tests/%s", dir, "quickStartersBuildPriority.txt")
 	fmt.Printf("\n\nLooking for file quickStartersBuildPriority.txt ... %s\n", filePath)
 
 	fmt.Printf("\n\nNot sorted quickStarters list:\n")
@@ -29,7 +28,7 @@ func SortTestableQuickstarters(t *testing.T, dir string, quickstarterPaths []str
 	}
 	defer file.Close()
 
-	fmt.Println("\n\nQuickStarters that will be compiled first...\n")
+	fmt.Println("\n\nQuickStarters that will be compiled first...")
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		var qsSubText = scanner.Text()

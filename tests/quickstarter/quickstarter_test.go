@@ -244,7 +244,6 @@ func TestQuickstarter(t *testing.T) {
 // collectTestableQuickstarters collects all subdirs of "dir" that contain
 // a "testdata" directory.
 func collectTestableQuickstarters(t *testing.T, dir string) []string {
-	sortedTestableQuickstarters := []string{}
 	testableQuickstarters := []string{}
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -260,9 +259,7 @@ func collectTestableQuickstarters(t *testing.T, dir string) []string {
 		}
 	}
 
-	sortedTestableQuickstarters = utils.SortTestableQuickstarters(t, dir, testableQuickstarters)
-
-	return sortedTestableQuickstarters
+	return utils.SortTestableQuickstarters(t, dir, testableQuickstarters)
 }
 
 func templateData(config map[string]string, componentID string, buildName string) TemplateData {
