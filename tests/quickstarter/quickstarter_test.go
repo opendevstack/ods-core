@@ -244,7 +244,7 @@ func TestQuickstarter(t *testing.T) {
 // collectTestableQuickstarters collects all subdirs of "dir" that contain
 // a "testdata" directory.
 func collectTestableQuickstarters(t *testing.T, dir string) []string {
-    sortedTestableQuickstarters := []string{}
+	sortedTestableQuickstarters := []string{}
 	testableQuickstarters := []string{}
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
