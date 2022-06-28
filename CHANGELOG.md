@@ -15,6 +15,8 @@
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
+- Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
+- Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
 
 ### Added
 
