@@ -72,9 +72,9 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
-        fmt.Printf("\n\n\n\n")
-        fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
-        fmt.Printf("\n\n")
+		fmt.Printf("\n\n\n\n")
+		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
+		fmt.Printf("\n\n")
 
 		// Run cleanup operations to ensure we always have enough resources.
 		stdout, stderr, err := utils.RunScriptFromBaseDir(
