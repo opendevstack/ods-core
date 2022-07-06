@@ -21,6 +21,9 @@
 - Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
 - deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
 - Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
+- Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
+- Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
+- Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
 
 ### Added
 
@@ -62,6 +65,7 @@
 - Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
 - Fixes bugs introduced while upgrading atlassian stack ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
 - Point Aqua credential id to project-specific CD user ([#1125](https://github.com/opendevstack/ods-core/issues/1125))
+- Golang dependencies used by Jenkins CI to run tests in folder tests are deprecated and sometimes fail to download ([1139](https://github.com/opendevstack/ods-core/issues/1139))
 
 ### Removed
 
