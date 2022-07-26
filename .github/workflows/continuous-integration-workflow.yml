@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        version: ['8.9.6.50800'] # 8.9 = LTS
+        version: ['8.9.9.56886'] # 8.9 = LTS
         edition: ['community', 'developer', 'enterprise']
     steps:
       -
