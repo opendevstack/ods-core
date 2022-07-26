@@ -129,21 +129,22 @@ if [ -z "${ADMIN_USER_PASSWORD}" ]; then
 fi
 
 echo_info "Wait for SonarQube to become responsive ..."
-set +e
+echo_info "Query: curl ${INSECURE} -sS -o /dev/null -w \"%{http_code}\" \"${SONARQUBE_URL}/api/server/version\""
+# set +e
 n=0
 httpOk=
 until [ $n -ge 20 ]; do
     httpOk=$(curl ${INSECURE} -sS -o /dev/null -w "%{http_code}" "${SONARQUBE_URL}/api/server/version")
     if [ "${httpOk}" == "200" ]; then
-        echo_info "SonarQube is up."
+        echo_info "SonarQube is up (curl returned ${httpOk})."
         break
     else
-        echo_info "SonarQube is not up yet, waiting 10s ..."
+        echo_info "SonarQube is not up yet (curl returned ${httpOk}), waiting 10s ..."
         sleep 10s
         n=$((n+1))
     fi
 done
-set -e
+# set -e
 
 if [ "${httpOk}" != "200" ]; then
     echo_error "SonarQube did not start, got HTTP code ${httpOk}."

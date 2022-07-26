@@ -58,7 +58,7 @@ if ! $VERIFY_ONLY; then
     HTTP_PROXY=
     # HTTPS_PROXY="someproxy.local:99"
     HTTPS_PROXY=
-    # NO_PROXY=".local,.svc,jcenter.bintray.com"
+    # NO_PROXY=".local,.svc"
     NO_PROXY=
 
     echo "Run container using image ${NEXUS_IMAGE}"
@@ -144,7 +144,6 @@ echo "Check for repositories"
 expectedRepos=( "candidates:hosted"
                 "releases:hosted"
                 "atlassian_public:proxy"
-                "jcenter:proxy"
                 "jenkins-ci-releases:proxy"
                 "sbt-plugins:proxy"
                 "sbt-releases:proxy"
@@ -197,7 +196,7 @@ else
     echo "Developer access possible"
 fi
 
-artifact_url="${NEXUS_URL}/repository/jcenter/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
+artifact_url="${NEXUS_URL}/repository/maven-public/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
 
 echo "Downloading sample artifact: $artifact_url"
 # retrieves an xml doc.
