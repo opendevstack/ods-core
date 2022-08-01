@@ -9,6 +9,8 @@ else
     echo "No docker containers to remove. "
 fi
 
+oc projects | grep '^\s*tes.*' | xargs oc delete project || true
+
 oc adm prune images --keep-tag-revisions=1 --keep-younger-than=30m --confirm || true
 
 echo " "
