@@ -13,6 +13,7 @@
 - Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early. Ported from task/upgrade-atlassian-stack.
 - Fixes bugs introduced while upgrading atlassian stack ([#1149](https://github.com/opendevstack/ods-core/pull/1149)). Backport of ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
 - deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1153](https://github.com/opendevstack/ods-core/pull/1153))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
 
 ### Changed
 
