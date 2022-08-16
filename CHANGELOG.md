@@ -24,6 +24,7 @@
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
 - Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
 - Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
+- Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
 
 ### Added
 
