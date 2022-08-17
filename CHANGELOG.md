@@ -24,6 +24,7 @@
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
 - Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
 - Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
 - Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
 
 ### Added
@@ -48,6 +49,7 @@
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
+- Updated Nexus to 3.40.1 ([#1164](https://github.com/opendevstack/ods-core/pull/1164))
 
 ### Fixed
 
