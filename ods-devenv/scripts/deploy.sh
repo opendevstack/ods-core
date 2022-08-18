@@ -1970,6 +1970,11 @@ function setup_sonarqube() {
 
     echo "start-sonarqube-build:"
     ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube --verbose
+    return_value=$?
+    if [[ "${return_value}" != "0" ]]; then
+        echo "start-sonarqube-build failed."
+        exit 1
+    fi
 
     echo "apply-sonarqube-deploy:"
     pushd sonarqube/ocp-config
@@ -2444,12 +2449,18 @@ function basic_vm_setup() {
     set_shared_library_ref
 
     install_ods_project
+    sleep 2
     # Install components in OpenShift
     setup_nexus | tee "${log_folder}"/nexus_setup.log
+    sleep 2
     setup_sonarqube | tee "${log_folder}"/sonarqube_setup.log
+    sleep 2
     setup_jenkins | tee "${log_folder}"/jenkins_setup.log
+    sleep 2
     setup_provisioning_app | tee "${log_folder}"/provapp_setup.log
+    sleep 2
     setup_docgen | tee "${log_folder}"/docgen_setup.log
+    sleep 2
 
     local fail_count
     fail_count=0
