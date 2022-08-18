@@ -27,10 +27,32 @@ echo " "
 sudo yum update -y || true
 sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
 sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm || true
-sudo yum -y install git gitk iproute lsof xrdp tigervnc-server remmina firewalld git2u-all glances golang jq tree \
+sudo yum -y install git gitk iproute lsof tigervnc-server remmina firewalld git2u-all glances golang jq tree \
             etckeeper unzip \
             adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre \
             || true
+
+echo "Ensure problematic packages are not installed or uninstall them..."
+sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
+                   java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
+                   java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+echo "Checking installed packages for java (jre, jdk):"
+yum list installed | grep -i "\(jre\|java\|jdk\)" || true
+echo "Checking the by default configured java: "
+ls -la /bin/java /usr/bin/java /etc/alternatives/java || true
+
+echo "Setting/Evaluating JAVA_HOME configuration..."
+if ! grep -q 'JAVA_HOME' /etc/bashrc ; then
+    echo "Configuring JAVA_HOME...";
+    echo " " | sudo tee -a /etc/bashrc
+    echo "export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-11-hotspot/" | sudo tee -a /etc/bashrc
+    echo "Checking... "
+    grep -i 'JAVA_HOME' /etc/bashrc
+else
+    echo "No need to configure JAVA_HOME. Current configuration:";
+    grep -i 'JAVA_HOME' /etc/bashrc
+fi
+echo " "
 
 opendevstack_dir="${HOME}/opendevstack"
 mkdir -pv "${opendevstack_dir}"

@@ -56,5 +56,9 @@ if [ -f test-quickstarter-results.txt ]; then
     go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml
 fi
 
+echo " "
+echo " "
 echo "${THIS_SCRIPT}: Returning with exit code ${exitcode}"
+echo " "
+echo " "
 exit $exitcode

@@ -27,7 +27,7 @@ RUN set -x \
     && mkdir -p /opt \
     && cd /opt \
     && wget -O sonarqube.zip --no-verbose $sonarDistributionUrl \
-    && unzip sonarqube.zip \
+    && unzip -qq sonarqube.zip \
     && mv sonarqube-$SONAR_VERSION sonarqube \
     && chown -R sonarqube:root sonarqube \
     && chmod -R g+w sonarqube \

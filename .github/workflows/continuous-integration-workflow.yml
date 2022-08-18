@@ -22,6 +22,7 @@ jobs:
           --imagename ods-jenkins-master-ubi8 \
           --dockerdir jenkins/master \
           --dockerfile Dockerfile.ubi8
+
   jenkins-agent-base:
     name: Jenkins agent base tests
     runs-on: ubuntu-18.04
@@ -202,6 +203,7 @@ jobs:
         with:
           version: v1.46.2
           working-directory: tests
+          args: --timeout=10m
       -
         name: Verify all Go tests can be compiled
         working-directory: tests

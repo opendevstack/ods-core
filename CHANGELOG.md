@@ -14,9 +14,18 @@
 - Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
 - Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 - ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
+- ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
+- Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
+- Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
+- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
+- deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
+- Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
 - Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
 - Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
+- Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
 
 ### Added
 
@@ -40,6 +49,7 @@
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
+- Updated Nexus to 3.40.1 ([#1164](https://github.com/opendevstack/ods-core/pull/1164))
 
 ### Fixed
 
@@ -56,8 +66,9 @@
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
 - Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
 - Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
-- Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
-- Bump antora page version from 4.x to 5.x in master (https://github.com/opendevstack/ods-documentation/issues/66)
+- Fixes bugs introduced while upgrading atlassian stack ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
+- Point Aqua credential id to project-specific CD user ([#1125](https://github.com/opendevstack/ods-core/issues/1125))
+- Golang dependencies used by Jenkins CI to run tests in folder tests are deprecated and sometimes fail to download ([1139](https://github.com/opendevstack/ods-core/issues/1139))
 
 ### Removed
 

@@ -72,6 +72,10 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
+		fmt.Printf("\n\n\n\n")
+		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
+		fmt.Printf("\n\n")
+
 		// Run cleanup operations to ensure we always have enough resources.
 		stdout, stderr, err := utils.RunScriptFromBaseDir(
 			"tests/scripts/free-unused-resources.sh",
@@ -244,7 +248,6 @@ func TestQuickstarter(t *testing.T) {
 // collectTestableQuickstarters collects all subdirs of "dir" that contain
 // a "testdata" directory.
 func collectTestableQuickstarters(t *testing.T, dir string) []string {
-    sortedTestableQuickstarters := []string{}
 	testableQuickstarters := []string{}
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -260,9 +263,7 @@ func collectTestableQuickstarters(t *testing.T, dir string) []string {
 		}
 	}
 
-	sortedTestableQuickstarters = utils.SortTestableQuickstarters(t, dir, testableQuickstarters)
-
-	return sortedTestableQuickstarters
+	return utils.SortTestableQuickstarters(t, dir, testableQuickstarters)
 }
 
 func templateData(config map[string]string, componentID string, buildName string) TemplateData {

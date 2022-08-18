@@ -1,18 +1,17 @@
 package utils
 
 import (
-    "fmt"
-    "os"
-    "bufio"
-    "testing"
-    "strings"
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+	"testing"
 )
 
 func SortTestableQuickstarters(t *testing.T, dir string, quickstarterPaths []string) []string {
 
-    var filePath string
-    filePath = fmt.Sprintf("%s/../ods-core/tests/%s", dir, "quickStartersBuildPriority.txt")
-    fmt.Printf("\n\nLooking for file quickStartersBuildPriority.txt ... %s\n", filePath)
+	var filePath string = fmt.Sprintf("%s/../ods-core/tests/%s", dir, "quickStartersBuildPriority.txt")
+	fmt.Printf("\n\nLooking for file quickStartersBuildPriority.txt ... %s\n", filePath)
 
 	fmt.Printf("\n\nNot sorted quickStarters list:\n")
 	for _, quickstarterPath := range quickstarterPaths {
@@ -20,45 +19,45 @@ func SortTestableQuickstarters(t *testing.T, dir string, quickstarterPaths []str
 	}
 	fmt.Printf("\n\n")
 
-    var sortedQuickStartersPaths []string
+	var sortedQuickStartersPaths []string
 
-    file, err := os.Open(filePath)
-    if err != nil {
-        fmt.Println(err)
-        t.Fatal(err)
-    }
-    defer file.Close()
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println(err)
+		t.Fatal(err)
+	}
+	defer file.Close()
 
-    fmt.Println("\n\nQuickStarters that will be compiled first...\n")
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        var qsSubText = scanner.Text()
-        fmt.Println(qsSubText)
-        for _, quickstarterPath := range quickstarterPaths {
-            if strings.Contains(quickstarterPath, qsSubText) {
-                sortedQuickStartersPaths = append(sortedQuickStartersPaths, quickstarterPath)
-            }
-        }
+	fmt.Println("\n\nQuickStarters that will be compiled first...")
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		var qsSubText = scanner.Text()
+		fmt.Println(qsSubText)
+		for _, quickstarterPath := range quickstarterPaths {
+			if strings.Contains(quickstarterPath, qsSubText) {
+				sortedQuickStartersPaths = append(sortedQuickStartersPaths, quickstarterPath)
+			}
+		}
 
-    }
+	}
 
-    if err := scanner.Err(); err != nil {
-        fmt.Println(err)
-        t.Fatal(err)
-    }
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+		t.Fatal(err)
+	}
 
-    for _, quickStarterPath := range quickstarterPaths {
-        var addQs = true
-        for _, sortedQuickStarterPath := range sortedQuickStartersPaths {
-            if strings.Contains(quickStarterPath, sortedQuickStarterPath) {
-                addQs = false
-            }
-        }
+	for _, quickStarterPath := range quickstarterPaths {
+		var addQs = true
+		for _, sortedQuickStarterPath := range sortedQuickStartersPaths {
+			if strings.Contains(quickStarterPath, sortedQuickStarterPath) {
+				addQs = false
+			}
+		}
 
-        if addQs {
-            sortedQuickStartersPaths = append(sortedQuickStartersPaths, quickStarterPath)
-        }
-    }
+		if addQs {
+			sortedQuickStartersPaths = append(sortedQuickStartersPaths, quickStarterPath)
+		}
+	}
 
-    return sortedQuickStartersPaths
+	return sortedQuickStartersPaths
 }
