@@ -15,17 +15,6 @@ jobs:
           --imagename ods-jenkins-master-centos7 \
           --dockerdir jenkins/master \
           --dockerfile Dockerfile.centos7
-      - name: Push Centos 7 jenkins master docker image
-        if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
-        shell: bash
-        env:
-            DOCKER_USER: ${{ secrets.DockerHubUser }}
-            DOCKER_PASS: ${{ secrets.DockerHubPass }}
-        run: |
-            ./.github/workflows/push-docker-image.sh \
-            --user "$DOCKER_USER" \
-            --password "$DOCKER_PASS" \
-            --imagename ods-jenkins-master-centos7
       -
         name: Build UBI8 docker image
         run: |
@@ -33,17 +22,6 @@ jobs:
           --imagename ods-jenkins-master-ubi8 \
           --dockerdir jenkins/master \
           --dockerfile Dockerfile.ubi8
-      - name: Push UBI 8 jenkins master docker image
-        if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
-        shell: bash
-        env:
-            DOCKER_USER: ${{ secrets.DockerHubUser }}
-            DOCKER_PASS: ${{ secrets.DockerHubPass }}
-        run: |
-            ./.github/workflows/push-docker-image.sh \
-            --user "$DOCKER_USER" \
-            --password "$DOCKER_PASS" \
-            --imagename ods-jenkins-master-ubi8
 
   jenkins-agent-base:
     name: Jenkins agent base tests
