@@ -64,7 +64,10 @@ function general_configuration() {
     sudo mv /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
     sudo yum -y install adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre
-    sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless || true
+    sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
+                       java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
+                       java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+
 }
 
 function setup_xrdp() {

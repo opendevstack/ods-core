@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
+- Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
+- Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
+- Configure buildbot to build 4.x branch ([1016](https://github.com/opendevstack/ods-core/pull/1016))
+- Add 4.x build status badge to README ([1017](https://github.com/opendevstack/ods-core/pull/1017))
+- Update plugins.rhel7.txt ([1023](https://github.com/opendevstack/ods-core/pull/1023))
+- `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
+- Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
+- Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
+- Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
+- ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
+- ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
+- Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
+- Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
+- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
+- deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
+- Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
+- Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
+- Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
+- Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
+- Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
+
+### Added
+
+- Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
+
 ### Fixed
 
 - Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))

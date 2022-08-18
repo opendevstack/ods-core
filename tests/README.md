@@ -14,6 +14,8 @@ This packages houses the test infrastructure for ODS core components, yet also m
 1. for the smoke tests, the provisioning application needs to be configured to allow project deletion. This is done in `ods-core.env` thru setting `PROV_APP_PROVISION_CLEANUP_INCOMPLETE_PROJECTS_ENABLED=true`. In order to have this setting applied, you need to update `ods-core.env` and run `make apply-provisioning-app-deploy` to ensure no diff between the config and the deployed version exists.
 1. the configured `CD_USER_ID` in `ods-core.env` must have rights to create projects on the entire stack.
 1. have an atlassian user at hand with `admin` privileges, such as `openshift` - you'll need it to run the tests below.
+1. In case you're working in a corporative environment you should set the env vars: http_proxy, https_proxy, HTTP_PROXY, HTTPS_PROXY, no_proxy and NO_PROXY
+1. Is mandatory to have installed jq cli also
 
 These settings can be reverted / set to false after the run of the tests in `ods-core` and in `ods-quickstarters`.
 

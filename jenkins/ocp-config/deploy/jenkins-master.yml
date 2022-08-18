@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   template: ods-jenkins-template
@@ -17,7 +17,7 @@ parameters:
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
-  value: 5Gi
+  value: 6Gi
 - name: JENKINS_MEMORY_REQUEST
   value: 4Gi
 - name: JENKINS_CPU_LIMIT
@@ -27,9 +27,9 @@ parameters:
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: JENKINS_JAVA_GC_OPTS
-  value: "-server -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=20 -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1"
+  value: "-server -XX:NativeMemoryTracking=summary -XX:MaxRAMPercentage=90 -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M -XX:SoftRefLRUPolicyMSPerMB=1 -XX:+UnlockExperimentalVMOptions -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1"
 - name: JENKINS_JAVA_MAX_HEAP_PARAM
-  value: "-Xmx4g"
+  value: "-Xms1024m -Xmx4g"
 - name: JENKINS_CONTAINER_HEAP_PERCENT
   value: "1"
 - name: ODS_NAMESPACE
@@ -72,7 +72,7 @@ objects:
     name: cd-user-with-password
     labels:
       template: ods-jenkins-template
-      credential.sync.jenkins.openshift.io: 'true'      
+      credential.sync.jenkins.openshift.io: 'true'
   type: kubernetes.io/basic-auth
 - apiVersion: v1
   data:

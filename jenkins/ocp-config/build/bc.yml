@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: jenkins
@@ -45,7 +45,7 @@ parameters:
 - name: JENKINS_AGENT_BASE_BUILD_MEMORY_REQUEST
   value: 1Gi
 - name: JENKINS_AGENT_BASE_BUILD_MEMORY_LIMIT
-  value: 2Gi  
+  value: 2Gi
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
 - name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
@@ -63,7 +63,7 @@ parameters:
 - name: JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_REQUEST
   value: 512Mi
 - name: JENKINS_WEBHOOK_PROXY_BUILD_MEMORY_LIMIT
-  value: 1Gi  
+  value: 1Gi
 objects:
 - kind: BuildConfig
   apiVersion: v1

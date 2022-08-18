@@ -150,7 +150,7 @@ The new functionality to create documents via Jenkins requires the presence of a
 
 [source,yml]
 ----
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 objects:
 - apiVersion: build.openshift.io/v1
@@ -189,7 +189,7 @@ parameters:
 Then, create the `BuildConfig` and `ImageStream` in `prov-dev` using `oc -n prov-dev process -f bc-is.yml | oc -n prov-dev create -f -`, where `bc-is.yml` looks like this:
 [source,yml]
 ----
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 objects:
 - apiVersion: v1
