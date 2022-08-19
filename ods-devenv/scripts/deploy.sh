@@ -565,9 +565,17 @@ function startup_openshift_cluster() {
     echo "oc cluster up ..."
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
     # Only if something fails, please... --loglevel=5 --server-loglevel=5
+    if [ 0 -ne $? ]; then
+        exit 1
+    fi
 
+    echo " "
     echo "Log into oc cluster with system:admin"
     oc login -u system:admin
+    if [ 0 -ne $? ]; then
+        exit 1
+    fi
+
 }
 
 #######################################
