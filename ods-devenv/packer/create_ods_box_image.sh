@@ -3,8 +3,9 @@
 aws_access_key=
 aws_secret_key=
 
-# default public key to be added to the odsbox authorized_keys
+# default public/private key to be added to the odsbox authorized_keys
 pub_key=
+ssh_private_key_file_path=
 
 ods_branch=master
 
@@ -44,6 +45,9 @@ while [[ "$#" -gt 0 ]]; do
 
     --pub-key) pub_key="$2"; shift;;
     --pub-key=*) pub_key="${1#*=}";;
+
+    --priv-key) ssh_private_key_file_path="$2"; shift;;
+    --priv-key=*) ssh_private_key_file_path="${1#*=}";;
 
     --target) target="$2"; shift;;
 
@@ -87,6 +91,7 @@ function display_usage() {
     echo "      --aws-access-key        AWS credentials"
     echo "      --aws-secret-key        AWS credentials"
     echo "      --pub-key               Public key to be added to the odsbox authorized servers"
+    echo "      --priv-key              Private key to be added to the odsbox and used to access the host"
     echo "      --ods-branch            branch to build ODS box against, e.g master"
     echo "      --instance-type         AWS EC2 instance type to run the AMI build on. Defaults to m5ad.4xlarge."
     echo "                              Options: t2.2xlarge, m5ad.4xlarge"
