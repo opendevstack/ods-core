@@ -133,6 +133,7 @@ function check_system_setup() {
     echo "alias startup_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'"
     echo "alias stop_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target stop_ods'"
     echo "alias restart_atlassian_suite='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_atlassian_suite'"
+    echo "alias restart_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_ods'"
 } >> ~/.bashrc
 
     # suppress sudo timeout
@@ -2396,6 +2397,21 @@ function stop_ods() {
     docker container stop "${atlassian_crowd_container_name}"
     echo "Stopping ods cluster"
     oc cluster down
+}
+
+function restart_ods() {
+    stop_ods
+
+    sudo systemctl stop docker.service || sudo systemctl status docker.service
+    sudo systemctl start docker.service || sudo systemctl status docker.service
+    sudo systemctl status docker.service
+
+    # Was in e2e tests repositories. Saved for future reference.
+    # sudo systemctl stop docker.socket
+    # sudo systemctl enable docker || true
+    # sudo systemctl start docker
+
+    startup_ods
 }
 
 function setup_aqua() {
