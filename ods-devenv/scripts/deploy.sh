@@ -2381,9 +2381,11 @@ function startup_ods() {
         cp -vf /etc/resolv.conf ${KUBEDNS_RESOLV_FILE}
     fi
 
-    cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}-backup-$(date +%Y%m%d-%H%M%S)"
+    KUBEDNS_RESOLV_FILE_BACKUP="${KUBEDNS_RESOLV_FILE}-backup-$(date +%Y%m%d-%H%M%S-%N)"
+    rm -fv ${KUBEDNS_RESOLV_FILE_BACKUP} || true
+    cp -vf ${KUBEDNS_RESOLV_FILE} ${KUBEDNS_RESOLV_FILE_BACKUP}
     sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" ${KUBEDNS_RESOLV_FILE}
-    rm -fv ${KUBEDNS_RESOLV_FILE}.tmp
+    rm -fv ${KUBEDNS_RESOLV_FILE}.tmp || true
     cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}.tmp"
     cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
 
@@ -2398,14 +2400,17 @@ function startup_ods() {
     echo " "
 
     # allow for OpenShifts to be resolved within OpenShift network
-    echo "set iptables"
-    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    echo "startup_ods: set iptables"
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT || true
 
     startup_openshift_cluster
 
     wait_until_ocp_is_up
 
     check_pods_and_restart_if_necessary
+    echo "startup_ods: SUCCESS."
+    echo " "
+    echo " "
 }
 
 function stop_ods() {
@@ -2429,7 +2434,13 @@ function restart_ods() {
     # sudo systemctl enable docker || true
     # sudo systemctl start docker
 
-    startup_ods
+    if ! startup_ods ; then
+        echo "restart_ods: ERROR."
+        echo " "
+        return 1
+    fi
+    echo "restart_ods: SUCCESS."
+    echo " "
 }
 
 function check_pods_and_restart_if_necessary() {
@@ -2470,7 +2481,7 @@ function check_pod_and_restart_if_necessary() {
             docker ps -a | grep -v 'Exited .* ago' | grep -i "${SVC_POD_ID}" | cut -d ' ' -f 1 | while read -r containerId ;
             do
                 echo "Stopping $containerId"
-                docker stop $containerId  
+                docker stop $containerId
 		docker_process_killed="true"
             done
 
