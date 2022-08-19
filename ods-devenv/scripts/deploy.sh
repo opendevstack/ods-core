@@ -1416,7 +1416,7 @@ function wait_until_http_svc_is_up_advanced() {
         fi
 
         rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE}
-        if ! curl --insecure -sSL --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
+        if ! curl --insecure -sSL --retry-delay 2 --retry-max-time 20 --retry 10 --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
             echo "Curl replied != 0 for query to ${SVC_HTTP_URL} "
             echo "Checking if it was caused by a redirect... "
         fi
@@ -2447,19 +2447,37 @@ function check_pod_and_restart_if_necessary() {
     local SVC_HTTP_URL="${3}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
-    local retryMax=10
+    local retryMax=3
     local retVal=1
 
+    local retryNum=0
     while [ 0 -ne ${retVal} ]; do
-        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
-        retVal=$?
+
+	echo "Checking if pod in charge of service ${SVC_NAME} is up and stopping if not. Retry $retryNum / $retryMax "
+
+	let retryNum+=1
+        if [ ${retryMax} -le ${retryNum} ]; then
+            echo "Maximum amount of retries reached: $retryNum / $retryMax "
+            sleep 1
+            return 1
+        fi
+
+	retVal=0
+        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" 10 || retVal=1
 
         if [ 0 -ne ${retVal} ]; then
+	    local docker_process_killed="false"
             docker ps -a | grep -v 'Exited .* ago' | grep -i "${SVC_POD_ID}" | cut -d ' ' -f 1 | while read -r containerId ;
             do
                 echo "Stopping $containerId"
                 docker stop $containerId  
+		docker_process_killed="true"
             done
+
+	    if [ "false" == "$docker_process_killed" ]; then
+		echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
+		echo " "
+	    fi
         fi
 
     done
