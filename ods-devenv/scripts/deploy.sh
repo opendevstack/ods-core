@@ -73,6 +73,7 @@ function display_usage() {
     echo "${ME} --branch feature/ods-devenv --target install_docker"
     echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
     echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset"
+    echo "${ME} --target restart-ods "
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
