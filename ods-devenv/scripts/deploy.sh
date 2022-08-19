@@ -1378,23 +1378,38 @@ function wait_until_ocp_is_up() {
 }
 
 function wait_until_http_svc_is_up() {
-    SVC_NAME="${1}"
-    SVC_HTTP_URL="${2}"
-    CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
-    CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local SVC_NAME="${1}"
+    local SVC_HTTP_URL="${2}"
+    local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
+    local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local retryMax=100
+
+    wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
+    if [ 0 -ne $? ]; then
+        exit 1
+    fi
+    return 0
+}
+
+function wait_until_http_svc_is_up_advanced() {
+    local SVC_NAME="${1}"
+    local SVC_HTTP_URL="${2}"
+    local CURL_SVC_OUTPUT_FILE="${3}"
+    local CURL_SVC_HEADERS_FILE="${4}"
+    local retryMax=${5}
 
     echo " "
 
     local isUp="false"
     local retryNum=0
-    local retryMax=100
+
     while [ "true" != "${isUp}" ]; do
         echo "Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
         let retryNum+=1
         if [ ${retryMax} -le ${retryNum} ]; then
             echo "Maximum amount of retries reached: $retryNum / $retryMax "
             sleep 1
-            exit 1
+            return 1
         fi
         if [ 0 -ne ${retryNum} ]; then
             sleep 10
@@ -2389,6 +2404,8 @@ function startup_ods() {
     startup_openshift_cluster
 
     wait_until_ocp_is_up
+
+    check_pods_and_restart_if_necessary
 }
 
 function stop_ods() {
@@ -2413,6 +2430,41 @@ function restart_ods() {
     # sudo systemctl start docker
 
     startup_ods
+}
+
+function check_pods_and_restart_if_necessary() {
+
+    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/'
+    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/'
+    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/'
+    # https://jenkins-ods.ocp.odsbox.lan
+}
+
+function check_pod_and_restart_if_necessary() {
+
+    local SVC_NAME="${1}"
+    local SVC_POD_ID="${2}"
+    local SVC_HTTP_URL="${3}"
+    local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
+    local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local retryMax=10
+    local retVal=1
+
+    while [ 0 -ne ${retVal} ]; do
+        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
+        retVal=$?
+
+        if [ 0 -ne ${retVal} ]; then
+            docker ps -a | grep -v 'Exited .* ago' | grep -i "${SVC_POD_ID}" | cut -d ' ' -f 1 | while read -r containerId ;
+            do
+                echo "Stopping $containerId"
+                docker stop $containerId  
+            done
+        fi
+
+    done
+    return 0
+
 }
 
 function setup_aqua() {
