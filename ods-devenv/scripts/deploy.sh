@@ -1449,6 +1449,16 @@ function wait_until_http_svc_is_up_advanced() {
     local isUp="false"
     local retryNum=0
 
+    if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+        echo "Removing files: rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+            echo "Removing files (with sudo): rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+            sudo rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        fi
+    fi
+
     while [ "true" != "${isUp}" ]; do
         echo "[STATUS CHECK] Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
         let retryNum+=1
@@ -1461,7 +1471,12 @@ function wait_until_http_svc_is_up_advanced() {
             sleep 10
         fi
 
-        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE}
+        # Remove files from previous execution.
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+            echo "[STATUS CHECK] WARNING: Could NOT remove files ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+        fi
+
         if ! curl --insecure -sSL --retry-delay 2 --retry-max-time 20 --retry 10 --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
             echo "Curl replied != 0 for query to ${SVC_HTTP_URL} "
             echo "Checking if it was caused by a redirect... "
@@ -1475,6 +1490,9 @@ function wait_until_http_svc_is_up_advanced() {
 
         isUp="true"
     done
+
+    # Removes tmp files used for checking.
+    rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
 
     echo "Service ${SVC_NAME} is up at ${SVC_HTTP_URL}"
     echo " "
