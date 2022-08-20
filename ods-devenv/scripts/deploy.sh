@@ -916,10 +916,8 @@ function startup_and_follow_atlassian_mysql() {
 }
 
 follow_atlassian_mysql() {
-    local retryMax=120
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax=$((1))
-    fi
+    local retryMaxIn=${5:-120}
+    local retryMax=$((retryMaxIn))
     local retryNum=0
 
     echo -n "Waiting for mysqld to become available. Max retries: ${retryMax} "
@@ -1396,34 +1394,22 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
 }
 
 function wait_until_atlassian_crowd_is_up() {
-    local retryMax=20
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax="$1"
-    fi
+    local retryMax=${1:-20}
     wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_bitbucket_is_up() {
-    local retryMax=20
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax="$1"
-    fi
+    local retryMax=${1:-20}
     wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_jira_is_up() {
-    local retryMax=20
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax="$1"
-    fi
+    local retryMax=${1:-20}
     wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/" "${retryMax}"
 }
 
 function wait_until_ocp_is_up() {
-    local retryMax=20
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax="$1"
-    fi
+    local retryMax=${1:-20}
     wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/" "${retryMax}"
 }
 
@@ -1432,10 +1418,7 @@ function wait_until_http_svc_is_up() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
-    local retryMax=20
-    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
-        retryMax=$((1))
-    fi
+    local retryMax=${1:-20}
 
     wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
     if [ 0 -ne $? ]; then
@@ -1450,7 +1433,8 @@ function wait_until_http_svc_is_up_advanced() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="${3}"
     local CURL_SVC_HEADERS_FILE="${4}"
-    local retryMax=${5}
+    local retryMaxIn=${5:-20}
+    local retryMax=$((retryMaxIn))
 
     echo " "
 
