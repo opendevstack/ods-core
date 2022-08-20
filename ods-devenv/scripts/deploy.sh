@@ -1394,6 +1394,7 @@ function wait_until_http_svc_is_up() {
 
     wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
     if [ 0 -ne $? ]; then
+        echo "[STATUS CHECK] ERROR: Exiting because we cannot work without service ${SVC_NAME}."
         exit 1
     fi
     return 0
@@ -1412,10 +1413,10 @@ function wait_until_http_svc_is_up_advanced() {
     local retryNum=0
 
     while [ "true" != "${isUp}" ]; do
-        echo "Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
+        echo "[STATUS CHECK] Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
         let retryNum+=1
         if [ ${retryMax} -le ${retryNum} ]; then
-            echo "Maximum amount of retries reached: $retryNum / $retryMax "
+            echo "[STATUS CHECK] WARNING: Maximum amount of retries reached: $retryNum / $retryMax "
             sleep 1
             return 1
         fi
@@ -1858,7 +1859,8 @@ function create_configuration() {
     echo " "
     echo "Create the environment configuration and upload it to Bitbucket ods-configuration repository..."
     pwd
-    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
+    # WARN: config.sh param '--verbose' activates bash set -x
+    ods-setup/config.sh --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
@@ -1938,7 +1940,8 @@ function create_configuration() {
 function install_ods_project() {
     echo " "
     echo "Installing ods project..."
-    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
+    # WARN: setup-ods-project.sh param '--verbose' activates bash set -x
+    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --non-interactive
 }
 
 #######################################
@@ -2472,31 +2475,33 @@ function check_pod_and_restart_if_necessary() {
     local retryNum=0
     while [ 0 -ne ${retVal} ]; do
 
-	echo "Checking if pod in charge of service ${SVC_NAME} is up and stopping if not. Retry $retryNum / $retryMax "
+	echo "[STATUS CHECK] Checking if pod in charge of service ${SVC_NAME} is up; stopping (so it restarts automatically) if not. Retry $retryNum / $retryMax "
 
 	let retryNum+=1
         if [ ${retryMax} -le ${retryNum} ]; then
-            echo "Maximum amount of retries reached: $retryNum / $retryMax "
+            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached: $retryNum / ${retryMax}"
+            echo "[STATUS CHECK] ERROR: We cannot live without service ${SVC_NAME}"
             sleep 1
             return 1
         fi
 
-	retVal=0
+	    retVal=0
         wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" 10 || retVal=1
 
         if [ 0 -ne ${retVal} ]; then
-	    local docker_process_killed="false"
+            echo "[STATUS CHECK] WARNING: Stopping pod so it restarts automatically. Service: ${SVC_NAME} "
+	        local docker_process_killed="false"
             docker ps -a | grep -v 'Exited .* ago' | grep -i "${SVC_POD_ID}" | cut -d ' ' -f 1 | while read -r containerId ;
             do
                 echo "Stopping $containerId"
                 docker stop $containerId
-		docker_process_killed="true"
+		        docker_process_killed="true"
             done
 
-	    if [ "false" == "$docker_process_killed" ]; then
-		echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
-		echo " "
-	    fi
+            if [ "false" == "$docker_process_killed" ]; then
+                echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
+                echo " "
+            fi
         fi
 
     done
