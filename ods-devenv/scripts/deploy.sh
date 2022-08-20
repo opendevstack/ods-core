@@ -218,7 +218,13 @@ function setup_dnsmasq() {
 
     if ! >/dev/null command -v dnsmasq
     then
-        sudo yum install -y dnsmasq
+        local already_installed="y"
+        sudo yum list installed 2>&1 | grep -iq 'dnsmasq' || already_installed="n"
+        if [ "y" != "$already_installed" ] ; then
+            sudo yum install -y dnsmasq
+        else
+            echo "Not installing dnsmasq because already installed."
+        fi
     fi
 
     sudo systemctl start dnsmasq
@@ -234,9 +240,9 @@ function setup_dnsmasq() {
     # if script runs for the 2nd time on a machine, backup dnsmasq.conf from orig
     if [[ -f "${dnsmasq_conf_path}.orig" ]]
     then
-        sudo cp "${dnsmasq_conf_path}.orig" "${dnsmasq_conf_path}"
+        sudo cp -vf "${dnsmasq_conf_path}.orig" "${dnsmasq_conf_path}"
     else
-        sudo cp "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
+        sudo cp -vf "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
     fi
 
     sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
@@ -258,7 +264,18 @@ function setup_dnsmasq() {
     # dnsmasq logs on stderr (?!)
     if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
     then
+        echo " "
         echo "dnsmasq configuration failed. Please check ${dnsmasq_conf_path} and compare with ${dnsmasq_conf_path}.orig"
+        echo " "
+        echo "File ${dnsmasq_conf_path}: "
+        cat ${dnsmasq_conf_path}
+        echo " "
+        echo "File ${dnsmasq_conf_path}.orig: "
+        cat ${dnsmasq_conf_path}.orig
+        echo " "
+        diff ${dnsmasq_conf_path} ${dnsmasq_conf_path}.orig
+        echo " "
+        # return 1
     else
         echo "dnsmasq is ok with configuration changes."
     fi
@@ -2405,7 +2422,7 @@ function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
     # for sonarqube
-    echo "Setting vm.max_map_count=262144"
+    echo "startup_ods: Setting vm.max_map_count=262144"
     sudo sysctl -w vm.max_map_count=262144
 
     setup_dnsmasq
@@ -2415,8 +2432,9 @@ function startup_ods() {
     restart_atlassian_suite
 
     local KUBEDNS_RESOLV_FILE
-    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
     KUBEDNS_RESOLV_FILE="${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    echo "startup_ods: Setting ocp kube dns in file ${KUBEDNS_RESOLV_FILE}"
+    echo "             (adding a line with nameserver ${public_hostname})"
 
     local NEEDS_NEW_KUBEDNS_RESOLV_FILE
     NEEDS_NEW_KUBEDNS_RESOLV_FILE="false"
@@ -2443,17 +2461,27 @@ function startup_ods() {
     sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" ${KUBEDNS_RESOLV_FILE}
     rm -fv ${KUBEDNS_RESOLV_FILE}.tmp || true
     cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}.tmp"
-    cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+    cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${KUBEDNS_RESOLV_FILE}
 
-    if ! grep "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
+    if ! grep -q "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
     then
-        echo "ERROR: Could not update kubedns/resolv.conf ! (File ${HOME}/openshift.local.clusterup/kubedns/resolv.conf )"
-        return 1
+        echo "nameserver ${public_hostname}" >> ${KUBEDNS_RESOLV_FILE}
     fi
 
-    echo "Contents of file ${HOME}/openshift.local.clusterup/kubedns/resolv.conf: "
+    echo " "
+    echo "Contents of file ${KUBEDNS_RESOLV_FILE}: "
     cat "${KUBEDNS_RESOLV_FILE}"
     echo " "
+
+    if ! grep -q "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
+    then
+        echo "ERROR: Cannot find in ocp resolv.conf file the line: nameserver ${public_hostname} "
+        echo "ERROR: Could not update kubedns/resolv.conf ! (File ${KUBEDNS_RESOLV_FILE} )"
+        return 1
+    else
+        echo "startup_ods: Configured kube dns."
+        echo " "
+    fi
 
     # allow for OpenShifts to be resolved within OpenShift network
     echo "startup_ods: set iptables"
