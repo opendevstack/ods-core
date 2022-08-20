@@ -2499,12 +2499,18 @@ function restart_ods() {
 function check_ods_status() {
     echo " "
     echo " "
+    wait_until_ocp_is_up 10 || restart_ods
+    ## Better use restart_ods instead of startup_openshift_cluster
+
+    # SonarQube, Provisioning app, Nexus
+    check_pods_and_restart_if_necessary 5 10
+
+    # Atlassian suite
     follow_atlassian_mysql "30" || restart_atlassian_mysql
     wait_until_atlassian_crowd_is_up 10 || restart_atlassian_crowd
     wait_until_atlassian_bitbucket_is_up 10 || restart_atlassian_bitbucket
     wait_until_atlassian_jira_is_up 10 || restart_atlassian_jira
-    wait_until_ocp_is_up 10 || startup_openshift_cluster
-    check_pods_and_restart_if_necessary 5 10
+
     echo " "
     echo "[STATUS CHECK] (check_ods_status) Result: SUCCESS"
     echo " "
