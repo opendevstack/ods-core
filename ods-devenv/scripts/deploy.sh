@@ -73,7 +73,8 @@ function display_usage() {
     echo "${ME} --branch feature/ods-devenv --target install_docker"
     echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
     echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset"
-    echo "${ME} --target restart-ods "
+    echo "${ME} --target restart_ods           # Does a full restart of ods services. Its cost is really high."
+    echo "${ME} --target check_ods_status      # This ones restarts the service not working as expected."
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
@@ -580,6 +581,9 @@ function startup_openshift_cluster() {
         exit 1
     fi
 
+    wait_until_ocp_is_up
+    check_pods_and_restart_if_necessary
+
 }
 
 #######################################
@@ -907,13 +911,31 @@ function fix_atlassian_mysql_loaded_data_checks() {
 #######################################
 function startup_and_follow_atlassian_mysql() {
     startup_atlassian_mysql
-    echo -n "Waiting for mysqld to become available"
+    follow_atlassian_mysql
+    echo "mysqld up and running."
+}
+
+follow_atlassian_mysql() {
+    local retryMax=120
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax=$((1))
+    fi
+    local retryNum=0
+
+    echo -n "Waiting for mysqld to become available. Max retries: ${retryMax} "
     until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
     do
+	    let retryNum+=1
+        if [ ${retryMax} -le ${retryNum} ]; then
+            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached: $retryNum / ${retryMax}"
+            sleep 1
+            return 1
+        fi
+
         echo -n "."
         sleep 1
     done
-    echo "mysqld up and running."
+    return 0
 }
 
 function startup_and_follow_bitbucket() {
@@ -1374,19 +1396,35 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
 }
 
 function wait_until_atlassian_crowd_is_up() {
-    wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/"
+    local retryMax=20
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax="$1"
+    fi
+    wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_bitbucket_is_up() {
-    wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/"
+    local retryMax=20
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax="$1"
+    fi
+    wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_jira_is_up() {
-    wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/"
+    local retryMax=20
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax="$1"
+    fi
+    wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/" "${retryMax}"
 }
 
 function wait_until_ocp_is_up() {
-    wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/"
+    local retryMax=20
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax="$1"
+    fi
+    wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/" "${retryMax}"
 }
 
 function wait_until_http_svc_is_up() {
@@ -1394,7 +1432,10 @@ function wait_until_http_svc_is_up() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
-    local retryMax=100
+    local retryMax=20
+    if [ ! -z "${1}" ] && [ ! "" == "${1}" ]; then
+        retryMax=$((1))
+    fi
 
     wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
     if [ 0 -ne $? ]; then
@@ -1625,6 +1666,8 @@ function restart_atlassian_mysql() {
     inspect_mysql_ip
     echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
     register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
+
+    follow_atlassian_mysql
 }
 
 #######################################
@@ -2363,14 +2406,6 @@ function startup_ods() {
 
     # restart and follow mysql
     restart_atlassian_mysql
-    printf "Waiting for mysqld to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
-    do
-        printf .
-        sleep 1
-    done
-    echo "mysqld up and running."
-
     restart_atlassian_suite
 
     local KUBEDNS_RESOLV_FILE
@@ -2420,9 +2455,6 @@ function startup_ods() {
 
     startup_openshift_cluster
 
-    wait_until_ocp_is_up
-
-    check_pods_and_restart_if_necessary
     echo "startup_ods: SUCCESS."
     echo " "
     echo " "
@@ -2457,6 +2489,16 @@ function restart_ods() {
     echo "restart_ods: SUCCESS."
     echo " "
 }
+
+function check_ods_status() {
+    follow_atlassian_mysql "30" || restart_atlassian_mysql
+    wait_until_atlassian_crowd_is_up || restart_atlassian_crowd
+    wait_until_atlassian_bitbucket_is_up || restart_atlassian_bitbucket
+    wait_until_atlassian_jira_is_up || restart_atlassian_jira
+    wait_until_ocp_is_up || startup_openshift_cluster
+    check_pods_and_restart_if_necessary
+}
+
 
 function check_pods_and_restart_if_necessary() {
 
