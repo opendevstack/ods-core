@@ -920,7 +920,7 @@ follow_atlassian_mysql() {
     local retryMax=$((retryMaxIn))
     local retryNum=0
 
-    echo -n "Waiting for mysqld to become available. Max retries: ${retryMax} "
+    echo -n "[STATUS CHECK] Testing if service mysqld is available (or waiting for it). Max retries: ${retryMax} "
     until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
     do
 	    let retryNum+=1
@@ -933,6 +933,8 @@ follow_atlassian_mysql() {
         echo -n "."
         sleep 1
     done
+    echo "[STATUS CHECK] Service is available: mysqld"
+    echo " "
     return 0
 }
 
@@ -2475,12 +2477,17 @@ function restart_ods() {
 }
 
 function check_ods_status() {
+    echo " "
+    echo " "
     follow_atlassian_mysql "30" || restart_atlassian_mysql
     wait_until_atlassian_crowd_is_up || restart_atlassian_crowd
     wait_until_atlassian_bitbucket_is_up || restart_atlassian_bitbucket
     wait_until_atlassian_jira_is_up || restart_atlassian_jira
     wait_until_ocp_is_up || startup_openshift_cluster
     check_pods_and_restart_if_necessary
+    echo " "
+    echo "[STATUS CHECK] (check_ods_status) Result: SUCCESS"
+    echo " "
 }
 
 
