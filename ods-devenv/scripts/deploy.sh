@@ -1418,7 +1418,7 @@ function wait_until_http_svc_is_up() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
-    local retryMax=${1:-20}
+    local retryMax=${3:-20}
 
     wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
     if [ 0 -ne $? ]; then
