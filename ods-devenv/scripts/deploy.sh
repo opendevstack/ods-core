@@ -226,7 +226,7 @@ function setup_dnsmasq() {
     if ! sudo systemctl status dnsmasq | grep -q active
     then
         echo "dnsmasq startup appears to have failed."
-        exit
+        exit 1
     else
         echo "dnsmasq service up and running"
     fi
@@ -567,8 +567,8 @@ function startup_openshift_cluster() {
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
     # Only if something fails, please... --loglevel=5 --server-loglevel=5
     if [ 0 -ne $? ]; then
-	echo "ERROR: Could not start oc cluster (oc cluster up)"
-	echo " "
+        echo "ERROR: Could not start oc cluster (oc cluster up)"
+        echo " "
         exit 1
     fi
 
@@ -576,12 +576,12 @@ function startup_openshift_cluster() {
     echo "Log into oc cluster with system:admin"
     oc login -u system:admin
     if [ 0 -ne $? ]; then
-	echo "ERROR: Could not log into cluster with system:admin"
-	echo " "
+        echo "ERROR: Could not log into cluster with system:admin"
+        echo " "
         exit 1
     fi
 
-    wait_until_ocp_is_up
+    wait_until_ocp_is_up || exit 1
     check_pods_and_restart_if_necessary
 
 }
@@ -912,21 +912,26 @@ function fix_atlassian_mysql_loaded_data_checks() {
 function startup_and_follow_atlassian_mysql() {
     startup_atlassian_mysql
     follow_atlassian_mysql
-    echo "mysqld up and running."
 }
 
 follow_atlassian_mysql() {
-    local retryMaxIn=${5:-120}
+    local retryMaxIn=${1:-120}
+    follow_container_health_status ${atlassian_mysql_container_name} ${retryMaxIn}
+}
+
+follow_container_health_status() {
+    local container_name=${1}
+    local retryMaxIn=${2:-120}
     local retryMax=$((retryMaxIn))
     local retryNum=0
 
-    echo "[STATUS CHECK] Testing if service mysqld is available (or waiting for it). Max retries: ${retryMax} "
+    echo "[STATUS CHECK] Testing if service in container ${container_name} is available (or waiting for it). Max retries: ${retryMax} "
     echo -n "Working..."
-    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${container_name})" == 'healthy' ]]
     do
 	    let retryNum+=1
         if [ ${retryMax} -le ${retryNum} ]; then
-            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached: $retryNum / ${retryMax}"
+            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached looking for container ${container_name} to be ready: $retryNum / ${retryMax}"
             sleep 1
             return 1
         fi
@@ -935,20 +940,19 @@ follow_atlassian_mysql() {
         sleep 1
     done
     echo " "
-    echo "[STATUS CHECK] Service is available: mysqld"
+    echo "[STATUS CHECK] Service is available (healthy) in container ${container_name}"
     echo " "
     return 0
 }
 
 function startup_and_follow_bitbucket() {
     startup_atlassian_bitbucket
-    echo -n "Waiting for bitbucket to become available"
-    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name})" == 'healthy' ]]
-    do
-        echo -n "."
-        sleep 1
-    done
-    echo "bitbucket up and running."
+    follow_bitbucket
+}
+
+function follow_bitbucket() {
+    local retryMaxIn=${1:-120}
+    follow_container_health_status ${atlassian_bitbucket_container_name} ${retryMaxIn}
 }
 
 function startup_and_follow_jira() {
@@ -1426,8 +1430,8 @@ function wait_until_http_svc_is_up() {
 
     wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
     if [ 0 -ne $? ]; then
-        echo "[STATUS CHECK] ERROR: Exiting because we cannot work without service ${SVC_NAME}."
-        exit 1
+        echo "[STATUS CHECK] ERROR: Service is down and we cannot live without it: ${SVC_NAME}"
+        return 1
     fi
     return 0
 }
@@ -2345,14 +2349,10 @@ function run_smoke_tests() {
     fi
 
     # buying extra time for the quickstarter tests
-    restart_atlassian_suite
-    echo -n "Waiting for bitbucket to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
-    do
-        echo -n "."
-        sleep 1
-    done
-    echo "bitbucket up and running."
+    # restart_atlassian_suite
+    # follow_bitbucket
+    # Do not understand why this was here. Prefer to check instead:
+    check_ods_status
 
     sleep 5
     echo " "
