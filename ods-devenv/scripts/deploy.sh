@@ -920,7 +920,8 @@ follow_atlassian_mysql() {
     local retryMax=$((retryMaxIn))
     local retryNum=0
 
-    echo -n "[STATUS CHECK] Testing if service mysqld is available (or waiting for it). Max retries: ${retryMax} "
+    echo "[STATUS CHECK] Testing if service mysqld is available (or waiting for it). Max retries: ${retryMax} "
+    echo -n "Working..."
     until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
     do
 	    let retryNum+=1
@@ -933,6 +934,7 @@ follow_atlassian_mysql() {
         echo -n "."
         sleep 1
     done
+    echo " "
     echo "[STATUS CHECK] Service is available: mysqld"
     echo " "
     return 0
