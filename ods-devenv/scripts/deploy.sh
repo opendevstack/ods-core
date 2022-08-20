@@ -2500,11 +2500,11 @@ function check_ods_status() {
     echo " "
     echo " "
     follow_atlassian_mysql "30" || restart_atlassian_mysql
-    wait_until_atlassian_crowd_is_up || restart_atlassian_crowd
-    wait_until_atlassian_bitbucket_is_up || restart_atlassian_bitbucket
-    wait_until_atlassian_jira_is_up || restart_atlassian_jira
-    wait_until_ocp_is_up || startup_openshift_cluster
-    check_pods_and_restart_if_necessary
+    wait_until_atlassian_crowd_is_up 10 || restart_atlassian_crowd
+    wait_until_atlassian_bitbucket_is_up 10 || restart_atlassian_bitbucket
+    wait_until_atlassian_jira_is_up 10 || restart_atlassian_jira
+    wait_until_ocp_is_up 10 || startup_openshift_cluster
+    check_pods_and_restart_if_necessary 5 10
     echo " "
     echo "[STATUS CHECK] (check_ods_status) Result: SUCCESS"
     echo " "
@@ -2512,10 +2512,12 @@ function check_ods_status() {
 
 
 function check_pods_and_restart_if_necessary() {
+    local retryMaxIn=${1:-5}
+    local retryMaxHttpIn=${2:-10}
 
-    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/'
-    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/'
-    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/'
+    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
     # https://jenkins-ods.ocp.odsbox.lan
 }
 
@@ -2526,7 +2528,9 @@ function check_pod_and_restart_if_necessary() {
     local SVC_HTTP_URL="${3}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
-    local retryMax=3
+    local retryMaxIn=${4:-5}
+    local retryMax=$((retryMaxIn))
+    local retryMaxHttpIn=${5:-10}
     local retVal=1
 
     local retryNum=0
@@ -2543,7 +2547,7 @@ function check_pod_and_restart_if_necessary() {
         fi
 
 	    retVal=0
-        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" 10 || retVal=1
+        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" ${retryMaxHttpIn} || retVal=1
 
         if [ 0 -ne ${retVal} ]; then
             echo "[STATUS CHECK] WARNING: Stopping pod so it restarts automatically. Service: ${SVC_NAME} "
