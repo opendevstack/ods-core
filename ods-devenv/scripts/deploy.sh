@@ -766,6 +766,8 @@ function atlassian_stack_reset() {
     echo "Now regenerating all pods needed for atlassian stack... "
     echo " "
 
+    prepare_atlassian_stack
+
     startup_and_follow_atlassian_mysql
 
     startup_atlassian_crowd
