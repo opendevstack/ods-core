@@ -743,19 +743,24 @@ function atlassian_stack_reset() {
     #    done
     # done
 
-    docker container stop "${atlassian_bitbucket_container_name}"
-    docker container stop "${atlassian_jira_container_name}"
-    docker container stop "${atlassian_crowd_container_name}"
-    docker container stop "${atlassian_mysql_container_name}"
+    docker container stop "${atlassian_bitbucket_container_name}" || echo "Not found container ${atlassian_bitbucket_container_name}"
+    docker container stop "${atlassian_jira_container_name}" || echo "Not found container ${atlassian_jira_container_name}"
+    docker container stop "${atlassian_crowd_container_name}" || echo "Not found container ${atlassian_crowd_container_name}"
+    docker container stop "${atlassian_mysql_container_name}" || echo "Not found container ${atlassian_mysql_container_name}"
 
-    docker container rm "${atlassian_bitbucket_container_name}"
-    docker container rm "${atlassian_jira_container_name}"
-    docker container rm "${atlassian_crowd_container_name}"
-    docker container rm "${atlassian_mysql_container_name}"
+    docker container rm "${atlassian_bitbucket_container_name}" || echo "Not found container ${atlassian_bitbucket_container_name}"
+    docker container rm "${atlassian_jira_container_name}" || echo "Not found container ${atlassian_jira_container_name}"
+    docker container rm "${atlassian_crowd_container_name}" || echo "Not found container ${atlassian_crowd_container_name}"
+    docker container rm "${atlassian_mysql_container_name}" || echo "Not found container ${atlassian_mysql_container_name}"
 
     docker volume rm odsCrowdVolume
     rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data ||
         sudo rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data
+
+    if [ -d $HOME/jira_data ] || [ -d ${HOME}/bitbucket_data ] || [ -d ${HOME}/mysql_data ]; then
+        echo "Could NOT remove folders $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data "
+        exit 1
+    fi
 
     echo " "
     echo "Now regenerating all pods needed for atlassian stack... "
