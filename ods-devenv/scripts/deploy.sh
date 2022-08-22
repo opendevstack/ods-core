@@ -743,17 +743,17 @@ function atlassian_stack_reset() {
     #    done
     # done
 
-    docker container stop "${atlassian_bitbucket_container_name}" || echo "Not found container ${atlassian_bitbucket_container_name}"
-    docker container stop "${atlassian_jira_container_name}" || echo "Not found container ${atlassian_jira_container_name}"
-    docker container stop "${atlassian_crowd_container_name}" || echo "Not found container ${atlassian_crowd_container_name}"
-    docker container stop "${atlassian_mysql_container_name}" || echo "Not found container ${atlassian_mysql_container_name}"
+    docker container stop "${atlassian_bitbucket_container_name}" || echo "Not found docker container ${atlassian_bitbucket_container_name}"
+    docker container stop "${atlassian_jira_container_name}" || echo "Not found docker container ${atlassian_jira_container_name}"
+    docker container stop "${atlassian_crowd_container_name}" || echo "Not found docker container ${atlassian_crowd_container_name}"
+    docker container stop "${atlassian_mysql_container_name}" || echo "Not found docker container ${atlassian_mysql_container_name}"
 
-    docker container rm "${atlassian_bitbucket_container_name}" || echo "Not found container ${atlassian_bitbucket_container_name}"
-    docker container rm "${atlassian_jira_container_name}" || echo "Not found container ${atlassian_jira_container_name}"
-    docker container rm "${atlassian_crowd_container_name}" || echo "Not found container ${atlassian_crowd_container_name}"
-    docker container rm "${atlassian_mysql_container_name}" || echo "Not found container ${atlassian_mysql_container_name}"
+    docker container rm "${atlassian_bitbucket_container_name}" || echo "Not found docker container ${atlassian_bitbucket_container_name}"
+    docker container rm "${atlassian_jira_container_name}" || echo "Not found docker container ${atlassian_jira_container_name}"
+    docker container rm "${atlassian_crowd_container_name}" || echo "Not found docker container ${atlassian_crowd_container_name}"
+    docker container rm "${atlassian_mysql_container_name}" || echo "Not found docker container ${atlassian_mysql_container_name}"
 
-    docker volume rm odsCrowdVolume
+    docker volume rm odsCrowdVolume || echo "Not found docker volume odsCrowdVolume "
     rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data ||
         sudo rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data
 
