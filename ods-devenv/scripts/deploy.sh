@@ -720,14 +720,46 @@ function print_system_setup() {
 ######
 function atlassian_stack_reset() {
 
-    echo "atlassian_stack_reset: "
-    echo "IMPORTANT: remove from /etc/hosts lines with references to jira and bitbucket before run this method"
+    echo " "
+    echo "atlassian_stack_reset: this functionality removes everything saved in mysql for jira, bitbucket and crowd,"
+    echo "atlassian_stack_reset: and reloads the basic information they need to work."
+    echo "atlassian_stack_reset: IMPORTANT: Before running this method it is recommended to remove from /etc/hosts "
+    echo "                                  all lines with references to mysql, jira, bitbucket and crowd "
+    echo " "
+    read -p "continue? y/n" yn
+    if [ "y" != "$yn" ] || [ "Y" != "$yn" ]; then
+        echo "Aborted by user request."
+        exit 0
+    fi
 
-    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
-	do
-		docker stop $container_id
-		docker rm $container_id
-	done
+    # Previously filtering by \(jira\|atlass\|bitbucket\)
+    # for container_name in ${atlassian_mysql_container_name} ;
+    # do
+    #    docker ps -a | grep -i "${container_name}"
+    #    docker ps -a | grep -i "${container_name}" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
+    #    do
+    #        docker stop $container_id
+    #        docker rm $container_id
+    #    done
+    # done
+
+    docker container stop "${atlassian_bitbucket_container_name}"
+    docker container stop "${atlassian_jira_container_name}"
+    docker container stop "${atlassian_crowd_container_name}"
+    docker container stop "${atlassian_mysql_container_name}"
+
+    docker container rm "${atlassian_bitbucket_container_name}"
+    docker container rm "${atlassian_jira_container_name}"
+    docker container rm "${atlassian_crowd_container_name}"
+    docker container rm "${atlassian_mysql_container_name}"
+
+    docker volume rm odsCrowdVolume
+    rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data ||
+        sudo rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data
+
+    echo " "
+    echo "Now regenerating all pods needed for atlassian stack... "
+    echo " "
 
     startup_and_follow_atlassian_mysql
 
