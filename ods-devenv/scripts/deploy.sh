@@ -726,8 +726,8 @@ function atlassian_stack_reset() {
     echo "atlassian_stack_reset: IMPORTANT: Before running this method it is recommended to remove from /etc/hosts "
     echo "                                  all lines with references to mysql, jira, bitbucket and crowd "
     echo " "
-    read -p "continue? y/n" yn
-    if [ "y" != "$yn" ] || [ "Y" != "$yn" ]; then
+    read -p "continue? y/n " yn
+    if [ "y" != "$yn" ] && [ "Y" != "$yn" ]; then
         echo "Aborted by user request."
         exit 0
     fi
