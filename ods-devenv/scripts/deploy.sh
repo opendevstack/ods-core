@@ -1139,6 +1139,74 @@ function configure_jira2crowd() {
     rm "${cookie_jar_path}"
 }
 
+# Not working as expected. To be removed.
+function remove_jira_just_upgraded_message() {
+    FILES_PATH="${HOME}/tmp/remove_jira_just_upgraded_message"
+    rm -frv ${FILES_PATH}
+    mkdir -pv ${FILES_PATH}
+
+    local cookie_jar_path="${FILES_PATH}/jira_cookie_jar.txt"
+    local errors_file="${FILES_PATH}/errors.txt"
+    local headers_file="${FILES_PATH}/headers.txt"
+    rm -fv ${errors_file}
+
+    local jira_login_reply="${FILES_PATH}/q_jira_login_1.html"
+    rm -fv ${jira_login_reply}
+    echo "remove_jira_just_upgraded_message: Login to Jira: step 1"
+    curl -sSL --insecure 'http://172.17.0.1:18080/login.jsp' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
+        --compressed \
+        --output ${jira_login_reply} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in login step 2" | tee -a ${errors_file}
+
+    echo "remove_jira_just_upgraded_message: Login to Jira: step 2"
+    local jira_login_page_fn="${FILES_PATH}/q_jira_login_2.html"
+    rm -fv ${jira_login_page_fn}
+    curl -sSL --insecure --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/' -u "openshift:openshift" \
+            --output ${jira_login_page_fn} --dump-header ${headers_file} --stderr ${errors_file} \
+            || echo "Error in login step 2" | tee -a ${errors_file}
+
+    echo "remove_jira_just_upgraded_message: PostUpgradeLandingPage"
+    local jira_postUpgradeLandingPage="${FILES_PATH}/q_jira_postUpgradeLandingPage.html"
+    rm -fv ${jira_postUpgradeLandingPage}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/PostUpgradeLandingPage.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_postUpgradeLandingPage} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_postUpgradeLandingPage" | tee -a ${errors_file}
+        # | pup --color
+
+    echo "remove_jira_just_upgraded_message: Check 1."
+    local jira_check1="${FILES_PATH}/q_jira_check1.html"
+    rm -fv ${jira_check1}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/WelcomeToJIRA.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_check1} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_check1" | tee -a ${errors_file}
+        # | pup --color
+
+    echo "remove_jira_just_upgraded_message: Check 2."
+    local jira_check2="${FILES_PATH}/q_jira_check2.html"
+    rm -fv ${jira_check2}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/BrowseProjects.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_check2} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_check2" | tee -a ${errors_file}
+        # | pup --color
+
+    echo " "
+    echo "DONE ?"
+    echo " "
+}
+
 #######################################
 # When BitBucket and Crowd both are up and running, this function can be used
 # to configure a BitBucket directory service against Crowd.
