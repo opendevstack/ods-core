@@ -92,6 +92,10 @@ function configure_sshd_server() {
     sleep 5
     echo "Showing sshd_config important settings: "
     sudo cat /etc/ssh/sshd_config | grep -v '\(^\s*#.*$\|^\s*$\)'
+    echo "Configure ssh client (used for git, etc)... "
+    sudo sed -i 's|^\ *\# \+IdentityFile\ \+\(.*\)|IdentityFile \1|g' /etc/ssh/ssh_config
+    grep -i 'IdentityFile' /etc/ssh/ssh_config
+    echo " "
 }
 
 function configure_sshd_openshift_keys() {
