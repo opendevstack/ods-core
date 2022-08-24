@@ -191,7 +191,7 @@ function fix_locales() {
 general_configuration
 permissions_fixes
 
-if [ -z "${1}" ] || [ "" == "${1}"]; then
+if [ -z "${1}" ] || [ "" == "${1}" ]; then
     # No need for this ones if creating a buildBot ...
     configuration_extras
     setup_xrdp
