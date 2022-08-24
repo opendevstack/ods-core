@@ -176,6 +176,7 @@ function setup_xrdp() {
 
 function fix_locales() {
 
+    sudo rm -fv /etc/profile.d/sh.local || true
     echo ' ' | sudo tee -a /etc/profile.d/sh.local
     echo 'export LC_ALL="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
     echo 'export LC_CTYPE="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
@@ -183,8 +184,10 @@ function fix_locales() {
     echo 'export LANG="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
 
     cd /etc
-    sudo git add .
-    sudo git commit -a -m "Configured centos locales."
+    if [ -d ".git" ]; then
+        sudo git add .
+        sudo git commit -a -m "Configured centos locales."
+    fi
 
 }
 
