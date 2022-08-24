@@ -5,8 +5,9 @@ set -eu
 echo " "
 echo "Pre-Usage:  "
 echo "---------- "
-echo "$ yum install curl jq "
-echo "$ base64 --v ; jq --version ; curl --v "
+echo "$ sudo yum -y install epel-release "
+echo "$ sudo yum -y install curl jq"
+echo "$ base64 --v ; jq --version ; curl --version "
 echo "$ curl -sSL "https://api.github.com/repos/opendevstack/ods-core/contents/ods-devenv/scripts/create-base-ami-image.sh?ref=experimental" | jq -r ".content" | base64 --decode > create-base-ami-image.sh "
 echo "$ chmod +x create-base-ami-image.sh "
 echo "$ ./create-base-ami-image.sh [buildBot] "
@@ -22,8 +23,7 @@ function general_configuration() {
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-    sudo yum -y install git gitk iproute lsof git2u-all glances golang jq tree htop etckeeper
-
+    sudo yum -y install git iproute lsof git2u-all glances golang jq tree
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
 
@@ -40,15 +40,6 @@ function general_configuration() {
     sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
 
     sudo usermod -a -G docker openshift
-
-    # etckeeper
-    if [ ! -d /etc/.git ]; then
-        cd /etc/
-        sudo etckeeper init
-        sudo etckeeper commit -m "Initial commit"
-    else
-        echo "WARNING: git repository in etc folder has been created before."
-    fi
 
     # JDK
     rm -fv /tmp/adoptopenjdk.repo || echo "ERROR: Could not remove file /tmp/adoptopenjdk.repo "
@@ -71,8 +62,17 @@ function general_configuration() {
 
 function configuration_extras() {
 
-    # Connection and security tools.
-    sudo yum -y install tigervnc-server remmina firewalld
+    # Tools not needed in buildBot
+    sudo yum -y install tigervnc-server remmina firewalld gitk htop etckeeper
+
+    # etckeeper
+    if [ ! -d /etc/.git ]; then
+        cd /etc/
+        sudo etckeeper init
+        sudo etckeeper commit -m "Initial commit"
+    else
+        echo "WARNING: git repository in etc folder has been created before."
+    fi
 
     # OCP 3
     sudo yum install -y centos-release-openshift-origin311
