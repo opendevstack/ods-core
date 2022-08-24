@@ -4,6 +4,12 @@ set -eu
 
 echo " "
 echo "Pre-Usage:  "
+echo "---------- "
+echo "$ yum install curl jq "
+echo "$ base64 --v ; jq --version ; curl --v "
+echo "$ curl -sSL "https://api.github.com/repos/opendevstack/ods-core/contents/ods-devenv/scripts/create-base-ami-image.sh?ref=experimental" | jq -r ".content" | base64 --decode > create-base-ami-image.sh "
+echo "$ chmod +x create-base-ami-image.sh "
+echo "$ ./create-base-ami-image.sh [buildBot] "
 echo " "
 echo "This script is in charge of configuring the base AMI image we use."
 read -p "Continue (y/n) ?  " yn
