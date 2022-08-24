@@ -20,12 +20,12 @@ if [ -z "$yn" ] || [ "y" != "$yn" ]; then
 fi
 
 function general_configuration() {
-    sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-    sudo yum -y install git iproute lsof git2u-all glances golang jq tree
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
+    sudo yum update -y || true
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm || true
+    sudo yum -y install git iproute lsof git2u-all glances golang jq tree || true
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
+    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
 
     sudo sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
