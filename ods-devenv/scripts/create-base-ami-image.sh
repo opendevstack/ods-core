@@ -31,15 +31,8 @@ function general_configuration() {
     sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*GSSAPIAuthentication\ .*@GSSAPIAuthentication no@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*KerberosAuthentication\ .*@KerberosAuthentication no@g" /etc/ssh/sshd_config
-    sudo systemctl restart sshd
+    sudo systemctl restart sshd 
     sudo systemctl status sshd
-
-    sudo adduser openshift
-    echo -e "openshift\nopenshift" | sudo passwd openshift
-    sudo usermod -a -G wheel openshift
-    sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
-
-    sudo usermod -a -G docker openshift
 
     # JDK
     rm -fv /tmp/adoptopenjdk.repo || echo "ERROR: Could not remove file /tmp/adoptopenjdk.repo "
@@ -50,14 +43,42 @@ function general_configuration() {
     echo "gpgcheck=1" >> /tmp/adoptopenjdk.repo
     echo "gpgkey=https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public" >> /tmp/adoptopenjdk.repo
 
-    sudo mv /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
+    rm -fv /etc/yum.repos.d/adoptopenjdk.repo
+    sudo mv -vf /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
     # No more in use: adoptopenjdk-8-hotspot adoptopenjdk-8-hotspot-jre
-    sudo yum -y install adoptopenjdk-11-hotspot  adoptopenjdk-11-hotspot-jre
+    sudo yum -y install adoptopenjdk-11-hotspot  adoptopenjdk-11-hotspot-jre || true
     sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
                        java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
                        java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+    yum list installed | grep -i '\(openjdk\|jdk\|java\)'
+}
 
+function permissions_fixes() {
+    local PENDING="false"
+    grep -i openshift /etc/passwd || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo adduser openshift
+        echo -e "openshift\nopenshift" | sudo passwd openshift
+    fi
+
+    PENDING="false"
+    grep -i openshift /etc/group | grep -i wheel || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo usermod -a -G wheel openshift
+    fi
+
+    PENDING="false"
+    sudo grep -v "^\s*#" /etc/sudoers | grep -i "wheel" | grep -i "nopasswd" || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
+    fi
+
+    PENDING="false"
+    grep -i openshift /etc/group | grep -i docker || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo usermod -a -G docker openshift
+    fi
 }
 
 function configuration_extras() {
@@ -168,11 +189,14 @@ function fix_locales() {
 }
 
 general_configuration
+permissions_fixes
+
 if [ -z "${1}" ] || [ "" == "${1}"]; then
     # No need for this ones if creating a buildBot ...
     configuration_extras
     setup_xrdp
 fi
+
 fix_locales
 
 echo " "
