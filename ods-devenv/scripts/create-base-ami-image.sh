@@ -31,7 +31,7 @@ function general_configuration() {
     sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*GSSAPIAuthentication\ .*@GSSAPIAuthentication no@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*KerberosAuthentication\ .*@KerberosAuthentication no@g" /etc/ssh/sshd_config
-    sudo systemctl restart sshd 
+    sudo systemctl restart sshd
     sudo systemctl status sshd
 
     # JDK
@@ -43,7 +43,7 @@ function general_configuration() {
     echo "gpgcheck=1" >> /tmp/adoptopenjdk.repo
     echo "gpgkey=https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public" >> /tmp/adoptopenjdk.repo
 
-    rm -fv /etc/yum.repos.d/adoptopenjdk.repo
+    sudo rm -fv /etc/yum.repos.d/adoptopenjdk.repo
     sudo mv -vf /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
     # No more in use: adoptopenjdk-8-hotspot adoptopenjdk-8-hotspot-jre
