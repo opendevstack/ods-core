@@ -236,5 +236,57 @@ function create_ods_box_ami() {
     fi
 }
 
+function create_buildBot_ami() {
+    echo "Retrieving from AWS latest image with name import-ami-*, root-device-type=ebs and tag Name=CentOS* "
+    local ami_id
+    ami_id=$(aws ec2 describe-images \
+                --owners 275438041116 \
+                --filters "Name=name,Values=import-ami-*" "Name=root-device-type,Values=ebs" "Name=tag:Name,Values=CentOS*" \
+                --query 'Images[*].{ImageId:ImageId,CreationDate:CreationDate}' | jq -r '. |= sort_by(.CreationDate) | reverse[0] | .ImageId')
+
+    echo "ami-id=${ami_id}"
+    echo "PACKER_LOG=${PACKER_LOG}"
+    echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
+    echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
+    echo "ods_branch=${ods_branch}"
+
+    if [[ "${dryrun}" == "true" ]]
+    then
+        echo -n "dryrun"
+        local counter=0
+        while (( counter <= 10 ))
+        do
+            sleep 1
+            counter=$((counter + 1))
+            echo -n '.'
+        done
+        echo "done."
+        exit 0
+    else
+        if [[ -z ${pub_key:=""} ]]; then
+            pub_key="ssh-tmp-key.pub"
+            ssh_private_key_file_path="./ssh-tmp-key"
+            echo "A public key was not provided... creating tmp ssh key ($pub_key)..."
+            ssh-keygen -t rsa -n "openshift@odsbox.lan" -C "openshift@odsbox.lan" -m PEM -P "" -f "${ssh_private_key_file_path}"
+            pwd
+            cat ./ssh-tmp-key $pub_key
+        fi
+
+        time packer build -on-error=ask \
+            -var "aws_access_key=${aws_access_key}" \
+            -var "aws_secret_key=${aws_secret_key}" \
+            -var "ami_id=${ami_id}" \
+            -var 'username=openshift' \
+            -var 'password=openshift' \
+            -var "name_tag=ODS Box $(date)" \
+            -var "ods_branch=${ods_branch}" \
+            -var "instance_type=${instance_type}" \
+            -var "pub_key=${pub_key}" \
+            -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
+            ods-devenv/packer/CentOS2ODSBox.json
+    fi
+}
+
+
 target="${target:-display_usage}"
 ${target}

@@ -2,6 +2,9 @@
 
 set -eu
 
+echo " "
+echo "Pre-Usage:  "
+echo " "
 echo "This script is in charge of configuring the base AMI image we use."
 read -p "Continue (y/n) ?  " yn
 if [ -z "$yn" ] || [ "y" != "$yn" ]; then
@@ -13,17 +16,10 @@ function general_configuration() {
     sudo yum update -y
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
     sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-    sudo yum -y install git gitk iproute lsof tigervnc-server remmina firewalld git2u-all glances golang jq tree htop etckeeper
-
-    curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-    sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-    rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+    sudo yum -y install git gitk iproute lsof git2u-all glances golang jq tree htop etckeeper
 
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
-    sudo yum install -y centos-release-openshift-origin311
-    sudo yum install -y origin-clients
-    sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 
     sudo sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
@@ -48,10 +44,6 @@ function general_configuration() {
         echo "WARNING: git repository in etc folder has been created before."
     fi
 
-    # GUI:
-    sudo yum groupinstall -y "MATE Desktop" || echo "ERROR: Could not install mate desktop"
-    sudo yum groups -y install "GNOME Desktop" || echo "ERROR: Could not install gnome desktop"
-
     # JDK
     rm -fv /tmp/adoptopenjdk.repo || echo "ERROR: Could not remove file /tmp/adoptopenjdk.repo "
     echo "[AdoptOpenJDK]" >> /tmp/adoptopenjdk.repo
@@ -63,10 +55,32 @@ function general_configuration() {
 
     sudo mv /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
-    sudo yum -y install adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre
+    # No more in use: adoptopenjdk-8-hotspot adoptopenjdk-8-hotspot-jre
+    sudo yum -y install adoptopenjdk-11-hotspot  adoptopenjdk-11-hotspot-jre
     sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
                        java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
                        java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+
+}
+
+function configuration_extras() {
+
+    # Connection and security tools.
+    sudo yum -y install tigervnc-server remmina firewalld
+
+    # OCP 3
+    sudo yum install -y centos-release-openshift-origin311
+    sudo yum install -y origin-clients
+    sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+
+    # GUI:
+    sudo yum groupinstall -y "MATE Desktop" || echo "ERROR: Could not install mate desktop"
+    sudo yum groups -y install "GNOME Desktop" || echo "ERROR: Could not install gnome desktop"
+
+    # Google Chrome
+    curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+    sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+    rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 
 }
 
@@ -148,7 +162,11 @@ function fix_locales() {
 }
 
 general_configuration
-setup_xrdp
+if [ -z "${1}" ] || [ "" == "${1}"]; then
+    # No need for this ones if creating a buildBot ...
+    configuration_extras
+    setup_xrdp
+fi
 fix_locales
 
 echo " "

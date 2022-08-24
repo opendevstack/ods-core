@@ -1,0 +1,71 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": "",
+        "pub_key": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "eu-west-1",
+            "source_ami_filter": {
+                "filters": {
+                    "image-id": "{{user `ami_id`}}"
+                },
+                "owners": "275438041116"
+            },
+            "instance_type": "{{user `instance_type`}}",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "ssh_private_key_file": "{{user `ssh_private_key_file_path`}}",
+            "ami_name": "ODS in a Box {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "run_tags": {
+                "Name": "ODS in a Box Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
+            },
+            "tags": {
+                "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "echo 'Create folders structure needed ( ~/tmp, ~/bin, ... )... '",
+                "mkdir -pv ~/tmp ~/bin"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "{{user `pub_key`}}",
+            "destination": "~/tmp/odsbox.pub"
+        },
+        {
+            "type": "file",
+            "source": "{{user `ssh_private_key_file_path`}}",
+            "destination": "~/tmp/odsbox"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo 'Adding odsbox.pub to authorized keys'",
+                "mkdir -p ~/.ssh",
+                "chmod go-xrw ~/.ssh",
+                "mv -vf ~/tmp/odsbox.pub ~/.ssh/odsbox.pub",
+                "mv -vf ~/tmp/odsbox ~/.ssh/odsbox",
+                "touch ~/.ssh/authorized_keys",
+                "cat ~/.ssh/odsbox.pub >> ~/.ssh/authorized_keys",
+                "chmod go-xrw ~/.ssh/*",
+                "ls -lart ~/.ssh",
+                "echo '...done!'"
+            ]
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/configure_buildBot.sh",
+            "execute_command": "{{ .Path }}  --branch {{user `ods_branch`}}"
+        }
+    ]
+}
