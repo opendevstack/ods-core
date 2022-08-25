@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 aws_access_key=
 aws_secret_key=
 
@@ -248,7 +250,7 @@ function create_ods_box_ami() {
         echo " "
     fi
 
-    set +x
+    set -x
     time packer build -on-error=ask \
         -var "aws_access_key=${aws_access_key}" \
         -var "aws_secret_key=${aws_secret_key}" \
@@ -261,7 +263,12 @@ function create_ods_box_ami() {
         -var "pub_key=${pub_key}" \
         -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
         ods-devenv/packer/CentOS2ODSBox.json
-    set -x
+    if [ 0 -ne $? ]; then
+        set +x 
+        echo "Error in packer build !!"
+        exit 1
+    fi
+    set +x
 }
 
 target="${target:-display_usage}"
