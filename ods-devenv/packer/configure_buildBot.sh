@@ -18,3 +18,6 @@ git clone https://github.com/opendevstack/ods-core.git
 echo " "
 echo "DONE."
 echo " "
+
+echo "Disabled because can't work."
+exit 1
