@@ -17,7 +17,7 @@ output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 build_folder=
 dryrun=false
-PACKER_CONFIG=${PACKER_CONFIG-"."}
+PACKER_CONFIG=${PACKER_CONFIG-""}
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -231,7 +231,7 @@ function create_ods_box_ami() {
         sleep 2
     fi
 
-    if [ -z "${PACKER_CONFIG}" ] || [ "" == "${PACKER_CONFIG}" ]; then
+    if [ -z "${PACKER_CONFIG}" ] || [ "" == "${PACKER_CONFIG}" ] || [ ! -f "${PACKER_CONFIG}" ]; then
         local packerConfigDefault="${build_folder}/ods-core/ods-devenv/buildbot/scripts/.buildbotrc"
         if [ -f "${packerConfigDefault}" ]; then
             export PACKER_CONFIG="${packerConfigDefault}"
