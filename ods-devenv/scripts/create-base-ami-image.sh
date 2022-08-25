@@ -23,7 +23,7 @@ function general_configuration() {
     sudo yum update -y || true
     sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
     sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm || true
-    sudo yum -y install git iproute lsof git2u-all glances golang jq tree || true
+    sudo yum -y install git iproute lsof git2u-all glances golang jq tree unzip || true
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
     sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
 
@@ -52,6 +52,12 @@ function general_configuration() {
                        java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
                        java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
     yum list installed | grep -i '\(openjdk\|jdk\|java\)'
+
+    # Install
+    curl -sSL --retry 5 --retry-delay 5 --retry-max-time 300 "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+    sudo rm -fr awscliv2.zip ./aws/install
 }
 
 function permissions_fixes() {
