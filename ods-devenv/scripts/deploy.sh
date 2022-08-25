@@ -614,8 +614,6 @@ function startup_openshift_cluster() {
     fi
 
     wait_until_ocp_is_up || exit 1
-    check_pods_and_restart_if_necessary
-
 }
 
 #######################################
