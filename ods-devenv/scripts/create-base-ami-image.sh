@@ -34,6 +34,15 @@ function general_configuration() {
     sudo systemctl restart sshd
     sudo systemctl status sshd
 
+    # Packer
+    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo || true
+    if [ -f "/etc/yum.repos.d/hashicorp.repo" ]; then
+        echo "Disable hashicorp yum repo by default."
+        sudo sed -i 's@^\s*enabled\s*=.*$@enabled = 0@g' /etc/yum.repos.d/hashicorp.repo
+        grep -i 'enabled' /etc/yum.repos.d/hashicorp.repo
+    fi
+    sudo yum install -y --enablerepo hashicorp packer || true
+
     # JDK
     rm -fv /tmp/adoptopenjdk.repo || echo "ERROR: Could not remove file /tmp/adoptopenjdk.repo "
     echo "[AdoptOpenJDK]" >> /tmp/adoptopenjdk.repo
