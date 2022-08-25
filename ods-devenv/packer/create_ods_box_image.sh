@@ -17,7 +17,7 @@ output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 build_folder=
 dryrun=false
-PACKER_CONFIG=${PACKER_CONFIG-""}
+PACKER_CONFIG_FILE=${PACKER_CONFIG_FILE-""}
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -233,10 +233,10 @@ function create_ods_box_ami() {
         sleep 2
     fi
 
-    if [ -z "${PACKER_CONFIG}" ] || [ "" != "${PACKER_CONFIG}" ] || [ ! -f "${PACKER_CONFIG}" ]; then
-        export PACKER_CONFIG="ods-devenv/packer/CentOS2ODSBox.json"
+    if [ -z "${PACKER_CONFIG_FILE}" ] || [ "" != "${PACKER_CONFIG_FILE}" ] || [ ! -f "${PACKER_CONFIG_FILE}" ]; then
+        PACKER_CONFIG_FILE="ods-devenv/packer/CentOS2ODSBox.json"
         echo " "
-        echo "set PACKER_CONFIG=${PACKER_CONFIG}"
+        echo "set PACKER_CONFIG_FILE=${PACKER_CONFIG_FILE}"
 
     fi
 
@@ -252,7 +252,8 @@ function create_ods_box_ami() {
         -var "ods_branch=${ods_branch}" \
         -var "instance_type=${instance_type}" \
         -var "pub_key=${pub_key}" \
-        -var "ssh_private_key_file_path=${ssh_private_key_file_path}"
+        -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
+        ${PACKER_CONFIG_FILE}
     if [ 0 -ne $? ]; then
         set +x
         echo "Error in packer build !!"
