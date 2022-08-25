@@ -209,16 +209,9 @@ function check_system_setup() {
 #   None
 #######################################
 function setup_dnsmasq() {
-    echo "Setting up dnsmasq DNS service"
+    echo "setup_dnsmasq: Setting up dnsmasq DNS service"
     local dnsmasq_conf_path
     dnsmasq_conf_path="/etc/dnsmasq.conf"
-
-    # tear down old running dnsmasq instances
-    local job_id
-    for job_id in $(ps -ef | grep dnsmasq | grep -v grep | grep -v setup_dnsmasq | awk -v col=2 '{print $2}')
-    do
-        sudo kill -9 "${job_id}" || true
-    done
 
     if ! >/dev/null command -v dnsmasq
     then
@@ -230,6 +223,16 @@ function setup_dnsmasq() {
             echo "Not installing dnsmasq because already installed."
         fi
     fi
+
+    sudo systemctl stop dnsmasq || echo "WARNING: Could not stop service dnsmasq !!!"
+    sleep 10
+
+    # tear down old running dnsmasq instances
+    local job_id
+    for job_id in $(ps -ef | grep dnsmasq | grep -v grep | grep -v setup_dnsmasq | awk -v col=2 '{print $2}')
+    do
+        sudo kill -9 "${job_id}" || true
+    done
 
     sudo systemctl start dnsmasq
     sleep 10
@@ -271,18 +274,26 @@ function setup_dnsmasq() {
         echo " "
         echo "dnsmasq configuration failed. Please check ${dnsmasq_conf_path} and compare with ${dnsmasq_conf_path}.orig"
         echo " "
+        sleep 2
         echo "File ${dnsmasq_conf_path}: "
+        echo " "
         cat ${dnsmasq_conf_path}
         echo " "
         echo "File ${dnsmasq_conf_path}.orig: "
+        echo " "
         cat ${dnsmasq_conf_path}.orig
         echo " "
-        diff ${dnsmasq_conf_path} ${dnsmasq_conf_path}.orig
         echo " "
+        sleep 2
+        diff ${dnsmasq_conf_path} ${dnsmasq_conf_path}.orig || true
+        echo " "
+        echo " "
+        sleep 10
         # return 1
     else
         echo "dnsmasq is ok with configuration changes."
     fi
+    echo " "
 
     sudo chattr -i /etc/resolv.conf
 
