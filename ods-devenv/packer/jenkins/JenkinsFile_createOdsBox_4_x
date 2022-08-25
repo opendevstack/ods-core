@@ -68,7 +68,7 @@ pipeline {
                                 sh '''
                                     set -x
                                     export LOG_PATH=. && export PACKER_LOG=1 && export AWS_MAX_ATTEMPTS=180 && export AWS_POLL_DELAY_SECONDS=60 && \
-                                    cd ${BUILD_FOLDER} && pwd && ls -lart && source ${BUILD_FOLDER}/.buildbotrc && date && \
+                                    cd ${BUILD_FOLDER} && pwd && ls -lart && date && \
                                     log_file="${LOG_PATH}/build_$(echo "${ODS_BRANCH}" | tr "/" "_")_$(date +%Y%m%dT%H%M%S).log" && \
                                     cd ods-core && time bash 2>&1 ods-devenv/packer/create_ods_box_image.sh --target create_ods_box_ami \
                                         --aws-access-key "$AWS_ACCESS_KEY_ID" --aws-secret-key "$AWS_SECRET_ACCESS_KEY" --ods-branch "${ODS_BRANCH}" \

@@ -55,8 +55,6 @@ pipeline {
                             sh 'cp ${ssh_public_key} ${BUILD_FOLDER}/jenkins.pub'
                             sh 'cp ${ssh_private_key} ${BUILD_FOLDER}/jenkins.priv'
                         }
-                        sh 'cd ${BUILD_FOLDER} && cp /home/centos/.buildbotrc . && chmod u+w .buildbotrc && pwd && ls -lart'
-                        sh "cd ${BUILD_FOLDER} && sed -i 's|pub-key=.*\$|pub_key=${BUILD_FOLDER}/jenkins.pub|' .buildbotrc && cat .buildbotrc"
 
                         withCredentials([usernamePassword(credentialsId: 'registry_credentials', usernameVariable: 'registry_user', passwordVariable: 'registry_token')]) {
                             withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsID', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
@@ -68,7 +66,7 @@ pipeline {
                                 sh '''
                                     set -x
                                     export LOG_PATH=. && export PACKER_LOG=1 && export AWS_MAX_ATTEMPTS=180 && export AWS_POLL_DELAY_SECONDS=60 && \
-                                    cd ${BUILD_FOLDER} && pwd && ls -lart && source ${BUILD_FOLDER}/.buildbotrc && date && \
+                                    cd ${BUILD_FOLDER} && pwd && ls -lart && date && \
                                     log_file="${LOG_PATH}/build_$(echo "${ODS_BRANCH}" | tr "/" "_")_$(date +%Y%m%dT%H%M%S).log" && \
                                     cd ods-core && time bash 2>&1 ods-devenv/packer/create_ods_box_image.sh --target create_ods_box_ami \
                                         --aws-access-key "$AWS_ACCESS_KEY_ID" --aws-secret-key "$AWS_SECRET_ACCESS_KEY" --ods-branch "${ODS_BRANCH}" \
