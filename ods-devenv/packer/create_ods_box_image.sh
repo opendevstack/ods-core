@@ -17,6 +17,7 @@ output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
 build_folder=
 dryrun=false
+PACKER_CONFIG=${PACKER_CONFIG-"."}
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
