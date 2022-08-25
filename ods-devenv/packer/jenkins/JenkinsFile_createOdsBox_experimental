@@ -6,7 +6,7 @@ pipeline {
         ODS_BRANCH = "experimental"
         JOB_NAME = "ods-build-experimental-branch"
         BUILD_FOLDER = "${WORKSPACE_TMP}/${BUILD_NUMBER}"
-        instance_type=m5ad.4xlarge
+        instance_type="m5ad.4xlarge"
     }
 
     agent {
