@@ -230,18 +230,31 @@ function create_ods_box_ami() {
         sleep 2
     fi
 
-    # build_folder -> ${BUILD_FOLDER}
-    packerConfigDefault="${build_folder}/ods-core/ods-devenv/buildbot/scripts/.buildbotrc"
-    if [ -f "${packerConfigDefault}" ]; then
-        echo "Setting variable PACKER_CONFIG=${packerConfigDefault}"
-        export PACKER_CONFIG="${packerConfigDefault}"
-    else
-        echo "WARN: Not setting variable PACKER_CONFIG !!"
+    if [ -z "${PACKER_CONFIG}" ] || [ "" == "${PACKER_CONFIG}" ]; then
+        local packerConfigDefault="${build_folder}/ods-core/ods-devenv/buildbot/scripts/.buildbotrc"
+        if [ -f "${packerConfigDefault}" ]; then
+            export PACKER_CONFIG="${packerConfigDefault}"
+        else
+            echo "WARN: Not setting variable PACKER_CONFIG !!"
+        fi
+
     fi
+    # build_folder -> ${BUILD_FOLDER}
 
     if [ ! -z "${PACKER_CONFIG}" ] && [ "" != "${PACKER_CONFIG}" ]; then
-        sed -i "s|pub-key=.*\$|pub_key=${pub_key}|g" ${PACKER_CONFIG}
-        sed -i "s|instance_type=.*\$|instance_type=${instance_type}|g" ${PACKER_CONFIG}
+        local tmpPackerConfigFile=${build_folder}/tmp_buildbotrc
+        rm -fv ${tmpPackerConfigFile}
+
+        cp -vf ${PACKER_CONFIG} ${tmpPackerConfigFile}
+        sed -i "s|pub-key=.*\$|pub_key=${pub_key}|g" ${tmpPackerConfigFile}
+        sed -i "s|instance_type=.*\$|instance_type=${instance_type}|g" ${tmpPackerConfigFile}
+
+        local packerConfigFile="${build_folder}/.buildbotrc"
+        rm -fv ${packerConfigFile}
+        grep -iv '^\s*#.*' ${tmpPackerConfigFile} | grep -iv '[[:alnum:]_-]*=\s*$' > ${packerConfigFile}
+        echo "Setting variable PACKER_CONFIG=${packerConfigFile}"
+        export PACKER_CONFIG="${packerConfigFile}"
+
         echo " "
         echo "Contents of file set in var PACKER_CONFIG=${PACKER_CONFIG}"
         echo "--- "
@@ -264,7 +277,7 @@ function create_ods_box_ami() {
         -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
         ods-devenv/packer/CentOS2ODSBox.json
     if [ 0 -ne $? ]; then
-        set +x 
+        set +x
         echo "Error in packer build !!"
         exit 1
     fi
