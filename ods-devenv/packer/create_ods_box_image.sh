@@ -205,6 +205,7 @@ function create_ods_box_ami() {
     echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
     echo "build_folder=${build_folder}"
+    echo " "
 
     if [[ "${dryrun}" == "true" ]]
     then
@@ -217,6 +218,7 @@ function create_ods_box_ami() {
             echo -n '.'
         done
         echo "done."
+        echo " "
         exit 0
     fi
 
@@ -231,13 +233,14 @@ function create_ods_box_ami() {
         sleep 2
     fi
 
-    if [ ! -z "${PACKER_CONFIG}" ] && [ "" != "${PACKER_CONFIG}" ]; then
+    if [ -z "${PACKER_CONFIG}" ] || [ "" != "${PACKER_CONFIG}" ] || [ ! -f "${PACKER_CONFIG}" ]; then
         export PACKER_CONFIG="ods-devenv/packer/CentOS2ODSBox.json"
         echo " "
-        echo "PACKER_CONFIG=${PACKER_CONFIG}"
-        echo " "
+        echo "set PACKER_CONFIG=${PACKER_CONFIG}"
+
     fi
 
+    echo " "
     set -x
     time packer build -on-error=ask \
         -var "aws_access_key=${aws_access_key}" \
