@@ -2503,9 +2503,16 @@ function run_smoke_tests() {
         ./tests/scripts/free-unused-resources.sh
     fi
 
-    # buying extra time for the quickstarter tests
+    # The license for the atlassian suite expires in 3h.
+    # The following lines (2) buys extra time for the quickstarter tests.
     # restart_atlassian_suite
     # follow_bitbucket
+
+    # This is a better solution to the atlassian suite license expires problem:
+    if [ -x ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh ]; then
+        ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh --hours-left 2
+    fi
+
     # Do not understand why this was here. Prefer to check instead:
     check_ods_status
 
