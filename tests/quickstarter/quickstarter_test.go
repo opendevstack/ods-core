@@ -76,8 +76,8 @@ func TestQuickstarter(t *testing.T) {
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
 		fmt.Printf("\n\n")
 
-        freeUnusedResources(t)
-        restartAtlassianSuiteIfLicenseExpiresInLessThan(t)
+		freeUnusedResources(t)
+		restartAtlassianSuiteIfLicenseExpiresInLessThan(t)
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
@@ -238,32 +238,32 @@ func TestQuickstarter(t *testing.T) {
 
 func freeUnusedResources(t *testing.T) {
 
-    // Run cleanup operations to ensure we always have enough resources.
-    stdout, stderr, err := utils.RunScriptFromBaseDir(
-        "tests/scripts/free-unused-resources.sh",
-        []string{}, []string{},
-    )
+	// Run cleanup operations to ensure we always have enough resources.
+	stdout, stderr, err := utils.RunScriptFromBaseDir(
+		"tests/scripts/free-unused-resources.sh",
+		[]string{}, []string{},
+	)
 
-    if err != nil {
-        t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
-    } else {
-        fmt.Printf("Cleaned cluster state.\n")
-    }
+	if err != nil {
+		t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
+	} else {
+		fmt.Printf("Cleaned cluster state.\n")
+	}
 }
 
 func restartAtlassianSuiteIfLicenseExpiresInLessThan(t *testing.T) {
 
-    // Run cleanup operations to ensure we always have enough resources.
-    stdout, stderr, err := utils.RunScriptFromBaseDir(
-        "ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh",
-        []string{"--hours-left 2"}, []string{},
-    )
+	// Run cleanup operations to ensure we always have enough resources.
+	stdout, stderr, err := utils.RunScriptFromBaseDir(
+		"ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh",
+		[]string{"--hours-left 2"}, []string{},
+	)
 
-    if err != nil {
-        t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
-    } else {
-        fmt.Printf("Checked if needed to restart atlassian suite.\n")
-    }
+	if err != nil {
+		t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
+	} else {
+		fmt.Printf("Checked if needed to restart atlassian suite.\n")
+	}
 }
 
 // collectTestableQuickstarters collects all subdirs of "dir" that contain
