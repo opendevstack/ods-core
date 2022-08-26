@@ -256,7 +256,7 @@ func restartAtlassianSuiteIfLicenseExpiresInLessThan(t *testing.T) {
 	// Run cleanup operations to ensure we always have enough resources.
 	stdout, stderr, err := utils.RunScriptFromBaseDir(
 		"ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh",
-		[]string{"--hours-left 2"}, []string{},
+		[]string{"--hours-left", "2"}, []string{},
 	)
 
 	if err != nil {

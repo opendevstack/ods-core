@@ -49,7 +49,7 @@ function checkIfWeStillHaveTime() {
     local FOUND=""
     local MAX_HOURS_SINCE_LAST_UPDATE=$((HOURS_ATLASSIAN_CAN_BE_UP - HOURS_LEFT))
     echo "MAX_HOURS_SINCE_LAST_UPDATE=${MAX_HOURS_SINCE_LAST_UPDATE} (${HOURS_ATLASSIAN_CAN_BE_UP} - ${HOURS_LEFT})"
-    
+
     echo "Current date: $(date)"
     if [ "false" == ${FORCE_RESTART} ]; then
         FOUND=$(find ${LAST_RESTART_FILE_REGISTRY} -mtime -${MAX_HOURS_SINCE_LAST_UPDATE})
@@ -97,7 +97,7 @@ while [[ "$#" -gt 0 ]]; do
 
     --allow-zero-hours) ALLOW_ZERO_HOURS="true";;
 
-  *) echo_error "Unknown parameter passed: $1"; exit 1;;
+  *) echo " "; echo "${ME}: ERROR: Unknown parameter passed: ${1}"; echo " "; exit 1;;
 esac; shift; done
 
 if [ 0 -eq ${HOURS_LEFT} ] && [ "false" == "${ALLOW_ZERO_HOURS}" ] && [ "false" == "${ASSUME_JUST_RESTARTED}" ] && [ "false" == "${FORCE_RESTART}" ]; then

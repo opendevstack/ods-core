@@ -2510,7 +2510,11 @@ function run_smoke_tests() {
 
     # This is a better solution to the atlassian suite license expires problem:
     if [ -x ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh ]; then
-        ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh --hours-left 2
+        ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh --force-restart
+    else
+        echo " "
+        echo "ERROR: Could not find script ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh "
+        echo " "
     fi
 
     # Do not understand why this was here. Prefer to check instead:
