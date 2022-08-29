@@ -26,6 +26,7 @@
 - Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
 - Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
 - Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
+- Update Aqua CLI version ([#1173](https://github.com/opendevstack/ods-core/pull/1173))
 - Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
 
 ### Added
@@ -40,10 +41,16 @@
 - Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
 - ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early. Ported from task/upgrade-atlassian-stack.
+- Fixes bugs introduced while upgrading atlassian stack ([#1149](https://github.com/opendevstack/ods-core/pull/1149)). Backport of ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
+- deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1153](https://github.com/opendevstack/ods-core/pull/1153))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
 
 ### Changed
 
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
+- Updates Atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)). Ported from task/upgrade-atlassian-stack.
+- Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
 
 ## [4.0] - 2021-18-11
 
