@@ -1,0 +1,105 @@
+def buildBadge = addEmbeddableBadgeConfiguration(id: "odsbuild", status: "started")
+
+pipeline {
+
+    environment {
+        ODS_BRANCH = "ods-devenv"
+        JOB_NAME = "ods-build-ods-devenv-branch"
+        BUILD_FOLDER = "${WORKSPACE_TMP}/${BUILD_NUMBER}"
+        instance_type="m5ad.4xlarge"
+    }
+
+    agent {
+        node('buildbot')
+    }
+
+
+    options {
+        ansiColor('xterm')
+    }
+
+
+    stages {
+        stage('ODS BuildBot: running AMI build!') {
+
+            steps {
+
+                script {
+
+                    try {
+                        echoInfo "Setting build badge status!"
+                        buildBadge.setStatus("running")
+
+                        GIT_COMMIT_REV = sh(returnStdout: true, script: "curl -sSL https://api.github.com/repos/opendevstack/ods-core/commits/${ODS_BRANCH} | jq .sha").trim()
+                        GIT_COMMIT_REV = GIT_COMMIT_REV.length()>8 ? GIT_COMMIT_REV.substring(1,8) : GIT_COMMIT_REV
+                        GIT_COMMIT_MESSAGE = sh(returnStdout: true, script: "curl -sSL https://api.github.com/repos/opendevstack/ods-core/commits/${ODS_BRANCH} | jq .commit.message").trim()
+                        GIT_COMMIT_MESSAGE = GIT_COMMIT_MESSAGE.length()>25 ? GIT_COMMIT_MESSAGE.substring(1,25) : GIT_COMMIT_MESSAGE
+                        BUILD_SUBJECT = "#${GIT_COMMIT_REV}: ${GIT_COMMIT_MESSAGE}..."
+                        buildBadge.setSubject(BUILD_SUBJECT)
+
+
+                        echoInfo "Started ODS AMI build number '${BUILD_NUMBER}' for branch: '${ODS_BRANCH}'"
+                        echoInfo "BUILD_FOLDER = '${BUILD_FOLDER}'"
+                        echoInfo "... logging some environment details"
+                        sh 'whoami && pwd && ls -lart'
+                        sh 'echo $PATH'
+                        sh 'git version'
+
+                        echoInfo "... create temp build folder"
+                        sh 'mkdir -p ${BUILD_FOLDER}'
+                        echoInfo "... cloning ods-core && checkout branch ${ODS_BRANCH}"
+                        sh 'cd ${BUILD_FOLDER} && git clone https://github.com/opendevstack/ods-core.git && cd ods-core && git checkout ${ODS_BRANCH}'
+
+                        echoInfo "... preparing temp build folder"
+                        withCredentials([sshUserPrivateKey(credentialsId: "edp_slave_openshift_pub", keyFileVariable: 'ssh_public_key'),
+                                         sshUserPrivateKey(credentialsId: "edp_slave_openshift_202205", keyFileVariable: 'ssh_private_key')]) {
+                            sh 'cp ${ssh_public_key} ${BUILD_FOLDER}/jenkins.pub'
+                            sh 'cp ${ssh_private_key} ${BUILD_FOLDER}/jenkins.priv'
+                        }
+
+                        withCredentials([usernamePassword(credentialsId: 'registry_credentials', usernameVariable: 'registry_user', passwordVariable: 'registry_token')]) {
+                            withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsID', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                                // This is safe, client and secret will be masked in the output
+                                // echoInfo "aws client = $AWS_ACCESS_KEY_ID"
+                                // echoInfo "aws secret = $AWS_SECRET_ACCESS_KEY"
+                                echoInfo "... running packer build"
+                                // sh 'export LOG_PATH=. && export PACKER_LOG=1 && export AWS_MAX_ATTEMPTS=400 && export AWS_POLL_DELAY_SECONDS=15 && cd ${BUILD_FOLDER} && pwd && ls -lart && date && log_file="${LOG_PATH}/build_$(echo "${ODS_BRANCH}" | tr "/" "_")_$(date +%Y%m%dT%H%M%S).log" && cd ods-core && time bash 2>&1 ods-devenv/packer/create_ods_box_image.sh --target create_ods_box_ami --aws-access-key "$AWS_ACCESS_KEY_ID" --aws-secret-key "$AWS_SECRET_ACCESS_KEY" --ods-branch "${ODS_BRANCH}" --instance-type ${instance_type}'
+                                sh '''
+                                    set -x
+                                    export LOG_PATH=. && export log_path=. && export build_path="${HOME}/opendevstack/builds" && \
+                                    export build_result_path="${HOME}/opendevstack/packer_build_result" && \
+                                    export PACKER_LOG=1 && export AWS_MAX_ATTEMPTS=180 && export AWS_POLL_DELAY_SECONDS=60 && \
+                                    cd ${BUILD_FOLDER} && pwd && ls -lart && date && \
+                                    log_file="${LOG_PATH}/build_$(echo "${ODS_BRANCH}" | tr "/" "_")_$(date +%Y%m%dT%H%M%S).log" && \
+                                    cd ods-core && time bash 2>&1 ods-devenv/packer/create_ods_box_image.sh --target create_ods_box_ami \
+                                        --aws-access-key "$AWS_ACCESS_KEY_ID" --aws-secret-key "$AWS_SECRET_ACCESS_KEY" --ods-branch "${ODS_BRANCH}" \
+                                        --instance-type "${instance_type}" --build-folder "${BUILD_FOLDER}" \
+                                        --pub-key "${BUILD_FOLDER}/jenkins.pub" --priv-key "${BUILD_FOLDER}/jenkins.priv"
+                                '''
+                            }
+                        }
+
+                        echoInfo "...done!"
+
+                        buildBadge.setStatus("passing")
+
+                    } catch (Exception err) {
+                        buildBadge.setStatus("failing")
+
+                        echoError "error: " + err
+                        throw err
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+def echoInfo(msg){
+    echo "\033[32m ${msg} \033[0m"
+}
+
+def echoError(msg){
+    echo "\033[31m ${msg} \033[0m"
+}

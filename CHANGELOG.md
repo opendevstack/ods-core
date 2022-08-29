@@ -27,6 +27,7 @@
 - Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
 - Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
 - Update Aqua CLI version ([#1173](https://github.com/opendevstack/ods-core/pull/1173))
+- Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
 
 ### Added
 

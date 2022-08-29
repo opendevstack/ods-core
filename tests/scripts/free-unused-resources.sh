@@ -5,9 +5,10 @@ echo " "
 function clean_containers {
 	echo "Removing docker containers no more used... "
 	if docker ps -a | grep -q 'Exited .* ago' ; then
-	    set -x
+	    docker ps -a | grep 'Exited .* ago'
+	    echo " "
+	    echo "Removing docker containers: "
 	    docker ps -a | grep 'Exited .* ago' | sed 's/\s\+/ /g' | cut -d ' ' -f 1 | while read id; do echo "docker rm $id"; docker rm $id; done
-	    set +x
 	else
 	    echo "No docker containers to remove. "
 	fi
@@ -17,7 +18,7 @@ function clean_tests {
 	echo "Removing tests projects no more used... "
 	oc projects | grep '^\s*tes.*' | grep -v "${OMIT_TESTS_PROJECT}" | while read -r line; do
 		if [ ! -z "$line" ]; then
-			echo "Removing project $line"
+			echo "Removing project ${line}: oc delete project $line "
 			oc delete project $line || true
 		else
 			echo "No projects to remove"
@@ -27,10 +28,10 @@ function clean_tests {
 
 function clean_odsverify {
 	if [ "true" == "$CLEAN_ODS_VERIFY" ]; then
-		echo "Cleaning ODS VERIFY projects..."
+		echo "Removing ODS VERIFY projects..."
 		oc projects | grep '^\s*odsverify.*' | while read -r line; do
 			if [ ! -z "$line" ]; then
-				echo "Removing project $line"
+				echo "Removing project ${line}: oc delete project $line "
 				oc delete project $line || true
 			else
 				echo "No projects to remove"
@@ -40,6 +41,7 @@ function clean_odsverify {
 }
 
 function clean_images {
+    echo "oc adm prune images --keep-tag-revisions=1 --keep-younger-than=30m --confirm"
 	oc adm prune images --keep-tag-revisions=1 --keep-younger-than=30m --confirm || true
 }
 

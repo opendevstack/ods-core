@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 aws_access_key=
 aws_secret_key=
 
@@ -13,8 +15,9 @@ s3_bucket_name=
 s3_upload_folder=image_upload
 output_directory=output-vmware-iso
 instance_type=m5ad.4xlarge
-
+build_folder=
 dryrun=false
+PACKER_CONFIG_FILE=${PACKER_CONFIG_FILE-""}
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -48,6 +51,9 @@ while [[ "$#" -gt 0 ]]; do
 
     --priv-key) ssh_private_key_file_path="$2"; shift;;
     --priv-key=*) ssh_private_key_file_path="${1#*=}";;
+
+    --build-folder) build_folder="$2"; shift;;
+    --build-folder=*) build_folder="${1#*=}";;
 
     --target) target="$2"; shift;;
 
@@ -198,6 +204,8 @@ function create_ods_box_ami() {
     echo "AWS_MAX_ATTEMPTS=${AWS_MAX_ATTEMPTS}"
     echo "AWS_POLL_DELAY_SECONDS=${AWS_POLL_DELAY_SECONDS}"
     echo "ods_branch=${ods_branch}"
+    echo "build_folder=${build_folder}"
+    echo " "
 
     if [[ "${dryrun}" == "true" ]]
     then
@@ -210,31 +218,48 @@ function create_ods_box_ami() {
             echo -n '.'
         done
         echo "done."
+        echo " "
         exit 0
-    else
-        if [[ -z ${pub_key:=""} ]]; then
-            pub_key="ssh-tmp-key.pub"
-            ssh_private_key_file_path="./ssh-tmp-key"
-            echo "A public key was not provided... creating tmp ssh key ($pub_key)..."
-            ssh-keygen -t rsa -n "openshift@odsbox.lan" -C "openshift@odsbox.lan" -m PEM -P "" -f "${ssh_private_key_file_path}"
-            pwd
-            cat
-            cat ./ssh-tmp-key $pub_key
-        fi
-
-        time packer build -on-error=ask \
-            -var "aws_access_key=${aws_access_key}" \
-            -var "aws_secret_key=${aws_secret_key}" \
-            -var "ami_id=${ami_id}" \
-            -var 'username=openshift' \
-            -var 'password=openshift' \
-            -var "name_tag=ODS Box $(date)" \
-            -var "ods_branch=${ods_branch}" \
-            -var "instance_type=${instance_type}" \
-            -var "pub_key=${pub_key}" \
-            -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
-            ods-devenv/packer/CentOS2ODSBox.json
     fi
+
+    if [[ -z ${pub_key:=""} ]]; then
+        pub_key="ssh-tmp-key.pub"
+        ssh_private_key_file_path="./ssh-tmp-key"
+        echo "A public key was not provided... creating tmp ssh key ($pub_key)..."
+        ssh-keygen -t rsa -n "openshift@odsbox.lan" -C "openshift@odsbox.lan" -m PEM -P "" -f "${ssh_private_key_file_path}"
+        pwd
+        sleep 2
+        cat ./ssh-tmp-key $pub_key
+        sleep 2
+    fi
+
+    if [ -z "${PACKER_CONFIG_FILE}" ] || [ "" != "${PACKER_CONFIG_FILE}" ] || [ ! -f "${PACKER_CONFIG_FILE}" ]; then
+        PACKER_CONFIG_FILE="ods-devenv/packer/CentOS2ODSBox.json"
+        echo " "
+        echo "set PACKER_CONFIG_FILE=${PACKER_CONFIG_FILE}"
+
+    fi
+
+    echo " "
+    set -x
+    time packer build -on-error=ask \
+        -var "aws_access_key=${aws_access_key}" \
+        -var "aws_secret_key=${aws_secret_key}" \
+        -var "ami_id=${ami_id}" \
+        -var 'username=openshift' \
+        -var 'password=openshift' \
+        -var "name_tag=ODS Box $(date)" \
+        -var "ods_branch=${ods_branch}" \
+        -var "instance_type=${instance_type}" \
+        -var "pub_key=${pub_key}" \
+        -var "ssh_private_key_file_path=${ssh_private_key_file_path}" \
+        ${PACKER_CONFIG_FILE}
+    if [ 0 -ne $? ]; then
+        set +x
+        echo "Error in packer build !!"
+        exit 1
+    fi
+    set +x
 }
 
 target="${target:-display_usage}"
