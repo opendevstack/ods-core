@@ -73,6 +73,8 @@ function display_usage() {
     echo "${ME} --branch feature/ods-devenv --target install_docker"
     echo "${ME} --branch feature/ods-devenv --target startup_atlassian_bitbucket"
     echo "${ME} --branch task/upgrade-atlassian-stack --target atlassian_stack_reset"
+    echo "${ME} --target restart_ods           # Does a full restart of ods services. Its cost is really high."
+    echo "${ME} --target check_ods_status      # This ones restarts the service not working as expected."
     echo
     echo "Since several of the functions will require that other functions have prepared the system first,"
     echo "the script provides utility functions like basic_vm_setup which will call functions in this"
@@ -90,6 +92,10 @@ function configure_sshd_server() {
     sleep 5
     echo "Showing sshd_config important settings: "
     sudo cat /etc/ssh/sshd_config | grep -v '\(^\s*#.*$\|^\s*$\)'
+    echo "Configure ssh client (used for git, etc)... "
+    sudo sed -i 's|^\ *\# \+IdentityFile\ \+\(.*\)|IdentityFile \1|g' /etc/ssh/ssh_config
+    grep -i 'IdentityFile' /etc/ssh/ssh_config
+    echo " "
 }
 
 function configure_sshd_openshift_keys() {
@@ -133,6 +139,7 @@ function check_system_setup() {
     echo "alias startup_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target startup_ods'"
     echo "alias stop_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target stop_ods'"
     echo "alias restart_atlassian_suite='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_atlassian_suite'"
+    echo "alias restart_ods='/home/openshift/opendevstack/ods-core/ods-devenv/scripts/deploy.sh --target restart_ods'"
 } >> ~/.bashrc
 
     # suppress sudo timeout
@@ -202,9 +209,23 @@ function check_system_setup() {
 #   None
 #######################################
 function setup_dnsmasq() {
-    echo "Setting up dnsmasq DNS service"
+    echo "setup_dnsmasq: Setting up dnsmasq DNS service"
     local dnsmasq_conf_path
     dnsmasq_conf_path="/etc/dnsmasq.conf"
+
+    if ! >/dev/null command -v dnsmasq
+    then
+        local already_installed="y"
+        sudo yum list installed 2>&1 | grep -iq 'dnsmasq' || already_installed="n"
+        if [ "y" != "$already_installed" ] ; then
+            sudo yum install -y dnsmasq
+        else
+            echo "Not installing dnsmasq because already installed."
+        fi
+    fi
+
+    sudo systemctl stop dnsmasq || echo "WARNING: Could not stop service dnsmasq !!!"
+    sleep 10
 
     # tear down old running dnsmasq instances
     local job_id
@@ -213,17 +234,12 @@ function setup_dnsmasq() {
         sudo kill -9 "${job_id}" || true
     done
 
-    if ! >/dev/null command -v dnsmasq
-    then
-        sudo yum install -y dnsmasq
-    fi
-
     sudo systemctl start dnsmasq
     sleep 10
     if ! sudo systemctl status dnsmasq | grep -q active
     then
         echo "dnsmasq startup appears to have failed."
-        exit
+        exit 1
     else
         echo "dnsmasq service up and running"
     fi
@@ -231,9 +247,9 @@ function setup_dnsmasq() {
     # if script runs for the 2nd time on a machine, backup dnsmasq.conf from orig
     if [[ -f "${dnsmasq_conf_path}.orig" ]]
     then
-        sudo cp "${dnsmasq_conf_path}.orig" "${dnsmasq_conf_path}"
+        sudo cp -vf "${dnsmasq_conf_path}.orig" "${dnsmasq_conf_path}"
     else
-        sudo cp "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
+        sudo cp -vf "${dnsmasq_conf_path}" "${dnsmasq_conf_path}.orig"
     fi
 
     sudo sed -i "s|#domain-needed|domain-needed|" "${dnsmasq_conf_path}"
@@ -255,10 +271,29 @@ function setup_dnsmasq() {
     # dnsmasq logs on stderr (?!)
     if !  2>&1 dnsmasq --test | grep -q "dnsmasq: syntax check OK."
     then
+        echo " "
         echo "dnsmasq configuration failed. Please check ${dnsmasq_conf_path} and compare with ${dnsmasq_conf_path}.orig"
+        echo " "
+        sleep 2
+        echo "File ${dnsmasq_conf_path}: "
+        echo " "
+        cat ${dnsmasq_conf_path}
+        echo " "
+        echo "File ${dnsmasq_conf_path}.orig: "
+        echo " "
+        cat ${dnsmasq_conf_path}.orig
+        echo " "
+        echo " "
+        sleep 2
+        diff ${dnsmasq_conf_path} ${dnsmasq_conf_path}.orig || true
+        echo " "
+        echo " "
+        sleep 10
+        # return 1
     else
         echo "dnsmasq is ok with configuration changes."
     fi
+    echo " "
 
     sudo chattr -i /etc/resolv.conf
 
@@ -568,9 +603,22 @@ function startup_openshift_cluster() {
     echo "oc cluster up ..."
     oc cluster up --base-dir="${cluster_dir}" --insecure-skip-tls-verify=true --routing-suffix "ocp.odsbox.lan" --public-hostname "ocp.odsbox.lan"
     # Only if something fails, please... --loglevel=5 --server-loglevel=5
+    if [ 0 -ne $? ]; then
+        echo "ERROR: Could not start oc cluster (oc cluster up)"
+        echo " "
+        exit 1
+    fi
 
+    echo " "
     echo "Log into oc cluster with system:admin"
     oc login -u system:admin
+    if [ 0 -ne $? ]; then
+        echo "ERROR: Could not log into cluster with system:admin"
+        echo " "
+        exit 1
+    fi
+
+    wait_until_ocp_is_up || exit 1
 }
 
 #######################################
@@ -690,14 +738,53 @@ function print_system_setup() {
 ######
 function atlassian_stack_reset() {
 
-    echo "atlassian_stack_reset: "
-    echo "IMPORTANT: remove from /etc/hosts lines with references to jira and bitbucket before run this method"
+    echo " "
+    echo "atlassian_stack_reset: this functionality removes everything saved in mysql for jira, bitbucket and crowd,"
+    echo "atlassian_stack_reset: and reloads the basic information they need to work."
+    echo "atlassian_stack_reset: IMPORTANT: Before running this method it is recommended to remove from /etc/hosts "
+    echo "                                  all lines with references to mysql, jira, bitbucket and crowd "
+    echo " "
+    read -p "continue? y/n " yn
+    if [ "y" != "$yn" ] && [ "Y" != "$yn" ]; then
+        echo "Aborted by user request."
+        exit 0
+    fi
 
-    docker ps -a | grep -i "\(jira\|atlass\|bitbucket\)" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
-	do
-		docker stop $container_id
-		docker rm $container_id
-	done
+    # Previously filtering by \(jira\|atlass\|bitbucket\)
+    # for container_name in ${atlassian_mysql_container_name} ;
+    # do
+    #    docker ps -a | grep -i "${container_name}"
+    #    docker ps -a | grep -i "${container_name}" | sed 's@[[:space:]]\+@ @g' | cut -d' ' -f1 | while read -r container_id ;
+    #    do
+    #        docker stop $container_id
+    #        docker rm $container_id
+    #    done
+    # done
+
+    docker container stop "${atlassian_bitbucket_container_name}" || echo "Not found docker container ${atlassian_bitbucket_container_name}"
+    docker container stop "${atlassian_jira_container_name}" || echo "Not found docker container ${atlassian_jira_container_name}"
+    docker container stop "${atlassian_crowd_container_name}" || echo "Not found docker container ${atlassian_crowd_container_name}"
+    docker container stop "${atlassian_mysql_container_name}" || echo "Not found docker container ${atlassian_mysql_container_name}"
+
+    docker container rm "${atlassian_bitbucket_container_name}" || echo "Not found docker container ${atlassian_bitbucket_container_name}"
+    docker container rm "${atlassian_jira_container_name}" || echo "Not found docker container ${atlassian_jira_container_name}"
+    docker container rm "${atlassian_crowd_container_name}" || echo "Not found docker container ${atlassian_crowd_container_name}"
+    docker container rm "${atlassian_mysql_container_name}" || echo "Not found docker container ${atlassian_mysql_container_name}"
+
+    docker volume rm odsCrowdVolume || echo "Not found docker volume odsCrowdVolume "
+    rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data ||
+        sudo rm -fR $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data
+
+    if [ -d $HOME/jira_data ] || [ -d ${HOME}/bitbucket_data ] || [ -d ${HOME}/mysql_data ]; then
+        echo "Could NOT remove folders $HOME/jira_data ${HOME}/bitbucket_data ${HOME}/mysql_data "
+        exit 1
+    fi
+
+    echo " "
+    echo "Now regenerating all pods needed for atlassian stack... "
+    echo " "
+
+    prepare_atlassian_stack
 
     startup_and_follow_atlassian_mysql
 
@@ -898,24 +985,48 @@ function fix_atlassian_mysql_loaded_data_checks() {
 #######################################
 function startup_and_follow_atlassian_mysql() {
     startup_atlassian_mysql
-    echo -n "Waiting for mysqld to become available"
-    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name})" == 'healthy' ]]
+    follow_atlassian_mysql
+}
+
+follow_atlassian_mysql() {
+    local retryMaxIn=${1:-120}
+    follow_container_health_status ${atlassian_mysql_container_name} ${retryMaxIn}
+}
+
+follow_container_health_status() {
+    local container_name=${1}
+    local retryMaxIn=${2:-120}
+    local retryMax=$((retryMaxIn))
+    local retryNum=0
+
+    echo "[STATUS CHECK] Testing if service in container ${container_name} is available (or waiting for it). Max retries: ${retryMax} "
+    echo -n "Working..."
+    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${container_name})" == 'healthy' ]]
     do
+	    let retryNum+=1
+        if [ ${retryMax} -le ${retryNum} ]; then
+            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached looking for container ${container_name} to be ready: $retryNum / ${retryMax}"
+            sleep 1
+            return 1
+        fi
+
         echo -n "."
         sleep 1
     done
-    echo "mysqld up and running."
+    echo " "
+    echo "[STATUS CHECK] Service is available (healthy) in container ${container_name}"
+    echo " "
+    return 0
 }
 
 function startup_and_follow_bitbucket() {
     startup_atlassian_bitbucket
-    echo -n "Waiting for bitbucket to become available"
-    until [[ "$(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name})" == 'healthy' ]]
-    do
-        echo -n "."
-        sleep 1
-    done
-    echo "bitbucket up and running."
+    follow_bitbucket
+}
+
+function follow_bitbucket() {
+    local retryMaxIn=${1:-120}
+    follow_container_health_status ${atlassian_bitbucket_container_name} ${retryMaxIn}
 }
 
 function startup_and_follow_jira() {
@@ -1044,6 +1155,74 @@ function configure_jira2crowd() {
         --insecure --silent -o /dev/null
     echo "Synced Jira directory with Crowd."
     rm "${cookie_jar_path}"
+}
+
+# Not working as expected. To be removed.
+function remove_jira_just_upgraded_message() {
+    FILES_PATH="${HOME}/tmp/remove_jira_just_upgraded_message"
+    rm -frv ${FILES_PATH}
+    mkdir -pv ${FILES_PATH}
+
+    local cookie_jar_path="${FILES_PATH}/jira_cookie_jar.txt"
+    local errors_file="${FILES_PATH}/errors.txt"
+    local headers_file="${FILES_PATH}/headers.txt"
+    rm -fv ${errors_file}
+
+    local jira_login_reply="${FILES_PATH}/q_jira_login_1.html"
+    rm -fv ${jira_login_reply}
+    echo "remove_jira_just_upgraded_message: Login to Jira: step 1"
+    curl -sSL --insecure 'http://172.17.0.1:18080/login.jsp' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
+        --compressed \
+        --output ${jira_login_reply} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in login step 2" | tee -a ${errors_file}
+
+    echo "remove_jira_just_upgraded_message: Login to Jira: step 2"
+    local jira_login_page_fn="${FILES_PATH}/q_jira_login_2.html"
+    rm -fv ${jira_login_page_fn}
+    curl -sSL --insecure --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+            'http://172.17.0.1:18080/' -u "openshift:openshift" \
+            --output ${jira_login_page_fn} --dump-header ${headers_file} --stderr ${errors_file} \
+            || echo "Error in login step 2" | tee -a ${errors_file}
+
+    echo "remove_jira_just_upgraded_message: PostUpgradeLandingPage"
+    local jira_postUpgradeLandingPage="${FILES_PATH}/q_jira_postUpgradeLandingPage.html"
+    rm -fv ${jira_postUpgradeLandingPage}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/PostUpgradeLandingPage.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_postUpgradeLandingPage} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_postUpgradeLandingPage" | tee -a ${errors_file}
+        # | pup --color
+
+    echo "remove_jira_just_upgraded_message: Check 1."
+    local jira_check1="${FILES_PATH}/q_jira_check1.html"
+    rm -fv ${jira_check1}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/WelcomeToJIRA.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_check1} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_check1" | tee -a ${errors_file}
+        # | pup --color
+
+    echo "remove_jira_just_upgraded_message: Check 2."
+    local jira_check2="${FILES_PATH}/q_jira_check2.html"
+    rm -fv ${jira_check2}
+    curl -sSL --insecure 'http://172.17.0.1:18080/secure/BrowseProjects.jspa' \
+        -b "${cookie_jar_path}" \
+        -c "${cookie_jar_path}" \
+        --compressed \
+        --output ${jira_check2} --dump-header ${headers_file} --stderr ${errors_file} \
+        || echo "Error in jira_check2" | tee -a ${errors_file}
+        # | pup --color
+
+    echo " "
+    echo "DONE ?"
+    echo " "
 }
 
 #######################################
@@ -1365,46 +1544,82 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6'
 }
 
 function wait_until_atlassian_crowd_is_up() {
-    wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/"
+    local retryMax=${1:-20}
+    wait_until_http_svc_is_up "${atlassian_crowd_container_name}" "http://${atlassian_crowd_host}:${atlassian_crowd_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_bitbucket_is_up() {
-    wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/"
+    local retryMax=${1:-20}
+    wait_until_http_svc_is_up "${atlassian_bitbucket_container_name}" "http://${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}/" "${retryMax}"
 }
 
 function wait_until_atlassian_jira_is_up() {
-    wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/"
+    local retryMax=${1:-20}
+    wait_until_http_svc_is_up "${atlassian_jira_container_name}" "http://${atlassian_jira_host}:8080/" "${retryMax}"
 }
 
 function wait_until_ocp_is_up() {
-    wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/"
+    local retryMax=${1:-20}
+    wait_until_http_svc_is_up "ocp" "https://ocp.odsbox.lan:8443/" "${retryMax}"
 }
 
 function wait_until_http_svc_is_up() {
-    SVC_NAME="${1}"
-    SVC_HTTP_URL="${2}"
-    CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
-    CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local SVC_NAME="${1}"
+    local SVC_HTTP_URL="${2}"
+    local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
+    local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local retryMax=${3:-20}
+
+    wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
+    if [ 0 -ne $? ]; then
+        echo "[STATUS CHECK] ERROR: Service is down and we cannot live without it: ${SVC_NAME}"
+        return 1
+    fi
+    return 0
+}
+
+function wait_until_http_svc_is_up_advanced() {
+    local SVC_NAME="${1}"
+    local SVC_HTTP_URL="${2}"
+    local CURL_SVC_OUTPUT_FILE="${3}"
+    local CURL_SVC_HEADERS_FILE="${4}"
+    local retryMaxIn=${5:-20}
+    local retryMax=$((retryMaxIn))
 
     echo " "
 
     local isUp="false"
     local retryNum=0
-    local retryMax=100
+
+    if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+        echo "Removing files: rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+            echo "Removing files (with sudo): rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+            sudo rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        fi
+    fi
+
     while [ "true" != "${isUp}" ]; do
-        echo "Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
+        echo "[STATUS CHECK] Testing if service ${SVC_NAME} is up at \'${SVC_HTTP_URL}\'. Retry $retryNum / $retryMax "
         let retryNum+=1
         if [ ${retryMax} -le ${retryNum} ]; then
-            echo "Maximum amount of retries reached: $retryNum / $retryMax "
+            echo "[STATUS CHECK] WARNING: Maximum amount of retries reached: $retryNum / $retryMax "
             sleep 1
-            exit 1
+            return 1
         fi
         if [ 0 -ne ${retryNum} ]; then
             sleep 10
         fi
 
-        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE}
-        if ! curl --insecure -sSL --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
+        # Remove files from previous execution.
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
+            echo "[STATUS CHECK] WARNING: Could NOT remove files ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+        fi
+
+        if ! curl --insecure -sSL --retry-delay 2 --retry-max-time 20 --retry 10 --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
             echo "Curl replied != 0 for query to ${SVC_HTTP_URL} "
             echo "Checking if it was caused by a redirect... "
         fi
@@ -1417,6 +1632,9 @@ function wait_until_http_svc_is_up() {
 
         isUp="true"
     done
+
+    # Removes tmp files used for checking.
+    rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
 
     echo "Service ${SVC_NAME} is up at ${SVC_HTTP_URL}"
     echo " "
@@ -1600,6 +1818,8 @@ function restart_atlassian_mysql() {
     inspect_mysql_ip
     echo "New MySQL container got ip ${atlassian_mysql_ip}. Registering with dns svc..."
     register_dns "${atlassian_mysql_container_name}" "${atlassian_mysql_ip}"
+
+    follow_atlassian_mysql
 }
 
 #######################################
@@ -1838,7 +2058,8 @@ function create_configuration() {
     echo " "
     echo "Create the environment configuration and upload it to Bitbucket ods-configuration repository..."
     pwd
-    ods-setup/config.sh --verbose --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
+    # WARN: config.sh param '--verbose' activates bash set -x
+    ods-setup/config.sh --bitbucket "http://openshift:openshift@${atlassian_bitbucket_host}:${atlassian_bitbucket_port_internal}"
     pushd ../ods-configuration
     git init
     # keep ods-core.env.sample as a reference
@@ -1918,7 +2139,8 @@ function create_configuration() {
 function install_ods_project() {
     echo " "
     echo "Installing ods project..."
-    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --verbose --non-interactive
+    # WARN: setup-ods-project.sh param '--verbose' activates bash set -x
+    ods-setup/setup-ods-project.sh --namespace ods --reveal-secrets --non-interactive
 }
 
 #######################################
@@ -2286,15 +2508,22 @@ function run_smoke_tests() {
         ./tests/scripts/free-unused-resources.sh
     fi
 
-    # buying extra time for the quickstarter tests
-    restart_atlassian_suite
-    echo -n "Waiting for bitbucket to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_bitbucket_container_name}) == 'healthy' ]]
-    do
-        echo -n "."
-        sleep 1
-    done
-    echo "bitbucket up and running."
+    # The license for the atlassian suite expires in 3h.
+    # The following lines (2) buys extra time for the quickstarter tests.
+    # restart_atlassian_suite
+    # follow_bitbucket
+
+    # This is a better solution to the atlassian suite license expires problem:
+    if [ -x ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh ]; then
+        ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh --force-restart
+    else
+        echo " "
+        echo "ERROR: Could not find script ./ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh "
+        echo " "
+    fi
+
+    # Do not understand why this was here. Prefer to check instead:
+    check_ods_status
 
     sleep 5
     echo " "
@@ -2329,26 +2558,19 @@ function startup_ods() {
     # for machines derived from legacy images and login-shells that do not source .bashrc
     export GOPROXY="https://goproxy.io,direct"
     # for sonarqube
-    echo "Setting vm.max_map_count=262144"
+    echo "startup_ods: Setting vm.max_map_count=262144"
     sudo sysctl -w vm.max_map_count=262144
 
     setup_dnsmasq
 
     # restart and follow mysql
     restart_atlassian_mysql
-    printf "Waiting for mysqld to become available"
-    until [[ $(docker inspect --format '{{.State.Health.Status}}' ${atlassian_mysql_container_name}) == 'healthy' ]]
-    do
-        printf .
-        sleep 1
-    done
-    echo "mysqld up and running."
-
     restart_atlassian_suite
 
     local KUBEDNS_RESOLV_FILE
-    echo "setting kubedns in ${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
     KUBEDNS_RESOLV_FILE="${HOME}/openshift.local.clusterup/kubedns/resolv.conf"
+    echo "startup_ods: Setting ocp kube dns in file ${KUBEDNS_RESOLV_FILE}"
+    echo "             (adding a line with nameserver ${public_hostname})"
 
     local NEEDS_NEW_KUBEDNS_RESOLV_FILE
     NEEDS_NEW_KUBEDNS_RESOLV_FILE="false"
@@ -2369,29 +2591,43 @@ function startup_ods() {
         cp -vf /etc/resolv.conf ${KUBEDNS_RESOLV_FILE}
     fi
 
-    cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}-backup-$(date +%Y%m%d-%H%M%S)"
+    KUBEDNS_RESOLV_FILE_BACKUP="${KUBEDNS_RESOLV_FILE}-backup-$(date +%Y%m%d-%H%M%S-%N)"
+    rm -fv ${KUBEDNS_RESOLV_FILE_BACKUP} || true
+    cp -vf ${KUBEDNS_RESOLV_FILE} ${KUBEDNS_RESOLV_FILE_BACKUP}
     sed -i "s|^nameserver.*$|nameserver ${public_hostname}|" ${KUBEDNS_RESOLV_FILE}
-    rm -fv ${KUBEDNS_RESOLV_FILE}.tmp
+    rm -fv ${KUBEDNS_RESOLV_FILE}.tmp || true
     cp -vf ${KUBEDNS_RESOLV_FILE} "${KUBEDNS_RESOLV_FILE}.tmp"
-    cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${HOME}/openshift.local.clusterup/kubedns/resolv.conf
+    cat "${KUBEDNS_RESOLV_FILE}.tmp" | uniq > ${KUBEDNS_RESOLV_FILE}
 
-    if ! grep "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
+    if ! grep -q "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
     then
-        echo "ERROR: Could not update kubedns/resolv.conf ! (File ${HOME}/openshift.local.clusterup/kubedns/resolv.conf )"
-        return 1
+        echo "nameserver ${public_hostname}" >> ${KUBEDNS_RESOLV_FILE}
     fi
 
-    echo "Contents of file ${HOME}/openshift.local.clusterup/kubedns/resolv.conf: "
+    echo " "
+    echo "Contents of file ${KUBEDNS_RESOLV_FILE}: "
     cat "${KUBEDNS_RESOLV_FILE}"
     echo " "
 
+    if ! grep -q "nameserver ${public_hostname}" ${KUBEDNS_RESOLV_FILE}
+    then
+        echo "ERROR: Cannot find in ocp resolv.conf file the line: nameserver ${public_hostname} "
+        echo "ERROR: Could not update kubedns/resolv.conf ! (File ${KUBEDNS_RESOLV_FILE} )"
+        return 1
+    else
+        echo "startup_ods: Configured kube dns."
+        echo " "
+    fi
+
     # allow for OpenShifts to be resolved within OpenShift network
-    echo "set iptables"
-    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    echo "startup_ods: set iptables"
+    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT || true
 
     startup_openshift_cluster
 
-    wait_until_ocp_is_up
+    echo "startup_ods: SUCCESS."
+    echo " "
+    echo " "
 }
 
 function stop_ods() {
@@ -2401,6 +2637,107 @@ function stop_ods() {
     docker container stop "${atlassian_crowd_container_name}"
     echo "Stopping ods cluster"
     oc cluster down
+}
+
+function restart_ods() {
+    stop_ods
+
+    sudo systemctl stop docker.service || sudo systemctl status docker.service
+    sudo systemctl start docker.service || sudo systemctl status docker.service
+    sudo systemctl status docker.service
+
+    # Was in e2e tests repositories. Saved for future reference.
+    # sudo systemctl stop docker.socket
+    # sudo systemctl enable docker || true
+    # sudo systemctl start docker
+
+    if ! startup_ods ; then
+        echo "restart_ods: ERROR."
+        echo " "
+        return 1
+    fi
+    echo "restart_ods: SUCCESS."
+    echo " "
+}
+
+function check_ods_status() {
+    echo " "
+    echo " "
+    wait_until_ocp_is_up 10 || restart_ods
+    ## Better use restart_ods instead of startup_openshift_cluster
+
+    # SonarQube, Provisioning app, Nexus
+    check_pods_and_restart_if_necessary 5 10
+
+    # Atlassian suite
+    follow_atlassian_mysql "30" || restart_atlassian_mysql
+    wait_until_atlassian_crowd_is_up 10 || restart_atlassian_crowd
+    wait_until_atlassian_bitbucket_is_up 10 || restart_atlassian_bitbucket
+    wait_until_atlassian_jira_is_up 10 || restart_atlassian_jira
+
+    echo " "
+    echo "[STATUS CHECK] (check_ods_status) Result: SUCCESS"
+    echo " "
+}
+
+
+function check_pods_and_restart_if_necessary() {
+    local retryMaxIn=${1:-5}
+    local retryMaxHttpIn=${2:-10}
+
+    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    # https://jenkins-ods.ocp.odsbox.lan
+}
+
+function check_pod_and_restart_if_necessary() {
+
+    local SVC_NAME="${1}"
+    local SVC_POD_ID="${2}"
+    local SVC_HTTP_URL="${3}"
+    local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
+    local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local retryMaxIn=${4:-5}
+    local retryMax=$((retryMaxIn))
+    local retryMaxHttpIn=${5:-10}
+    local retVal=1
+
+    local retryNum=0
+    while [ 0 -ne ${retVal} ]; do
+
+	echo "[STATUS CHECK] Checking if pod in charge of service ${SVC_NAME} is up; stopping (so it restarts automatically) if not. Retry $retryNum / $retryMax "
+
+	let retryNum+=1
+        if [ ${retryMax} -le ${retryNum} ]; then
+            echo "[STATUS CHECK] ERROR: Maximum amount of retries reached: $retryNum / ${retryMax}"
+            echo "[STATUS CHECK] ERROR: We cannot live without service ${SVC_NAME}"
+            sleep 1
+            return 1
+        fi
+
+	    retVal=0
+        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" ${retryMaxHttpIn} || retVal=1
+
+        if [ 0 -ne ${retVal} ]; then
+            echo "[STATUS CHECK] WARNING: Stopping pod so it restarts automatically. Service: ${SVC_NAME} "
+	        local docker_process_killed="false"
+            docker ps -a | grep -v 'Exited .* ago' | grep -i "${SVC_POD_ID}" | cut -d ' ' -f 1 | while read -r containerId ;
+            do
+                echo "Stopping $containerId"
+                docker stop $containerId
+		        docker_process_killed="true"
+            done
+
+            if [ "false" == "$docker_process_killed" ]; then
+                echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
+                echo " "
+            fi
+        fi
+
+    done
+    return 0
+
 }
 
 function setup_aqua() {
