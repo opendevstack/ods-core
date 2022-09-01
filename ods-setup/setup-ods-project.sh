@@ -69,10 +69,6 @@ if ! oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccou
   exit 1
 fi
 
-# Allow Jenkins serviceaccount to label namespaces
-oc create clusterrole namespace-labeler --verb=patch --resource=namespace
-oc adm policy add-cluster-role-to-user namespace-labeler system:serviceaccount:${NAMESPACE}:jenkins
-
 # Create cd-user secret
 cd ${SCRIPT_DIR}/ocp-config/cd-user
 ${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE} ${REVEAL_SECRETS}
