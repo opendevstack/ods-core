@@ -1,0 +1,67 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": "",
+        "pub_key": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "eu-west-1",
+            "source_ami_filter": {
+                "filters": {
+                    "image-id": "{{user `ami_id`}}"
+                },
+                "owners": "275438041116"
+            },
+            "instance_type": "{{user `instance_type`}}",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "ami_name": "Base VM Setup {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}",
+            "run_tags": {
+                "Name": "Base VM Setup Packer Builder {{user `ods_branch` | clean_resource_name}} {{isotime | clean_resource_name}}"
+            },
+            "tags": {
+                "Name": "{{user `instance_type` | clean_resource_name}} {{user `name_tag` | clean_resource_name}}"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "{{user `pub_key`}}",
+            "destination": "~/tmp/odsbox.pub"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo 'Adding odsbox.pub to authorized keys'",
+                "mkdir -p ~/.ssh",
+                "chmod go-xrw ~/.ssh",
+                "mv ~/tmp/odsbox.pub ~/.ssh/odsbox.pub",
+                "touch ~/.ssh/authorized_keys",
+                "cat ~/.ssh/odsbox.pub >> ~/.ssh/authorized_keys",
+                "chmod go-xrw ~/.ssh/*",
+                "ls -lart ~/.ssh",
+                "echo '...done!'"
+            ]
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_less_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/scripts/bootstrap-base-oc-atlassian-vm.sh",
+            "execute_command": "{{ .Path }}  --branch {{user `ods_branch`}}"
+        },
+        {
+            "type": "shell",
+            "script": "ods-devenv/packer/pwd_sudo.sh",
+            "execute_command": "echo {{user `password`}} | sudo -S bash -c '{{ .Path }}'"
+        }
+    ]
+}

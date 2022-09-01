@@ -3,7 +3,7 @@ def buildBadge = addEmbeddableBadgeConfiguration(id: "odsbuild", status: "starte
 pipeline {
 
     environment {
-        ODS_BRANCH = "ods-devenv"
+        ODS_BRANCH = "feature/ods-devenv"
         JOB_NAME = "ods-build-ods-devenv-branch"
         BUILD_FOLDER = "${WORKSPACE_TMP}/${BUILD_NUMBER}"
         instance_type="m5ad.4xlarge"
