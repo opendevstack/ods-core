@@ -503,6 +503,11 @@ function install_packages_yum_utils_epel_release() {
 function setup_rdp() {
     install_packages_yum_utils_epel_release
 
+    if ! sudo yum list installed 2>&1 | grep -iq xrdp ; then
+        sudo yum -y install xrdp || true
+    else
+        echo "Not installing xrdp because it was installed before."
+    fi
     sudo systemctl start xrdp || sudo systemctl status xrdp || echo "Error starting xrdp service..."
     sudo netstat -antup | grep xrdp || echo "Error checking if xrdp ports are listening for connections..."
     sudo systemctl enable xrdp || echo "No need to enable xrdp service in systemctl. "
