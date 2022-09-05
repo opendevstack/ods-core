@@ -38,5 +38,6 @@ fi
 echo "JAVA_HOME: $JAVA_HOME"
 
 rm -fv /etc/profile.d/set-default-java.sh
-echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/set-default-java.sh
+echo "export JAVA_HOME=${JAVA_HOME}" >> /etc/profile.d/set-default-java.sh
+echo "export USE_JAVA_VERSION=java-11" >> /etc/profile.d/set-default-java.sh
 chmod +x /etc/profile.d/set-default-java.sh
