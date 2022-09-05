@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eu
 
+# Initialize JAVA_HOME if not set.
+JAVA_HOME=${JAVA_HOME:-""}
+
 if [ -f /etc/profile.d/set-default-java.sh ]; then
     source /etc/profile.d/set-default-java.sh
 else
