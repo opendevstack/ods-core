@@ -12,4 +12,8 @@ else
   echo "INFO: skip import"
 fi
 
+# Choose to use java 11 always 
+source use-j11.sh
+export USE_JAVA_VERSION=java-11
+
 /usr/local/bin/openshift-run-jnlp-client
