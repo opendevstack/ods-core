@@ -1064,6 +1064,7 @@ function configure_jira2crowd() {
     echo "Configure Jira against Crowd directory ..."
     # login to Jira
     curl -sS 'http://172.17.0.1:18080/login.jsp' \
+        --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data 'os_username=openshift&os_password=openshift&os_destination=&user_role=&atl_token=&login=Log+In' \
@@ -1077,7 +1078,8 @@ function configure_jira2crowd() {
     # docker logs --details jira || echo "Problem getting docker logs of jira container !! "
 
     login_page_fn="/tmp/login-page-`date +%Y%m%d_%H%M%S`.log"
-    curl -sS --insecure --location --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
+    curl -sS --insecure --location --connect-timeout 30 --verbose \
+            --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
             'http://172.17.0.1:18080/' -u "openshift:openshift" --output ${login_page_fn}
     if [ ! -f ${login_page_fn} ]; then
         echo "WARNING: File with login page (${login_page_fn}) is EMPTY or does NOT exist !!! "
@@ -1088,6 +1090,7 @@ function configure_jira2crowd() {
     echo "Retrieving Jira xsrf atl_token to file ${atl_token_fn} ..."
     curl -sS --connect-timeout 30 --max-time 120 --retry-delay 5 --retry 5 --verbose \
             'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/new/' \
+            --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
             -u "openshift:openshift" \
             -b "${cookie_jar_path}" \
             -c "${cookie_jar_path}" \
@@ -1125,6 +1128,7 @@ function configure_jira2crowd() {
 
     # WebSudo authentication - sign in as admin
     curl -sS 'http://172.17.0.1:18080/secure/admin/WebSudoAuthenticate.jspa' \
+        --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "webSudoPassword=openshift&webSudoDestination=%2Fsecure%2Fadmin%2FViewApplicationProperties.jspa&webSudoIsPost=false&atl_token=${atl_token}" \
@@ -1137,6 +1141,7 @@ function configure_jira2crowd() {
     echo "Assuming crowd service listens at ${crowd_service_name}:8095"
     local crowd_directory_id
     crowd_directory_id=$(curl -sS 'http://172.17.0.1:18080/plugins/servlet/embedded-crowd/configure/crowd/' \
+        --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --data "name=Crowd+Server&crowdServerUrl=http%3A%2F%2F${crowd_service_name}%3A8095%2Fcrowd%2F&applicationName=jira&applicationPassword=openshift&httpTimeout=&httpMaxConnections=&httpProxyHost=&httpProxyPort=&httpProxyUsername=&httpProxyPassword=&crowdPermissionOption=READ_ONLY&_nestedGroupsEnabled=visible&incrementalSyncEnabled=true&_incrementalSyncEnabled=visible&groupSyncOnAuthMode=ALWAYS&crowdServerSynchroniseIntervalInMin=60&save=Save+and+Test&atl_token=${atl_token}&directoryId=0" \
@@ -1149,6 +1154,7 @@ function configure_jira2crowd() {
 
     # sync bitbucket with crowd directory
     curl -sS "http://172.17.0.1:18080/plugins/servlet/embedded-crowd/directories/sync?directoryId=${crowd_directory_id}&atl_token=${atl_token}" \
+        --retry 10 --retry-delay 5 --retry-max-time 60 --max-time 120 \
         -b "${cookie_jar_path}" \
         -c "${cookie_jar_path}" \
         --compressed \

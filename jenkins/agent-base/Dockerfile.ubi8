@@ -8,8 +8,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     HELM_VERSION=3.5.3 \
     HELM_PLUGIN_DIFF_VERSION=3.3.2 \
     HELM_PLUGIN_SECRETS_VERSION=3.3.5 \
-    GIT_LFS_VERSION=2.6.1 \
-    JAVA_HOME=/usr/lib/jvm/jre
+    GIT_LFS_VERSION=2.6.1
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -23,6 +22,20 @@ RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
     && yum -y update \
     && yum clean all \
     && rm -rf /var/cache/yum/*
+
+#
+# WARNING: We do not install java 8 nor java 11 in this image because they are already intalled in it.
+#
+
+# Copy use java scripts.
+COPY use-j*.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/use-j*.sh && \
+    chmod ugo+s /usr/local/bin/use-j*.sh && \
+    sh -c 'chmod ugo+s $(which alternatives)' && \
+    ls -la /usr/local/bin/use-j*.sh && \
+    echo "--- STARTS JDK 11 TESTS ---" && \
+    use-j11.sh && \
+    echo "--- ENDS JDK 11 TESTS ---"
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 RUN import_certs.sh
@@ -114,4 +127,3 @@ RUN mkdir -p /home/jenkins/.config && chmod -R g+w /home/jenkins/.config \
     && mkdir -p /home/jenkins/.cache && chmod -R g+w /home/jenkins/.cache \
     && mkdir -p /home/jenkins/.sonar && chmod -R g+w /home/jenkins/.sonar
 
-RUN chmod g+w $JAVA_HOME/lib/security/cacerts

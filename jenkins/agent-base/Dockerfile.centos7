@@ -20,10 +20,21 @@ ENV JAVA_HOME=/usr/lib/jvm/jre
 
 RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
     && yum -y install openssl \
-    && yum -y install java-1.8.0-openjdk-devel.x86_64 \
+    && yum -y install java-1.8.0-openjdk-devel.x86_64 java-11-openjdk-devel \
     && yum -y update \
     && yum clean all \
-    && rm -rf /var/cache/yum/* 
+    && rm -rf /var/cache/yum/*
+
+# Copy use java scripts.
+COPY use-j*.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/use-j*.sh && \
+    chmod ugo+s /usr/local/bin/use-j*.sh && \
+    sh -c 'chmod ugo+s $(which alternatives)' && \
+    ls -la /usr/local/bin/use-j*.sh && \
+    echo "--- STARTS JDK 11 TESTS ---" && \
+    use-j11.sh && \
+    echo "--- ENDS JDK 11 TESTS ---"
+
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 RUN import_certs.sh
@@ -116,4 +127,3 @@ RUN mkdir -p /home/jenkins/.config && chmod -R g+w /home/jenkins/.config \
     && mkdir -p /home/jenkins/.cache && chmod -R g+w /home/jenkins/.cache \
     && mkdir -p /home/jenkins/.sonar && chmod -R g+w /home/jenkins/.sonar
 
-RUN chmod g+w $JAVA_HOME/lib/security/cacerts

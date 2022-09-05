@@ -28,6 +28,7 @@
 - Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
 - Update Aqua CLI version ([#1173](https://github.com/opendevstack/ods-core/pull/1173))
 - Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
+- Fixes Python agent does not seems to have java in the path ([#685](https://github.com/opendevstack/ods-quickstarters/issues/685)) 
 
 ### Added
 
