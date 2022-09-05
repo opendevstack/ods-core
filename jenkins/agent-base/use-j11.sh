@@ -36,3 +36,7 @@ else
   msg_and_exit "Cannot configure JAVA_HOME environment variable to ${JAVA_HOME}"
 fi
 echo "JAVA_HOME: $JAVA_HOME"
+
+rm -fv /etc/profile.d/set-default-java.sh
+echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/set-default-java.sh
+chmod +x /etc/profile.d/set-default-java.sh

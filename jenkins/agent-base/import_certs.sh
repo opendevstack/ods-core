@@ -1,6 +1,12 @@
 #!/bin/bash
 set -eu
 
+if [ -f /etc/profile.d/set-default-java.sh ]; then
+    source /etc/profile.d/set-default-java.sh
+else
+    echo "WARNING: Not setting default java version."
+fi
+
 if [[ ! -z ${APP_DNS:=""} ]]; then
     echo "Setting up certificates from APP_DNS=${APP_DNS} ..."; \
 
