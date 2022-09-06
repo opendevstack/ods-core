@@ -5,7 +5,9 @@ set -ue
 JAVA_HOME=${JAVA_HOME:-""}
 
 if [ -f /etc/profile.d/set-default-java.sh ]; then
+    set -x
     source /etc/profile.d/set-default-java.sh
+    set +x
 else
     echo "WARNING: Not setting default java version."
 fi
