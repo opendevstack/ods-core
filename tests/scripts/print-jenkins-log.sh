@@ -28,10 +28,14 @@ curl --insecure -sSL --header "Authorization: Bearer ${TOKEN}" ${LOG_URL} > ${JE
 # | xargs -n 1 echo "${BUILD_NAME}: " || \
 # echo "Error retrieving jenkins logs of job run in ${BUILD_NAME} with curl."
 
+NO_JOB_LOGS="true"
 echo " "
 echo " "
 # Appends current ${BUILD_NAME} to each log line. Improves readability.
 while read -r line; do
+    if [ ! -z "$line" ] && [ "" != "${line}" ]; then
+        NO_JOB_LOGS="false"
+    fi
     echo -e "${BUILD_NAME}: $line ";
 done < ${JENKINS_LOG_FILE}
 
@@ -42,8 +46,8 @@ if [ -f ${JENKINS_SERVER_LOG_FILE} ]; then
     rm -fv ${JENKINS_SERVER_LOG_FILE} || echo "Problem removing existing log file (${JENKINS_SERVER_LOG_FILE})."
 fi
 
-JENKINS_SERVER_PROTOCOL="$(echo \"${LOG_URL}\" | cut -d "/" -f 1)"
-JENKINS_SERVER_HOSTNAME="$(echo \"${LOG_URL}\" | cut -d "/" -f 3)"
+JENKINS_SERVER_PROTOCOL="$(echo ${LOG_URL} | cut -d "/" -f 1)"
+JENKINS_SERVER_HOSTNAME="$(echo ${LOG_URL} | cut -d "/" -f 3)"
 JENKINS_SERVER_LOGS_URL_TAIL="/manage/log/all"
 JENKINS_SERVER_LOGS_URL="${JENKINS_SERVER_PROTOCOL}//${JENKINS_SERVER_HOSTNAME}${JENKINS_SERVER_LOGS_URL_TAIL}"
 
@@ -56,7 +60,11 @@ echo " "
 
 echo "** JENKINS LOGS (JNK_LOGS) AFTER PROBLEM BUILDING JOB ${BUILD_NAME}: "
 echo " "
+NO_SERVER_LOGS="true"
 while read -r line; do
+    if [ ! -z "$line" ] && [ "" != "${line}" ]; then
+        NO_SERVER_LOGS="false"
+    fi
     echo "JNK_LOGS: $line ";
 done < ${JENKINS_SERVER_LOG_FILE}
 
@@ -66,3 +74,19 @@ echo " "
 echo " "
 echo " "
 sleep 10
+
+echo " "
+echo "NO_JOB_LOGS=${NO_JOB_LOGS}"
+echo "NO_SERVER_LOGS=${NO_SERVER_LOGS}"
+echo " "
+if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ]; then
+    echo " "
+    echo "A problem was found while retrieving Jenkins job/server logs."
+    echo "Since we might need to enter the box and see what went wrong, this pipeline will wait for manual intervention. "
+    echo "Enjoy..."
+    echo "sleep 72000 ( 20h )"
+    sleep 72000
+    echo " "
+    echo " "
+    echo " "
+fi
