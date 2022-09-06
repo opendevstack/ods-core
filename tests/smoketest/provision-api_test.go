@@ -59,8 +59,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		values["ODS_NAMESPACE"], exJob.FullBuildName,
 	)
 	if err != nil {
-	    time.Sleep(10 * time.Second)
-	    fmt.Printf("Error retrieving jenkins build stages for build: %s\n", projectName)
+		time.Sleep(10 * time.Second)
+		fmt.Printf("Error retrieving jenkins build stages for build: %s\n", projectName)
 		t.Fatal(err)
 	}
 	fmt.Printf("Jenkins stages: \n'%s'\n", stages)
