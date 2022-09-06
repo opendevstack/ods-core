@@ -93,6 +93,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 
 	fmt.Printf("Getting stages for build: %s in project: %s\n",
 		buildName, jenkinsNamespace)
+	fmt.Printf("To get more info, use print-jenkins-log.sh %s %s \n", jenkinsNamespace, buildName)
 
 	config, err := GetOCClient()
 	if err != nil {
@@ -125,8 +126,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				}
 			}
 		} else {
-			fmt.Printf("Waiting (%d/%d) for build to complete: %s. Current status: %s\n", count, max, buildName, build.Status.Phase)
-			fmt.Printf("To get more info, use print-jenkins-log.sh %s %s \n", jenkinsNamespace, buildName)
+			fmt.Printf("Waiting for build of %s to complete (%d/%d). Current status: %s\n", buildName, count, max, build.Status.Phase)
 		}
 		count++
 	}
