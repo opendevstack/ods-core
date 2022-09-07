@@ -49,8 +49,8 @@ echo "${THIS_SCRIPT}: Running tests (${QUICKSTARTER}). Output will take a while 
 echo " "
 
 # Should fix error " panic: test timed out after "
-echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 5h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER}"
-go test -v -count=1 -timeout 5h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
+echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 10h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER}"
+go test -v -count=1 -timeout 10h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
 exitcode="${PIPESTATUS[0]}"
 if [ -f test-quickstarter-results.txt ]; then
     go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml

@@ -24,8 +24,8 @@ fi
 
 sleep 5
 echo " "
-echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 140m github.com/opendevstack/ods-core/tests/smoketest "
-go test -v -count=1 -timeout 140m github.com/opendevstack/ods-core/tests/smoketest | tee test-smoketest-results.txt 2>&1
+echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 10h github.com/opendevstack/ods-core/tests/smoketest "
+go test -v -count=1 -timeout 10h github.com/opendevstack/ods-core/tests/smoketest | tee test-smoketest-results.txt 2>&1
 exit_code=$?
 echo "${THIS_SCRIPT}: return value: ${exit_code}"
 
