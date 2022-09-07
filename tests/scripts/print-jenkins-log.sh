@@ -75,11 +75,18 @@ echo " "
 echo " "
 sleep 10
 
+BAD_SERVER_LOGS="false"
+if grep -q 'Still waiting to schedule task' ${JENKINS_LOG_FILE} ; then
+    if grep -q 'HTTP ERROR' ${JENKINS_SERVER_LOG_FILE} ; then
+        BAD_SERVER_LOGS="true"
+    fi
+fi
+
 echo " "
 echo "NO_JOB_LOGS=${NO_JOB_LOGS}"
 echo "NO_SERVER_LOGS=${NO_SERVER_LOGS}"
 echo " "
-if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ]; then
+if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ] || [ "true" == "${BAD_SERVER_LOGS}" ]; then
     echo " "
     echo "A problem was found while retrieving Jenkins job/server logs."
     echo "Since we might need to enter the box and see what went wrong, this pipeline will wait for manual intervention. "
