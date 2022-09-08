@@ -5,6 +5,7 @@ set -o pipefail
 ME="$(basename $0)"
 JENKINS_LOG_FILE="jenkins-downloaded-log.txt"
 JENKINS_SERVER_LOG_FILE="jenkins-server-log.txt"
+WAIT_FOR_MANUAL_INTERVENTION="true"
 
 echo " "
 echo " "
@@ -45,6 +46,10 @@ sleep 5
 if [ -f ${JENKINS_SERVER_LOG_FILE} ]; then
     rm -fv ${JENKINS_SERVER_LOG_FILE} || echo "Problem removing existing log file (${JENKINS_SERVER_LOG_FILE})."
 fi
+
+# Does not work :-(
+# oc login -u developer -p anypwd
+# TOKEN=$(oc -n ${PROJECT} get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' | xargs -n 1 oc -n ${PROJECT} get secret --template='{{ if .data.token }}{{ .data.token }}{{end}}' | head -n 1 | base64 -d -)
 
 JENKINS_SERVER_PROTOCOL="$(echo ${LOG_URL} | cut -d "/" -f 1)"
 JENKINS_SERVER_HOSTNAME="$(echo ${LOG_URL} | cut -d "/" -f 3)"
@@ -91,9 +96,14 @@ if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ] || [ "tru
     echo "A problem was found while retrieving Jenkins job/server logs."
     echo "Since we might need to enter the box and see what went wrong, this pipeline will wait for manual intervention. "
     echo "Enjoy..."
+    WAIT_FOR_MANUAL_INTERVENTION="true"
+fi
+
+if [ "true" == "${WAIT_FOR_MANUAL_INTERVENTION}" ]; then
+    echo " "
+    echo "WAITING FOR MANUAL INTERVENTION ( WAIT_FOR_MANUAL_INTERVENTION = true ) "
     echo "sleep 72000 ( 20h )"
+    echo " "
+    echo " "
     sleep 72000
-    echo " "
-    echo " "
-    echo " "
 fi
