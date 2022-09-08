@@ -8,7 +8,10 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     HELM_VERSION=3.5.3 \
     HELM_PLUGIN_DIFF_VERSION=3.3.2 \
     HELM_PLUGIN_SECRETS_VERSION=3.3.5 \
-    GIT_LFS_VERSION=2.6.1
+    GIT_LFS_VERSION=2.6.1 \
+    JAVA_TOOL_OPTIONS=-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled \
+                      -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions \
+                      -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -113,7 +116,14 @@ COPY set_java_proxy.sh /tmp/set_java_proxy.sh
 RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 
 # Customize entrypoint.
-RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client
+RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client \
+    && sed -i 's|\#\!/bin/bash|\#\!/bin/bash -x|g' /usr/local/bin/openshift-run-jnlp-client \
+    && sed -i "s|^\s*JAVA_TOOL_OPTIONS\s*=.*|echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
+        /usr/local/bin/openshift-run-jnlp-client \
+    && sed -i "s|^\s*export\s*JAVA_TOOL_OPTIONS.*|echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
+        /usr/local/bin/openshift-run-jnlp-client \
+    && head -n 10 /usr/local/bin/openshift-run-jnlp-client \
+    && grep -i 'JAVA_TOOL_OPTIONS' /usr/local/bin/openshift-run-jnlp-client
 COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 
 # Add skopeo.
