@@ -116,12 +116,13 @@ RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 # Customize entrypoint.
 RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client \
     && sed -i 's|\#\!/bin/bash|\#\!/bin/bash -x|g' /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i "s|^\s*JAVA_TOOL_OPTIONS\s*=.*|echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
+    && sed -i "s|^\s*JAVA_TOOL_OPTIONS\s*=.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
         /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i "s|^\s*export\s*JAVA_TOOL_OPTIONS.*|echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
+    && sed -i "s|^\s*export\s*JAVA_TOOL_OPTIONS.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
         /usr/local/bin/openshift-run-jnlp-client \
-    && head -n 10 /usr/local/bin/openshift-run-jnlp-client \
-    && grep -i 'JAVA_TOOL_OPTIONS' /usr/local/bin/openshift-run-jnlp-client
+    && sed 's|^\(\s*\)JAVA_GC_OPTS\s*=.*|\1JAVA_GC_OPTS=|g' /usr/local/bin/openshift-run-jnlp-client \
+    && grep -B 3 -A 3 -i '\(bash\|JAVA_TOOL_OPTIONS\|JAVA_GC_OPTS\)' /usr/local/bin/openshift-run-jnlp-client
+
 COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 
 # Add skopeo.
