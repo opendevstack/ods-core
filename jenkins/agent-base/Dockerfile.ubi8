@@ -9,7 +9,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     HELM_PLUGIN_DIFF_VERSION=3.3.2 \
     HELM_PLUGIN_SECRETS_VERSION=3.3.5 \
     GIT_LFS_VERSION=2.6.1 \
-    JAVA_TOOL_OPTIONS=-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true
+    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true"
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
