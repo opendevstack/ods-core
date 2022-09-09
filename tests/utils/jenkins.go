@@ -149,13 +149,18 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}
 	}
 
+	buildSeemsToBeCompleteStr := "false"
+	if buildSeemsToBeComplete {
+		buildSeemsToBeCompleteStr := "true"
+	}
+
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-log.sh",
 		[]string{
 			jenkinsNamespace,
 			buildName,
-			buildSeemsToBeComplete,
+			buildSeemsToBeCompleteStr,
 		}, []string{})
 
 	if err != nil {
