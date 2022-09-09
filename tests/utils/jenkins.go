@@ -131,11 +131,11 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		count++
 	}
 
-	buildSeemsToBeComplete := true
+	buildSeemsToBeComplete := "true"
 	// in case the the build was sort of never really started - get the jenkins pod log, maybe there
 	// is a plugin / sync problem?
 	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning {
-		buildSeemsToBeComplete := false
+		buildSeemsToBeComplete := "false"
 		// get the jenkins pod log
 		stdoutJPod, stderrJPod, errJPod := RunScriptFromBaseDir(
 			"tests/scripts/print-jenkins-pod-log.sh",
@@ -149,11 +149,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}
 	}
 
-	buildSeemsToBeCompleteStr := "false"
-	if buildSeemsToBeComplete {
-		buildSeemsToBeCompleteStr := "true"
-	}
-	fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeCompleteStr)
+	fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeComplete)
 
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
@@ -161,7 +157,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		[]string{
 			jenkinsNamespace,
 			buildName,
-			buildSeemsToBeCompleteStr,
+			buildSeemsToBeComplete,
 		}, []string{})
 
 	if err != nil {
