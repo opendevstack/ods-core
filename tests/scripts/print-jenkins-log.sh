@@ -5,13 +5,16 @@ set -o pipefail
 ME="$(basename $0)"
 JENKINS_LOG_FILE="jenkins-downloaded-log.txt"
 JENKINS_SERVER_LOG_FILE="jenkins-server-log.txt"
-WAIT_FOR_MANUAL_INTERVENTION="true"
+WAIT_FOR_MANUAL_INTERVENTION="false"
 
 echo " "
 echo " "
 echo " "
 PROJECT=$1
 BUILD_NAME=$2
+BUILD_SEEMS_TO_BE_COMPLETE=${3:-"false"}
+echo "${ME}: Project: ${PROJECT} BuildName: ${BUILD_NAME} BuildSeemsToBeComplete: ${BUILD_SEEMS_TO_BE_COMPLETE} "
+echo " "
 LOG_URL=$(oc -n ${PROJECT} get build ${BUILD_NAME} -o jsonpath='{.metadata.annotations.openshift\.io/jenkins-log-url}')
 echo " "
 echo "${ME}: Jenkins log url: ${LOG_URL}"
@@ -91,7 +94,8 @@ echo " "
 echo "NO_JOB_LOGS=${NO_JOB_LOGS}"
 echo "NO_SERVER_LOGS=${NO_SERVER_LOGS}"
 echo " "
-if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ] || [ "true" == "${BAD_SERVER_LOGS}" ]; then
+if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${NO_SERVER_LOGS}" ] ||
+    [ "true" == "${BAD_SERVER_LOGS}" ] || [ "true" != "${BUILD_SEEMS_TO_BE_COMPLETE}" ]; then
     echo " "
     echo "A problem was found while retrieving Jenkins job/server logs."
     echo "Since we might need to enter the box and see what went wrong, this pipeline will wait for manual intervention. "
