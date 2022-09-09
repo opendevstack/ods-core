@@ -149,7 +149,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}
 	}
 
-    fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeComplete)
+	fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeComplete)
 
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
