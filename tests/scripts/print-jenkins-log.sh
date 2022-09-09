@@ -15,6 +15,7 @@ BUILD_NAME=$2
 BUILD_SEEMS_TO_BE_COMPLETE=${3:-"false"}
 echo "${ME}: Project: ${PROJECT} BuildName: ${BUILD_NAME} BuildSeemsToBeComplete: ${BUILD_SEEMS_TO_BE_COMPLETE} "
 echo " "
+
 LOG_URL=$(oc -n ${PROJECT} get build ${BUILD_NAME} -o jsonpath='{.metadata.annotations.openshift\.io/jenkins-log-url}')
 echo " "
 echo "${ME}: Jenkins log url: ${LOG_URL}"
