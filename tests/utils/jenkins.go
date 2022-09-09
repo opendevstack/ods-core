@@ -131,11 +131,9 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		count++
 	}
 
-	buildSeemsToBeComplete := "true"
 	// in case the the build was sort of never really started - get the jenkins pod log, maybe there
 	// is a plugin / sync problem?
 	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning {
-		buildSeemsToBeComplete := "false"
 		// get the jenkins pod log
 		stdoutJPod, stderrJPod, errJPod := RunScriptFromBaseDir(
 			"tests/scripts/print-jenkins-pod-log.sh",
@@ -149,17 +147,13 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}
 	}
 
-	if buildSeemsToBeComplete == "true" || buildSeemsToBeComplete != "true" {
-		fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeComplete)
-	}
-
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
 		"tests/scripts/print-jenkins-log.sh",
 		[]string{
 			jenkinsNamespace,
 			buildName,
-			buildSeemsToBeComplete,
+			isBuildCompleteInPrinciple(build),
 		}, []string{})
 
 	if err != nil {
@@ -196,6 +190,16 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 	}
 
 	return stdout, nil
+}
+
+func isBuildCompleteInPrinciple(build) string {
+	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning {
+		fmt.Printf("Build seems to be complete ? : false \n")
+		return false
+	}
+
+	fmt.Printf("Build seems to be complete ? : true \n")
+	return true
 }
 
 func VerifyJenkinsRunAttachments(projectName string, buildName string, artifactsToVerify []string) error {
