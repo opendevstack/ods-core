@@ -174,7 +174,18 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 	}
 
 	// print in any case, otherwise when err != nil no logs are shown
-	fmt.Printf("buildlog: %s\n%s", buildName, stdout)
+	fmt.Printf("[Jenkins buildlog]: buildName: %s\n%s", buildName, stdout)
+
+	problematicSubString := "Still waiting to schedule task"
+	exceptionProblematicSubString := "Finished: SUCCESS"
+	if len(stdout) > 0 && (strings.Contains(stdout, problematicSubString)) {
+		if !strings.Contains(stdout, exceptionProblematicSubString) {
+			fmt.Printf("Jenkins log contains problematic substring ( %s ) and "+
+				" it does not contain exception case string: ( %s ) \n", problematicSubString,
+				exceptionProblematicSubString)
+			errorGettingInfoNeeded = "true"
+		}
+	}
 
 	// get (executed) jenkins stages from run - the caller can compare against the golden record
 	stdout, stderr, err = RunScriptFromBaseDir(
@@ -187,6 +198,14 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 	if err != nil {
 		fmt.Printf("ERROR: Problem getting jenkins stages for: %s\rError: %s, %s, %s",
 			buildName, err, stdout, stderr)
+		errorGettingInfoNeeded = "true"
+	}
+
+	// print in any case, otherwise when err != nil no logs are shown
+	fmt.Printf("[get oc build status]: buildName: %s\n%s", buildName, stdout)
+
+	problematicSubString2 := "ERROR: Could not get oc build status named"
+	if len(stdout) > 0 && (strings.Contains(stdout, problematicSubString2)) {
 		errorGettingInfoNeeded = "true"
 	}
 

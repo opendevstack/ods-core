@@ -95,9 +95,9 @@ fi
 
 BAD_SERVER_LOGS="false"
 if grep -q 'Still waiting to schedule task' ${JENKINS_LOG_FILE} ; then
-#    if grep -q 'HTTP ERROR' ${JENKINS_SERVER_LOG_FILE} ; then
+    if ! grep -q 'Finished: SUCCESS' ${JENKINS_LOG_FILE} ; then
         BAD_SERVER_LOGS="true"
-#    fi
+    fi
 fi
 
 echo " "
@@ -106,8 +106,11 @@ echo "${ME}: NO_JOB_LOGS=${NO_JOB_LOGS}"
 echo "${ME}: BAD_SERVER_LOGS=${BAD_SERVER_LOGS}"
 echo " "
 if [ "true" == "${NO_JOB_LOGS}" ] || [ "true" == "${BAD_SERVER_LOGS}" ]; then
+    echo " "
     echo "${ME}: ERROR: Logs retrieved are not good enough."
-    exit 1
+    echo " "
+    # WARNING: If we exit 1, the whole process aborts !!!
+    # exit 1
 fi
 
 exit 0
