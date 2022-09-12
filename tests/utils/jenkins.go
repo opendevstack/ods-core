@@ -132,6 +132,8 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 	}
 
 	buildSeemsToBeComplete := "true"
+	errorGettingInfoNeeded := "false"
+
 	// in case the the build was sort of never really started - get the jenkins pod log, maybe there
 	// is a plugin / sync problem?
 	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning {
@@ -143,7 +145,10 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				jenkinsNamespace,
 			}, []string{})
 		if errJPod != nil {
-			fmt.Printf("Error getting jenkins pod logs: %s\nerr:%s", errJPod, stderrJPod)
+			fmt.Printf("Error getting jenkins pod logs using "+
+				"tests/scripts/print-jenkins-pod-log.sh: %s\nerr:%s",
+				errJPod, stderrJPod)
+			errorGettingInfoNeeded = "true"
 		} else {
 			fmt.Printf("Jenkins pod logs: \n%s \nerr:%s", stdoutJPod, stderrJPod)
 		}
@@ -161,24 +166,15 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}, []string{})
 
 	if err != nil {
-		return "", fmt.Errorf(
-			"Could not execute tests/scripts/print-jenkins-log.sh\n - err:%s\n - stderr:%s",
+		fmt.Printf("ERROR: Could not get Jenkins logs using "+
+			"tests/scripts/print-jenkins-log.sh\n - err:%s\n - stderr:%s",
 			err,
-			stderr,
-		)
+			stderr)
+		errorGettingInfoNeeded = "true"
 	}
 
 	// print in any case, otherwise when err != nil no logs are shown
 	fmt.Printf("buildlog: %s\n%s", buildName, stdout)
-
-	// still running, or we could not find it ...
-	if count >= max {
-		return "", fmt.Errorf(
-			"Timeout during build: %s\nStdOut: %s\nStdErr: %s",
-			buildName,
-			stdout,
-			stderr)
-	}
 
 	// get (executed) jenkins stages from run - the caller can compare against the golden record
 	stdout, stderr, err = RunScriptFromBaseDir(
@@ -189,8 +185,27 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}, []string{})
 
 	if err != nil {
-		return "", fmt.Errorf("Error getting jenkins stages for: %s\rError: %s, %s, %s",
+		fmt.Printf("ERROR: Problem getting jenkins stages for: %s\rError: %s, %s, %s",
 			buildName, err, stdout, stderr)
+		errorGettingInfoNeeded = "true"
+	}
+
+	// still running, or we could not find it ...
+	if count >= max {
+		return "", fmt.Errorf(
+			"Timeout during build: %s\nStdOut: %s\nStdErr: %s",
+			buildName,
+			stdout,
+			stderr)
+	}
+
+	if (errorGettingInfoNeeded == "true") || (buildSeemsToBeComplete == "false") {
+		if buildSeemsToBeComplete == "false" {
+			fmt.Printf("ERROR: Something went wrong. Look for the word ERROR above.")
+			fmt.Printf("ERROR: Sleeping for 20h to allow manual intervention.")
+			time.Sleep(20 * time.Hour)
+		}
+		return "", fmt.Errorf("ERROR: Something went wrong. Look for the word ERROR above.")
 	}
 
 	return stdout, nil
