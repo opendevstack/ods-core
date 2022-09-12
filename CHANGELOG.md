@@ -29,6 +29,7 @@
 - Update Aqua CLI version ([#1173](https://github.com/opendevstack/ods-core/pull/1173))
 - Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
 - Fixes Python agent does not seems to have java in the path ([#685](https://github.com/opendevstack/ods-quickstarters/issues/685)) 
+- Removes existing differences between jenkins agent base image in Centos 7 and UBI 8 ([#1181](https://github.com/opendevstack/ods-core/pull/1181))
 
 ### Added
 
