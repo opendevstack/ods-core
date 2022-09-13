@@ -2161,15 +2161,18 @@ function install_ods_project() {
 function setup_nexus() {
     echo "make install-nexus: / apply-nexus:"
     pushd nexus/ocp-config
-    tailor apply --namespace "${NAMESPACE}" bc,is --non-interactive --verbose
+    tailor apply --namespace "${NAMESPACE}" bc,is --non-interactive
+    # --verbose
     popd
 
     echo "start-nexus-build:"
-    ocp-scripts/start-and-follow-build.sh --namespace "${NAMESPACE}" --build-config nexus --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace "${NAMESPACE}" --build-config nexus
+    # --verbose
 
     echo "apply-nexus-deploy:"
     pushd nexus/ocp-config
-    tailor apply --namespace "${NAMESPACE}" --exclude bc,is --non-interactive --verbose
+    tailor apply --namespace "${NAMESPACE}" --exclude bc,is --non-interactive
+    # --verbose
     popd
 
     echo "make configure-nexus:"
@@ -2180,7 +2183,8 @@ function setup_nexus() {
     nexus_port=$(oc -n ods get route nexus -ojsonpath='{.spec.port.targetPort}')
     nexus_port=${nexus_port%-*} # truncate -tcp from 8081-tcp
 
-    ./configure.sh --namespace ods --nexus="${nexus_url}" --insecure --verbose --admin-password openshift
+    ./configure.sh --namespace ods --nexus="${nexus_url}" --insecure --admin-password openshift
+    # --verbose
     popd
 }
 
@@ -2198,11 +2202,13 @@ function setup_sonarqube() {
     sudo sysctl -w vm.max_map_count=262144
     echo "apply-sonarqube-build:"
     pushd sonarqube/ocp-config
-    tailor apply --namespace ${NAMESPACE} bc,is --non-interactive --verbose
+    tailor apply --namespace ${NAMESPACE} bc,is --non-interactive
+    # --verbose
     popd
 
     echo "start-sonarqube-build:"
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config sonarqube
+    # --verbose
     return_value=$?
     if [[ "${return_value}" != "0" ]]; then
         echo "start-sonarqube-build failed."
@@ -2211,7 +2217,8 @@ function setup_sonarqube() {
 
     echo "apply-sonarqube-deploy:"
     pushd sonarqube/ocp-config
-    tailor apply --namespace ${NAMESPACE} --exclude bc,is --non-interactive --verbose
+    tailor apply --namespace ${NAMESPACE} --exclude bc,is --non-interactive
+    # --verbose
     local sonarqube_url
     sonarqube_url=$(oc -n ${NAMESPACE} get route sonarqube --template 'http{{if .spec.tls}}s{{end}}://{{.spec.host}}')
     echo "Visit ${sonarqube_url}/setup to see if any update actions need to be taken."
@@ -2219,11 +2226,12 @@ function setup_sonarqube() {
 
     echo "configure-sonarqube:"
     pushd sonarqube
-    ./configure.sh --sonarqube="${sonarqube_url}" --verbose --insecure \
+    ./configure.sh --sonarqube="${sonarqube_url}" --insecure \
         --pipeline-user openshift \
         --pipeline-user-password openshift \
         --admin-password openshift \
         --write-to-config
+    # --verbose
     popd
 
     # retrieve sonar qube tokens from where configure.sh has put them
@@ -2244,7 +2252,11 @@ function setup_sonarqube() {
 #   None
 #######################################
 function setup_jenkins() {
-    echo "Setting up Jenkins"
+    echo " "
+    echo "**********************"
+    echo "* Setting up Jenkins *"
+    echo "**********************"
+    echo " "
     oc policy add-role-to-user edit -z jenkins -n ${NAMESPACE}
 
     echo "make apply-jenkins-build:"
@@ -2253,9 +2265,9 @@ function setup_jenkins() {
     popd
 
     echo "make start-jenkins-build:"
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose &
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-agent-base --verbose &
-    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose &
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-master --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-agent-base --verbose
+    ocp-scripts/start-and-follow-build.sh --namespace ${NAMESPACE} --build-config jenkins-webhook-proxy --verbose
 
     local fail_count=0
     for job in $(jobs -p)

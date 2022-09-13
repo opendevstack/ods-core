@@ -1,3 +1,4 @@
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.flow.*;
 
 // See comments in https://github.com/opendevstack/ods-core/pull/1161
@@ -11,8 +12,9 @@ for (FlowDurabilityHint maybeHint : FlowDurabilityHint.values()) {
 println("\nPrevious value: ")
 println(GlobalDefaultFlowDurabilityLevel.getDefaultDurabilityHint())
 
+// https://javadoc.jenkins.io/jenkins/model/class-use/Jenkins.html
 Jenkins j = Jenkins.getInstanceOrNull()
-def global_settings = j.getExtensionList(GlobalDefaultFlowDurabilityLevel.DescriptorImpl.class).get(0).durabilityHint = fdh;
+j.getExtensionList(GlobalDefaultFlowDurabilityLevel.DescriptorImpl.class).get(0).durabilityHint = fdh;
 
 println("\nConfigured value: ")
 println(GlobalDefaultFlowDurabilityLevel.getDefaultDurabilityHint())

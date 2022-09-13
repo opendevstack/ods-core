@@ -787,7 +787,11 @@ func getSecureClient() (*http.Client, error) {
 		Certificates: []tls.Certificate{},
 		RootCAs:      caCertPool,
 	}
-	tlsConfig.BuildNameToCertificate()
+	// Deprecated.
+	// The Config.NameToCertificate field, which only supports associating a
+	// single certificate with a give name, is now deprecated and should be
+	// left as nil. https://go.dev/pkg/crypto/tls/
+	// tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	return &http.Client{Transport: transport, Timeout: 10 * time.Second}, nil
 }
