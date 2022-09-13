@@ -59,40 +59,6 @@ if [ -f ${JENKINS_SERVER_LOG_FILE} ]; then
         echo "${ME}: Problem removing existing log file (${JENKINS_SERVER_LOG_FILE})."
 fi
 
-# Does not work :-(
-# oc login -u developer -p anypwd
-# TOKEN=$(oc -n ${PROJECT} get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' | xargs -n 1 oc -n ${PROJECT} get secret --template='{{ if .data.token }}{{ .data.token }}{{end}}' | head -n 1 | base64 -d -)
-
-# JENKINS_SERVER_PROTOCOL="$(echo ${LOG_URL} | cut -d "/" -f 1)"
-# JENKINS_SERVER_HOSTNAME="$(echo ${LOG_URL} | cut -d "/" -f 3)"
-# JENKINS_SERVER_LOGS_URL_TAIL="/manage/log/all"
-# JENKINS_SERVER_LOGS_URL="${JENKINS_SERVER_PROTOCOL}//${JENKINS_SERVER_HOSTNAME}${JENKINS_SERVER_LOGS_URL_TAIL}"
-
-# echo "${ME}: WARN: The following functionality is not working well yet... :("
-# echo "${ME}: Jenkins server log url: ${JENKINS_SERVER_LOGS_URL}"
-# curl --insecure -sSL --header "Authorization: Bearer ${TOKEN}" ${JENKINS_SERVER_LOGS_URL} > ${JENKINS_SERVER_LOG_FILE} || \
-#     echo "${ME}: Error retrieving jenkins server logs with curl, needed to eval problem in failed job ( ${BUILD_NAME} ). "
-
-# echo " "
-# echo " "
-
-# echo "${ME}: ** JENKINS LOGS (JNK_LOGS) AFTER PROBLEM BUILDING JOB ${BUILD_NAME}: "
-# echo " "
-# NO_SERVER_LOGS="true"
-# while read -r line; do
-#    if [ ! -z "$line" ] && [ "" != "${line}" ]; then
-#        NO_SERVER_LOGS="false"
-#    fi
-#    echo "JNK_LOGS: $line ";
-# done < ${JENKINS_SERVER_LOG_FILE}
-
-# echo " "
-# echo "${ME}: ENDS JENKINS LOGS (JNK_LOGS) AFTER PROBLEM BUILDING JOB ${BUILD_NAME}: "
-# echo " "
-# echo " "
-# echo " "
-# sleep 10
-
 BAD_SERVER_LOGS="false"
 if grep -q 'Still waiting to schedule task' ${JENKINS_LOG_FILE} ; then
     if ! grep -q 'Finished: SUCCESS' ${JENKINS_LOG_FILE} ; then
