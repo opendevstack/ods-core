@@ -39,7 +39,8 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     echo "--- ENDS JDK 11 TESTS ---"
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./fix_java_certs_permissions.sh /usr/local/bin/fix_java_certs_permissions.sh
+RUN import_certs.sh && fix_java_certs_permissions.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \

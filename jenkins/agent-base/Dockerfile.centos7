@@ -17,8 +17,6 @@ ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
 
-ENV JAVA_HOME=/usr/lib/jvm/jre
-
 RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
     && yum -y install openssl \
     && yum -y install java-11-openjdk-devel \
@@ -38,9 +36,9 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     use-j11.sh && \
     echo "--- ENDS JDK 11 TESTS ---"
 
-
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./fix_java_certs_permissions.sh /usr/local/bin/fix_java_certs_permissions.sh
+RUN import_certs.sh && fix_java_certs_permissions.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \

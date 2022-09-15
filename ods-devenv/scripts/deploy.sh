@@ -2763,7 +2763,7 @@ function check_pod_and_restart_if_necessary() {
             if [ "false" == "$docker_process_killed" ]; then
                 echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
                 echo "Current docker pods: "
-                docker ps -a | grep -v 'Exited .* ago' || true 
+                docker ps -a | grep -v 'Exited .* ago' || true
                 echo " "
                 return 1
             fi
