@@ -1574,10 +1574,13 @@ function wait_until_http_svc_is_up() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local CURL_LOGS_CHECK_SVC_FILE="/tmp/result-curl-svc-${SVC_NAME}-curlresult"
     local retryMax=${3:-20}
 
-    wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" $retryMax
-    if [ 0 -ne $? ]; then
+    local RETURN_VALUE=0
+    wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" \
+        "${CURL_LOGS_CHECK_SVC_FILE}" $retryMax || RETURN_VALUE=1
+    if [ 0 -ne ${RETURN_VALUE} ]; then
         echo "[STATUS CHECK] ERROR: Service is down and we cannot live without it: ${SVC_NAME}"
         return 1
     fi
@@ -1589,7 +1592,8 @@ function wait_until_http_svc_is_up_advanced() {
     local SVC_HTTP_URL="${2}"
     local CURL_SVC_OUTPUT_FILE="${3}"
     local CURL_SVC_HEADERS_FILE="${4}"
-    local retryMaxIn=${5:-20}
+    local CURL_LOGS_CHECK_SVC_FILE="${5}"
+    local retryMaxIn=${6:-20}
     local retryMax=$((retryMaxIn))
 
     echo " "
@@ -1620,14 +1624,18 @@ function wait_until_http_svc_is_up_advanced() {
         fi
 
         # Remove files from previous execution.
-        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE} || true
         if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
             echo "[STATUS CHECK] WARNING: Could NOT remove files ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
         fi
 
-        if ! curl --insecure -sSL --retry-delay 2 --retry-max-time 20 --retry 10 --dump-header ${CURL_SVC_HEADERS_FILE} ${SVC_HTTP_URL} -o ${CURL_SVC_OUTPUT_FILE} ; then
+        local CURL_RETURN_VAL=0
+        curl --insecure -sSL --retry-delay 2 --retry-max-time 20 --retry 10 --dump-header ${CURL_SVC_HEADERS_FILE} \
+                -o ${CURL_SVC_OUTPUT_FILE} ${SVC_HTTP_URL} 2>&1 > ${CURL_LOGS_CHECK_SVC_FILE} || CURL_RETURN_VAL=1
+        if [ 0 -ne ${CURL_RETURN_VAL} ]; then
             echo "Curl replied != 0 for query to ${SVC_HTTP_URL} "
             echo "Checking if it was caused by a redirect... "
+            grep -i 'HTTP' ${CURL_LOGS_CHECK_SVC_FILE} || true
         fi
 
         if ! grep -q '^\s*HTTP/[0-9\.]*\s*200[\s]*' ${CURL_SVC_HEADERS_FILE} ; then
@@ -2703,9 +2711,12 @@ function check_pods_and_restart_if_necessary() {
     local retryMaxIn=${1:-5}
     local retryMaxHttpIn=${2:-10}
 
-    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
-    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
-    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/' ${retryMaxIn} ${retryMaxHttpIn}
+    check_pod_and_restart_if_necessary 'sonarqube' 'ods/sonarqube' 'https://sonarqube-ods.ocp.odsbox.lan/' \
+        ${retryMaxIn} ${retryMaxHttpIn} || restart_ods
+    check_pod_and_restart_if_necessary 'prov-app' 'ods/ods-provisioning-app' 'https://prov-app-ods.ocp.odsbox.lan/' \
+        ${retryMaxIn} ${retryMaxHttpIn} || restart_ods
+    check_pod_and_restart_if_necessary 'nexus' 'ods/nexus' 'https://nexus-ods.ocp.odsbox.lan/' \
+        ${retryMaxIn} ${retryMaxHttpIn} || restart_ods
     # https://jenkins-ods.ocp.odsbox.lan
 }
 
@@ -2716,6 +2727,7 @@ function check_pod_and_restart_if_necessary() {
     local SVC_HTTP_URL="${3}"
     local CURL_SVC_OUTPUT_FILE="/tmp/result-curl-svc-${SVC_NAME}-output"
     local CURL_SVC_HEADERS_FILE="/tmp/result-curl-svc-${SVC_NAME}-headers"
+    local CURL_LOGS_CHECK_SVC_FILE="/tmp/result-curl-svc-${SVC_NAME}-curlresult"
     local retryMaxIn=${4:-5}
     local retryMax=$((retryMaxIn))
     local retryMaxHttpIn=${5:-10}
@@ -2735,7 +2747,8 @@ function check_pod_and_restart_if_necessary() {
         fi
 
 	    retVal=0
-        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" ${retryMaxHttpIn} || retVal=1
+        wait_until_http_svc_is_up_advanced "$SVC_NAME" "$SVC_HTTP_URL" "$CURL_SVC_OUTPUT_FILE" "$CURL_SVC_HEADERS_FILE" \
+            ${CURL_LOGS_CHECK_SVC_FILE} ${retryMaxHttpIn} || retVal=1
 
         if [ 0 -ne ${retVal} ]; then
             echo "[STATUS CHECK] WARNING: Stopping pod so it restarts automatically. Service: ${SVC_NAME} "
@@ -2749,7 +2762,10 @@ function check_pod_and_restart_if_necessary() {
 
             if [ "false" == "$docker_process_killed" ]; then
                 echo "No docker process found for pod ${SVC_NAME} with ID ${SVC_POD_ID} "
+                echo "Current docker pods: "
+                docker ps -a | grep -v 'Exited .* ago' || true 
                 echo " "
+                return 1
             fi
         fi
 
