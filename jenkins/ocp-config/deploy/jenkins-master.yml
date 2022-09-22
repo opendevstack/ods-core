@@ -17,7 +17,7 @@ parameters:
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
-  value: 6Gi
+  value: 7Gi
 - name: JENKINS_MEMORY_REQUEST
   value: 4Gi
 - name: JENKINS_CPU_LIMIT
@@ -27,7 +27,7 @@ parameters:
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: JENKINS_JAVA_GC_OPTS
-  value: "-server -XX:NativeMemoryTracking=summary -XX:MaxRAMPercentage=90 -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M -XX:SoftRefLRUPolicyMSPerMB=1 -XX:+UnlockExperimentalVMOptions -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1"
+  value: "-server -XX:NativeMemoryTracking=summary -XX:-UseContainerSupport -XX:MaxRAMPercentage=90 -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M -XX:SoftRefLRUPolicyMSPerMB=1 -XX:+UnlockExperimentalVMOptions -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jenkins"
 - name: JENKINS_JAVA_MAX_HEAP_PARAM
   value: "-Xms1024m -Xmx4g"
 - name: JENKINS_CONTAINER_HEAP_PERCENT
