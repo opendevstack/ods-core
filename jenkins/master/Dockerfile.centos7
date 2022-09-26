@@ -25,6 +25,7 @@ RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && mv /usr/libexec/s2i/run /usr/libexec/s2i/openshift-run
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run.sh /usr/libexec/s2i/run
+COPY logging.properties /var/lib/jenkins/
 
 RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 

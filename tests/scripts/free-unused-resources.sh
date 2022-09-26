@@ -2,6 +2,8 @@
 
 echo " "
 
+ME=$(basename $0)
+
 function clean_containers {
 	echo "Removing docker containers no more used... "
 	if docker ps -a | grep -q 'Exited .* ago' ; then
@@ -27,6 +29,7 @@ function clean_tests {
 }
 
 function clean_odsverify {
+	echo "Cleaning projects ODS__VERIFY... "
 	if [ "true" == "$CLEAN_ODS_VERIFY" ]; then
 		echo "Removing ODS VERIFY projects..."
 		oc projects | grep '^\s*odsverify.*' | while read -r line; do
@@ -41,14 +44,14 @@ function clean_odsverify {
 }
 
 function clean_images {
+    echo "Cleaning OC images"
     echo "oc adm prune images --keep-tag-revisions=1 --keep-younger-than=30m --confirm"
 	oc adm prune images --keep-tag-revisions=1 --keep-younger-than=30m --confirm || true
 }
 
 function usage {
-	ME=$(basename $0)
 	echo " "
-	echo "usage: ${ME} [--odsVerify] [--omitTestsProject tes22]"
+	echo "usage: ${ME} [--odsVerify] [--omitTests] [--omitTestsProject tes22]"
 	echo " "
 }
 
@@ -59,6 +62,7 @@ function echo_error() {
 
 OMIT_TESTS_PROJECT=none
 CLEAN_ODS_VERIFY="false"
+CLEAN_TESTS="false"
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -71,11 +75,19 @@ while [[ "$#" -gt 0 ]]; do
 
     --omitTestsProject) OMIT_TESTS_PROJECT="$2"; echo "Tests to omit: $OMIT_TESTS_PROJECT"; shift;;
 
+    --cleanTests) CLEAN_TESTS="true";;
+
   *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
 
 clean_containers
-clean_tests
+if [ "true" == "${CLEAN_TESTS}" ]; then
+	clean_tests
+else
+	echo " "
+	echo "${ME}: INFO: Not cleaning tests"
+	echo " "
+fi
 clean_odsverify
 clean_images
 

@@ -11,13 +11,11 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     GIT_LFS_VERSION=2.6.1 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1 \
-    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true"
+    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -XX:-UseContainerSupport -Dsun.zip.disableMemoryMapping=true"
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
-
-ENV JAVA_HOME=/usr/lib/jvm/jre
 
 RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
     && yum -y install openssl \
@@ -38,9 +36,9 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     use-j11.sh && \
     echo "--- ENDS JDK 11 TESTS ---"
 
-
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./fix_java_certs_permissions.sh /usr/local/bin/fix_java_certs_permissions.sh
+RUN import_certs.sh && fix_java_certs_permissions.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \

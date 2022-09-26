@@ -9,7 +9,7 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     HELM_PLUGIN_DIFF_VERSION=3.3.2 \
     HELM_PLUGIN_SECRETS_VERSION=3.3.5 \
     GIT_LFS_VERSION=2.6.1 \
-    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true"
+    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -XX:-UseContainerSupport -Dsun.zip.disableMemoryMapping=true"
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -39,7 +39,8 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     echo "--- ENDS JDK 11 TESTS ---"
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./fix_java_certs_permissions.sh /usr/local/bin/fix_java_certs_permissions.sh
+RUN import_certs.sh && fix_java_certs_permissions.sh
 
 # Install Sonar Scanner.
 RUN cd /tmp \
