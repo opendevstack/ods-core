@@ -14,7 +14,15 @@ ENV TAILOR_VERSION=1.3.4
 USER root
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./install_java.sh /usr/local/bin/install_java.sh
+COPY ./install_jenkins_lts.sh /usr/local/bin/install_jenkins_lts.sh
+RUN import_certs.sh \
+    && install_java.sh \
+    && install_jenkins_lts.sh
+
+# To debug. Warning: too much logs if we enable it.
+#RUN sed -i 's|\#\!\s*/bin/bash.*|\#\!/bin/bash -xeu|g' /usr/local/bin/install-plugins.sh \
+#    && head -n 10 /usr/local/bin/install-plugins.sh
 
 # Copy configuration and plugins.
 COPY plugins.centos7.txt /opt/openshift/configuration/plugins.txt
@@ -31,7 +39,7 @@ RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 
 # Install Tailor.
 RUN cd /tmp \
-	&& curl -LOv https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
+	&& curl -sSLO https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
 	&& mv tailor-linux-amd64 /usr/local/bin/tailor \
 	&& chmod a+x /usr/local/bin/tailor
 
