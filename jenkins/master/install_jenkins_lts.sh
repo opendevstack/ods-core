@@ -24,7 +24,7 @@ if [ ! -f "${TARGET}" ]; then
 fi
 
 if [ -f "${TARGET}" ]; then
-    echo "${ME}: Upgrading Jenkins to lates LTS version... "
+    echo "${ME}: Upgrading Jenkins to latest LTS version... "
     rm -fv ${TARGET}
     mv -vf jenkins.war ${TARGET}
     ls -lah ${TARGET}

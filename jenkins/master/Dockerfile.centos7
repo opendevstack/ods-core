@@ -16,9 +16,11 @@ USER root
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 COPY ./install_java.sh /usr/local/bin/install_java.sh
 COPY ./install_jenkins_lts.sh /usr/local/bin/install_jenkins_lts.sh
+COPY ./fix_openshift_scripts.sh /usr/local/bin/fix_openshift_scripts.sh
 RUN import_certs.sh \
     && install_java.sh \
-    && install_jenkins_lts.sh
+    && install_jenkins_lts.sh \
+    && fix_openshift_scripts.sh
 
 # To debug. Warning: too much logs if we enable it.
 #RUN sed -i 's|\#\!\s*/bin/bash.*|\#\!/bin/bash -xeu|g' /usr/local/bin/install-plugins.sh \
