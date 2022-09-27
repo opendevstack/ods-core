@@ -81,18 +81,25 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   echo "Copy audit-trail plugin configuration ..."
   cp -n /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
 
+  echo " "
+  echo "Plugins version already installed in Jenkins: "
+  ls -la "${JENKINS_HOME}/plugins/"
+
+  echo " "
   echo "Enforcing plugin versions defined in the image ..."
   if [ "$(ls /opt/openshift/plugins/* 2>/dev/null)" ]; then
     echo "Copying $(ls /opt/openshift/plugins/* | wc -l) files to ${JENKINS_HOME} ..."
     for FILENAME in /opt/openshift/plugins/* ; do
       # also need to nuke the metadir; it will get properly populated on jenkins startup
       basefilename=`basename $FILENAME .jpi`
-      rm -rf "${JENKINS_HOME}/plugins/${basefilename}"
-      cp --remove-destination $FILENAME ${JENKINS_HOME}/plugins
+      rm -rfv "${JENKINS_HOME}/plugins/${basefilename}"
+      cp -v --remove-destination $FILENAME ${JENKINS_HOME}/plugins
     done
     rm -rf /opt/openshift/plugins
   fi
 fi
 
-echo "Booting Jenkins ..."
+echo " "
+echo "Booting Jenkins ( /usr/libexec/s2i/openshift-run ) ..."
+echo " "
 /usr/libexec/s2i/openshift-run
