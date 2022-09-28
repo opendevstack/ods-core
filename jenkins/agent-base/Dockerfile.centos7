@@ -17,11 +17,10 @@ ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
 
+COPY ensure_java_jre_is_adequate.sh /usr/local/bin/
 RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
+    && ensure_java_jre_is_adequate.sh \
     && yum -y install openssl \
-    && yum -y install java-11-openjdk-devel \
-    && yum list installed | grep java \
-    && yum -y remove java-1.8* \
     && yum -y update \
     && yum clean all \
     && rm -rf /var/cache/yum/*
@@ -115,14 +114,9 @@ RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 # It is setting the variable JAVA_TOOL_OPTIONS while it should not.
 # Besides, we need to know if this variable has not been set.
 # It is a problem very difficult to detect...
+COPY fix_openshift_run_jnlp_client.sh /usr/local/bin/fix_openshift_run_jnlp_client.sh
 RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i 's|\#\!/bin/bash|\#\!/bin/bash -x|g' /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i "s|^\s*JAVA_TOOL_OPTIONS\s*=.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
-        /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i "s|^\s*export\s*JAVA_TOOL_OPTIONS.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
-        /usr/local/bin/openshift-run-jnlp-client \
-    && sed -i 's|^\(\s*\)JAVA_GC_OPTS\s*=.*|\1JAVA_GC_OPTS=|g' /usr/local/bin/openshift-run-jnlp-client \
-    && grep -B 3 -A 3 -i '\(bash\|JAVA_TOOL_OPTIONS\|JAVA_GC_OPTS\)' /usr/local/bin/openshift-run-jnlp-client
+    && fix_openshift_run_jnlp_client.sh /usr/local/bin/openshift-run-jnlp-client
 
 COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 

@@ -14,7 +14,14 @@ ENV TAILOR_VERSION=1.3.4
 USER root
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./ensure_java_jre_is_adequate.sh /usr/local/bin/ensure_java_jre_is_adequate.sh
+COPY ./fix_openshift_scripts.sh /usr/local/bin/fix_openshift_scripts.sh
+COPY ./clean_yum_cache.sh /usr/local/bin/clean_yum_cache.sh
+RUN import_certs.sh \
+    && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
+    && ensure_java_jre_is_adequate.sh master \
+    && fix_openshift_scripts.sh \
+    && clean_yum_cache.sh
 
 # Copy configuration and plugins.
 COPY plugins.rhel7.txt /opt/openshift/configuration/plugins.txt

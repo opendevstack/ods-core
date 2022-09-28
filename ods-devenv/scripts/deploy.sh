@@ -1603,11 +1603,11 @@ function wait_until_http_svc_is_up_advanced() {
 
     if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
         echo "Removing files: rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
-        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE} || true
 
-        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
-            echo "Removing files (with sudo): rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
-            sudo rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ] || [ -f ${CURL_LOGS_CHECK_SVC_FILE} ]; then
+            echo "Removing files (with sudo): rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE}"
+            sudo rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE} || true
         fi
     fi
 
@@ -1625,8 +1625,8 @@ function wait_until_http_svc_is_up_advanced() {
 
         # Remove files from previous execution.
         rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE} || true
-        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ]; then
-            echo "[STATUS CHECK] WARNING: Could NOT remove files ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} "
+        if [ -f ${CURL_SVC_OUTPUT_FILE} ] || [ -f ${CURL_SVC_HEADERS_FILE} ] || [ -f ${CURL_LOGS_CHECK_SVC_FILE} ]; then
+            echo "[STATUS CHECK] WARNING: Could NOT remove files ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE}"
         fi
 
         local CURL_RETURN_VAL=0
@@ -1648,7 +1648,7 @@ function wait_until_http_svc_is_up_advanced() {
     done
 
     # Removes tmp files used for checking.
-    rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} || true
+    rm -fv ${CURL_SVC_OUTPUT_FILE} ${CURL_SVC_HEADERS_FILE} ${CURL_LOGS_CHECK_SVC_FILE} || true
 
     echo "Service ${SVC_NAME} is up at ${SVC_HTTP_URL}"
     echo " "
