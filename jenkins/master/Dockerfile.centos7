@@ -13,12 +13,22 @@ ENV TAILOR_VERSION=1.3.4
 
 USER root
 
+rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+yum -y update
+yum clean all
+rm -rf /var/cache/yum/*
+
+
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-COPY ./install_java.sh /usr/local/bin/install_java.sh
+COPY ./ensure_java_jre_is_adequate.sh /usr/local/bin/ensure_java_jre_is_adequate.sh
 COPY ./fix_openshift_scripts.sh /usr/local/bin/fix_openshift_scripts.sh
-RUN import_certs.sh \
-    && install_java.sh \
-    && fix_openshift_scripts.sh
+RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
+    && yum -y update \
+    && yum clean all \
+    && import_certs.sh \
+    && ensure_java_jre_is_adequate.sh \
+    && fix_openshift_scripts.sh \
+    && rm -rf /var/cache/yum/*
 
 # To debug. Warning: too much logs if we enable it.
 #RUN sed -i 's|\#\!\s*/bin/bash.*|\#\!/bin/bash -xeu|g' /usr/local/bin/install-plugins.sh \
