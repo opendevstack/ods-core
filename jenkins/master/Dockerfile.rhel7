@@ -21,7 +21,6 @@ RUN import_certs.sh \
     && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
     && ensure_java_jre_is_adequate.sh master \
     && fix_openshift_scripts.sh \
-    && yum -y update \
     && clean_yum_cache.sh
 
 # Copy configuration and plugins.

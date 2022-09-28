@@ -56,4 +56,12 @@ echo "${ME}: Checking java tool versions: "
 if [ "true" == "${NEEDS_DEVEL}" ]; then
     jar --version
 fi
+
+NO_JAVA_LINK="false"
+java -version || NO_JAVA_LINK="true"
+if [ "true" == "${NO_JAVA_LINK}" ]; then
+    JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-11-openjdk-11.*\.x86_64" | awk '{print $NF}' | head -1)
+    JAVA_HOME="/usr/lib/jvm/${JAVA_HOME_FOLDER}"
+    alternatives --set java ${JAVA_HOME}/bin/java
+fi
 java -version
