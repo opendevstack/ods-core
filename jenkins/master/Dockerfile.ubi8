@@ -24,7 +24,6 @@ RUN import_certs.sh \
     && sed -i 's|enabled\s*=\s*1|enabled=0|g' /etc/yum.repos.d/epel.repo \
     && ensure_java_jre_is_adequate.sh master \
     && fix_openshift_scripts.sh \
-    && yum -y update \
     && clean_yum_cache.sh
 
 # Copy configuration and plugins.
