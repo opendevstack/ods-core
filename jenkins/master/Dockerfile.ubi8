@@ -16,13 +16,13 @@ USER root
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 COPY ./ensure_java_jre_is_adequate.sh /usr/local/bin/ensure_java_jre_is_adequate.sh
 COPY ./fix_openshift_scripts.sh /usr/local/bin/fix_openshift_scripts.sh
-RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
-    && yum -y update \
-    && yum clean all \
-    && import_certs.sh \
-    && ensure_java_jre_is_adequate.sh \
+COPY ./clean_yum_cache.sh /usr/local/bin/clean_yum_cache.sh
+RUN import_certs.sh \
+    && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
+    && ensure_java_jre_is_adequate.sh master \
     && fix_openshift_scripts.sh \
-    && rm -rf /var/cache/yum/*
+    && yum -y update \
+    && clean_yum_cache.sh
 
 # Copy configuration and plugins.
 COPY plugins.ubi8.txt /opt/openshift/configuration/plugins.txt
