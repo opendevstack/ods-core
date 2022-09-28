@@ -3,13 +3,7 @@ email-ext:2.69
 sonar:2.6.1
 ansicolor:0.7.0
 blueocean:1.18.0
-audit-trail:3.2
-parameterized-trigger:2.45
-pipeline-rest-api:2.24
-workflow-cps-global-lib:2.17
-junit:1.53
-token-macro:267.vcdaea6462991
-kubernetes:1.25.7
+kubernetes:1.18.2
 openshift-sync:1.0.44
 pipeline-utility-steps:2.1.0
-bitbucket:1.1.30
+audit-trail:3.2

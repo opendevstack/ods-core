@@ -102,4 +102,15 @@ fi
 echo " "
 echo "Booting Jenkins ( /usr/libexec/s2i/openshift-run ) ..."
 echo " "
-/usr/libexec/s2i/openshift-run
+JENKINS_ERROR="false"
+/usr/libexec/s2i/openshift-run || JENKINS_ERROR="true"
+
+if [ "false" != "${JENKINS_ERROR}" ]; then
+    echo " "
+    echo "Jenkins exit code was not 0. Something went wrong."
+    echo "Waiting 10 secs, so the pod does not die before showing in its log all jenkins logs."
+    echo " "
+    sleep 10
+    exit 1
+fi
+
