@@ -119,7 +119,7 @@ RUN . /tmp/set_java_proxy.sh && echo $JAVA_OPTS
 # Customize entrypoint.
 COPY fix_openshift_run_jnlp_client.sh /usr/local/bin/fix_openshift_run_jnlp_client.sh
 RUN mv /usr/local/bin/run-jnlp-client /usr/local/bin/openshift-run-jnlp-client \
-    fix_openshift_run_jnlp_client.sh /usr/local/bin/openshift-run-jnlp-client
+    && fix_openshift_run_jnlp_client.sh /usr/local/bin/openshift-run-jnlp-client
 
 COPY ods-run-jnlp-client.sh /usr/local/bin/run-jnlp-client
 
