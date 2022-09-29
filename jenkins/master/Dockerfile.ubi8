@@ -17,11 +17,11 @@ COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 COPY ./ensure_java_jre_is_adequate.sh /usr/local/bin/ensure_java_jre_is_adequate.sh
 COPY ./fix_openshift_scripts.sh /usr/local/bin/fix_openshift_scripts.sh
 COPY ./clean_yum_cache.sh /usr/local/bin/clean_yum_cache.sh
+COPY ./disable_yum_repository.sh /usr/local/bin/disable_yum_repository.sh
 RUN import_certs.sh \
     && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
-    && sed -i 's|enabled\s*=\s*1|enabled=0|g' /etc/yum.repos.d/ci-rpm-mirrors.repo \
-    && sed -i 's|enabled\s*=\s*1|enabled=0|g' /etc/yum.repos.d/localdev-* \
-    && sed -i 's|enabled\s*=\s*1|enabled=0|g' /etc/yum.repos.d/epel.repo \
+    && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
+        /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && ensure_java_jre_is_adequate.sh master \
     && fix_openshift_scripts.sh \
     && clean_yum_cache.sh
