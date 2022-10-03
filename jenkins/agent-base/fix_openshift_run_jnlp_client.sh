@@ -11,13 +11,12 @@ if [ ! -f ${FILEPATH} ]; then
 fi
 
 sed -i 's|\#\!/bin/bash|\#\!/bin/bash -x|g' ${FILEPATH}
-sed -i "s|^\s*JAVA_TOOL_OPTIONS\s*=.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
-    ${FILEPATH}
-sed -i "s|^\s*export\s*JAVA_TOOL_OPTIONS.*|    echo 'WARNING: JAVA_TOOL_OPTIONS env variable is UNSET.'|g" \
-    ${FILEPATH}
+sed -i 's|^\(\s*\)set\s*-x\s*$|\1set -x\n\1echo "JNLP_JAVA_OPTIONS=\$JNLP_JAVA_OPTIONS"|g' ${FILEPATH}
+sed -i "s|^\(\s*\)JAVA_TOOL_OPTIONS\s*=.*|\1JAVA_TOOL_OPTIONS=|g" ${FILEPATH}
 sed -i 's|^\(\s*\)JAVA_GC_OPTS\s*=.*|\1JAVA_GC_OPTS=|g' ${FILEPATH}
 sed -i 's|curl\s*-sS\s*|curl -sSLv |g' ${FILEPATH}
 
-grep -B 3 -A 3 -i '\(bash\|JAVA_TOOL_OPTIONS\|JAVA_GC_OPTS\|curl\)' ${FILEPATH}
+set -x
+grep -B 5 -A 5 -i '\(bash\|JAVA_TOOL_OPTIONS\|JAVA_GC_OPTS\|JNLP_JAVA_OPTIONS\|curl\)' ${FILEPATH}
 
 

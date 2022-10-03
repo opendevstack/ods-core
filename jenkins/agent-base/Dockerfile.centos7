@@ -11,11 +11,16 @@ ENV SONAR_SCANNER_VERSION=3.1.0.1141 \
     GIT_LFS_VERSION=2.6.1 \
     SKOPEO_VERSION=0.1.37-3 \
     OSTREE_VERSION=2018.5-1 \
-    JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -XX:-UseContainerSupport -Dsun.zip.disableMemoryMapping=true"
+    JNLP_JAVA_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true"
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
 ARG AQUASEC_SCANNERCLI_URL
+
+# Workaroud we use when running docker build behind proxy
+# Basically we put the proxy certificates in certs folder
+# COPY certs/* /etc/pki/ca-trust/source/anchors/
+# RUN update-ca-trust force-enable && update-ca-trust extract
 
 COPY ensure_java_jre_is_adequate.sh /usr/local/bin/
 RUN rm -fv /etc/yum.repos.d/CentOS-Media.repo /etc/yum.repos.d/origin-local-release.repo \
