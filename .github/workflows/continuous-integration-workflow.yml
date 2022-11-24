@@ -122,7 +122,7 @@ jobs:
         name: Download golangci-lint
         run: |
           curl -sSfL --output /tmp/golangci-lint.sh https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
-          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
+          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
       -
         name: Run linter
         working-directory: jenkins/webhook-proxy
@@ -201,7 +201,7 @@ jobs:
         name: Verify all Go tests pass linting
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.46.2
+          version: v1.49.0
           working-directory: tests
           args: --timeout=10m
       -
