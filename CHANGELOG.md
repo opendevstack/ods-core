@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
+
 ## [4.1.1] - 2022-11-24
 
 - Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
