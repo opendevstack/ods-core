@@ -218,7 +218,7 @@ objects:
             timeoutSeconds: 3
             periodSeconds: 10
             successThreshold: 1
-            failureThreshold: 30
+            failureThreshold: 15
           name: jenkins
           readinessProbe:
             httpGet:
@@ -228,7 +228,7 @@ objects:
             timeoutSeconds: 3
             periodSeconds: 10
             successThreshold: 1
-            failureThreshold: 30
+            failureThreshold: 15
           resources:
             limits:
               cpu: ${JENKINS_CPU_LIMIT}
