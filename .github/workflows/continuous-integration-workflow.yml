@@ -1,5 +1,10 @@
 name: Continous Integration Tests
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 4 * * 1' # At 04:23 UTC on Mondays.
+
 jobs:
   jenkins-master:
     name: Jenkins master tests
