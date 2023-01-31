@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-SONAR_VERSION=8.9
+SONAR_VERSION=8.9.10.61524
 SONAR_EDITION="community"
 
 function usage {
@@ -215,7 +215,7 @@ case $SONAR_EDITION in
     community | developer | enterprise | datacenter)
         expectedPlugins=( "crowd:2.1.3"
                 "authoidc:2.1.1"
-                "groovy:1.8" 
+                "groovy:1.7" 
                 "r:0.2.1" )
         ;;
 
