@@ -3,10 +3,8 @@ module github.com/opendevstack/ods-core/tests
 go 1.13
 
 require (
-	github.com/ericchiang/pup v0.4.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/ghodss/yaml v1.0.0
-	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.1
@@ -16,13 +14,11 @@ require (
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
 	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6 // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
