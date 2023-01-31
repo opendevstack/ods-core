@@ -188,10 +188,8 @@ function changeScriptSetting {
     fi
 }
 
-# In the local context changeScriptSetting works directly after docker run
-if [ -z "${LOCAL_CONTAINER_ID}" ]; then
-    waitForReady
-fi
+waitForReady
+
 changeScriptSetting "true"
 
 waitForReady
