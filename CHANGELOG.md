@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
 - Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
 
 ## [4.1.1] - 2022-11-24
