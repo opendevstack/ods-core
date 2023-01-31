@@ -144,7 +144,7 @@ objects:
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
-        timeoutSeconds: 600
+        timeoutSeconds: 1200
       resources: {}
       type: Recreate
     template:
@@ -201,27 +201,34 @@ objects:
               value: '${BITBUCKET_URL}'
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-master:${ODS_IMAGE_TAG}'
           imagePullPolicy: Always
-          livenessProbe:
-            failureThreshold: 30
+          startupProbe:
             httpGet:
               path: /login
               port: 8080
               scheme: HTTP
-            initialDelaySeconds: 120
+            timeoutSeconds: 3
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 3
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 3
+            failureThreshold: 15
           name: jenkins
           readinessProbe:
-            failureThreshold: 3
             httpGet:
               path: /login
               port: 8080
               scheme: HTTP
-            initialDelaySeconds: 3
+            timeoutSeconds: 3
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 3
+            failureThreshold: 15
           resources:
             limits:
               cpu: ${JENKINS_CPU_LIMIT}
