@@ -13,18 +13,24 @@ ENV TAILOR_VERSION=1.3.4
 
 USER root
 
-COPY ./import_certs.sh /usr/local/bin/import_certs.sh
-RUN import_certs.sh
+COPY ./scripts_for_usr-local-bin/* /usr/local/bin/
+RUN import_certs.sh \
+    && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
+    && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
+        /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
+    && ensure_java_jre_is_adequate.sh master \
+    && fix_openshift_scripts.sh \
+    && clean_yum_cache.sh
 
 # Copy configuration and plugins.
 COPY plugins.ubi8.txt /opt/openshift/configuration/plugins.txt
-COPY kube-slave-common.sh /usr/local/bin/kube-slave-common.sh
 RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && rm -r /opt/openshift/configuration/jobs/OpenShift* || true \
     && touch /var/lib/jenkins/configured \
     && mv /usr/libexec/s2i/run /usr/libexec/s2i/openshift-run
 COPY configuration/ /opt/openshift/configuration/
 COPY ods-run.sh /usr/libexec/s2i/run
+COPY logging.properties /var/lib/jenkins/
 
 RUN chown :0 /etc/pki/java/cacerts && chmod ugo+w /etc/pki/java/cacerts
 

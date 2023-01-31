@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/opendevstack/ods-core/tests/utils"
 	projectClientV1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
@@ -58,6 +59,8 @@ func TestVerifyOdsProjectProvisionThruProvisionApi(t *testing.T) {
 		values["ODS_NAMESPACE"], exJob.FullBuildName,
 	)
 	if err != nil {
+		time.Sleep(10 * time.Second)
+		fmt.Printf("Error retrieving jenkins build stages for build: %s\n", projectName)
 		t.Fatal(err)
 	}
 	fmt.Printf("Jenkins stages: \n'%s'\n", stages)

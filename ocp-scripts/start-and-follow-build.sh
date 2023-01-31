@@ -40,7 +40,7 @@ if ! oc whoami > /dev/null; then
 fi
 
 echo "Starting build of '${BUILD_CONFIG}' in project '${NAMESPACE}' ..."
-oc start-build -n ${NAMESPACE} ${BUILD_CONFIG} --follow
+oc start-build -n ${NAMESPACE} ${BUILD_CONFIG} --follow --wait
 LAST_VERSION=$(oc -n ${NAMESPACE} get bc ${BUILD_CONFIG} -o jsonpath='{.status.lastVersion}')
 BUILD_ID="${BUILD_CONFIG}-${LAST_VERSION}"
 
@@ -49,12 +49,12 @@ until [[ "${BUILD_STATUS}" == "Complete" ]]
 do
     BUILD_STATUS=$(oc -n ${NAMESPACE} get build ${BUILD_ID} -o jsonpath='{.status.phase}')
     if [ "${BUILD_STATUS}" == "Failed" ]; then
-      echo "Build ${BUILD_ID} has failed."
+      echo "Build has failed for component ${BUILD_ID} "
       exit 1
-    fi    
+    fi
     printf .
     sleep 3
 done
 
-echo "Build ${BUILD_ID} is complete."
+echo "Build is complete for component ${BUILD_ID} "
 exit 0
