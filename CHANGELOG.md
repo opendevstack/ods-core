@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
+
 ## [4.1.1] - 2022-11-24
 
 - Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
