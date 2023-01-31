@@ -37,7 +37,7 @@ podWithPrefix=$(oc get pods -n "${NAMESPACE}" --selector name=sonarqube-postgres
 pod=${podWithPrefix#"pod/"}
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "mkdir -p /var/lib/pgsql/backup && pg_dump sonarqube > /var/lib/pgsql/backup/sonarqube.sql"
 # Copy export
-oc cp "${NAMESPACE}/${pod}:/var/lib/pgsql/backup/sonarqube.sql" "${destinationFile}"
+oc -n "${NAMESPACE}" cp "${pod}:/var/lib/pgsql/backup/sonarqube.sql" "${destinationFile}"
 # Delete export in pod
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm /var/lib/pgsql/backup/sonarqube.sql"
 

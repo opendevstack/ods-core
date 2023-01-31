@@ -6,14 +6,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-SONAR_VERSION=7.9
+SONAR_VERSION=8.9.10.61524
 SONAR_EDITION="community"
 
 function usage {
     printf "Test SonarQube setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '7.9' or '8.2.0.32929' (defaults to %s)\n" "${SONAR_VERSION}"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '8.9.10.61524' (defaults to %s)\n" "${SONAR_VERSION}"
     printf "\t-e|--sq-edition\t\tSonarQube edition, e.g. 'community' or 'enterprise' (defaults to %s)\n" "${SONAR_EDITION}"
     printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
     printf "\t--verify\t\tSkips setup of local docker container and instead checks existing sonarqube setup based on ods-core.env\n"
@@ -212,39 +212,11 @@ echo "Check if plugins are installed in correct versions"
 
 case $SONAR_EDITION in
 
-    community | developer)
+    community | developer | enterprise | datacenter)
         expectedPlugins=( "crowd:2.1.3"
-                "authoidc:1.1.0"
-                "scmgit:1.9.1.1834"
-                "java:6.2.0.21135"
-                "jacoco:1.0.2.475"
-                "go:1.6.0.719"
-                "javascript:6.1.0.11503"
-                "python:2.1.0.5269"
-                "typescript:2.1.0.4359"
-                "sonarscala:1.5.0.315"
-                "php:3.3.0.5166"
-                "csharp:8.6.1.17183"
-                "groovy:1.6" 
-                "r:0.1.3" )
-        ;;
-
-    enterprise | datacenter)
-        expectedPlugins=( "crowd:2.1.3"
-                "authoidc:1.1.0"
-                "scmgit:1.9.1.1834"
-                "java:6.2.0.21135"
-                "jacoco:1.0.2.475"
-                "go:1.6.0.719"
-                "javascript:6.1.0.11503"
-                "python:2.1.0.5269"
-                "typescript:2.1.0.4359"
-                "sonarscala:1.5.0.315"
-                "php:3.3.0.5166"
-                "csharp:8.6.1.17183"
-                "groovy:1.6" 
-                "r:0.1.3"
-                "sonarapex:1.8.2.1946" )
+                "authoidc:2.1.1"
+                "groovy:1.7" 
+                "r:0.2.1" )
         ;;
 
     *)

@@ -4,6 +4,7 @@
 
 - Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
 - Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
+- Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
 
 ## [4.1.1] - 2022-11-24
 
@@ -91,6 +92,10 @@
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
+
+- Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
+- Updated Nexus to 3.40.1 ([#1164](https://github.com/opendevstack/ods-core/pull/1164))
+- Simplify force auth configuration for sonarqube ([#986](https://github.com/opendevstack/ods-core/issues/986))
 
 ### Fixed
 - ODS AMI build failed due to an installation error of chrome package ([#1054](https://github.com/opendevstack/ods-core/pull/1054))
