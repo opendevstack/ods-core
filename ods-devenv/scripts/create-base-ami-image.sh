@@ -2,6 +2,16 @@
 
 set -eu
 
+echo " "
+echo "Pre-Usage:  "
+echo "---------- "
+echo "$ sudo yum -y install epel-release "
+echo "$ sudo yum -y install curl jq"
+echo "$ base64 --v ; jq --version ; curl --version "
+echo "$ curl -sSL "https://api.github.com/repos/opendevstack/ods-core/contents/ods-devenv/scripts/create-base-ami-image.sh?ref=experimental" | jq -r ".content" | base64 --decode > create-base-ami-image.sh "
+echo "$ chmod +x create-base-ami-image.sh "
+echo "$ ./create-base-ami-image.sh [buildBot] "
+echo " "
 echo "This script is in charge of configuring the base AMI image we use."
 read -p "Continue (y/n) ?  " yn
 if [ -z "$yn" ] || [ "y" != "$yn" ]; then
@@ -10,20 +20,12 @@ if [ -z "$yn" ] || [ "y" != "$yn" ]; then
 fi
 
 function general_configuration() {
-    sudo yum update -y
-    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm
-    sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-    sudo yum -y install git gitk iproute lsof tigervnc-server remmina firewalld git2u-all glances golang jq tree htop etckeeper
-
-    curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-    sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-    rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
-
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64
-    sudo yum install -y centos-release-openshift-origin311
-    sudo yum install -y origin-clients
-    sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+    sudo yum update -y || true
+    sudo yum install -y yum-utils epel-release https://repo.ius.io/ius-release-el7.rpm || true
+    sudo yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm || true
+    sudo yum -y install git iproute lsof git2u-all glances golang jq tree unzip || true
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
+    sudo yum -y install docker-ce-3:19.03.14-3.el7.x86_64 || true
 
     sudo sed -i "s@.*PasswordAuthentication\ .*@PasswordAuthentication yes@g" /etc/ssh/sshd_config
     sudo sed -i "s@.*ChallengeResponseAuthentication\ .*@ChallengeResponseAuthentication yes@g" /etc/ssh/sshd_config
@@ -32,25 +34,14 @@ function general_configuration() {
     sudo systemctl restart sshd
     sudo systemctl status sshd
 
-    sudo adduser openshift
-    echo -e "openshift\nopenshift" | sudo passwd openshift
-    sudo usermod -a -G wheel openshift
-    sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
-
-    sudo usermod -a -G docker openshift
-
-    # etckeeper
-    if [ ! -d /etc/.git ]; then
-        cd /etc/
-        sudo etckeeper init
-        sudo etckeeper commit -m "Initial commit"
-    else
-        echo "WARNING: git repository in etc folder has been created before."
+    # Packer
+    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo || true
+    if [ -f "/etc/yum.repos.d/hashicorp.repo" ]; then
+        echo "Disable hashicorp yum repo by default."
+        sudo sed -i 's@^\s*enabled\s*=.*$@enabled = 0@g' /etc/yum.repos.d/hashicorp.repo
+        grep -i 'enabled' /etc/yum.repos.d/hashicorp.repo
     fi
-
-    # GUI:
-    sudo yum groupinstall -y "MATE Desktop" || echo "ERROR: Could not install mate desktop"
-    sudo yum groups -y install "GNOME Desktop" || echo "ERROR: Could not install gnome desktop"
+    sudo yum install -y --enablerepo hashicorp packer || true
 
     # JDK
     rm -fv /tmp/adoptopenjdk.repo || echo "ERROR: Could not remove file /tmp/adoptopenjdk.repo "
@@ -61,12 +52,77 @@ function general_configuration() {
     echo "gpgcheck=1" >> /tmp/adoptopenjdk.repo
     echo "gpgkey=https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public" >> /tmp/adoptopenjdk.repo
 
-    sudo mv /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
+    sudo rm -fv /etc/yum.repos.d/adoptopenjdk.repo
+    sudo mv -vf /tmp/adoptopenjdk.repo /etc/yum.repos.d/adoptopenjdk.repo
 
-    sudo yum -y install adoptopenjdk-8-hotspot adoptopenjdk-11-hotspot adoptopenjdk-8-hotspot-jre adoptopenjdk-11-hotspot-jre
+    # No more in use: adoptopenjdk-8-hotspot adoptopenjdk-8-hotspot-jre
+    sudo yum -y install adoptopenjdk-11-hotspot  adoptopenjdk-11-hotspot-jre || true
     sudo yum -y remove java-1.7.0-openjdk java-1.7.0-openjdk-headless \
                        java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-headless.x86_64 \
                        java-11-openjdk.x86_64 java-11-openjdk-headless.x86_64 || true
+    yum list installed | grep -i '\(openjdk\|jdk\|java\)'
+
+    # Install
+    curl -sSL --retry 5 --retry-delay 5 --retry-max-time 300 "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+    sudo rm -fr awscliv2.zip ./aws/install
+}
+
+function permissions_fixes() {
+    local PENDING="false"
+    grep -i openshift /etc/passwd || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo adduser openshift
+        echo -e "openshift\nopenshift" | sudo passwd openshift
+    fi
+
+    PENDING="false"
+    grep -i openshift /etc/group | grep -i wheel || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo usermod -a -G wheel openshift
+    fi
+
+    PENDING="false"
+    sudo grep -v "^\s*#" /etc/sudoers | grep -i "wheel" | grep -i "nopasswd" || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo sed -i 's/%wheel\s*ALL=(ALL)\s*ALL/%wheel        ALL=(ALL)       NOPASSWD: ALL/g' /etc/sudoers
+    fi
+
+    PENDING="false"
+    grep -i openshift /etc/group | grep -i docker || PENDING="true"
+    if [ "true" == "${PENDING}" ] ; then
+        sudo usermod -a -G docker openshift
+    fi
+}
+
+function configuration_extras() {
+
+    # Tools not needed in buildBot
+    sudo yum -y install tigervnc-server remmina firewalld gitk htop etckeeper
+
+    # etckeeper
+    if [ ! -d /etc/.git ]; then
+        cd /etc/
+        sudo etckeeper init
+        sudo etckeeper commit -m "Initial commit"
+    else
+        echo "WARNING: git repository in etc folder has been created before."
+    fi
+
+    # OCP 3
+    sudo yum install -y centos-release-openshift-origin311
+    sudo yum install -y origin-clients
+    sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+
+    # GUI:
+    sudo yum groupinstall -y "MATE Desktop" || echo "ERROR: Could not install mate desktop"
+    sudo yum groups -y install "GNOME Desktop" || echo "ERROR: Could not install gnome desktop"
+
+    # Google Chrome
+    curl -LO https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+    sudo yum install -y google-chrome-stable-94.0.4606.81-1.x86_64.rpm
+    rm -f google-chrome-stable-94.0.4606.81-1.x86_64.rpm
 
 }
 
@@ -135,6 +191,7 @@ function setup_xrdp() {
 
 function fix_locales() {
 
+    sudo rm -fv /etc/profile.d/sh.local || true
     echo ' ' | sudo tee -a /etc/profile.d/sh.local
     echo 'export LC_ALL="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
     echo 'export LC_CTYPE="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
@@ -142,13 +199,22 @@ function fix_locales() {
     echo 'export LANG="en_US.UTF-8"' | sudo tee -a /etc/profile.d/sh.local
 
     cd /etc
-    sudo git add .
-    sudo git commit -a -m "Configured centos locales."
+    if [ -d ".git" ]; then
+        sudo git add .
+        sudo git commit -a -m "Configured centos locales."
+    fi
 
 }
 
 general_configuration
-setup_xrdp
+permissions_fixes
+
+if [ -z "${1}" ] || [ "" == "${1}" ]; then
+    # No need for this ones if creating a buildBot ...
+    configuration_extras
+    setup_xrdp
+fi
+
 fix_locales
 
 echo " "

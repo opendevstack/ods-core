@@ -10,6 +10,7 @@ The base image contains the following customizations:
 * https://github.com/opendevstack/tailor[Tailor]
 * https://github.com/containers/skopeo[Skopeo]
 * https://snyk.io[Snyk] - used to scan and monitor projects vulnerable third-party dependencies (only installed if `SNYK_DISTRIBUTION_URL` is configured)
+* https://aquasec.com[Aqua Scanner CLI] - used to scan local images and interact with the Aqua Server (only installed if `AQUASEC_SCANNERCLI_URL` is configured)
 * Setting of enterprise proxy (based on `HTTP_PROXY` presence)
 * Support for custom certificates (based on `APP_DNS` presence)
 

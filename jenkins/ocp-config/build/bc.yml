@@ -72,7 +72,7 @@ objects:
     labels:
       app: jenkins
   spec:
-    failedBuildsHistoryLimit: 5
+    failedBuildsHistoryLimit: 20
     nodeSelector: null
     output:
       to:
@@ -117,7 +117,7 @@ objects:
         from:
           kind: DockerImage
           name: ${JENKINS_MASTER_BASE_FROM_IMAGE}
-    successfulBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 20
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -125,7 +125,7 @@ objects:
     labels:
       app: jenkins
   spec:
-    failedBuildsHistoryLimit: 5
+    failedBuildsHistoryLimit: 20
     nodeSelector: null
     output:
       to:
@@ -164,7 +164,7 @@ objects:
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
         dockerfilePath: ${JENKINS_AGENT_DOCKERFILE_PATH}
       type: Docker
-    successfulBuildsHistoryLimit: 5
+    successfulBuildsHistoryLimit: 20
 - apiVersion: v1
   kind: BuildConfig
   metadata:

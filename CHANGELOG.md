@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
+- Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
+
+## [4.1.1] - 2022-11-24
+
+- Fix CI/CD problems in Jenkins pipelines ([#1177](https://github.com/opendevstack/ods-core/pull/1177))
+- Fixes Python agent does not seems to have java in the path ([#685](https://github.com/opendevstack/ods-quickstarters/issues/685))
+- Removes existing differences between jenkins agent base image in Centos 7 and UBI 8 ([#1181](https://github.com/opendevstack/ods-core/pull/1181))
+- Upgrade to Java 11 Jenkins master and agents and increase logging to know why they sometimes die ([#1185](https://github.com/opendevstack/ods-core/pull/1185))
+
+## [4.1] - 2022-11-17
+
 - Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
 - Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
 - Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
@@ -24,11 +36,37 @@
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
 - Fixes Default jdk is not set in edpBox ([#1157](https://github.com/opendevstack/ods-core/pull/1157))
 - Allow to choose the order in which quickstaters are build ([#1158](https://github.com/opendevstack/ods-core/pull/1158))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
+- Fixes Jenkins Memory problems reported ([#1161](https://github.com/opendevstack/ods-core/pull/1161))
+- Update Aqua CLI version ([#1173](https://github.com/opendevstack/ods-core/pull/1173))
 
 ### Added
 
-- Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
 - Assign the owner as a label to the project ([#946](https://github.com/opendevstack/ods-core/pull/946))
+
+### Fixed
+
+- Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
+- ODS AMI build failing due to broken helm diff package ([#1083](https://github.com/opendevstack/ods-core/pull/1083))
+- Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
+- Jenkins Agent Base move from centos to UBI based repos ([#1093](https://github.com/opendevstack/ods-core/issues/1093))
+- ODS AMI CI build fails with Prov APP (ocp check precondition) ([#1117](https://github.com/opendevstack/ods-core/pull/1117))
+- Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
+- Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early. Ported from task/upgrade-atlassian-stack.
+- Fixes bugs introduced while upgrading atlassian stack ([#1149](https://github.com/opendevstack/ods-core/pull/1149)). Backport of ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
+- deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1153](https://github.com/opendevstack/ods-core/pull/1153))
+- Fix and prevent permission issues ([#1162](https://github.com/opendevstack/ods-core/issues/1162))
+
+### Changed
+
+- Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
+- Updates Atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)). Ported from task/upgrade-atlassian-stack.
+- Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
+
+## [4.0] - 2021-18-11
+
+### Added
+- Extend provisioning app configuration to allow to enable single page client ([#1009](https://github.com/opendevstack/ods-core/pull/1009))
 - Install Aquasec scannercli on jenkins base image ([#976](https://github.com/opendevstack/ods-core/pull/976))
 - Add changelog enforcer as GitHub Action to workflow ([#891](https://github.com/opendevstack/ods-core/issues/891))
 - Narrow down system:authenticated permissions when creating new ODS project ([#942](https://github.com/opendevstack/ods-core/issues/942))
@@ -38,21 +76,27 @@
 - Extends packer build to add a pub key as authorized key to odsbox ami image ([#953](https://github.com/opendevstack/ods-core/pull/953))
 - Add script to generate the OpenVPN client profile for the ODS in a box
 - Allow to configure database image for SonarQube ([#984](https://github.com/opendevstack/ods-core/pull/984))
-- Updated test suite README.md with proxy and jq requirements
 - Add configmaps for cluster creation and ods box dev environment ([#989](https://github.com/opendevstack/ods-core/pull/989))
 - Add new plugin for Jenkins ([#999](https://github.com/opendevstack/ods-core/issues/999))
-- Set sql-mode to ANSI_QUOTES in the creation of atlassian_mysql container to accept querys with double quotes in column and tables names ([#1072](https://github.com/opendevstack/ods-core/pull/1072))
+- Create Dockerfile.rhel7 and Dockerfile.centos7 with respectives plugins.rhel7.txt and plugins.centos7.txt definitions  ([1000](https://github.com/opendevstack/ods-core/issues/1000))
+- Change FROM image of SonarQube to avoid build problems in the AdoptJDK11 ([994](https://github.com/opendevstack/ods-core/pull/994))
+- Fix port from 3.x for SonarQube libressl issue - change to openssl ([#996](https://github.com/opendevstack/ods-core/issues/996))
+- Fix mro and docgen tests adding ODS_BITBUCKET_PROJECT param ([#1014](https://github.com/opendevstack/ods-core/pull/1014))
+- Update plugins.rhel7.txt (backport 4.x) ([1024](https://github.com/opendevstack/ods-core/pull/1024))
+- `make` is missing from Jenkins agent images in OpenShift 4 ([1025](https://github.com/opendevstack/ods-core/issues/1025))
+- Update ods.service in order to startup the ods service correctly ([1042](https://github.com/opendevstack/ods-core/pull/1042))
+- Add dependency to docker.service in ods systemd service definition ([1045](https://github.com/opendevstack/ods-core/pull/1045))
+- Add support for ods-saas-service quickstarter ([#1033](https://github.com/opendevstack/ods-core/pull/1033))
 
 ### Changed
 
 - ds-jupyter-notebook renamed to ds-jupyter-lab and upgrade to JupyterLab 3 ([#562](https://github.com/opendevstack/ods-quickstarters/issues/562))
+
 - Updated Tailor to 1.3.4 ([#1090](https://github.com/opendevstack/ods-core/issues/1090))
 - Updated Nexus to 3.40.1 ([#1164](https://github.com/opendevstack/ods-core/pull/1164))
-- Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
 - Simplify force auth configuration for sonarqube ([#986](https://github.com/opendevstack/ods-core/issues/986))
 
 ### Fixed
-
 - ODS AMI build failed due to an installation error of chrome package ([#1054](https://github.com/opendevstack/ods-core/pull/1054))
 - ODS AMI build failed due to jira missing permissions on jira data folder ([#1005](https://github.com/opendevstack/ods-core/pull/1005))
 - ODS AMI build failed due to bitbucket crashed container ([#1001](https://github.com/opendevstack/ods-core/pull/1001))
@@ -60,15 +104,10 @@
 - Use storageClassName instead of annotation ([#985](https://github.com/opendevstack/ods-core/pull/985))
 - Tailor detects drift in cluster IP addresses in OCP 4.7+ ([#683](https://github.com/opendevstack/ods-jenkins-shared-library/issues/683))
 - Jenkins plugins version for OCP 3 ([#1000](https://github.com/opendevstack/ods-core/issues/1000))
-- fix openshift templates deprecation notice ([#639](https://github.com/opendevstack/ods-quickstarters/issues/639))
-- Fix config check ([#1036](https://github.com/opendevstack/ods-core/pull/1036))
+- Fix config check ([#1037](https://github.com/opendevstack/ods-core/pull/1037))
 - Update jenkins plugins ([#1040](https://github.com/opendevstack/ods-core/pull/1040))
-- Do not replace multiple occurences of project in component name ([#1078](https://github.com/opendevstack/ods-core/issues/1078))
-- Jenkins Agent Base UBI8 fix new Centos repos ([#1093](https://github.com/opendevstack/ods-core/pull/1093))
-- Update centos mirror ([#1098](https://github.com/opendevstack/ods-core/pull/1098))
-- Fixes bugs introduced while upgrading atlassian stack ([#1148](https://github.com/opendevstack/ods-core/pull/1148))
-- Point Aqua credential id to project-specific CD user ([#1125](https://github.com/opendevstack/ods-core/issues/1125))
-- Golang dependencies used by Jenkins CI to run tests in folder tests are deprecated and sometimes fail to download ([1139](https://github.com/opendevstack/ods-core/issues/1139))
+- Update centos mirror ([#1097](https://github.com/opendevstack/ods-core/issues/1097))
+- Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ### Removed
 

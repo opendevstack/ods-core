@@ -70,6 +70,7 @@ func (api *ProvisionAPI) CreateProject() ([]byte, error) {
 		return nil, fmt.Errorf("Could not read response file?!, %s", err)
 	}
 	fmt.Printf("Provision results: %s\n", string(log))
+	fmt.Printf("-----\n")
 	return log, nil
 }
 
@@ -130,5 +131,6 @@ func (api *ProvisionAPI) CreateComponent() ([]byte, error) {
 		return nil, fmt.Errorf("Could not read response file?!, %w", err)
 	}
 	fmt.Printf("Provision results: %s\n", string(log))
+	fmt.Printf("-----\n")
 	return log, nil
 }

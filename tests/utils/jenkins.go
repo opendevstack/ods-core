@@ -93,6 +93,7 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 
 	fmt.Printf("Getting stages for build: %s in project: %s\n",
 		buildName, jenkinsNamespace)
+	fmt.Printf("To get more info, use print-jenkins-log.sh %s %s \n", jenkinsNamespace, buildName)
 
 	config, err := GetOCClient()
 	if err != nil {
@@ -125,15 +126,18 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				}
 			}
 		} else {
-			fmt.Printf("Waiting (%d/%d) for build to complete: %s. Current status: %s\n", count, max, buildName, build.Status.Phase)
-			fmt.Printf("To get more info, use print-jenkins-log.sh %s %s \n", jenkinsNamespace, buildName)
+			fmt.Printf("Waiting for build of %s to complete (%d/%d). Current status: %s\n", buildName, count, max, build.Status.Phase)
 		}
 		count++
 	}
 
+	buildSeemsToBeComplete := "true"
+	errorGettingInfoNeeded := "false"
+
 	// in case the the build was sort of never really started - get the jenkins pod log, maybe there
 	// is a plugin / sync problem?
-	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending {
+	if build.Status.Phase == v1.BuildPhaseNew || build.Status.Phase == v1.BuildPhasePending || build.Status.Phase == v1.BuildPhaseRunning {
+		buildSeemsToBeComplete = "false"
 		// get the jenkins pod log
 		stdoutJPod, stderrJPod, errJPod := RunScriptFromBaseDir(
 			"tests/scripts/print-jenkins-pod-log.sh",
@@ -141,11 +145,16 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 				jenkinsNamespace,
 			}, []string{})
 		if errJPod != nil {
-			fmt.Printf("Error getting jenkins pod logs: %s\nerr:%s", errJPod, stderrJPod)
+			fmt.Printf("Error getting jenkins pod logs using "+
+				"tests/scripts/print-jenkins-pod-log.sh: %s\nerr:%s",
+				errJPod, stderrJPod)
+			errorGettingInfoNeeded = "true"
 		} else {
 			fmt.Printf("Jenkins pod logs: \n%s \nerr:%s", stdoutJPod, stderrJPod)
 		}
 	}
+
+	fmt.Printf("Build seems to be complete ? : %s \n", buildSeemsToBeComplete)
 
 	// get the jenkins run build log
 	stdout, stderr, err := RunScriptFromBaseDir(
@@ -153,26 +162,29 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		[]string{
 			jenkinsNamespace,
 			buildName,
+			buildSeemsToBeComplete,
 		}, []string{})
 
 	if err != nil {
-		return "", fmt.Errorf(
-			"Could not execute tests/scripts/print-jenkins-log.sh\n - err:%s\n - stderr:%s",
+		fmt.Printf("ERROR: Could not get Jenkins logs using "+
+			"tests/scripts/print-jenkins-log.sh\n - err:%s\n - stderr:%s",
 			err,
-			stderr,
-		)
+			stderr)
+		errorGettingInfoNeeded = "true"
 	}
 
 	// print in any case, otherwise when err != nil no logs are shown
-	fmt.Printf("buildlog: %s\n%s", buildName, stdout)
+	fmt.Printf("[Jenkins buildlog]: buildName: %s\n%s", buildName, stdout)
 
-	// still running, or we could not find it ...
-	if count >= max {
-		return "", fmt.Errorf(
-			"Timeout during build: %s\nStdOut: %s\nStdErr: %s",
-			buildName,
-			stdout,
-			stderr)
+	problematicSubString := "Still waiting to schedule task"
+	exceptionProblematicSubString := "Finished: SUCCESS"
+	if len(stdout) > 0 && (strings.Contains(stdout, problematicSubString)) {
+		if !strings.Contains(stdout, exceptionProblematicSubString) {
+			fmt.Printf("Jenkins log contains problematic substring ( %s ) and "+
+				" it does not contain exception case string: ( %s ) \n", problematicSubString,
+				exceptionProblematicSubString)
+			errorGettingInfoNeeded = "true"
+		}
 	}
 
 	// get (executed) jenkins stages from run - the caller can compare against the golden record
@@ -184,8 +196,35 @@ func RetrieveJenkinsBuildStagesForBuild(jenkinsNamespace string, buildName strin
 		}, []string{})
 
 	if err != nil {
-		return "", fmt.Errorf("Error getting jenkins stages for: %s\rError: %s, %s, %s",
+		fmt.Printf("ERROR: Problem getting jenkins stages for: %s\rError: %s, %s, %s",
 			buildName, err, stdout, stderr)
+		errorGettingInfoNeeded = "true"
+	}
+
+	// print in any case, otherwise when err != nil no logs are shown
+	fmt.Printf("[get oc build status]: buildName: %s\n%s", buildName, stdout)
+
+	problematicSubString2 := "ERROR: Could not get oc build status named"
+	if len(stdout) > 0 && (strings.Contains(stdout, problematicSubString2)) {
+		errorGettingInfoNeeded = "true"
+	}
+
+	// still running, or we could not find it ...
+	if count >= max {
+		return "", fmt.Errorf(
+			"Timeout during build: %s\nStdOut: %s\nStdErr: %s",
+			buildName,
+			stdout,
+			stderr)
+	}
+
+	if (errorGettingInfoNeeded == "true") || (buildSeemsToBeComplete == "false") {
+		if buildSeemsToBeComplete == "false" {
+			fmt.Printf("ERROR: Something went wrong. Look for the word ERROR above.")
+			fmt.Printf("ERROR: Sleeping for 20h to allow manual intervention.")
+			time.Sleep(20 * time.Hour)
+		}
+		return "", fmt.Errorf("ERROR: Something went wrong. Look for the word ERROR above.")
 	}
 
 	return stdout, nil
