@@ -56,7 +56,7 @@ RUN mkdir -p /opt/configuration/sonarqube/plugins
 ADD https://github.com/deepy/sonar-crowd/releases/download/2.1.3/sonar-crowd-plugin-2.1.3.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v2.1.1/sonar-auth-oidc-plugin-2.1.1.jar /opt/configuration/sonarqube/plugins/
 # Language plugins not bundled
-ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.8/sonar-groovy-plugin-1.8.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.8/sonar-groovy-plugin-1.7.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.2.1/sonar-r-plugin-0.2.1.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
