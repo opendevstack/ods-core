@@ -41,7 +41,7 @@ jobs:
           --imagename ods-jenkins-agent-base-centos7 \
           --dockerdir jenkins/agent-base \
           --dockerfile Dockerfile.centos7 \
-          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.217.3/snyk-linux"
+          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux"
       - name: Push RHEL7 docker image
         if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
         shell: bash
@@ -59,7 +59,7 @@ jobs:
           --imagename ods-jenkins-agent-base-ubi8 \
           --dockerdir jenkins/agent-base \
           --dockerfile Dockerfile.ubi8 \
-          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.217.3/snyk-linux"
+          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux"
       - name: Push UBI8 docker image
         if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
         shell: bash
