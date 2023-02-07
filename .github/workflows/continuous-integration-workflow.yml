@@ -8,7 +8,7 @@ on:
 jobs:
   jenkins-master:
     name: Jenkins master tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -30,7 +30,7 @@ jobs:
 
   jenkins-agent-base:
     name: Jenkins agent base tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -73,7 +73,7 @@ jobs:
           --imagename ods-jenkins-agent-base-ubi8
   sonarqube:
     name: SonarQube tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         version: ['8.9.10.61524'] # 8.9 = LTS
@@ -93,7 +93,7 @@ jobs:
 
   nexus:
     name: Nexus tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -109,7 +109,7 @@ jobs:
 
   webhook-proxy:
     name: Webhook Proxy tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -149,7 +149,7 @@ jobs:
 
   create-projects:
     name: Create Projects tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -166,7 +166,7 @@ jobs:
 
   clone-check:
     name: Verify clone script requirements
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -184,7 +184,7 @@ jobs:
 
   compile-go-tests:
     name: Verify Go tests are formatted and can be compiled
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -218,7 +218,7 @@ jobs:
 
 # cluster:
 #   name: Setup and project provisioning tests
-#   runs-on: ubuntu-16.04
+#   runs-on: ubuntu-22.04
 #   steps:
 #     -
 #       name: GitHub context
