@@ -14,13 +14,6 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v2.0.0
       -
-        name: Build RHEL docker image
-        run: |
-          ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-master-rhel7 \
-          --dockerdir jenkins/master \
-          --dockerfile Dockerfile.rhel7
-      -
         name: Build UBI8 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
