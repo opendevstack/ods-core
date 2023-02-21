@@ -33,10 +33,10 @@ parameters:
   required: true
   description: Base image for Jenkins agent base
 - name: JENKINS_MASTER_DOCKERFILE_PATH
-  value: Dockerfile.centos7
+  value: Dockerfile.ubi8
   description: Dockerfile variant to use
 - name: JENKINS_AGENT_DOCKERFILE_PATH
-  value: Dockerfile.centos7
+  value: Dockerfile.ubi8
   description: Dockerfile variant to use
 - name: JENKINS_AGENT_BASE_BUILD_CPU_REQUEST
   value: 200m
@@ -49,7 +49,7 @@ parameters:
 - name: APP_DNS
   description: OpenShift application base dns - used for grabbing the root ca and adding into the agent
 - name: JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL
-  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.180.1/snyk-linux)
+  description: optional uri that points to the snyk binary distribution (i.e. https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux)
 - name: JENKINS_AGENT_BASE_AQUASEC_SCANNERCLI_URL
   description: optional uri that points to the aquasec binary distribution (i.e. https://download.aquasec.com/scanner/6.0.0/scannercli)
 - name: SONAR_EDITION

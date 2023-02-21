@@ -197,14 +197,6 @@ else
     echo_info "Default '${ADMIN_USER_NAME}' password is not in use."
 fi
 
-echo_info "Setting sonar.forceAuthentication=true ..."
-if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
-    "${SONARQUBE_URL}/api/settings/set?key=sonar.forceAuthentication&value=true"; then
-    echo_error "Could not enable sonar.forceAuthentication."
-    exit 1
-fi
-echo_info "sonar.forceAuthentication is enabled."
-
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists ..."
 encodedPipelineUser="$(uriencode "${PIPELINE_USER_NAME}")"
 encodedPipelinePassword="$(uriencode "${ADMIN_USER_PASSWORD}")"
