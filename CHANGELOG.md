@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [4.2.0] - 2023-02-21
+
 - Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
 - Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
 - Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
