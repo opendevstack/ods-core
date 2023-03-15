@@ -17,7 +17,7 @@ parameters:
 - name: JENKINS_ENABLE_OAUTH
   value: "true"
 - name: JENKINS_MEMORY_LIMIT
-  value: 7Gi
+  value: 4Gi
 - name: JENKINS_MEMORY_REQUEST
   value: 4Gi
 - name: JENKINS_CPU_LIMIT
@@ -29,7 +29,7 @@ parameters:
 - name: JENKINS_JAVA_GC_OPTS
   value: "-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M"
 - name: JENKINS_JAVA_MAX_HEAP_PARAM
-  value: "-Xms1024m -Xmx4g"
+  value: "-Xms1024m -Xmx2g"
 - name: JENKINS_CONTAINER_HEAP_PERCENT
   value: "1"
 - name: ODS_NAMESPACE
