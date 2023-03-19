@@ -27,7 +27,7 @@ parameters:
 - name: JENKINS_VOLUME_CAPACITY
   value: 5Gi
 - name: JENKINS_JAVA_GC_OPTS
-  value: "-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M"
+  value: "-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=256M -Dsun.zip.disableMemoryMapping=true"
 - name: JENKINS_JAVA_MAX_HEAP_PARAM
   value: "-Xms1024m -Xmx2g"
 - name: JENKINS_CONTAINER_HEAP_PERCENT
