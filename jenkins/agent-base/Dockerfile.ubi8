@@ -10,9 +10,7 @@ ENV SONAR_SCANNER_VERSION=4.7.0.2747 \
     HELM_PLUGIN_DIFF_VERSION=3.6.0 \
     HELM_PLUGIN_SECRETS_VERSION=4.2.2 \
     GIT_LFS_VERSION=2.6.1 \
-    JNLP_JAVA_OPTIONS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"  
-    
-#    JNLP_JAVA_OPTIONS="-XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled -XX:+UseStringDeduplication -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true"
+    JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
