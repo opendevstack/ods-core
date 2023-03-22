@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
+
 ## [4.2.0] - 2023-02-21
 
 - Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
