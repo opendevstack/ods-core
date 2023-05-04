@@ -684,7 +684,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	return nil
 }
 
-// Check that Jenkins is up in case the deployment is idle in OpenShift.
+// Check that Jenkins is up in case the service is idle in OpenShift.
 func (c *ocClient) CheckAvailability(e *Event) {
 	url := fmt.Sprintf(
 		"http://jenkins.%s.svc.cluster.local",
