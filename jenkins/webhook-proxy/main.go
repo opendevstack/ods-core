@@ -101,6 +101,7 @@ type Client interface {
 	GetPipeline(e *Event) (bool, []byte, error)
 	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
+	CheckAvailability(e *Event)
 }
 
 type ocClient struct {
@@ -583,6 +584,8 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
+	c.CheckAvailability(e)
+
 	p := struct {
 		Env []EnvPair `json:"env"`
 	}{
@@ -613,6 +616,8 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 	if err != nil {
 		return 500, err
 	}
+
+	c.CheckAvailability(e)
 
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs",
@@ -654,6 +659,9 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		e.Namespace,
 		e.Pipeline,
 	)
+
+	c.CheckAvailability(e)
+
 	req, _ := http.NewRequest(
 		"DELETE",
 		url,
@@ -674,6 +682,31 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	log.Println(e.RequestID, "Deleted pipeline", e.Pipeline)
 
 	return nil
+}
+
+// Check that Jenkins is up in case the deployment is idle in OpenShift.
+func (c *ocClient) CheckAvailability(e *Event) {
+	url := fmt.Sprintf(
+		"http://jenkins.%s.svc.cluster.local",
+		e.Namespace,
+	)
+	req, _ := http.NewRequest(
+		"GET",
+		url,
+		nil,
+	)
+
+	res, err := c.do(req)
+
+	if err != nil {
+		log.Println(e.RequestID, "Jenkins not reachable, if idled it will scale up in namespace", e.Namespace)
+	}else{
+		if res.StatusCode == 200  {
+			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
+		}else{
+			log.Println(e.RequestID, "Jenkins not available, status code is", res.StatusCode)
+		}
+	}
 }
 
 // GetPipeline determines whether the pipeline corresponding to the given
