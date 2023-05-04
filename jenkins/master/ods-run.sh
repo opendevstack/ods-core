@@ -99,6 +99,10 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   fi
 fi
 
+# https://stackoverflow.com/questions/26041117/growing-resident-memory-usage-rss-of-java-process
+echo "MALLOC arena fix courtesy stackoverflow"
+export MALLOC_ARENA_MAX=4
+
 echo " "
 echo "Booting Jenkins ( /usr/libexec/s2i/openshift-run ) ..."
 echo " "
