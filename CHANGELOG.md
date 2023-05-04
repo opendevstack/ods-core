@@ -7,6 +7,7 @@
 - Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
 - Maintenance, update helm to version 3.11.0 and update deps ([#1203](https://github.com/opendevstack/ods-core/issues/1203))
 - Maintenance, update snyk to version 1.1097.0 ([#1203](https://github.com/opendevstack/ods-core/issues/1199))
+- Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
 
 ## [4.1.1] - 2022-11-24
 
