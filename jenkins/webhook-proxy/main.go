@@ -700,10 +700,10 @@ func (c *ocClient) CheckAvailability(e *Event) {
 
 	if err != nil {
 		log.Println(e.RequestID, "Jenkins not reachable, if idled it will scale up in namespace", e.Namespace)
-	}else{
-		if res.StatusCode == 200  {
+	} else {
+		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
-		}else{
+		} else {
 			log.Println(e.RequestID, "Jenkins not available, status code is", res.StatusCode)
 		}
 	}

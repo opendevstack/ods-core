@@ -202,7 +202,6 @@ func (c *mockClient) CheckAvailability(e *Event) {
 	c.Event = e
 }
 
-
 func testServer() (*httptest.Server, *mockClient) {
 	mc := &mockClient{}
 	server := &Server{
