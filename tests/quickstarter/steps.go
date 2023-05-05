@@ -105,6 +105,7 @@ type TestStepVerify struct {
 // TemplateData holds template parameters. Those will be applied to all
 // values defined in the steps, as they are treated as Go templates.
 // For example, Jenkins run attachments can be defined like this:
+//
 //   runAttachments:
 //   - SCRR-{{.ProjectID}}-{{.ComponentID}}.docx, and then the
 type TemplateData struct {
