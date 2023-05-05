@@ -198,6 +198,9 @@ func (c *mockClient) DeletePipeline(e *Event) error {
 	c.Event = e
 	return nil
 }
+func (c *mockClient) CheckAvailability(e *Event) {
+	c.Event = e
+}
 
 func testServer() (*httptest.Server, *mockClient) {
 	mc := &mockClient{}
