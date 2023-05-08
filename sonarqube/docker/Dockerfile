@@ -58,6 +58,8 @@ ADD https://github.com/vaulttec/sonar-auth-oidc/releases/download/v2.1.1/sonar-a
 # Language plugins not bundled
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.7/sonar-groovy-plugin-1.7.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.2.1/sonar-r-plugin-0.2.1.jar /opt/configuration/sonarqube/plugins/
+# When running SonarQube 9.9LTS this plugin can be upgraded to 0.2.x
+ADD https://github.com/elegoff/sonar-rust/releases/download/v0.1.0/community-rust-plugin-0.1.0.jar /opt/configuration/sonarqube/plugins/
 
 RUN chown -R :0 /opt/configuration/sonarqube/plugins; \
     chmod -R g=u /opt/configuration/sonarqube/plugins; \

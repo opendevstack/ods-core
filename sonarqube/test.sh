@@ -85,7 +85,7 @@ if ! $VERIFY_ONLY; then
             echo -n "Sonar edition provided ${SONAR_EDITION} is not valid"; exit 1;;
 
     esac
-        
+
         HOST_PORT="9000"
         CONTAINER_IMAGE="sqtest"
 
@@ -215,8 +215,9 @@ case $SONAR_EDITION in
     community | developer | enterprise | datacenter)
         expectedPlugins=( "crowd:2.1.3"
                 "authoidc:2.1.1"
-                "groovy:1.7" 
-                "r:0.2.1" )
+                "groovy:1.7"
+                "r:0.2.1"
+                "communityrust:0.1.0" )
         ;;
 
     *)

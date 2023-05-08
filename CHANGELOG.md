@@ -4,6 +4,7 @@
 
 - Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
 - Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
+- Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
 
 
 ## [4.2.0] - 2023-02-21
@@ -40,7 +41,7 @@
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 - Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
 - Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
-- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
+- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138))
 - deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
 - Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.
