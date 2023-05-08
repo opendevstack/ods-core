@@ -2,7 +2,7 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.flow.*;
 
 // See comments in https://github.com/opendevstack/ods-core/pull/1161
-FlowDurabilityHint fdh = FlowDurabilityHint.SURVIVABLE_NONATOMIC;
+FlowDurabilityHint fdh = FlowDurabilityHint.PERFORMANCE_OPTIMIZED;
 
 println("\nAvailable values: ")
 for (FlowDurabilityHint maybeHint : FlowDurabilityHint.values()) {
