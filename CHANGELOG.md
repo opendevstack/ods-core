@@ -2,12 +2,21 @@
 
 ## Unreleased
 
+- Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
+- Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
+- Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
+- Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
+
+
+## [4.2.0] - 2023-02-21
+
 - Maintenance, update nexus to version 3.45.1 ([#1201](https://github.com/opendevstack/ods-core/pull/1201))
 - Update Containers Probes in Jenkins ([#1191](https://github.com/opendevstack/ods-core/issues/1191))
 - Upgrade SonarQube to version 8.9 LTS, removal of plugins that are now bundled ([#1075](https://github.com/opendevstack/ods-core/issues/1075))
 - Maintenance, update helm to version 3.11.0 and update deps ([#1203](https://github.com/opendevstack/ods-core/issues/1203))
 - Maintenance, update snyk to version 1.1097.0 ([#1203](https://github.com/opendevstack/ods-core/issues/1199))
-- Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
+- Removal of Centos and deprecation of ODSBox ([#1209](https://github.com/opendevstack/ods-core/issues/1209))
+
 
 ## [4.1.1] - 2022-11-24
 
@@ -34,7 +43,7 @@
 - Add plugins necessary to upgrade to 4.9 base image in the list of managed plugins ([#1121](https://github.com/opendevstack/ods-core/pull/1121))
 - Upgraded atlassian suite to 8.20.6 and added functionality to upgrade without reinstalling all the box.
 - Upgrades needed by Github and Jenkins pipelines to work again. Includes some pipeline modifications to detect errors early.
-- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138)) 
+- Upgrades atlassian suite ([#1138](https://github.com/opendevstack/ods-core/issues/1138))
 - deploy.sh checks that services started are up and ensures resolv.conf is updated if service ip changes ([#1152](https://github.com/opendevstack/ods-core/pull/1152))
 - Remove Jcenter from Nexus ([#804](https://github.com/opendevstack/ods-quickstarters/issues/804))
 - Needed changes to run CI again, ported from task/upgrade-atlassian-stack. Run quickstarters in parallel, typos.

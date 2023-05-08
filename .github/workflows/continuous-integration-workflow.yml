@@ -8,18 +8,11 @@ on:
 jobs:
   jenkins-master:
     name: Jenkins master tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
         uses: actions/checkout@v2.0.0
-      -
-        name: Build CENTOS docker image
-        run: |
-          ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-master-centos7 \
-          --dockerdir jenkins/master \
-          --dockerfile Dockerfile.centos7
       -
         name: Build UBI8 docker image
         run: |
@@ -30,29 +23,11 @@ jobs:
 
   jenkins-agent-base:
     name: Jenkins agent base tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
         uses: actions/checkout@v2.0.0
-      - name: Build CENTOS docker image
-        run: |
-          ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-agent-base-centos7 \
-          --dockerdir jenkins/agent-base \
-          --dockerfile Dockerfile.centos7 \
-          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux"
-      - name: Push RHEL7 docker image
-        if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
-        shell: bash
-        env:
-          DOCKER_USER: ${{ secrets.DockerHubUser }}
-          DOCKER_PASS: ${{ secrets.DockerHubPass }}
-        run: |
-          ./.github/workflows/push-docker-image.sh \
-          --user "$DOCKER_USER" \
-          --password "$DOCKER_PASS" \
-          --imagename ods-jenkins-agent-base-centos7
       - name: Build UBI8 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
@@ -73,7 +48,7 @@ jobs:
           --imagename ods-jenkins-agent-base-ubi8
   sonarqube:
     name: SonarQube tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         version: ['8.9.10.61524'] # 8.9 = LTS
@@ -93,7 +68,7 @@ jobs:
 
   nexus:
     name: Nexus tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -109,7 +84,7 @@ jobs:
 
   webhook-proxy:
     name: Webhook Proxy tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -149,7 +124,7 @@ jobs:
 
   create-projects:
     name: Create Projects tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -166,7 +141,7 @@ jobs:
 
   clone-check:
     name: Verify clone script requirements
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
@@ -184,11 +159,16 @@ jobs:
 
   compile-go-tests:
     name: Verify Go tests are formatted and can be compiled
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       -
         name: Checkout repository
         uses: actions/checkout@v3
+      - 
+        name: Setup Go 1.18
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
       -
         name: Verify all Go files are formatted with gofmt
         working-directory: tests
@@ -218,7 +198,7 @@ jobs:
 
 # cluster:
 #   name: Setup and project provisioning tests
-#   runs-on: ubuntu-16.04
+#   runs-on: ubuntu-22.04
 #   steps:
 #     -
 #       name: GitHub context
