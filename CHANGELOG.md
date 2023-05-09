@@ -5,6 +5,7 @@
 - Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
 - Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
 - Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
+- Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 
 
 ## [4.2.0] - 2023-02-21
