@@ -5,6 +5,7 @@
 - Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
 - Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
 - Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
+- Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
 - Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 
 
@@ -16,6 +17,7 @@
 - Maintenance, update helm to version 3.11.0 and update deps ([#1203](https://github.com/opendevstack/ods-core/issues/1203))
 - Maintenance, update snyk to version 1.1097.0 ([#1203](https://github.com/opendevstack/ods-core/issues/1199))
 - Removal of Centos and deprecation of ODSBox ([#1209](https://github.com/opendevstack/ods-core/issues/1209))
+
 
 ## [4.1.1] - 2022-11-24
 
