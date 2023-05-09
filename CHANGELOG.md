@@ -6,6 +6,7 @@
 - Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
 - Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
 - Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
+- Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 
 
 ## [4.2.0] - 2023-02-21
