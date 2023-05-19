@@ -51,12 +51,6 @@ fi
 
 rm -fv ${JAVA_INSTALLED_PKGS_LOGS} ${JAVA_11_INSTALLED_PKGS_LOGS}
 
-echo " "
-echo "${ME}: Checking java tool versions: "
-if [ "true" == "${NEEDS_DEVEL}" ]; then
-    jar --version
-fi
-
 NO_JAVA_LINK="false"
 java -version || NO_JAVA_LINK="true"
 if [ "true" == "${NO_JAVA_LINK}" ]; then
