@@ -1,4 +1,4 @@
-FROM quay.io/openshift/origin-jenkins:4.11
+FROM quay.io/openshift/origin-jenkins
 
 ENV JAVA_HOME /usr/lib/jvm/jre
 
