@@ -8,7 +8,7 @@
 - Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
 - Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 - Jenkins maintenance, Update resources for deployment for optimal usage ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
-
+- Jenkins maintenance, Update jenkins base image, plugins, git-lfs, aquacli ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
 
 ## [4.2.0] - 2023-02-21
 

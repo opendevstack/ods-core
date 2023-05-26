@@ -9,7 +9,7 @@ ENV SONAR_SCANNER_VERSION=4.7.0.2747 \
     HELM_VERSION=3.11.0 \
     HELM_PLUGIN_DIFF_VERSION=3.7.0 \
     HELM_PLUGIN_SECRETS_VERSION=4.2.2 \
-    GIT_LFS_VERSION=2.6.1 \
+    GIT_LFS_VERSION=3.3.0 \
     JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
 
 ARG APP_DNS
@@ -88,7 +88,7 @@ RUN cd /tmp \
     && mkdir -p /tmp/git-lfs \
     && curl -sSLO https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/git-lfs-linux-amd64-v${GIT_LFS_VERSION}.tar.gz \
     && tar -zxvf git-lfs-linux-amd64-v${GIT_LFS_VERSION}.tar.gz -C /tmp/git-lfs \
-    && bash /tmp/git-lfs/install.sh \
+    && bash /tmp/git-lfs/git-lfs-${GIT_LFS_VERSION}/install.sh \
     && git lfs version \
     && rm -rf /tmp/git-lfs*
 
