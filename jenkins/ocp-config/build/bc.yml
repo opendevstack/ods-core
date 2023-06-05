@@ -157,12 +157,13 @@ objects:
             value: ${APP_DNS}
           - name: SNYK_DISTRIBUTION_URL
             value: ${JENKINS_AGENT_BASE_SNYK_DISTRIBUTION_URL}
-          - name: AQUASEC_SCANNERCLI_URL
-            value: ${JENKINS_AGENT_BASE_AQUASEC_SCANNERCLI_URL}
         from:
           kind: DockerImage
           name: ${JENKINS_AGENT_BASE_FROM_IMAGE}
         dockerfilePath: ${JENKINS_AGENT_DOCKERFILE_PATH}
+        buildArgs: 
+          - name: AQUASEC_SCANNERCLI_URL
+            value: ${JENKINS_AGENT_BASE_AQUASEC_SCANNERCLI_URL}
       type: Docker
     successfulBuildsHistoryLimit: 20
 - apiVersion: v1

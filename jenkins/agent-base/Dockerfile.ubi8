@@ -10,6 +10,7 @@ ENV SONAR_SCANNER_VERSION=4.7.0.2747 \
     HELM_PLUGIN_DIFF_VERSION=3.7.0 \
     HELM_PLUGIN_SECRETS_VERSION=4.2.2 \
     GIT_LFS_VERSION=3.3.0 \
+    TRIVY_VERSION=0.42.0 \
     JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
 
 ARG APP_DNS
@@ -113,6 +114,10 @@ RUN if [ -z $AQUASEC_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation
     && aquasec version \
     && echo 'AquaSec installation completed!'; \
     fi
+
+# install Trivy.
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$TRIVY_VERSION \
+    && trivy version
 
 # Set java proxy var.
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
