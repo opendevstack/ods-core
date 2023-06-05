@@ -117,6 +117,7 @@ RUN if [ -z $AQUASEC_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation
 
 # install Trivy.
 RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$TRIVY_VERSION \
+    && trivy image --download-db-only \
     && trivy version
 
 # Set java proxy var.
