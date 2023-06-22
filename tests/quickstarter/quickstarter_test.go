@@ -28,7 +28,9 @@ func TestQuickstarter(t *testing.T) {
 
 	var quickstarterPaths []string
 	odsCoreRootPath := "../.."
-	target := os.Args[len(os.Args)-1]
+	project := os.Args[len(os.Args)-1]
+	utils.Set_project_name(project)
+	target := os.Args[len(os.Args)-2]
 	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
 		if strings.HasSuffix(target, "...") {
 			quickstarterPaths = collectTestableQuickstarters(
@@ -51,12 +53,17 @@ func TestQuickstarter(t *testing.T) {
 			quickstarterPaths = []string{fmt.Sprintf("%s/../%s", odsCoreRootPath, target)}
 		}
 	}
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	quickstarterPaths = utils.RemoveExcludedQuickstarters(t, dir, quickstarterPaths)
 
 	config, err := utils.ReadConfiguration()
 	if err != nil {
 		t.Fatal(err)
 	}
-	cdUserPassword, err := b64.StdEncoding.DecodeString(config["CD_USER_PWD_B64"])
 	if err != nil {
 		t.Fatalf("Error decoding cd_user password: %s", err)
 	}
@@ -75,9 +82,6 @@ func TestQuickstarter(t *testing.T) {
 		fmt.Printf("\n\n\n\n")
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
 		fmt.Printf("\n\n")
-
-		freeUnusedResources(t)
-		restartAtlassianSuiteIfLicenseExpiresInLessThan(t)
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
@@ -103,166 +107,227 @@ func TestQuickstarter(t *testing.T) {
 				)
 
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
+				tmplData := templateData(config, step.ComponentID, "")
 
 				if step.Type == "upload" {
-					if len(step.UploadParams.Filename) == 0 {
-						step.UploadParams.Filename = filepath.Base(step.UploadParams.File)
-					}
-					stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/upload-file-to-bitbucket.sh", []string{
-						fmt.Sprintf("--bitbucket=%s", config["BITBUCKET_URL"]),
-						fmt.Sprintf("--user=%s", config["CD_USER_ID"]),
-						fmt.Sprintf("--password=%s", cdUserPassword),
-						fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
-						fmt.Sprintf("--repository=%s", repoName),
-						fmt.Sprintf("--file=%s/%s", testdataPath, step.UploadParams.File),
-						fmt.Sprintf("--filename=%s", step.UploadParams.Filename),
-					}, []string{})
-
-					if err != nil {
-						t.Fatalf(
-							"Execution of `upload-file-to-bitbucket.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
-							stdout,
-							stderr,
-							err)
-					} else {
-						fmt.Printf("Uploaded file %s to %s\n", step.UploadParams.File, config["BITBUCKET_URL"])
-					}
+					executeStepUpload(t, step, testdataPath, tmplData, repoName, config)
 					continue
 				}
 
-				var request utils.RequestBuild
-				var pipelineName string
-				var jenkinsfile string
-				var verify *TestStepVerify
-				tmplData := templateData(config, step.ComponentID, "")
+				if step.Type == "run" {
+					executeStepRun(t, step, testdataPath)
+					continue
+				}
+
 				if step.Type == "provision" {
-					// cleanup and create bb resources for this test
-					err = recreateBitbucketRepo(config, utils.PROJECT_NAME, repoName)
-					if err != nil {
-						t.Fatal(err)
-					}
-					err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV)
-					if err != nil {
-						t.Fatal(err)
-					}
-					branch := config["ODS_GIT_REF"]
-					if len(step.ProvisionParams.Branch) > 0 {
-						branch = renderTemplate(t, step.ProvisionParams.Branch, tmplData)
-					}
-					agentImageTag := config["ODS_IMAGE_TAG"]
-					if len(step.ProvisionParams.AgentImageTag) > 0 {
-						agentImageTag = renderTemplate(t, step.ProvisionParams.AgentImageTag, tmplData)
-					}
-					sharedLibraryRef := agentImageTag
-					if len(step.ProvisionParams.SharedLibraryRef) > 0 {
-						sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
-					}
-					env := []utils.EnvPair{
-						{
-							Name:  "ODS_NAMESPACE",
-							Value: config["ODS_NAMESPACE"],
-						},
-						{
-							Name:  "ODS_GIT_REF",
-							Value: config["ODS_GIT_REF"],
-						},
-						{
-							Name:  "ODS_IMAGE_TAG",
-							Value: config["ODS_IMAGE_TAG"],
-						},
-						{
-							Name:  "ODS_BITBUCKET_PROJECT",
-							Value: config["ODS_BITBUCKET_PROJECT"],
-						},
-						{
-							Name:  "AGENT_IMAGE_TAG",
-							Value: agentImageTag,
-						},
-						{
-							Name:  "SHARED_LIBRARY_REF",
-							Value: sharedLibraryRef,
-						},
-						{
-							Name:  "PROJECT_ID",
-							Value: utils.PROJECT_NAME,
-						},
-						{
-							Name:  "COMPONENT_ID",
-							Value: step.ComponentID,
-						},
-						{
-							Name:  "GIT_URL_HTTP",
-							Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
-						},
-					}
-					request = utils.RequestBuild{
-						Repository: quickstarterRepo,
-						Branch:     branch,
-						Project:    config["ODS_BITBUCKET_PROJECT"],
-						Env:        append(env, step.ProvisionParams.Env...),
-					}
-					// If quickstarter is overwritten, use that value. Otherwise
-					// we use the quickstarter under test.
-					if len(step.ProvisionParams.Quickstarter) > 0 {
-						jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter)
-					} else {
-						jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", quickstarterName)
-					}
-					pipelineName = step.ProvisionParams.Pipeline
-					verify = step.ProvisionParams.Verify
-				} else if step.Type == "build" {
-					branch := "master"
-					if len(step.BuildParams.Branch) > 0 {
-						branch = renderTemplate(t, step.BuildParams.Branch, tmplData)
-					}
-					request = utils.RequestBuild{
-						Repository: repoName,
-						Branch:     branch,
-						Project:    utils.PROJECT_NAME,
-						Env:        step.BuildParams.Env,
-					}
-					jenkinsfile = "Jenkinsfile"
-					pipelineName = step.BuildParams.Pipeline
-					verify = step.BuildParams.Verify
-				}
-				buildName, err := utils.RunJenkinsPipeline(jenkinsfile, request, pipelineName)
-				if err != nil {
-					t.Fatal(err)
+					executeProvision(t, step, testdataPath, tmplData, repoName, quickstarterRepo, quickstarterName, config)
+					continue
 				}
 
-				verifyPipelineRun(t, step, verify, testdataPath, repoName, buildName, config)
+				if step.Type == "build" {
+					executeBuild(t, step, testdataPath, tmplData, repoName, config)
+					continue
+				}
+
+				t.Fatal("Unknown step")
+
 			}
+
+			fmt.Printf("\n\n\n\n")
+			fmt.Printf("========== End test for Quickstarter %s\n", quickstarterName)
+			fmt.Printf("\n\n")
 		})
+
+	}
+
+}
+
+func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, quickstarterRepo string, quickstarterName string, config map[string]string) {
+	// cleanup and create bb resources for this test
+	err := recreateBitbucketRepo(config, utils.PROJECT_NAME, repoName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV)
+	if err != nil {
+		t.Fatal(err)
+	}
+	branch := config["ODS_GIT_REF"]
+	if len(step.ProvisionParams.Branch) > 0 {
+		branch = renderTemplate(t, step.ProvisionParams.Branch, tmplData)
+	}
+	agentImageTag := config["ODS_IMAGE_TAG"]
+	if len(step.ProvisionParams.AgentImageTag) > 0 {
+		agentImageTag = renderTemplate(t, step.ProvisionParams.AgentImageTag, tmplData)
+	}
+	sharedLibraryRef := agentImageTag
+	if len(step.ProvisionParams.SharedLibraryRef) > 0 {
+		sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
+	}
+	env := []utils.EnvPair{
+		{
+			Name:  "ODS_NAMESPACE",
+			Value: config["ODS_NAMESPACE"],
+		},
+		{
+			Name:  "ODS_GIT_REF",
+			Value: config["ODS_GIT_REF"],
+		},
+		{
+			Name:  "ODS_IMAGE_TAG",
+			Value: config["ODS_IMAGE_TAG"],
+		},
+		{
+			Name:  "ODS_BITBUCKET_PROJECT",
+			Value: config["ODS_BITBUCKET_PROJECT"],
+		},
+		{
+			Name:  "AGENT_IMAGE_TAG",
+			Value: agentImageTag,
+		},
+		{
+			Name:  "SHARED_LIBRARY_REF",
+			Value: sharedLibraryRef,
+		},
+		{
+			Name:  "PROJECT_ID",
+			Value: utils.PROJECT_NAME,
+		},
+		{
+			Name:  "COMPONENT_ID",
+			Value: step.ComponentID,
+		},
+		{
+			Name:  "GIT_URL_HTTP",
+			Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
+		},
+	}
+	request := utils.RequestBuild{
+		Repository: quickstarterRepo,
+		Branch:     branch,
+		Project:    config["ODS_BITBUCKET_PROJECT"],
+		Env:        append(env, step.ProvisionParams.Env...),
+	}
+
+	t.Cleanup(func() {
+		err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV)
+	})
+
+	// If quickstarter is overwritten, use that value. Otherwise
+	// we use the quickstarter under test.
+	var jenkinsfile string
+	if len(step.ProvisionParams.Quickstarter) > 0 {
+		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter)
+	} else {
+		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", quickstarterName)
+	}
+	pipelineName := step.ProvisionParams.Pipeline
+	verify := step.ProvisionParams.Verify
+
+	buildName, err := utils.RunJenkinsPipeline(jenkinsfile, request, pipelineName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	verifyPipelineRun(t, step, verify, testdataPath, repoName, buildName, config)
+}
+
+func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, config map[string]string) {
+	branch := "master"
+	if len(step.BuildParams.Branch) > 0 {
+		branch = renderTemplate(t, step.BuildParams.Branch, tmplData)
+	}
+	request := utils.RequestBuild{
+		Repository: repoName,
+		Branch:     branch,
+		Project:    utils.PROJECT_NAME,
+		Env:        step.BuildParams.Env,
+	}
+	jenkinsfile := "Jenkinsfile"
+	pipelineName := step.BuildParams.Pipeline
+	verify := step.BuildParams.Verify
+
+	buildName, err := utils.RunJenkinsPipeline(jenkinsfile, request, pipelineName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	verifyPipelineRun(t, step, verify, testdataPath, repoName, buildName, config)
+}
+
+func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, config map[string]string) {
+	if step.UploadParams == nil || len(step.UploadParams.File) == 0 {
+		t.Fatalf("Missing upload parameters.")
+	}
+	if len(step.UploadParams.Filename) == 0 {
+		step.UploadParams.Filename = filepath.Base(step.UploadParams.File)
+	}
+	cdUserPassword, err := b64.StdEncoding.DecodeString(config["CD_USER_PWD_B64"])
+	if err != nil {
+		t.Fatalf("Execution of `upload-file-to-bitbucket.sh` failed: \nErr: %s\n", err)
+	}
+
+	fileToUpload := fmt.Sprintf("%s/%s", testdataPath, step.UploadParams.File)
+
+	if step.UploadParams.Render {
+		fmt.Printf("Rendering template to upload")
+		tmpl, err := template.ParseFiles(fileToUpload)
+		if err != nil {
+			fmt.Errorf("Failed to load file to upload: %w", err)
+			return
+		}
+		outputFile, err := os.Create(fileToUpload)
+		if err != nil {
+			fmt.Errorf("Error creating output file: %w", err)
+			return
+		}
+		defer outputFile.Close()
+		fmt.Printf("Execute render")
+		err = tmpl.Execute(outputFile, tmplData)
+		if err != nil {
+			fmt.Errorf("Failed to render file: %w", err)
+			return
+		}
+	}
+
+	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/upload-file-to-bitbucket.sh", []string{
+		fmt.Sprintf("--bitbucket=%s", config["BITBUCKET_URL"]),
+		fmt.Sprintf("--user=%s", config["CD_USER_ID"]),
+		fmt.Sprintf("--password=%s", cdUserPassword),
+		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
+		fmt.Sprintf("--repository=%s", repoName),
+		fmt.Sprintf("--file=%s", fileToUpload),
+		fmt.Sprintf("--filename=%s", step.UploadParams.Filename),
+	}, []string{})
+	fmt.Printf("%s", stdout)
+	if err != nil {
+		t.Fatalf(
+			"Execution of `upload-file-to-bitbucket.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
+			stdout,
+			stderr,
+			err)
+	} else {
+		fmt.Printf("Uploaded file %s to %s\n", step.UploadParams.File, config["BITBUCKET_URL"])
 	}
 }
 
-func freeUnusedResources(t *testing.T) {
-
-	// Run cleanup operations to ensure we always have enough resources.
-	stdout, stderr, err := utils.RunScriptFromBaseDir(
-		"tests/scripts/free-unused-resources.sh",
-		[]string{}, []string{},
-	)
-
-	if err != nil {
-		t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
-	} else {
-		fmt.Printf("Cleaned cluster state.\n")
+func executeStepRun(t *testing.T, step TestStep, testdataPath string) {
+	if step.RunParams == nil || len(step.RunParams.File) == 0 {
+		t.Fatalf("Missing run parameters, not defined script file.")
 	}
-}
 
-func restartAtlassianSuiteIfLicenseExpiresInLessThan(t *testing.T) {
+	fmt.Printf("Executing script: %s\n", step.RunParams.File)
+	step.RunParams.File = fmt.Sprintf("%s/%s", testdataPath, step.RunParams.File)
 
-	// Run cleanup operations to ensure we always have enough resources.
-	stdout, stderr, err := utils.RunScriptFromBaseDir(
-		"ods-devenv/scripts/restart-atlassian-suite-if-license-expires-in-less-than.sh",
-		[]string{"--hours-left", "2"}, []string{},
-	)
-
+	stdout, stderr, err := utils.RunCommand(step.RunParams.File, []string{}, []string{})
+	fmt.Printf("%s", stdout)
 	if err != nil {
-		t.Fatalf("Error cleaning up : \nStdOut: %s\nStdErr: %s\nErr: %s\n", stdout, stderr, err)
+		t.Fatalf(
+			"Execution of script:%s failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
+			step.RunParams.File,
+			stdout,
+			stderr,
+			err)
 	} else {
-		fmt.Printf("Checked if needed to restart atlassian suite.\n")
+		fmt.Printf("Executed script: %s\n", step.RunParams.File)
 	}
 }
 
@@ -295,6 +360,7 @@ func templateData(config map[string]string, componentID string, buildName string
 		buildParts := strings.Split(buildName, "-")
 		buildNumber = buildParts[len(buildParts)-1]
 	}
+	aquaEnabled, _ := strconv.ParseBool(config["AQUA_ENABLED"])
 	return TemplateData{
 		ProjectID:           utils.PROJECT_NAME,
 		ComponentID:         componentID,
@@ -304,6 +370,8 @@ func templateData(config map[string]string, componentID string, buildName string
 		OdsBitbucketProject: config["ODS_BITBUCKET_PROJECT"],
 		SanitizedOdsGitRef:  sanitizedOdsGitRef,
 		BuildNumber:         buildNumber,
+		SonarQualityProfile: utils.GetEnv("SONAR_QUALITY_PROFILE", "Sonar way"),
+		AquaEnabled:         aquaEnabled,
 	}
 }
 

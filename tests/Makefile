@@ -9,6 +9,7 @@ QS := ods-quickstarters/...
 
 ### By default we do not parallelize tests
 PARALLEL := 1
+PROJECT := unitt
 
 ## Full test of existing ODS core installation. Caution: Creates UNITT project and ODSVERIFY project.
 test: smoketest verify test-create-projects
@@ -35,12 +36,13 @@ test-create-projects:
 
 ## Run quickstarter tests within existing ODS installation. Depends on UNITT project.
 test-quickstarter:
-	@(./quickstarter-test.sh $(QS) $(PARALLEL))
+	@(./quickstarter-test.sh $(PROJECT) $(QS) $(PARALLEL))
 .PHONY: test-quickstarter
 
 ## Install tools required for tests.
 prep-tools:
 	which go-junit-report || go get github.com/jstemmer/go-junit-report
+	which golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.50.0
 .PHONY: prep-tools
 
 ## Lint
