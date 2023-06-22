@@ -20,6 +20,7 @@ func recreateBitbucketRepo(config map[string]string, project string, repo string
 		fmt.Sprintf("--password=%s", password),
 		fmt.Sprintf("--project=%s", project),
 		fmt.Sprintf("--repository=%s", repo),
+		"--insecure",
 	}, []string{})
 
 	if err != nil {
