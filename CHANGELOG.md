@@ -9,6 +9,7 @@
 - Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 - Jenkins maintenance, Update resources for deployment for optimal usage ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
 - Jenkins maintenance, Update jenkins base image, plugins, git-lfs, aquacli ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
+- Bump helm-diff plugin version to 3.8.1 ([#1239](https://github.com/opendevstack/ods-core/pull/1239))
 
 ## [4.2.0] - 2023-02-21
 
