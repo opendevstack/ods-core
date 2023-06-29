@@ -10,6 +10,7 @@
 - Jenkins maintenance, Update resources for deployment for optimal usage ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
 - Jenkins maintenance, Update jenkins base image, plugins, git-lfs, aquacli ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
 - Bump helm-diff plugin version to 3.8.1 ([#1239](https://github.com/opendevstack/ods-core/pull/1239))
+- Added Trivy into jenkins agent base ([#1236](https://github.com/opendevstack/ods-core/issues/1236))
 
 ## [4.2.0] - 2023-02-21
 

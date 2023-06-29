@@ -16,6 +16,10 @@ objects:
       port: 8081
       protocol: TCP
       targetPort: 8081
+    - name: 5000-docker
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
     selector:
       deploymentconfig: ${NEXUS_NAME}
     sessionAffinity: None
