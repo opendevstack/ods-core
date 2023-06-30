@@ -64,9 +64,6 @@ func TestQuickstarter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err != nil {
-		t.Fatalf("Error decoding cd_user password: %s", err)
-	}
 
 	fmt.Printf("\n\nRunning test steps found in the following directories:\n")
 	for _, quickstarterPath := range quickstarterPaths {
