@@ -268,20 +268,19 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 		fmt.Printf("Rendering template to upload")
 		tmpl, err := template.ParseFiles(fileToUpload)
 		if err != nil {
-			fmt.Errorf("Failed to load file to upload: %w", err)
-			return
+			t.Fatalf("Failed to load file to upload: \nErr: %s\n", err)
+
 		}
 		outputFile, err := os.Create(fileToUpload)
 		if err != nil {
-			fmt.Errorf("Error creating output file: %w", err)
-			return
+			t.Fatalf("Error creating output file: \nErr: %s\n", err)
+
 		}
 		defer outputFile.Close()
 		fmt.Printf("Execute render")
 		err = tmpl.Execute(outputFile, tmplData)
 		if err != nil {
-			fmt.Errorf("Failed to render file: %w", err)
-			return
+			t.Fatalf("Failed to render file: \nErr: %s\n", err)
 		}
 	}
 
