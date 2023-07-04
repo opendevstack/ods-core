@@ -28,6 +28,22 @@ function cleanup_workspace(){
     fi
 }
 
+function generate_results(){
+    echo "Process results"
+    cd $ODS_CORE_DIR/tests
+    if [ -f test-quickstarter-results.txt ]; then
+        go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml
+        cat -v test-quickstarter-results.txt > test-output
+        go-junit-report < test-output > test-quickstarter-report.xml
+        csplit -z test-quickstarter-results.txt '/=== CONT/' {*}
+        rm xx00
+        for file in xx*; do
+            newName=$(grep -oP -m 1 'TestQuickstarter/\K\w+.*' $file)
+            mv $file $newName.txt
+        done        
+    fi    
+}
+
 function run_test(){
     echo " "
     echo "${THIS_SCRIPT}: Running tests (${QUICKSTARTER}). Output will take a while to arrive ..."
@@ -40,15 +56,14 @@ function run_test(){
     
     exitcode="${PIPESTATUS[0]}"
 
-    if [ -f test-quickstarter-results.txt ]; then
-        go-junit-report < test-quickstarter-results.txt > test-quickstarter-report.xml
-    fi
-
     echo " "
     echo " "
     echo "${THIS_SCRIPT}: Returning with exit code ${exitcode}"
     echo " "
     echo " "
+
+    generate_results
+
     exit $exitcode
 }
 

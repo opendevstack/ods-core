@@ -36,7 +36,7 @@ test-create-projects:
 
 ## Run quickstarter tests within existing ODS installation. Depends on UNITT project.
 test-quickstarter:
-	@(./quickstarter-test.sh $(PROJECT) $(QS) $(PARALLEL))
+	@(./quickstarter-test.sh -p $(PROJECT) -q $(QS) -pa $(PARALLEL))
 .PHONY: test-quickstarter
 
 ## Install tools required for tests.
