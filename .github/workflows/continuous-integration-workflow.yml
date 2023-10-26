@@ -12,7 +12,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
         name: Build UBI8 docker image
         run: |
@@ -27,7 +27,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - name: Build UBI8 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
@@ -56,7 +56,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
         name: Check shell scripts
         run: |
@@ -72,7 +72,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
         name: Check shell scripts
         run: |
@@ -88,7 +88,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
         name: Setup Go 1.18
         uses: actions/setup-go@v4
@@ -128,7 +128,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
           name: Check shell scripts
           run: |
@@ -145,7 +145,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       -
         name: Check jsl expectations
         run: |
@@ -163,7 +163,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - 
         name: Setup Go 1.18
         uses: actions/setup-go@v4
@@ -207,7 +207,7 @@ jobs:
 #       run: jq . <<< "${GITHUB_CONTEXT}"
 #     -
 #       name: Checkout repository
-#       uses: actions/checkout@v4.1.0
+#       uses: actions/checkout@v4.1.1
 #       with:
 #         fetch-depth: 0
 #         path: 'ods-core'
