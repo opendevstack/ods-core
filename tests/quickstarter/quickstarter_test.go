@@ -157,7 +157,7 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	if len(step.ProvisionParams.AgentImageTag) > 0 {
 		agentImageTag = renderTemplate(t, step.ProvisionParams.AgentImageTag, tmplData)
 	}
-	sharedLibraryRef := branch
+	sharedLibraryRef := agentImageTag
 	if len(step.ProvisionParams.SharedLibraryRef) > 0 {
 		sharedLibraryRef = renderTemplate(t, step.ProvisionParams.SharedLibraryRef, tmplData)
 	}
