@@ -402,7 +402,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				} else {
 					kind = "forward"
 				}
-				if !includes(s.AllowedChangeRefTypes, req.Changes[0].Ref.Type) {
+				if !includes(s.AllowedChangeRefTypes, strings.ToLower(req.Changes[0].Ref.Type)) {
 					log.Println(requestID, fmt.Sprintf(
 						"Skipping change ref type %s as %s does not include it",
 						req.Changes[0].Ref.Type,
