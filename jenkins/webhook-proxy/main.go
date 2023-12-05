@@ -39,7 +39,7 @@ const (
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
 	allowedExternalProjectsDefault = "opendevstack"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
-	allowedChangeRefTypesDefault   = "BRANCH"
+	allowedChangeRefTypesDefault   = "branch"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
@@ -205,7 +205,7 @@ func main() {
 	var allowedChangeRefTypes []string
 	envAllowedChangeRefTypes := strings.ToLower(os.Getenv(allowedChangeRefTypesEnvVar))
 	if len(envAllowedChangeRefTypes) == 0 {
-		allowedChangeRefTypes = strings.Split(strings.ToLower(allowedChangeRefTypesDefault), ",")
+		allowedChangeRefTypes = strings.Split(allowedChangeRefTypesDefault, ",")
 		log.Println(
 			"INFO:",
 			allowedChangeRefTypesEnvVar,
