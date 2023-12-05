@@ -205,7 +205,7 @@ func main() {
 	var allowedChangeRefTypes []string
 	envAllowedChangeRefTypes := strings.ToLower(os.Getenv(allowedChangeRefTypesEnvVar))
 	if len(envAllowedChangeRefTypes) == 0 {
-		allowedChangeRefTypes = strings.Split(allowedChangeRefTypesDefault, ",")
+		allowedChangeRefTypes = strings.Split(strings.ToLower(allowedChangeRefTypesDefault), ",")
 		log.Println(
 			"INFO:",
 			allowedChangeRefTypesEnvVar,
