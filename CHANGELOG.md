@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Check Environment Variable value for Allowed Change Ref Types ([#1252](https://github.com/opendevstack/ods-core/issues/1252))
+
 ## [4.3.0] - 2023-07-03
 
 ### Added
