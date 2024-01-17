@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Aqua scanner and Helm deployment conflict fix for jenkins agent ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
+
 ## [4.3.0] - 2023-07-03
 
 ### Added
