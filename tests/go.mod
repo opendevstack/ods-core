@@ -3,8 +3,6 @@ module github.com/opendevstack/ods-core/tests
 go 1.13
 
 require (
-	github.com/ericchiang/pup v0.4.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
@@ -16,8 +14,6 @@ require (
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -31,10 +27,9 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 	k8s.io/api v0.0.0-20190222213804-5cb15d344471
-	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+	k8s.io/apimachinery v0.15.7
 	k8s.io/client-go v0.0.0-20190228174230-b40b2a5939e4
 	k8s.io/klog v1.0.0 // indirect
-	sigs.k8s.io/yaml v1.1.0 // indirect
 )
 
 replace github.com/googleapis/gnostic => github.com/google/gnostic v0.4.0
