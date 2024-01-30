@@ -4,7 +4,7 @@
 
 ### Fixed
 - Aqua scanner and Helm deployment conflict fix for jenkins agent ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
-- Aligned Prov-app configuration ([#1259](https://github.com/opendevstack/ods-core/issues/1259))
+- Aligned Prov-app configuration, increasing the timeouts and fixed jenkins agent in configuration sample ([#1259](https://github.com/opendevstack/ods-core/issues/1259))
 
 ## [4.3.0] - 2023-07-03
 
