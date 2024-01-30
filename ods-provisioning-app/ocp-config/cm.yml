@@ -125,9 +125,9 @@ objects:
       logging.file.path=${PROV_APP_LOGGING_FILE_PATH}
 
       # atlassian API calls take sooo long
-      server.servlet.session.timeout=240
+      server.servlet.session.timeout=1200
       server.connection-timeout=90000
-      spring.session.timeout=240
+      spring.session.timeout=1200
       spring.mvc.async.request-timeout=90000
 
       frontend.spa.enabled=${PROV_APP_FRONT_SPA_ENABLED}
