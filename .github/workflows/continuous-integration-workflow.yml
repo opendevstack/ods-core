@@ -184,7 +184,7 @@ jobs:
           exit 1
       -
         name: Verify all Go tests pass linting
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           version: v1.49.0
           working-directory: tests
