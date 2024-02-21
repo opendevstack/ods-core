@@ -3,7 +3,7 @@ kind: Template
 metadata:
   name: jenkins
 objects:
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: jenkins-master
@@ -12,7 +12,7 @@ objects:
   spec:
     lookupPolicy:
       local: false
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: jenkins-agent-base
@@ -21,7 +21,7 @@ objects:
   spec:
     lookupPolicy:
       local: false
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: jenkins-webhook-proxy
