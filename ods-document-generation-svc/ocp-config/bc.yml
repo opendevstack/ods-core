@@ -29,7 +29,7 @@ parameters:
 labels:
   app: ods-doc-gen-svc
 objects:
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     name: ods-doc-gen-svc

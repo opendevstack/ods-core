@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
+
 
 ## [4.3.1] - 2024-02-19
 

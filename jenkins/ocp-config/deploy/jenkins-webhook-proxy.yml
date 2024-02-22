@@ -29,7 +29,7 @@ parameters:
 - name: WEBHOOK_PROXY_MEMORY_LIMIT
   value: 128Mi
 objects:
-- apiVersion: v1
+- apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     labels:
@@ -63,7 +63,7 @@ objects:
       app: jenkins-webhook-proxy
     sessionAffinity: None
     type: ClusterIP
-- apiVersion: v1
+- apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
     labels:

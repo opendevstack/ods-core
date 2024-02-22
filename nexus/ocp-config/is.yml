@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 objects:
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:

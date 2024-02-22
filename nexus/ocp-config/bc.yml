@@ -20,7 +20,7 @@ parameters:
 - name: NEXUS_BUILD_MEMORY_LIMIT
   value: 2Gi
 objects:
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     labels:

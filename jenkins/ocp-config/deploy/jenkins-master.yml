@@ -93,7 +93,7 @@ objects:
       app: jenkins
     name: nexus
   type: opaque
-- apiVersion: v1
+- apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     creationTimestamp: null
@@ -128,7 +128,7 @@ objects:
         storage: '${JENKINS_VOLUME_CAPACITY}'
     storageClassName: '${STORAGE_CLASS_DATA}'
     volumeMode: Filesystem
-- apiVersion: v1
+- apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
