@@ -1,0 +1,3 @@
+We've successfully executed the helm install of the chart
+Next action should be to build the image
+Once finished you should be able to login to SonarQube at this URL: {{ .Values.global.sonarqubeUrl }}

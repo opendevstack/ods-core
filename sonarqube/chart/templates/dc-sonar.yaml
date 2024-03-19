@@ -1,0 +1,147 @@
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: {{ .Values.global.appName }}
+  labels:
+    app: {{ .Values.global.appName }}
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - {{ .Values.global.appName }}
+        from:
+          kind: ImageStreamTag
+          name: {{ .Values.global.appName }}:{{ .Values.global.odsImageTag }}
+          namespace: {{ .Values.global.odsNamespace }}
+      type: ImageChange
+    - type: ConfigChange
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: {{ .Values.global.appName }}
+    deploymentconfig: {{ .Values.global.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.global.appName }}
+        deploymentconfig: {{ .Values.global.appName }}
+        tuned.openshift.io/elasticsearch: ""
+    spec:
+      volumes:
+        - name: {{ .Values.global.appName }}-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.global.appName }}-data
+        - name: {{ .Values.global.appName }}-extensions
+          persistentVolumeClaim:
+            claimName: {{ .Values.global.appName }}-extensions
+      containers:
+        - resources:
+            limits:
+              cpu: {{ .Values.sonarqube.cpuLimit }}
+              memory: {{ .Values.sonarqube.memLimit }}
+            requests:
+              cpu: {{ .Values.sonarqube.cpuRequest }}
+              memory: {{ .Values.sonarqube.memRequest }}
+          terminationMessagePath: /dev/termination-log
+          name: {{ .Values.global.appName }}
+          livenessProbe:
+            httpGet:
+              path: /api/system/status
+              port: 9000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/system/status
+              port: 9000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+            failureThreshold: 3
+          env:
+            - name: SONARQUBE_JDBC_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.global.appName }}
+                  key: database-user
+            - name: SONARQUBE_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-postgresql
+                  key: database-password
+            - name: SONAR_SEARCH_JAVAADDITIONALOPTS
+              value: '-Dlog4j2.formatMsgNoLookups=true'
+            - name: SONARQUBE_JDBC_URL
+              value: 'jdbc:postgresql://{{ .Values.global.appName }}-postgresql:5432/sonarqube'
+            - name: SONAR_FORCEAUTHENTICATION
+              value: 'true'
+            - name: SONAR_AUTH_SAML_ENABLED
+              value: '{{ .Values.sonarqube.sonarAuthSaml }}'
+            {{ if ( .Values.sonarqube.sonarAuthSaml)}}
+            - name: SONAR_AUTH_SAML_APPLICATIONID
+              value: {{ .Values.sonarqube.sonarAuthSamlApplicationId }}
+            - name: SONAR_CORE_SERVERBASEURL
+              value: {{ .Values.sonarqube.sonarAuthSamlServerBaseUrl }}
+            - name: SONAR_AUTH_SAML_PROVIDERID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-app
+                  key: Saml-Provider-ID
+            - name: SONAR_AUTH_SAML_LOGINURL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-app
+                  key: Saml-login-url
+            - name: SONAR_AUTH_SAML_CERTIFICATE_SECURED
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-app
+                  key: Saml-cert
+            - name: SONAR_AUTH_SAML_PROVIDERNAME
+              value: Azure AD
+            - name: SONAR_AUTH_SAML_USER_LOGIN
+              value: Email
+            - name: SONAR_AUTH_SAML_USER_NAME
+              value: Email
+            - name: SONAR_AUTH_SAML_USER_EMAIL
+              value: Email
+            - name: SONAR_AUTH_SAML_GROUP_NAME
+              value: Group
+            {{ end }}         
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+          imagePullPolicy: Always
+          startupProbe:
+            httpGet:
+              path: /api/system/status
+              port: 9000
+              scheme: HTTP 
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
+          volumeMounts:
+            - name: {{ .Values.global.appName }}-data
+              mountPath: /opt/sonarqube/data
+            - name: {{ .Values.global.appName }}-extensions
+              mountPath: /opt/sonarqube/extensions
+          terminationMessagePolicy: File
+          image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}:{{ .Values.global.odsImageTag }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler

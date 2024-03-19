@@ -1,0 +1,44 @@
+global:
+  odsImageTag: ods_image_tag
+  repoBase: repo_base
+  odsBitBucketProject: ods_bitbucket_project
+  odsGitRef: ods_git_ref
+  sonarVersion: sonar_version
+  sonarEdition:  sonar_edition
+  odsNamespace: ods_namespace
+  appDNS: app_dns
+  appName: 'sonarqube'
+  storageProvisioner: storage_provisioner
+  storageClassData: storage_class_data
+  sonarqubeUrl: sonarqube_url
+  sonarqubeHost: sonarqube_host
+  sonarAdminPasswordB64: sonar_admin_password_b64
+  sonarDatabaseJdbcUrl: sonar_database_jdbc_url
+  sonarDatabaseName: sonar_database_name
+  sonarDatabaseUser: sonar_database_user
+  sonarAdminUsername: sonar_admin_username
+  sonarDatabasePasswordB64: sonar_database_password_b64
+  registry: docker_registry
+  sonarDatabaseImage: sonar_database_image
+postgresql:
+  name: 'sonarqube-postgresql'
+  cpuRequest: 100m
+  cpuLimit: 1
+  memRequest: 256Mi
+  memLimit: 512Mi
+sonarqube:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 2Gi
+  memLimit: 4Gi
+  sonarAuthSaml: sonar_auth_saml
+  sonarAuthSamlApplicationId: saml_application_id
+  sonarAuthSamlProviderIdB64: saml_provider_id_b64
+  sonarAuthSamlLoginUrlB64: saml_login_url_b64
+  sonarAuthSamlServerBaseUrl: saml_serverbase_url
+  sonarAuthSamlCertficateB64: saml_certificate_b64
+buildConfig:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 1Gi
+  memLimit: 2Gi

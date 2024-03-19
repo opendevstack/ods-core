@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}
+spec:
+  host: {{ .Values.global.sonarqubeHost }}
+  port:
+    targetPort: 9000-tcp
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: {{ .Values.global.appName }}
+    weight: 100
+  wildcardPolicy: None

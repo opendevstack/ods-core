@@ -1,0 +1,96 @@
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: "true"
+  labels:
+    app: {{ .Values.global.appName }}
+    template: postgresql-persistent-template
+  name: {{ .Values.global.appName }}-postgresql
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    name: {{ .Values.global.appName }}-postgresql
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.global.appName }}-postgresql
+    spec:
+      containers:
+      - env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            configMapKeyRef:
+              key: database-user
+              name: {{ .Values.global.appName }}
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: {{ .Values.global.appName }}-postgresql
+        - name: POSTGRESQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: database-name
+              name: {{ .Values.global.appName }}
+        image: {{ .Values.global.sonarDatabaseImage}}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 5432
+          timeoutSeconds: 1
+        name: {{ .Values.postgresql.name }}
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
+              'SELECT 1'
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: {{ .Values.postgresql.cpuLimit }}
+            memory: {{ .Values.postgresql.memLimit }}
+          requests:
+            cpu: {{ .Values.postgresql.cpuRequest }}
+            memory: {{ .Values.postgresql.memRequest }}
+        securityContext:
+          capabilities: {}
+          privileged: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/pgsql/data
+          name: {{ .Values.global.appName }}-postgresql-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: {{ .Values.global.appName }}-postgresql-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.global.appName }}-postgresql
+  test: false
+  triggers:
+  - type: ConfigChange
