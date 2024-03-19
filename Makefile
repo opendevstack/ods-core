@@ -4,9 +4,10 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-ODS_NAMESPACE := $(shell $(CURDIR)/scripts/get-config-param.sh ODS_NAMESPACE)
-NEXUS_URL := $(shell $(CURDIR)/scripts/get-config-param.sh NEXUS_URL)
-SONARQUBE_URL := $(shell $(CURDIR)/scripts/get-config-param.sh SONARQUBE_URL)
+# Load environment variables from .env file
+include ../ods-configuration/ods-core.env
+export $(shell sed 's/=.*//' ../ods-configuration/ods-core.env)
+
 INSECURE := false
 INSECURE_FLAG :=
 ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
@@ -120,24 +121,18 @@ start-doc-gen-build:
 
 # SONARQUBE
 ## Install or update SonarQube.
-install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-deploy configure-sonarqube
+install-sonarqube: apply-sonarqube-chart start-sonarqube-build configure-sonarqube
 .PHONY: install-sonarqube
 
 ## Update OpenShift resources related to the SonarQube image.
-apply-sonarqube-build:
-	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) bc,is
+apply-sonarqube-chart:
+	cd sonarqube/chart && helm upgrade --install --namespace $(ODS_NAMESPACE) --set global.odsNamespace=$(ODS_NAMESPACE) --set global.odsImageTag=$(ODS_IMAGE_TAG) --set global.repoBase=$(REPO_BASE) --set global.odsBitBucketProject=$(ODS_BITBUCKET_PROJECT) --set global.odsGitRef=$(ODS_GIT_REF) --set global.sonarVersion=$(SONAR_VERSION) --set global.sonarEdition=$(SONAR_EDITION) --set global.sonarqubeUrl=$(SONARQUBE_URL) --set global.sonarAdminPasswordB64=$(SONAR_ADMIN_PASSWORD_B64) --set global.sonarDatabaseJdbcUrl=$(SONAR_DATABASE_JDBC_URL) --set global.sonarDatabaseName=$(SONAR_DATABASE_NAME) --set global.sonarDatabaseUser=$(SONAR_DATABASE_USER) --set global.sonarAdminUsername=$(SONAR_ADMIN_USERNAME) --set global.sonarDatabasePasswordB64=$(SONAR_DATABASE_PASSWORD_B64) --set global.sonarDatabaseImage=$(SONAR_DATABASE_IMAGE) --set global.sonarqubeHost=$(SONARQUBE_HOST) --set global.registry=$(DOCKER_REGISTRY) --set global.storageProvisioner=$(STORAGE_PROVISIONER) --set global.storageClassData=$(STORAGE_CLASS_DATA) --set global.appDNS=$(APP_DNS) --set sonarqube.sonarAuthSaml=$(SONAR_AUTH_SAML) --set sonarqube.sonarAuthSamlApplicationId=$(SONAR_SAML_APPLICATION_ID) --set sonarqube.sonarAuthSamlProviderIdB64=$(SONAR_SAML_PROVIDER_ID_B64) --set sonarqube.sonarAuthSamlLoginUrlB64=$(SONAR_SAML_LOGIN_URL_B64) --set sonarqube.sonarAuthSamlServerBaseUrl=$(SONARQUBE_URL) --set sonarqube.sonarAuthSamlCertficateB64=$(SONAR_SAML_CERTIFICATE_B64) sonarqube .
 .PHONY: apply-sonarqube-build
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
 .PHONY: start-sonarqube-build
-
-## Update OpenShift resources related to the SonarQube service.
-apply-sonarqube-deploy:
-	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude bc,is
-	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
-.PHONY: apply-sonarqube-deploy
 
 ## Configure SonarQube service.
 configure-sonarqube:
