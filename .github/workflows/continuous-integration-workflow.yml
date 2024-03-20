@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        version: ['8.9.10.61524'] # 8.9 = LTS
+        version: ['9.9.4'] # 9.9 = LTS
         edition: ['community', 'developer', 'enterprise']
     steps:
       -

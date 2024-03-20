@@ -1,4 +1,7 @@
-FROM sonarqube:9.9.4-community
+ARG sonarVersion=9.9.4
+ARG sonarEdition=community
+
+FROM sonarqube:${sonarVersion}-${sonarEdition}
 
 ARG APP_DNS
 
@@ -17,8 +20,6 @@ RUN chmod +x /tmp/set-proxy.sh \
 
 # Add plugins (mainly from https://docs.sonarqube.org/display/PLUG/Plugin+Library)
 RUN mkdir -p /opt/configuration/sonarqube/plugins
-# Add plugins to login thru AzureAD:
-#ADD https://github.com/hkamel/sonar-auth-aad/releases/download/2.0.0/sonar-auth-aad-plugin-2.0.0.jar /opt/configuration/sonarqube/plugins/
 # Language plugins not bundled
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.8/sonar-groovy-plugin-1.8.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.2.2/sonar-r-plugin-0.2.2.jar /opt/configuration/sonarqube/plugins/

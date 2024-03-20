@@ -6,14 +6,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-SONAR_VERSION=8.9.10.61524
+SONAR_VERSION=9.9.4
 SONAR_EDITION="community"
 
 function usage {
     printf "Test SonarQube setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '8.9.10.61524' (defaults to %s)\n" "${SONAR_VERSION}"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '9.9.4' (defaults to %s)\n" "${SONAR_VERSION}"
     printf "\t-e|--sq-edition\t\tSonarQube edition, e.g. 'community' or 'enterprise' (defaults to %s)\n" "${SONAR_EDITION}"
     printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
     printf "\t--verify\t\tSkips setup of local docker container and instead checks existing sonarqube setup based on ods-core.env\n"
@@ -63,29 +63,6 @@ ADMIN_USER_DEFAULT_PASSWORD="admin"
 
 if ! $VERIFY_ONLY; then
 
-    case $SONAR_EDITION in
-
-        community)
-            SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${SONAR_VERSION}.zip"
-            ;;
-
-        developer)
-            SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/CommercialDistribution/sonarqube-developer/sonarqube-developer-${SONAR_VERSION}.zip"
-            ;;
-
-        enterprise)
-            SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/CommercialDistribution/sonarqube-enterprise/sonarqube-enterprise-${SONAR_VERSION}.zip"
-            ;;
-
-        datacenter)
-            SONAR_DISTRIBUTION_URL="https://binaries.sonarsource.com/CommercialDistribution/sonarqube-datacenter/sonarqube-datacenter-${SONAR_VERSION}.zip"
-            ;;
-
-        *)
-            echo -n "Sonar edition provided ${SONAR_EDITION} is not valid"; exit 1;;
-
-    esac
-
         HOST_PORT="9000"
         CONTAINER_IMAGE="sqtest"
 
@@ -100,7 +77,6 @@ if ! $VERIFY_ONLY; then
         echo "Build image"
         docker build \
             -t "${CONTAINER_IMAGE}" \
-            --build-arg sonarDistributionUrl="${SONAR_DISTRIBUTION_URL}" \
             --build-arg sonarVersion="${SONAR_VERSION}" \
             --build-arg sonarEdition="${SONAR_EDITION}" \
             --build-arg idpDns="" \
@@ -213,11 +189,9 @@ echo "Check if plugins are installed in correct versions"
 case $SONAR_EDITION in
 
     community | developer | enterprise | datacenter)
-        expectedPlugins=( "crowd:2.1.3"
-                "authoidc:2.1.1"
-                "groovy:1.7"
-                "r:0.2.1"
-                "communityrust:0.1.0" )
+        expectedPlugins=("groovy:1.8"
+                "r:0.2.2"
+                "communityrust:0.2.1" )
         ;;
 
     *)
