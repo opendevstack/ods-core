@@ -89,7 +89,7 @@ spec:
               value: 'true'
             - name: SONAR_AUTH_SAML_ENABLED
               value: '{{ .Values.sonarqube.sonarAuthSaml }}'
-            {{ if ( .Values.sonarqube.sonarAuthSaml)}}
+            {{ if ( eq .Values.sonarqube.sonarAuthSaml "true" )}}
             - name: SONAR_AUTH_SAML_APPLICATIONID
               value: {{ .Values.sonarqube.sonarAuthSamlApplicationId }}
             - name: SONAR_CORE_SERVERBASEURL
