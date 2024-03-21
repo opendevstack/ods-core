@@ -195,18 +195,18 @@ case $SONAR_EDITION in
         ;;
 
     *)
-        echo -n "Sonar edition provided ${SONAR_EDITION} is not valid"; exit 1;;
+    echo -n "Sonar edition provided ${SONAR_EDITION} is not valid"; exit 1;;
 
 esac
 
 actualPlugins=$(curl -sSf ${INSECURE} \
     --user "$CURL_ADMIN_AUTH" \
-    "${SONARQUBE_URL}/api/system/info" | jq '.Statistics.plugins')
+    "${SONARQUBE_URL}/api/plugins/installed" | jq '.plugins')
 
 for plugin in "${expectedPlugins[@]}"; do
     pluginName=${plugin%%:*}
     pluginVersion=${plugin#*:}
-    actualVersion=$(echo "${actualPlugins}" | jq -r ".[] | select(.name == \"${pluginName}\") | .version")
+    actualVersion=$(echo "${actualPlugins}" | jq -r ".[] | select(.key == \"${pluginName}\") | .version")
     if [ "${actualVersion}" == "${pluginVersion}" ]; then
         echo "Plugin ${pluginName} has expected version ${pluginVersion}"
     else
