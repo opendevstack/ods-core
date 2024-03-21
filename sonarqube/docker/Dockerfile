@@ -33,4 +33,6 @@ RUN chmod go+w $JAVA_HOME/lib/security/cacerts; \
     chmod -R go=u /opt/configuration/sonarqube/plugins; \
     chmod -R ugo+wrX "${SONARQUBE_HOME}/data" "${SONARQUBE_HOME}/extensions"
 
+USER sonarqube
+
 ENTRYPOINT ["./bin/run.sh"]
