@@ -7,7 +7,7 @@ global:
   sonarEdition:  $SONAR_EDITION
   odsNamespace: $ODS_NAMESPACE
   appDNS: $APP_DNS
-  appName: 'sonarqube-helm-test'
+  appName: 'sonarqube'
   storageProvisioner: $STORAGE_PROVISIONER
   storageClassData: $STORAGE_CLASS_DATA
   sonarqubeUrl: $SONARQUBE_URL
@@ -21,7 +21,7 @@ global:
   registry: $DOCKER_REGISTRY
   sonarDatabaseImage: $SONAR_DATABASE_IMAGE
 postgresql:
-  name: 'sonarqube-helm-test-postgresql'
+  name: 'sonarqube-postgresql'
   cpuRequest: 100m
   cpuLimit: 1
   memRequest: 256Mi
