@@ -3,6 +3,7 @@ set -eu
 
 NAMESPACE="ods"
 BACKUP_DIR="."
+PROGRESS=false
 
 function usage {
   printf "usage: %s [options]\n" "$0"
@@ -10,6 +11,7 @@ function usage {
   printf "\t-v|--verbose\tVerbose output\n"
   printf "\t-b|--backup-dir\tLocation of backup directory\n"
   printf "\t-n|--namespace\tNamespace (defaults to '%s')\n" "${NAMESPACE}"
+  printf "\t-p|--progress\tShow progress during transfer (defaults to '%s')\n" "${PROGRESS}"
 }
 
 while [[ "$#" -gt 0 ]]; do case $1 in
@@ -23,6 +25,9 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   -n=*|--namespace=*) NAMESPACE="${1#*=}";;
   -n|--namespace) NAMESPACE="$2"; shift;;
 
+  -p=*|--progress=*) PROGRESS="${1#*=}";;
+  -p|--progress) PROGRESS="$2"; shift;;
+
   *) echo "Unknown parameter passed: $1"; usage; exit 1;;
 esac; shift; done
 
@@ -32,12 +37,11 @@ if ! oc whoami > /dev/null; then
 fi
 
 # Dump database
-destinationFile="${BACKUP_DIR}/sonarqube.sql"
 podWithPrefix=$(oc get pods -n "${NAMESPACE}" --selector name=sonarqube-postgresql --no-headers -o name)
 pod=${podWithPrefix#"pod/"}
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "mkdir -p /var/lib/pgsql/backup && pg_dump sonarqube > /var/lib/pgsql/backup/sonarqube.sql"
 # Copy export
-oc -n "${NAMESPACE}" cp "${pod}:/var/lib/pgsql/backup/sonarqube.sql" "${destinationFile}"
+oc -n "${NAMESPACE}" rsync --progress=${PROGRESS} "${pod}:/var/lib/pgsql/backup/sonarqube.sql" "${BACKUP_DIR}"
 # Delete export in pod
 oc rsh -n "${NAMESPACE}" "pod/${pod}" bash -c "rm /var/lib/pgsql/backup/sonarqube.sql"
 
