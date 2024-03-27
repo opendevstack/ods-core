@@ -1,0 +1,1 @@
+OpenDevStack Nexus OSS edition on version {{ .Values.nexus.nexusTag }} released with Helm!
