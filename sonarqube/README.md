@@ -8,6 +8,8 @@ This repo contains the build recipe for a central SonarQube instance to which al
 
 The OpenShift templates are located in `chart` and can be compared with the OC cluster using [helm](https://github.com/helm/helm). For example, run `cd chart && helm secrets diff upgrade` to see if there is any drift between current and desired state.
 
+To install SonarQube, run `make install-sonarqube`.
+
 ## Administration
 
 There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OC project `ods`, under the `sonarqube-app` secrets.
@@ -15,6 +17,8 @@ There is an `admin` user which is allowed to change settings, install plugins, e
 ## Building a new image
 
 Push to this repository, then go to the build config in OC and start a new build.
+
+Aditionally you can run `make start-sonarqube-build`.
 
 ## Manual steps performed after booting the instance
 
