@@ -70,8 +70,8 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 3
           env:
-            - name: SONAR_AUTH_SAML_ENABLED
-              value: '{{ .Values.sonarqube.sonarAuthSaml }}'
+            - name: INSTALL4J_ADD_VM_PARAMS
+              value: '{{ .Values.global.nexusJvmParams }}'
           ports:
             - containerPort: 8081
               protocol: TCP

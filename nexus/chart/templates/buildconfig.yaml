@@ -33,7 +33,7 @@ spec:
     dockerStrategy:
       from:
         kind: DockerImage
-        name: sonatype/nexus3:{{ .Values.nexus.nexusImageTag }}
+        name: sonatype/nexus3:{{ .Values.global.nexusImageTag }}
       forcePull: true
       noCache: true
   successfulBuildsHistoryLimit: 5

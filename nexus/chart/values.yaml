@@ -1,18 +1,19 @@
 global:
-  odsImageTag: $ODS_IMAGE_TAG
-  repoBase: $REPO_BASE
-  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
-  odsGitRef: $ODS_GIT_REF
-  odsNamespace: $ODS_NAMESPACE
-  nexusImageTag: $NEXUS_IMAGE_TAG
+  odsImageTag: latest
+  repoBase: https://bitbucket-dev.biscrum.com/scm
+  odsBitBucketProject: odstest
+  odsGitRef: feature/nexus-maintenance
+  odsNamespace: odstest
+  nexusImageTag: 3.66.0
   appName: 'nexus'
-  storageProvisioner: $STORAGE_PROVISIONER
-  storageClassData: $STORAGE_CLASS_DATA
-  nexusHost: $NEXUS_HOST
-  nexusAdminPasswordB64: $SONAR_ADMIN_PASSWORD_B64
-  registry: $DOCKER_REGISTRY
-  openshiftAppDomain: $OPENSHIFT_APPS_BASEDOMAIN
+  storageProvisioner: "netapp.io/trident"
+  storageClassData: "standard-nas"
+  nexusHost: nexus-odstest.apps.us-test.ocp.aws.boehringer.com
+  nexusAdminPasswordB64: YWRtaW4=
+  registry: image-registry.openshift-image-registry.svc:5000
+  openshiftAppDomain: .apps.us-test.ocp.aws.boehringer.com
   nexusDockerGroup: 'docker-group'
+  nexusJvmParams: "-Xms2703m -Xmx2703m -XX:MaxDirectMemorySize=2703m -Djava.util.prefs.userRoot=/nexus-data/javaprefs"
 nexus:
   cpuRequest: 200m
   cpuLimit: 1
