@@ -716,7 +716,7 @@ func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 // Check that DocGen is up in case the service is idle in OpenShift.
 func (c *ocClient) CheckDocGenAvailability(e *Event) {
 	url := fmt.Sprintf(
-		"http://docgen.%s.svc.cluster.local",
+		"http://docgen.%s.svc.cluster.local:8080",
 		e.Namespace,
 	)
 	req, _ := http.NewRequest(
