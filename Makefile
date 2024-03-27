@@ -177,9 +177,9 @@ backup-ocp-config:
 	tailor export --namespace $(ODS_NAMESPACE) > backup_cd.yml
 .PHONY: backup-ocp-config
 
-## Create a backup of the SonarQube database in the current directory.
+## Create a backup of the SonarQube database in backup storage and in the current directory.
 backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --backup-dir `pwd`
+	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --local-copy=true --backup-dir `pwd`
 .PHONY: backup-sonarqube
 
 
