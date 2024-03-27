@@ -124,7 +124,7 @@ start-doc-gen-build:
 install-sonarqube: apply-sonarqube-chart start-sonarqube-build configure-sonarqube
 .PHONY: install-sonarqube
 
-## Update OpenShift resources related to the SonarQube image.
+## Apply OpenShift resources related to the SonarQube.
 apply-sonarqube-chart:
 	cd sonarqube/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) sonarqube . && rm values.yaml
 .PHONY: apply-sonarqube-build
@@ -132,6 +132,7 @@ apply-sonarqube-chart:
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
+	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
 .PHONY: start-sonarqube-build
 
 ## Configure SonarQube service.
@@ -172,9 +173,9 @@ configure-nexus:
 backup: backup-sonarqube backup-ocp-config
 .PHONY: backup
 
-## Create a backup of OpenShift resources in "cd" namespace.
+## Create a backup of OpenShift resources in "ods" namespace.
 backup-ocp-config:
-	tailor export --namespace $(ODS_NAMESPACE) > backup_cd.yml
+	tailor export --namespace $(ODS_NAMESPACE) > backup_ods.yml
 .PHONY: backup-ocp-config
 
 ## Create a backup of the SonarQube database in backup storage and in the current directory.
