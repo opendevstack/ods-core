@@ -31,7 +31,7 @@ chmod +x repos.sh
 ./repos.sh --git-ref $GIT_REF --repos="ods-core,ods-configuration" --source-project https://$BITBUCKET_HOST/scm/$BITBUCKET_PROJECT
 ----
 
-The script can also be used in an umbrella directory in which the repositories already exist. Once the repositories are at the desired revision, change `NEXUS_FROM_IMAGE` in `ods-configuration/ods-core.env` to your desired image tag. Commit the change and push it to Bitbucket.
+The script can also be used in an umbrella directory in which the repositories already exist. Once the repositories are at the desired revision, change `NEXUS_IMAGE_TAG` in `ods-configuration/ods-core.env` to your desired image tag. Commit the change and push it to Bitbucket.
 
 Next, you should ensure that the Nexus `BuildConfig` resource in the central ODS namespace is up-to-date, then trigger a new build so that a new image with the changed base image gets built. Finally, a new deployment should be rolled out which uses the newly built image. All of this can be done from the `ods-core` repository:
 
@@ -40,6 +40,6 @@ Next, you should ensure that the Nexus `BuildConfig` resource in the central ODS
 make install-nexus
 ----
 
-This target depends on the targets `apply-nexus-build`, `start-nexus-build`, and `apply-nexus-deploy` which execute the steps described above (and can of course also be executed individually).
+This target depends on the targets `apply-nexus-chart` and `start-nexus-build` which execute the steps described above (and can of course also be executed individually).
 
 WARNING: There is also a `configure-nexus` target. However, this is not executed as part of `install-nexus` as it is not idempotent yet (which means it cannot be used against an existing Nexus deployment). For a simple Nexus version update, you don't need to change any configuration, but if you switch between ODS versions you should keep an eye on Nexus configuration.
