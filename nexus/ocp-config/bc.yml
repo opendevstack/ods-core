@@ -9,7 +9,7 @@ parameters:
   required: true
 - name: REPO_BASE
   required: true
-- name: NEXUS_IMAGE_TAG
+- name: NEXUS_FROM_IMAGE
   required: true
 - name: NEXUS_BUILD_CPU_REQUEST
   value: 200m
@@ -53,9 +53,9 @@ objects:
     strategy:
       dockerStrategy:
         forcePull: true
-        buildArgs: 
-          - name: NEXUS_IMAGE_TAG
-            value: ${NEXUS_IMAGE_TAG}
         noCache: true
+        from:
+          kind: DockerImage
+          name: ${NEXUS_FROM_IMAGE}
       type: Docker
     successfulBuildsHistoryLimit: 5
