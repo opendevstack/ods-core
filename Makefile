@@ -153,7 +153,6 @@ install-nexus: apply-nexus-chart start-nexus-build
 
 ## Apply OpenShift resources related to the Nexus.
 apply-nexus-chart:
-#	cd nexus/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) nexus . && rm values.yaml
 	cd nexus/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) nexus .
 .PHONY: apply-nexus-chart
 
