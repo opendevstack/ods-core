@@ -2,20 +2,23 @@
 
 SonarQube is an open source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
 
-This repo contains the build recipe for a central SonarQube instance to which all Jenkins instances send reports to. The remainder of this readme describes how that setup is done.
-If you are looking for instructions how to analyse your repositories, please see [USAGE.md](https://github.com/opendevstack/ods-core/blob/master/USAGE.md).
+This repo contains the build recipe for a central SonarQube instance to which all Jenkins instances send reports to.
 
 ## Setup
 
-The OpenShift templates are located in `ocp-config` and can be compared with the OC cluster using [tailor](https://github.com/opendevstack/tailor). For example, run `cd ocp-config && tailor status` to see if there is any drift between current and desired state.
+The OpenShift templates are located in `chart` and can be compared with the OC cluster using [helm](https://github.com/helm/helm). For example, run `cd chart && helm secrets diff upgrade` to see if there is any drift between current and desired state.
+
+To install SonarQube, run `make install-sonarqube`.
 
 ## Administration
 
-There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OC project `cd`, under the `sonarqube-app` secrets.
+There is an `admin` user which is allowed to change settings, install plugins, etc. The password is located in the OC project `ods`, under the `sonarqube-app` secrets.
 
 ## Building a new image
 
 Push to this repository, then go to the build config in OC and start a new build.
+
+Aditionally you can run `make start-sonarqube-build`.
 
 ## Manual steps performed after booting the instance
 

@@ -2,20 +2,6 @@
 
 set -e
 
-if [ "${SONAR_AUTH_CROWD}" = "true" ]; then
-  # Update sonar.properties for crowd plugin
-  {
-    echo "sonar.security.realm=Crowd"
-    echo "crowd.url=$SONARQUBE_CROWD_URL"
-    echo "crowd.application=$SONARQUBE_CROWD_APP"
-    echo "crowd.password=$SONARQUBE_CROWD_PWD"
-    echo "sonar.security.localUsers=admin"
-  } >> conf/sonar.properties
-fi
-
-# enforce authentication to sonar
-echo "sonar.forceAuthentication=true" >> conf/sonar.properties
-
 # Copy plugins into volume
 rm "${SONARQUBE_HOME}"/extensions/plugins/*.jar || true
 ls -lah /opt/configuration/sonarqube/plugins
@@ -36,7 +22,7 @@ else
   echo "INFO: skip import"
 fi
 
-exec java -jar "lib/sonar-application-${SONAR_VERSION}.jar" \
+exec java -jar "lib/sonarqube.jar" \
   -Dsonar.log.console=true \
   -Dsonar.jdbc.username="${SONARQUBE_JDBC_USERNAME}" \
   -Dsonar.jdbc.password="${SONARQUBE_JDBC_PASSWORD}" \
