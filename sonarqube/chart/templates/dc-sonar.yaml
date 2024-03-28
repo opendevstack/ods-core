@@ -98,17 +98,17 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.global.appName }}-app
-                  key: Saml-Provider-ID
+                  key: saml-provider-id
             - name: SONAR_AUTH_SAML_LOGINURL
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.global.appName }}-app
-                  key: Saml-login-url
+                  key: saml-login-url
             - name: SONAR_AUTH_SAML_CERTIFICATE_SECURED
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.global.appName }}-app
-                  key: Saml-cert
+                  key: saml-cert
             - name: SONAR_AUTH_SAML_PROVIDERNAME
               value: Azure AD
             - name: SONAR_AUTH_SAML_USER_LOGIN
