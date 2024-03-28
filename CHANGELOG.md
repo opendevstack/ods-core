@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Nexus Maintenance (update version to latest, helm migration) ([#1242](https://github.com/opendevstack/ods-core/issues/1242))
 - Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 
 

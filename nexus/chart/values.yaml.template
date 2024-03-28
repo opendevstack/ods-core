@@ -1,0 +1,26 @@
+global:
+  odsImageTag: $ODS_IMAGE_TAG
+  repoBase: $REPO_BASE
+  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
+  odsGitRef: $ODS_GIT_REF
+  odsNamespace: $ODS_NAMESPACE
+  nexusImageTag: $NEXUS_IMAGE_TAG
+  appName: 'nexus'
+  storageProvisioner: $STORAGE_PROVISIONER
+  storageClassData: $STORAGE_CLASS_DATA
+  nexusHost: $NEXUS_HOST
+  nexusAdminPasswordB64: $NEXUS_ADMIN_PASSWORD_B64
+  registry: $DOCKER_REGISTRY
+  openshiftAppDomain: $OPENSHIFT_APPS_BASEDOMAIN
+  nexusDockerGroup: 'docker-group'
+  nexusJvmParams: $NEXUS_JVM_PARAMS
+nexus:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 2Gi
+  memLimit: 4Gi
+buildConfig:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 1Gi
+  memLimit: 2Gi
