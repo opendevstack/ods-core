@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
+- SonarQube Maintenance (LTS update, DB update, SAML setup) ([#1211](https://github.com/opendevstack/ods-core/issues/1211))
 
 
 ## [4.3.1] - 2024-02-19
