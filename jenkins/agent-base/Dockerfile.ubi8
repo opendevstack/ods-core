@@ -5,6 +5,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # SONAR_SCANNER_VERSION above 4.8.x require java 17 to run.
 ENV SONAR_SCANNER_VERSION=4.8.1.3023 \
     CNES_REPORT_VERSION=4.2.0 \
+    TAILOR_VERSION=1.3.4 \
     SOPS_VERSION=3.8.1 \
     HELM_VERSION=3.14.2 \
     HELM_PLUGIN_DIFF_VERSION=3.9.5 \
