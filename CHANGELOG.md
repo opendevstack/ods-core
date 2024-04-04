@@ -6,7 +6,7 @@
 - Nexus Maintenance (update version to latest, helm migration) ([#1242](https://github.com/opendevstack/ods-core/issues/1242))
 - Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 - SonarQube Maintenance (LTS update, DB update, SAML setup) ([#1211](https://github.com/opendevstack/ods-core/issues/1211))
-
+- Jenkins Updgrade to v2.426.3 [#1270](https://github.com/opendevstack/ods-core/pull/1270)
 
 ## [4.3.1] - 2024-02-19
 
