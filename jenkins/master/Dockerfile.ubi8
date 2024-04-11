@@ -1,6 +1,6 @@
 FROM quay.io/openshift/origin-jenkins
 
-ENV JAVA_HOME /usr/lib/jvm/jre
+ENV JAVA_HOME /usr/lib/jvm/jre-11
 
 # ODS defaults, available to use within pipelines.
 ARG ODS_NAMESPACE
