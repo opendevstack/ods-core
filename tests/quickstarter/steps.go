@@ -52,6 +52,8 @@ type TestStepUploadParams struct {
 	Filename string `json:"filename"`
 	// In case this is a template file that we want to render.
 	Render bool `json:"render"`
+	// In case we want to override the repository, it is relative to the project where we run it.
+	Repository string `json:"repository"`
 }
 
 // TestStepProvisionParams defines the parameters for the "provision" step type.
@@ -115,8 +117,9 @@ type TestStepVerify struct {
 // TemplateData holds template parameters. Those will be applied to all
 // values defined in the steps, as they are treated as Go templates.
 // For example, Jenkins run attachments can be defined like this:
-//   runAttachments:
-//   - SCRR-{{.ProjectID}}-{{.ComponentID}}.docx, and then the
+//
+//	runAttachments:
+//	- SCRR-{{.ProjectID}}-{{.ComponentID}}.docx, and then the
 type TemplateData struct {
 	// Project ID (the prefix of the *-cd, *-dev and *-test namespaces).
 	ProjectID string

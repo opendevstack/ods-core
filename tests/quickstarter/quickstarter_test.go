@@ -199,27 +199,36 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 			Value: fmt.Sprintf("%s/%s/%s.git", config["REPO_BASE"], utils.PROJECT_NAME, repoName),
 		},
 	}
-	request := utils.RequestBuild{
-		Repository: quickstarterRepo,
-		Branch:     branch,
-		Project:    config["ODS_BITBUCKET_PROJECT"],
-		Env:        append(env, step.ProvisionParams.Env...),
-	}
 
 	t.Cleanup(func() {
 		err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV)
 	})
 
+	// Checks if it was overrided including a repository name in the same project like 'repo/quickstarter'.
+	var repository string = quickstarterRepo
+	var repositoryIndex int = strings.Index(step.ProvisionParams.Quickstarter, "/")
+	if len(step.ProvisionParams.Quickstarter) > 0 && repositoryIndex != -1 {
+		repository = step.ProvisionParams.Quickstarter[:repositoryIndex]
+	}
 	// If quickstarter is overwritten, use that value. Otherwise
 	// we use the quickstarter under test.
-	var jenkinsfile string
+	var jenkinsfile string = fmt.Sprintf("%s/Jenkinsfile", quickstarterName)
 	if len(step.ProvisionParams.Quickstarter) > 0 {
 		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter)
-	} else {
-		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", quickstarterName)
 	}
+	if len(step.ProvisionParams.Quickstarter) > 0 && repositoryIndex != -1 {
+		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter[repositoryIndex+1:])
+	}
+
 	pipelineName := step.ProvisionParams.Pipeline
 	verify := step.ProvisionParams.Verify
+
+	request := utils.RequestBuild{
+		Repository: repository,
+		Branch:     branch,
+		Project:    config["ODS_BITBUCKET_PROJECT"],
+		Env:        append(env, step.ProvisionParams.Env...),
+	}
 
 	buildName, err := utils.RunJenkinsPipeline(jenkinsfile, request, pipelineName)
 	if err != nil {
@@ -283,13 +292,16 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 			t.Fatalf("Failed to render file: \nErr: %s\n", err)
 		}
 	}
-
+	var targetRepository string = repoName
+	if len(step.UploadParams.Repository) > 0 {
+		targetRepository = renderTemplate(t, step.UploadParams.Repository, tmplData)
+	}
 	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/upload-file-to-bitbucket.sh", []string{
 		fmt.Sprintf("--bitbucket=%s", config["BITBUCKET_URL"]),
 		fmt.Sprintf("--user=%s", config["CD_USER_ID"]),
 		fmt.Sprintf("--password=%s", cdUserPassword),
 		fmt.Sprintf("--project=%s", utils.PROJECT_NAME),
-		fmt.Sprintf("--repository=%s", repoName),
+		fmt.Sprintf("--repository=%s", targetRepository),
 		fmt.Sprintf("--file=%s", fileToUpload),
 		fmt.Sprintf("--filename=%s", step.UploadParams.Filename),
 	}, []string{})
