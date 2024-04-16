@@ -242,8 +242,12 @@ func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData Tem
 	if len(step.BuildParams.Branch) > 0 {
 		branch = renderTemplate(t, step.BuildParams.Branch, tmplData)
 	}
+	var repository string = repoName
+	if len(step.BuildParams.Repository) > 0 {
+		repository = renderTemplate(t, step.BuildParams.Repository, tmplData)
+	}
 	request := utils.RequestBuild{
-		Repository: repoName,
+		Repository: repository,
 		Branch:     branch,
 		Project:    utils.PROJECT_NAME,
 		Env:        step.BuildParams.Env,

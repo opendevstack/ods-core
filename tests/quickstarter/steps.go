@@ -77,6 +77,8 @@ type TestStepProvisionParams struct {
 	Env []utils.EnvPair `json:"env"`
 	// Verify parameters.
 	Verify *TestStepVerify `json:"verify"`
+	// In case we want to override the repository, it is relative to the project where we run it.
+	Repository string `json:"repository"`
 }
 
 // TestStepBuildParams defines the parameters for the "build" step type.
