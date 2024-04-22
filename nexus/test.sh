@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-NEXUS_IMAGE=$("${ODS_CORE_DIR}"/scripts/get-sample-param.sh NEXUS_FROM_IMAGE)
+NEXUS_IMAGE=$("${ODS_CORE_DIR}"/scripts/get-sample-param.sh NEXUS_IMAGE_TAG)
 
 function usage {
     printf "Test Nexus setup.\n\n"
@@ -62,7 +62,7 @@ if ! $VERIFY_ONLY; then
     NO_PROXY=
 
     echo "Run container using image ${NEXUS_IMAGE}"
-    containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" "${NEXUS_IMAGE}")
+    containerId=$(docker run -d -p "${HOST_PORT}:8081" -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" "sonatype/nexus3:${NEXUS_IMAGE}")
 
     function cleanup {
         echo "Cleanup"

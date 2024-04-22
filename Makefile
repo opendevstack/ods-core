@@ -4,9 +4,10 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-ODS_NAMESPACE := $(shell $(CURDIR)/scripts/get-config-param.sh ODS_NAMESPACE)
-NEXUS_URL := $(shell $(CURDIR)/scripts/get-config-param.sh NEXUS_URL)
-SONARQUBE_URL := $(shell $(CURDIR)/scripts/get-config-param.sh SONARQUBE_URL)
+# Load environment variables from .env file
+include ../ods-configuration/ods-core.env
+export $(shell sed 's/=.*//' ../ods-configuration/ods-core.env)
+
 INSECURE := false
 INSECURE_FLAG :=
 ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
@@ -120,24 +121,19 @@ start-doc-gen-build:
 
 # SONARQUBE
 ## Install or update SonarQube.
-install-sonarqube: apply-sonarqube-build start-sonarqube-build apply-sonarqube-deploy configure-sonarqube
+install-sonarqube: apply-sonarqube-chart start-sonarqube-build configure-sonarqube
 .PHONY: install-sonarqube
 
-## Update OpenShift resources related to the SonarQube image.
-apply-sonarqube-build:
-	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) bc,is
+## Apply OpenShift resources related to the SonarQube.
+apply-sonarqube-chart:
+	cd sonarqube/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) sonarqube . && rm values.yaml
 .PHONY: apply-sonarqube-build
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
-.PHONY: start-sonarqube-build
-
-## Update OpenShift resources related to the SonarQube service.
-apply-sonarqube-deploy:
-	cd sonarqube/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude bc,is
 	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
-.PHONY: apply-sonarqube-deploy
+.PHONY: start-sonarqube-build
 
 ## Configure SonarQube service.
 configure-sonarqube:
@@ -147,27 +143,22 @@ configure-sonarqube:
 
 # NEXUS
 ## Install or update Nexus.
-install-nexus: apply-nexus-build start-nexus-build apply-nexus-deploy
+install-nexus: apply-nexus-chart start-nexus-build
 .PHONY: nexus
 
-## Update OpenShift resources related to the Nexus image.
-apply-nexus-build:
-	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) bc,is
-.PHONY: apply-nexus-build
+## Apply OpenShift resources related to the Nexus.
+apply-nexus-chart:
+	cd nexus/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) nexus . && rm values.yaml
+.PHONY: apply-nexus-chart
 
 ## Start build of BuildConfig "nexus".
 start-nexus-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config nexus
 .PHONY: start-nexus-build
 
-## Update OpenShift resources related to the Nexus service.
-apply-nexus-deploy:
-	cd nexus/ocp-config && tailor apply --namespace $(ODS_NAMESPACE) --exclude bc,is
-.PHONY: apply-nexus-deploy
-
 ## Configure Nexus service.
 configure-nexus:
-	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL) $(INSECURE_FLAG)
+	cd nexus && ./configure.sh --namespace $(ODS_NAMESPACE) --nexus=$(NEXUS_URL) --admin-password=$(NEXUS_ADMIN_PASSWORD) $(INSECURE_FLAG)
 .PHONY: configure-nexus
 ### configure-nexus is not part of install-nexus because it is not idempotent yet.
 
@@ -177,14 +168,14 @@ configure-nexus:
 backup: backup-sonarqube backup-ocp-config
 .PHONY: backup
 
-## Create a backup of OpenShift resources in "cd" namespace.
+## Create a backup of OpenShift resources in "ods" namespace.
 backup-ocp-config:
-	tailor export --namespace $(ODS_NAMESPACE) > backup_cd.yml
+	tailor export --namespace $(ODS_NAMESPACE) > backup_ods.yml
 .PHONY: backup-ocp-config
 
-## Create a backup of the SonarQube database in the current directory.
+## Create a backup of the SonarQube database in backup storage and in the current directory.
 backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --backup-dir `pwd`
+	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --local-copy=true --backup-dir `pwd`
 .PHONY: backup-sonarqube
 
 

@@ -21,7 +21,7 @@ parameters:
 labels:
   app: ods-provisioning-app
 objects:
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     name: ods-provisioning-app

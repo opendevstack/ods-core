@@ -1,0 +1,39 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ printf "%s:%s" .Values.global.appName .Values.global.odsImageTag }}
+  postCommit: {}
+  resources:
+    limits:
+      cpu: {{ .Values.buildConfig.cpuLimit }}
+      memory: {{ .Values.buildConfig.memLimit }}
+    requests:
+      cpu: {{ .Values.buildConfig.cpuRequest }}
+      memory: {{ .Values.buildConfig.memRequest }}
+  runPolicy: Serial
+  source:
+    contextDir: nexus/docker
+    git:
+      uri: {{ .Values.global.repoBase }}/{{ .Values.global.odsBitBucketProject }}/ods-core.git
+      ref: {{ .Values.global.odsGitRef }}
+    sourceSecret:
+      name: cd-user-token
+    type: Git
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: sonatype/nexus3:{{ .Values.global.nexusImageTag }}
+      forcePull: true
+      noCache: true
+  successfulBuildsHistoryLimit: 5

@@ -8,7 +8,7 @@ parameters:
 labels:
   app: ods-provisioning-app
 objects:
-- apiVersion: v1
+- apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     annotations:

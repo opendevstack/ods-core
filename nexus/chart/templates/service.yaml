@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}
+spec:
+  ports:
+  - name: 8081-tcp
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  - name: 5000-docker
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    deploymentconfig: {{ .Values.global.appName }}
+  sessionAffinity: None
+  type: ClusterIP

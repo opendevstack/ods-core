@@ -1,0 +1,1 @@
+OpenDevStack SonarQube {{ .Values.global.sonarEdition }} edition on version {{ .Values.global.sonarVersion }} released with Helm!
