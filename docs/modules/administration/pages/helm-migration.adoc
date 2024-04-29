@@ -1,0 +1,31 @@
+= Migrating from Tailor to Helm
+
+Tailor has been developed for OpenShift 3.11. Back in the days, Helm 2 required the use of a privileged Tiller service and did not work well with OpenShift-specific resources. With Helm 3 and OpenShift 4, this situation has changed.
+
+While Tailor also works in an OpenShift 4 cluster, OpenShift has integrated Helm into its product, and Helm has a huge and growing community. Therefore, it is recommended to use Helm instead of Tailor in an OpenShift 4 cluster.
+
+Tailor is based on OpenShift templates, which define the Kubernetes resources to apply. Helm uses a different templating language / engine, but in the end the templates also describe Kubernetes resources. Therefore, migration effort is relatively low as one only needs to change the syntax of the definition, not the definition itself. Further, there are differences between the CLI of the two tools and not all features of Tailor are available in Helm and vice-versa. Once migration to Helm is complete, it is also recommended to look at the best practices in the Helm community and adopt these.
+
+This document will describe how to adopt resources deployed using Tailor into a Helm release for OpenDevStack installation.
+
+== Templates preparation
+
+There are basically two options how to approach this: you can either adopt your existing OpenShift resources to chart templates, or you can start a clean installation.
+Once the templates have been made ready, you can continue the installation/update following the normal process
+
+=== Option 1: Adopting OpenShift resources
+
+In order to adopt the resources into a Helm release you can use the following script https://github.com/opendevstack/ods-core/blob/master/scripts/tailor2helm.sh
+
+=== Option 2: Clean Installation
+
+In this case you will need to remove all existing resources for the component that has been previously deployed using Tailor, you can check existing resources like this:
+
+[source,sh]
+----
+oc -n ods get all -l app=foo-bar
+----
+
+== Sources 
+
+Check more information about migration from tailor to helm and their differences in https://github.com/opendevstack/tailor/wiki/Migrating-from-Tailor-to-Helm
