@@ -140,6 +140,8 @@ func TestQuickstarter(t *testing.T) {
 }
 
 func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, quickstarterRepo string, quickstarterName string, config map[string]string) {
+	fmt.Printf("== executeProvision %s-%s\n", utils.PROJECT_NAME, repoName)
+
 	// cleanup and create bb resources for this test
 	err := recreateBitbucketRepo(config, utils.PROJECT_NAME, repoName)
 	if err != nil {
@@ -152,6 +154,17 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_TEST)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if step.ProvisionParams.TestResourcesCleanUp != nil && len(step.ProvisionParams.TestResourcesCleanUp) > 0 {
+		for _, it := range step.ProvisionParams.TestResourcesCleanUp {
+			tmp_namespace := it.Namespace
+			if tmp_namespace == "" || len(tmp_namespace) == 0 {
+				tmp_namespace = "dev"
+			}
+			namespace := fmt.Sprintf("%s-%s", utils.PROJECT_NAME, tmp_namespace)
+			err = deleteOpenShiftResourceByName(it.ResourceType, it.ResourceName, namespace)
+		}
 	}
 
 	branch := config["ODS_GIT_REF"]
@@ -284,7 +297,7 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 	fileToUpload := fmt.Sprintf("%s/%s", testdataPath, step.UploadParams.File)
 
 	if step.UploadParams.Render {
-		fmt.Printf("Rendering template to upload")
+		fmt.Printf("Rendering template to upload.\n")
 		tmpl, err := template.ParseFiles(fileToUpload)
 		if err != nil {
 			t.Fatalf("Failed to load file to upload: \nErr: %s\n", err)
@@ -296,7 +309,7 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 
 		}
 		defer outputFile.Close()
-		fmt.Printf("Execute render")
+		fmt.Printf("Rendering file.\n")
 		err = tmpl.Execute(outputFile, tmplData)
 		if err != nil {
 			t.Fatalf("Failed to render file: \nErr: %s\n", err)

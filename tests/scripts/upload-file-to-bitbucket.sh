@@ -102,13 +102,27 @@ if [ $httpCode != "200" ]; then
     fi
 
 else
-    echo "File update"
+    echo "Update existing file."
 
     lastCommit=$(curl --insecure -sS \
         -u "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
         "${BITBUCKET_URL}/rest/api/latest/projects/${BITBUCKET_PROJECT}/repos/${REPOSITORY}/commits" | jq .values[0].id | sed 's|\"||g')
 
     echo "last commit: ${lastCommit}"
+
+
+    echo "curl --insecure -sS \
+        -u \"${BITBUCKET_USER}:${BITBUCKET_PWD}\" \
+        -X PUT \
+        -F branch=$BRANCH \
+        -F sourceCommitId=$lastCommit \
+        -F \"comment=ods test\" \
+        -F \"content=@${FILE}\" \
+        -F filename=blob \
+        \"${BITBUCKET_URL}/rest/api/latest/projects/${BITBUCKET_PROJECT}/repos/${REPOSITORY}/browse/${REPO_FILE}\" \
+        -o /dev/null \
+        -w \"%{http_code}\""
+
 
     httpCode=$(curl --insecure -sS \
         -u "${BITBUCKET_USER}:${BITBUCKET_PWD}" \
@@ -122,7 +136,8 @@ else
         -o /dev/null \
         -w "%{http_code}")
 
-    if [ $httpCode != "200" ] && [ $httpCode != "409"]; then
+    echo "Upload error code: $httpCode"
+    if [ "$httpCode" != "200" ] && [ "$httpCode" != "409"]; then
         echo "An error occured during update of ${BITBUCKET_URL}/rest/api/latest/projects/${BITBUCKET_PROJECT}/repos/${REPOSITORY}/browse/${REPO_FILE} - error:$httpCode"
         exit 1
     fi
