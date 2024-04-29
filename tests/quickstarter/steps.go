@@ -79,6 +79,15 @@ type TestStepProvisionParams struct {
 	Verify *TestStepVerify `json:"verify"`
 	// In case we want to override the repository, it is relative to the project where we run it.
 	Repository string `json:"repository"`
+	// Extra resources to remove
+	TestResourcesCleanUp []struct {
+		// Type of the resource
+		ResourceType string `json:"resourceType"`
+		// Name of the resource
+		ResourceName string `json:"resourceName"`
+		// Namespace
+		Namespace string `json:"namespace"`
+	} `json:"testResourcesCleanUp"`
 }
 
 // TestStepBuildParams defines the parameters for the "build" step type.
