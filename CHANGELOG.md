@@ -5,6 +5,7 @@
 ### Fixed
 
 ### Added
+- Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
 
 ### Changed
 
