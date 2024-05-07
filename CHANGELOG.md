@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Glibc package install isues on Jenkins agent ([#1280](https://github.com/opendevstack/ods-core/issues/1280))
 
 ### Added
 - Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
