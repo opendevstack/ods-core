@@ -15,10 +15,12 @@ global:
   nexusDockerGroup: 'docker-group'
   nexusJvmParams: $NEXUS_JVM_PARAMS
 nexus:
-  cpuRequest: 200m
-  cpuLimit: 1
-  memRequest: 2Gi
-  memLimit: 4Gi
+  cpuRequest: $NEXUS_CPU_REQUEST
+  cpuLimit: $NEXUS_CPU_LIMIT
+  memRequest: $NEXUS_MEMORY_REQUEST
+  memLimit: $NEXUS_MEMORY_LIMIT
+  pvcDataCapacity: $NEXUS_DATA_CAPACITY
+  pvcDataBackupCapacity: $NEXUS_DATA_BACKUP_CAPACITY
 buildConfig:
   cpuRequest: 200m
   cpuLimit: 1

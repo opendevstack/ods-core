@@ -13,6 +13,6 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ .Values.postgresql.pvcDatabaseBackupCapacity }}
   storageClassName: {{ .Values.global.storageClassData }}
   volumeMode: Filesystem
