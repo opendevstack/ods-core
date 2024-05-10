@@ -13,6 +13,6 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 60Gi
+      storage: {{ .Values.nexus.pvcDataCapacity }}
   storageClassName: {{ .Values.global.storageClassData }}
   volumeMode: Filesystem

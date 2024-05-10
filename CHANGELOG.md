@@ -8,6 +8,7 @@
 - Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
 
 ### Changed
+- Update SonarQube to 9.9.5 and configure resources for Nexus and Sonarqube in ods-configuration ([#1283](https://github.com/opendevstack/ods-core/pull/1283))
 
 ## [4.4.0] - 2024-04-22
 
