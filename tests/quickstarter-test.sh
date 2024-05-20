@@ -8,7 +8,8 @@ THIS_SCRIPT="$(basename $0)"
 # By default we run all quickstarter tests, otherwise just the quickstarter
 # passed as the first argument to this script.
 BITBUCKET_TEST_PROJECT="unitt"
-QUICKSTARTER="ods-quickstarters/..."
+## QUICKSTARTER="ods-quickstarters/..."
+QUICKSTARTER="ods-boehringer-quickstarters/..."
 PARALLEL="1"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,8 +52,12 @@ function run_test(){
 
     
     # Should fix error " panic: test timed out after "
-    echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER}"
-    go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
+    ## echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER}"
+    ## go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
+
+    # For Private QS
+    echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} bitbucket-dev.biscrum.com/projects/ODS4/ods-boehringer-quickstarters -args ${QUICKSTARTER}"
+    go test -v -count=1 -timeout 30h -parallel ${PARALLEL} bitbucket-dev.biscrum.com/projects/ODS4/ods-boehringer-quickstarters -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
 
     exitcode="${PIPESTATUS[0]}"
 
