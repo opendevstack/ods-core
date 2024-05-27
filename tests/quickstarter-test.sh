@@ -8,7 +8,7 @@ THIS_SCRIPT="$(basename $0)"
 # By default we run all quickstarter tests, otherwise just the quickstarter
 # passed as the first argument to this script.
 BITBUCKET_TEST_PROJECT="unitt"
-QUICKSTARTER="ods-quickstarters/..."
+## QUICKSTARTER="ods-quickstarters/..."
 ## QUICKSTARTER="ods-boehringer-quickstarters/..."
 PARALLEL="1"
 
