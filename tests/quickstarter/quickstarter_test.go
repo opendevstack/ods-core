@@ -319,7 +319,7 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 	if len(step.UploadParams.Repository) > 0 {
 		targetRepository = renderTemplate(t, step.UploadParams.Repository, tmplData)
 	}
-	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/upload-file-to-bitbucket.sh", []string{
+	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/upload-file-to-bitbucket-with-git.sh", []string{
 		fmt.Sprintf("--bitbucket=%s", config["BITBUCKET_URL"]),
 		fmt.Sprintf("--user=%s", config["CD_USER_ID"]),
 		fmt.Sprintf("--password=%s", cdUserPassword),
@@ -331,7 +331,7 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 	fmt.Printf("%s", stdout)
 	if err != nil {
 		t.Fatalf(
-			"Execution of `upload-file-to-bitbucket.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
+			"Execution of `upload-file-to-bitbucket-with-git.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
 			stdout,
 			stderr,
 			err)
