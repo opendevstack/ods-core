@@ -53,7 +53,7 @@ function run_test(){
     
     # Should fix error " panic: test timed out after "
     echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${BITBUCKET_TEST_PROJECT} ${QUICKSTARTER_FOLDER} ${QUICKSTARTER}"
-    # go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
+    go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${BITBUCKET_TEST_PROJECT} ${QUICKSTARTER_FOLDER} ${QUICKSTARTER} | tee test-quickstarter-results.txt 2>&1
 
     exitcode="${PIPESTATUS[0]}"
 

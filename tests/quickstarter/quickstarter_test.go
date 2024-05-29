@@ -24,6 +24,9 @@ import (
 // folder - otherwise a folder next to "ods-core" is assumed, by default
 // "ods-quickstarters". If the argument ends with "...", all directories with a
 // "testdata" directory are tested, otherwise only the given folder is run.
+
+// Comment by Srita
+// Adding new parameter quickstarterfolder to paramterarize the hardcoded value "ods-quickstarters"
 func TestQuickstarter(t *testing.T) {
 
 	var quickstarterPaths []string
@@ -32,6 +35,8 @@ func TestQuickstarter(t *testing.T) {
 	utils.Set_project_name(project)
 	target := os.Args[len(os.Args)-2]
 	fmt.Sprintf(target)
+	quickstarterfolder := os.Args[len(os.Args)-3]
+	fmt.Sprintf(quickstarterfolder)
 	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
 		if strings.HasSuffix(target, "...") {
 			quickstarterPaths = collectTestableQuickstarters(
