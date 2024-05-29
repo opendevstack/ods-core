@@ -32,9 +32,10 @@ func TestQuickstarter(t *testing.T) {
 	var quickstarterPaths []string
 	odsCoreRootPath := "../.."
 	project := os.Args[len(os.Args)-1]
+	fmt.Printf("Project: %s\n", project)
 	utils.Set_project_name(project)
 	target := os.Args[len(os.Args)-2]
-	fmt.Printf("Target: %s", target)
+	fmt.Printf("Target: %s\n", target)
 	quickstarterfolder := os.Args[len(os.Args)-3]
 	fmt.Printf("QSFolder: %s", quickstarterfolder)
 	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
