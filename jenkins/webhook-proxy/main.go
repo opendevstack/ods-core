@@ -262,11 +262,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 	type requestBitbucket struct {
 		EventKey   string     `json:"eventKey"`
 		Repository repository `json:"repository"`
-		Commit     struct {
-			Id      string `json:"id"`
-			Message string `json:"message"`
-		} `json:"toCommit"`
-		Changes []struct {
+		Changes    []struct {
 			Type string `json:"type"`
 			Ref  struct {
 				DisplayID string `json:"displayId"`
@@ -396,11 +392,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
-			// Skip requests with commit messages containing "Notes added by 'git notes add'"
+			// Skip requests with where the ref id is starting with "refs/notes/"
 			// Reference 1: https://community.atlassian.com/t5/Bitbucket-questions/disable-quot-git-notes-add-quot-behaviour-for-semantic-release/qaq-p/1837322
 			// Reference 2: https://github.com/semantic-release/semantic-release/discussions/2017#discussioncomment-995308
-			if strings.Contains(req.Commit.Message, "Notes added by 'git notes add'") {
-				log.Println(requestID, "Skipping request with commit message containing: Notes added by 'git notes add'")
+			if strings.Contains(req.Changes[0].Ref.DisplayID, "refs/notes/") {
+				log.Println(requestID, "Skipping request with refs/notes/ prefix in ref id")
 				return
 			}
 
