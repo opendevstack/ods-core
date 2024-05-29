@@ -8,8 +8,8 @@ THIS_SCRIPT="$(basename $0)"
 # By default we run all quickstarter tests, otherwise just the quickstarter
 # passed as the first argument to this script.
 BITBUCKET_TEST_PROJECT="unitt"
-## QUICKSTARTER="ods-quickstarters/..."
-## QUICKSTARTER="ods-boehringer-quickstarters/..."
+QUICKSTARTER_FOLDER="ods-quickstarters/..."
+QUICKSTARTER=""
 PARALLEL="1"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,8 +52,8 @@ function run_test(){
 
     
     # Should fix error " panic: test timed out after "
-    echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER}"
-    go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
+    echo "${THIS_SCRIPT}: go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${BITBUCKET_TEST_PROJECT} ${QUICKSTARTER_FOLDER} ${QUICKSTARTER}"
+    # go test -v -count=1 -timeout 30h -parallel ${PARALLEL} github.com/opendevstack/ods-core/tests/quickstarter -args ${QUICKSTARTER} ${BITBUCKET_TEST_PROJECT} | tee test-quickstarter-results.txt 2>&1
 
     exitcode="${PIPESTATUS[0]}"
 
@@ -74,7 +74,8 @@ function usage {
     printf "\t-h |--help\t\tPrint usage\n"
     printf "\t-p |--project\t\tBitbucket project (* mandatory)\n"
     printf "\t-pa|--parallel\t\tNumber of test executed in parallel\n"
-    printf "\t-q |--quickstarter\tQuickStarter to test or Quickstarter folder (default:ods-quickstarters/...)\n"
+    printf "\t-qf |--quickstarterfolder\tQuickstarter folder (default:ods-quickstarters/...)\n"
+    printf "\t-q |--quickstarter\tQuickStarter to test\n"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -87,6 +88,9 @@ while [[ "$#" -gt 0 ]]; do
 
     -q|--quickstarter) QUICKSTARTER="$2"; shift;;
     -q=*|--quickstarter=*) QUICKSTARTER="${1#*=}";;
+
+    -qf|--quickstarterfolder) QUICKSTARTER_FOLDER="$2"; shift;;
+    -qf=*|--quickstarterfolder=*) QUICKSTARTER_FOLDER="${1#*=}";;
 
     -p|--project) BITBUCKET_TEST_PROJECT="$2"; shift;;
     -p=*|--project=*) BITBUCKET_TEST_PROJECT="${1#*=}";;
