@@ -34,9 +34,9 @@ func TestQuickstarter(t *testing.T) {
 	project := os.Args[len(os.Args)-1]
 	utils.Set_project_name(project)
 	target := os.Args[len(os.Args)-2]
-	fmt.Printf("Target: ", target)
+	fmt.Printf("Target: %s", target)
 	quickstarterfolder := os.Args[len(os.Args)-3]
-	fmt.Printf("QSFolder: ", quickstarterfolder)
+	fmt.Printf("QSFolder: %s", quickstarterfolder)
 	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
 		if strings.HasSuffix(target, "...") {
 			quickstarterPaths = collectTestableQuickstarters(
