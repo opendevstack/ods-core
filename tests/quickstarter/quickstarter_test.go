@@ -114,6 +114,17 @@ func TestQuickstarter(t *testing.T) {
 		for _, file := range files {
 			fmt.Println(file)
 		}
+
+		func FilePathWalkDir(root string) ([]string, error) {
+			var files []string
+			err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+				if !info.IsDir() {
+					files = append(files, path)
+				}
+				return nil
+			})
+			return files, err
+		}
 		//
 
 		fmt.Printf("\n\n\n\n")
