@@ -105,16 +105,7 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterName := filepath.Base(quickstarterPath)
 
 		// check quickstarterPath content
-		var files []string
-		files, err = FilePathWalkDir(quickstarterName)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, file := range files {
-			fmt.Println(file)
-		}
-
+		
 		func FilePathWalkDir(root string) ([]string, error) {
 			var files []string
 			err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -125,6 +116,17 @@ func TestQuickstarter(t *testing.T) {
 			})
 			return files, err
 		}
+
+		var files []string
+		files, err = FilePathWalkDir(quickstarterName)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, file := range files {
+			fmt.Println(file)
+		}
+
 		//
 
 		fmt.Printf("\n\n\n\n")
