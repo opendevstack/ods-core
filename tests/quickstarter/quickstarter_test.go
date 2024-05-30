@@ -32,11 +32,11 @@ func TestQuickstarter(t *testing.T) {
 	odsCoreRootPath := "../.."
 	quickstarter := os.Args[len(os.Args)-1]
 	fmt.Printf("QSFolder: %s", quickstarter)
-	utils.Set_project_name(project)
 	target := os.Args[len(os.Args)-2]
 	fmt.Printf("Target: %s\n", target)
 	project := os.Args[len(os.Args)-3]
 	fmt.Printf("Project: %s\n", project)
+	utils.Set_project_name(project)
 
 	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
 		if strings.HasSuffix(target, "...") {
