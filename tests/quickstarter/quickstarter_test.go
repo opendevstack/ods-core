@@ -30,11 +30,11 @@ func TestQuickstarter(t *testing.T) {
 
 	var quickstarterPaths []string
 	odsCoreRootPath := "../.."
-	quickstarter := os.Args[len(os.Args)]
+	quickstarter := os.Args[len(os.Args)-1]
 	fmt.Printf("QS: %s\n", quickstarter)
-	target := os.Args[len(os.Args)-1]
+	target := os.Args[len(os.Args)-2]
 	fmt.Printf("Target: %s\n", target)
-	project := os.Args[len(os.Args)-2]
+	project := os.Args[len(os.Args)-3]
 	fmt.Printf("Project: %s\n", project)
 	utils.Set_project_name(project)
 
@@ -47,11 +47,32 @@ func TestQuickstarter(t *testing.T) {
 			quickstarterPaths = append(quickstarterPaths, target)
 		}
 	} else {
+		if quickstarter != "all" {
+			// quickstarter variable value not all = test only one quickstarter
+			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), quickstarter)}
+		} else {
+			// quickstarter variable value all = test all quickstarters
+			quickstarterPaths = collectTestableQuickstarters(
+				t, fmt.Sprintf("%s/../%s", odsCoreRootPath, strings.TrimSuffix(target, "/...")),
+			)
+		}
+	}
+
+
+	/* if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
+		if strings.HasSuffix(target, "...") {
+			quickstarterPaths = collectTestableQuickstarters(
+				t, strings.TrimSuffix(target, "/..."),
+			)
+		} else {
+			quickstarterPaths = append(quickstarterPaths, target)
+		}
+	} else {
 		// No slash = quickstarter in ods-quickstarters
 		// Ending with ... = all quickstarters in given folder
 		// otherwise = exactly one quickstarter
 		if !strings.Contains(target, "/") {
-			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, "ods-quickstarters", target)}
+			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), target)}
 		} else if strings.HasSuffix(target, "...") {
 			quickstarterPaths = collectTestableQuickstarters(
 				t, fmt.Sprintf("%s/../%s", odsCoreRootPath, strings.TrimSuffix(target, "/...")),
@@ -59,7 +80,7 @@ func TestQuickstarter(t *testing.T) {
 		} else {
 			quickstarterPaths = []string{fmt.Sprintf("%s/../%s", odsCoreRootPath, target)}
 		}
-	}
+	} */
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err)
