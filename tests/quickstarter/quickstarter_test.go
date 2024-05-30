@@ -99,33 +99,6 @@ func TestQuickstarter(t *testing.T) {
 	}
 	fmt.Printf("\n\n")
 
-	// check quickstarterPath content
-		
-	func IOReadDir(root string) ([]string, error) {
-		var files []string
-		fileInfo, err := ioutil.ReadDir(root)
-		if err != nil {
-			return files, err
-		}
-	
-		for _, file := range fileInfo {
-			files = append(files, file.Name())
-		}
-		return files, nil
-	}
-
-	var files []string
-	files, err = IOReadDir(quickstarterPath)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, file := range files {
-		fmt.Println(file)
-	}
-
-	//
-
 	for _, quickstarterPath := range quickstarterPaths {
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
