@@ -106,19 +106,21 @@ func TestQuickstarter(t *testing.T) {
 
 		// check quickstarterPath content
 		
-		func FilePathWalkDir(root string) ([]string, error) {
+		func IOReadDir(root string) ([]string, error) {
 			var files []string
-			err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-				if !info.IsDir() {
-					files = append(files, path)
-				}
-				return nil
-			})
-			return files, err
+			fileInfo, err := ioutil.ReadDir(root)
+			if err != nil {
+				return files, err
+			}
+		
+			for _, file := range fileInfo {
+				files = append(files, file.Name())
+			}
+			return files, nil
 		}
 
 		var files []string
-		files, err = FilePathWalkDir(quickstarterName)
+		files, err = IOReadDir(root)
 		if err != nil {
 			panic(err)
 		}
