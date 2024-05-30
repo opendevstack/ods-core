@@ -30,11 +30,11 @@ func TestQuickstarter(t *testing.T) {
 
 	var quickstarterPaths []string
 	odsCoreRootPath := "../.."
-	quickstarter := os.Args[len(os.Args)-1]
-	fmt.Printf("QSFolder: %s", quickstarter)
-	target := os.Args[len(os.Args)-2]
+	quickstarter := os.Args[len(os.Args)]
+	fmt.Printf("QS: %s\n", quickstarter)
+	target := os.Args[len(os.Args)-1]
 	fmt.Printf("Target: %s\n", target)
-	project := os.Args[len(os.Args)-3]
+	project := os.Args[len(os.Args)-2]
 	fmt.Printf("Project: %s\n", project)
 	utils.Set_project_name(project)
 
