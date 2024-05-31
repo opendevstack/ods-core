@@ -104,6 +104,9 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
+		wd, _ := os.Getwd()
+    	fmt.Println("Working Directory:", wd)
+		
 		fmt.Printf("\n\n\n\n")
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
 		fmt.Printf("\n\n")
