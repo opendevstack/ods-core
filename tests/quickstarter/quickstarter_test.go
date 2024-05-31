@@ -49,7 +49,7 @@ func TestQuickstarter(t *testing.T) {
 	} else {
 		if quickstarter != "all" {
 			// quickstarter variable value not all = test only one quickstarter
-			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), quickstarter)}
+			quickstarterPaths = []string{fmt.Sprintf("%s/../../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), quickstarter)}
 		} else {
 			// quickstarter variable value all = test all quickstarters
 			quickstarterPaths = collectTestableQuickstarters(
