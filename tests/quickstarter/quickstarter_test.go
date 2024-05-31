@@ -49,7 +49,7 @@ func TestQuickstarter(t *testing.T) {
 	} else {
 		if quickstarter != "all" {
 			// quickstarter variable value not all = test only one quickstarter
-			quickstarterPaths = []string{fmt.Sprintf("%s/%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), quickstarter)}
+			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), quickstarter)}
 		} else {
 			// quickstarter variable value all = test all quickstarters
 			quickstarterPaths = collectTestableQuickstarters(
@@ -72,7 +72,7 @@ func TestQuickstarter(t *testing.T) {
 		// Ending with ... = all quickstarters in given folder
 		// otherwise = exactly one quickstarter
 		if !strings.Contains(target, "/") {
-			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, strings.TrimSuffix(target, "/..."), target)}
+			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, "ods-quickstarters", target)}
 		} else if strings.HasSuffix(target, "...") {
 			quickstarterPaths = collectTestableQuickstarters(
 				t, fmt.Sprintf("%s/../%s", odsCoreRootPath, strings.TrimSuffix(target, "/...")),
