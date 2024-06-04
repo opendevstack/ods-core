@@ -10,7 +10,7 @@
 ### Changed
 - Update SonarQube to 9.9.5 and configure resources for Nexus and Sonarqube in ods-configuration ([#1283](https://github.com/opendevstack/ods-core/pull/1283))
 - Update Nexus to 3.68.1-java11 to address a critical vulnerability ([#1286](https://github.com/opendevstack/ods-core/pull/1286))
-
+- Removed NEXUS_USERNAME and NEXUS_PASSWORD on Jenkins DeploymentConfig as are no longer used ([#1289]https://github.com/opendevstack/ods-core/pull/1289)
 ## [4.4.0] - 2024-04-22
 
 ### Fixed

@@ -23,7 +23,6 @@ echo_info(){
 ADMIN_USER="admin"
 ADMIN_DEFAULT_PASSWORD=
 ADMIN_PASSWORD=
-DEVELOPER_PASSWORD=
 NEXUS_URL=
 LOCAL_CONTAINER_ID=
 NAMESPACE="ods"
@@ -64,9 +63,6 @@ while [[ "$#" -gt 0 ]]; do
     -a|--admin-password) ADMIN_PASSWORD="$2"; shift;;
     -a=*|--admin-password=*) ADMIN_PASSWORD="${1#*=}";;
 
-    -d|--developer-password) DEVELOPER_PASSWORD="$2"; shift;;
-    -d=*|--developer-password=*) DEVELOPER_PASSWORD="${1#*=}";;
-
     -n|--nexus) NEXUS_URL="$2"; shift;;
     -n=*|--nexus=*) NEXUS_URL="${1#*=}";;
 
@@ -101,25 +97,6 @@ if [ -z "${ADMIN_PASSWORD}" ]; then
     echo "Please enter Nexus admin password:"
     read -r -e -s input
     ADMIN_PASSWORD=${input:-""}
-fi
-
-if [ -z "${DEVELOPER_PASSWORD}" ]; then
-    if [ -f "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" ]; then
-        echo_info "Configuration located, checking if password is changed from sample value"
-        samplePassword=$(grep NEXUS_PASSWORD_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
-        configuredPassword=$(grep NEXUS_PASSWORD_B64 "${ODS_CORE_DIR}/../ods-configuration/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
-        if [ "${configuredPassword}" == "${samplePassword}" ]; then
-            echo_info "Developer password in ods-configuration/ods-core.env is the sample value"
-        else
-            echo_info "Setting developer password from ods-configuration/ods-core.env"
-            DEVELOPER_PASSWORD=${configuredPassword}
-        fi
-    fi
-    if [ -z "${DEVELOPER_PASSWORD}" ]; then
-        echo "Please enter Nexus developer password:"
-        read -r -e -s input
-        DEVELOPER_PASSWORD=${input:-""}
-    fi
 fi
 
 function waitForReady {
@@ -258,11 +235,6 @@ runJsonScript "deactivateAnonymous"
 
 echo_info "Setup developer role"
 runJsonScript "createRole" "-d @json/developer-role.json"
-
-echo_info "Setup developer user"
-sed "s|@developer_password@|${DEVELOPER_PASSWORD}|g" json/developer-user.json > json/developer-user-with-password.json
-runJsonScript "createUser" "-d @json/developer-user-with-password.json"
-rm json/developer-user-with-password.json
 
 if [ -z "${LOCAL_CONTAINER_ID}" ]; then
     changeScriptSetting "false"

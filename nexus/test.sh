@@ -22,7 +22,6 @@ function usage {
 
 VERIFY_ONLY=false
 ADMIN_PASSWORD=
-DEVELOPER_PASSWORD=
 PROMPTS=true
 INSECURE=""
 
@@ -41,9 +40,6 @@ while [[ "$#" -gt 0 ]]; do
 
     -a|--admin-password) ADMIN_PASSWORD="$2"; shift;;
     -a=*|--admin-password=*) ADMIN_PASSWORD="${1#*=}";;
-
-    -d|--developer-password) DEVELOPER_PASSWORD="$2"; shift;;
-    -d=*|--developer-password=*) DEVELOPER_PASSWORD="${1#*=}";;
 
     -s|--nexus-image) NEXUS_IMAGE="$2"; shift;;
     -s=*|--nexus-image=*) NEXUS_IMAGE="${1#*=}";;
