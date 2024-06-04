@@ -42,10 +42,6 @@ parameters:
   required: true
 - name: NEXUS_URL
   required: true
-- name: NEXUS_USERNAME
-  required: true
-- name: NEXUS_PASSWORD_B64
-  required: true
 - name: JIRA_URL
   required: true
 - name: JENKINS_HOME
@@ -82,16 +78,6 @@ objects:
     name: sonarqube
     labels:
       template: ods-jenkins-template
-  type: opaque
-- apiVersion: v1
-  data:
-    password: '${NEXUS_PASSWORD_B64}'
-  kind: Secret
-  metadata:
-    labels:
-      template: ods-jenkins-template
-      app: jenkins
-    name: nexus
   type: opaque
 - apiVersion: route.openshift.io/v1
   kind: Route
@@ -173,13 +159,6 @@ objects:
               value: '${JENKINS_CONTAINER_HEAP_PERCENT}'
             - name: NEXUS_URL
               value: '${NEXUS_URL}'
-            - name: NEXUS_USERNAME
-              value: '${NEXUS_USERNAME}'
-            - name: NEXUS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: nexus
             - name: JIRA_URL
               value: '${JIRA_URL}'
             - name: JENKINS_HOME

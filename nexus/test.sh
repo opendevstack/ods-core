@@ -73,13 +73,10 @@ if ! $VERIFY_ONLY; then
     NEXUS_URL="http://localhost:${HOST_PORT}"
     NEXUS_ADMIN_USERNAME="admin"
     NEXUS_ADMIN_PASSWORD=${ADMIN_PASSWORD:-"s3cr3t"}
-    NEXUS_USERNAME="developer"
-    NEXUS_PASSWORD=${DEVELOPER_PASSWORD:-"geHeim"}
 
     echo "Run configure.sh"
     "${SCRIPT_DIR}"/configure.sh \
         --admin-password="${NEXUS_ADMIN_PASSWORD}" \
-        --developer-password="${NEXUS_PASSWORD}" \
         --nexus="${NEXUS_URL}" \
         --local-container-id="${containerId}"
 else
@@ -97,18 +94,12 @@ else
     source verify-nexus.env
     rm verify-nexus.env
 
-    NEXUS_USERNAME=${NEXUS_USERNAME-"developer"}
     NEXUS_ADMIN_USERNAME=${NEXUS_ADMIN_USERNAME-"admin"}
     if $PROMPTS; then
         if [ -z "${ADMIN_PASSWORD}" ] && [ -z "${NEXUS_ADMIN_PASSWORD-}" ]; then
             echo "Please enter Nexus $NEXUS_ADMIN_USERNAME password:"
             read -r -e -s input
             NEXUS_ADMIN_PASSWORD=${input:-""}
-        fi
-        if [ -z "${DEVELOPER_PASSWORD}" ] && [ -z "${NEXUS_PASSWORD-}" ]; then
-            echo "Please enter Nexus $NEXUS_USERNAME password:"
-            read -r -e -s input
-            NEXUS_PASSWORD=${input:-""}
         fi
     fi
 fi
@@ -157,7 +148,7 @@ expectedRepos=( "candidates:hosted"
                 "leva-documentation:hosted")
 
 actualRepos=$(curl -sSf ${INSECURE} \
-    --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
+    --user "${NEXUS_ADMIN_USERNAME}:${NEXUS_ADMIN_PASSWORD}" \
     ${NEXUS_URL}/service/rest/v1/repositories)
 
 for repo in "${expectedRepos[@]}"; do
@@ -186,22 +177,12 @@ else
     echo "Anonymous access is disabled"
 fi
 
-echo "Check developer access"
-if curl -sSf ${INSECURE} \
-    --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
-    ${NEXUS_URL}/service/rest/v1/repositories | jq -e "length == 0" > /dev/null; then
-    echo "Developer access not possible"
-    exit 1
-else
-    echo "Developer access possible"
-fi
-
 artifact_url="${NEXUS_URL}/repository/maven-public/org/springframework/boot/spring-boot/2.3.0.RELEASE/spring-boot-2.3.0.RELEASE.pom"
 
 echo "Downloading sample artifact: $artifact_url"
 # retrieves an xml doc.
 http_code=$(curl -sSf ${INSECURE} --location -o /dev/null -w "%{http_code}" \
-    --user "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" \
+    --user "${NEXUS_ADMIN_USERNAME}:${NEXUS_ADMIN_PASSWORD}" \
     "$artifact_url")
 exit_code=$?
 if [ $exit_code -ne 0 ]; then

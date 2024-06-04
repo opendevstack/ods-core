@@ -47,8 +47,6 @@ mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
 sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
 sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
 if [ -e "${JENKINS_HOME}/plugins" ]; then
   # RHEL base images install plugins (defined in the yum package jenkins-2-plugins)

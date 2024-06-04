@@ -1,6 +1,6 @@
 <ivysettings>
   <settings defaultResolver="downloadGrapes"/>
-      <credentials host="__NEXUS_HOST_NO_URL" realm="Sonatype Nexus Repository Manager" username="__NEXUS_USER" passwd="__NEXUS_PW"/>
+      <credentials host="__NEXUS_HOST_NO_URL" realm="Sonatype Nexus Repository Manager"/>
       <property name="nexus-public" value="__NEXUS_HOST/repository/maven-central/"/>
   <resolvers>
     <chain name="downloadGrapes" returnFirst="true">
