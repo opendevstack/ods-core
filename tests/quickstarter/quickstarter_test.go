@@ -100,13 +100,14 @@ func TestQuickstarter(t *testing.T) {
 	fmt.Printf("\n\n")
 
 	for _, quickstarterPath := range quickstarterPaths {
-		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
-		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
-		quickstarterName := filepath.Base(quickstarterPath)
 
 		wd, _ := os.Getwd()
     	fmt.Println("Working Directory:", wd)
-		
+
+		testdataPath := fmt.Sprintf("%s/%s/testdata", wd, quickstarterPath)
+		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
+		quickstarterName := filepath.Base(quickstarterPath)
+
 		fmt.Printf("\n\n\n\n")
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
 		fmt.Printf("\n\n")
