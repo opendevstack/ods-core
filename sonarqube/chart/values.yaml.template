@@ -22,15 +22,19 @@ global:
   sonarDatabaseImage: $SONAR_DATABASE_IMAGE
 postgresql:
   name: 'sonarqube-postgresql'
-  cpuRequest: 100m
-  cpuLimit: 1
-  memRequest: 256Mi
-  memLimit: 512Mi
+  cpuRequest: $SONARQUBE_DB_CPU_REQUEST
+  cpuLimit: $SONARQUBE_DB_CPU_LIMIT 
+  memRequest: $SONARQUBE_DB_MEMORY_REQUEST
+  memLimit: $SONARQUBE_DB_MEMORY_LIMIT
+  pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
+  pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
 sonarqube:
-  cpuRequest: 200m
-  cpuLimit: 1
-  memRequest: 2Gi
-  memLimit: 4Gi
+  cpuRequest: $SONARQUBE_CPU_REQUEST
+  cpuLimit: $SONARQUBE_CPU_LIMIT
+  memRequest: $SONARQUBE_MEMORY_REQUEST
+  memLimit: $SONARQUBE_MEMORY_LIMIT
+  pvcDataCapacity: $SONARQUBE_DATA_CAPACITY
+  pvcExtensionsCapacity: $SONARQUBE_EXTENSIONS_CAPACITY
   sonarAuthSaml: $SONAR_AUTH_SAML
   sonarAuthSamlApplicationId: $SONAR_SAML_APPLICATION_ID
   sonarAuthSamlProviderIdB64: $SONAR_SAML_PROVIDER_ID_B64

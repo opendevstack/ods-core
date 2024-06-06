@@ -2,11 +2,20 @@
 
 ## Unreleased
 
-### Fixed
-
 ### Added
 
 ### Changed
+
+### Fixed
+
+## [4.5.0] - 2024-06-06
+
+### Added
+- Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
+
+### Changed
+- Update SonarQube to 9.9.5 and configure resources for Nexus and Sonarqube in ods-configuration ([#1283](https://github.com/opendevstack/ods-core/pull/1283))
+- Update Nexus to 3.68.1-java11 to address a critical vulnerability ([#1286](https://github.com/opendevstack/ods-core/pull/1286))
 
 ## [4.4.0] - 2024-04-22
 

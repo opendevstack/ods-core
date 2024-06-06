@@ -101,7 +101,8 @@ type Client interface {
 	GetPipeline(e *Event) (bool, []byte, error)
 	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
-	CheckAvailability(e *Event)
+	CheckJenkinsAvailability(e *Event)
+	CheckDocGenAvailability(e *Event)
 }
 
 type ocClient struct {
@@ -584,7 +585,8 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
-	c.CheckAvailability(e)
+	c.CheckJenkinsAvailability(e)
+	c.CheckDocGenAvailability(e)
 
 	p := struct {
 		Env []EnvPair `json:"env"`
@@ -617,7 +619,8 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 		return 500, err
 	}
 
-	c.CheckAvailability(e)
+	c.CheckJenkinsAvailability(e)
+	c.CheckDocGenAvailability(e)
 
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs",
@@ -660,7 +663,8 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		e.Pipeline,
 	)
 
-	c.CheckAvailability(e)
+	c.CheckJenkinsAvailability(e)
+	c.CheckDocGenAvailability(e)
 
 	req, _ := http.NewRequest(
 		"DELETE",
@@ -685,7 +689,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 }
 
 // Check that Jenkins is up in case the service is idle in OpenShift.
-func (c *ocClient) CheckAvailability(e *Event) {
+func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 	url := fmt.Sprintf(
 		"http://jenkins.%s.svc.cluster.local",
 		e.Namespace,
@@ -705,6 +709,31 @@ func (c *ocClient) CheckAvailability(e *Event) {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
 		} else {
 			log.Println(e.RequestID, "Jenkins not available, status code is", res.StatusCode)
+		}
+	}
+}
+
+// Check that DocGen is up in case the service is idle in OpenShift.
+func (c *ocClient) CheckDocGenAvailability(e *Event) {
+	url := fmt.Sprintf(
+		"http://docgen.%s:8080",
+		e.Namespace,
+	)
+	req, _ := http.NewRequest(
+		"GET",
+		url,
+		nil,
+	)
+
+	res, err := c.do(req)
+
+	if err != nil {
+		log.Println(e.RequestID, "DocGen not reachable, if idled it will scale up in namespace", e.Namespace)
+	} else {
+		if res.StatusCode == 200 {
+			log.Println(e.RequestID, "DocGen available in namespace", e.Namespace)
+		} else {
+			log.Println(e.RequestID, "DocGen not available, status code is", res.StatusCode)
 		}
 	}
 }

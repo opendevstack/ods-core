@@ -198,7 +198,10 @@ func (c *mockClient) DeletePipeline(e *Event) error {
 	c.Event = e
 	return nil
 }
-func (c *mockClient) CheckAvailability(e *Event) {
+func (c *mockClient) CheckJenkinsAvailability(e *Event) {
+	c.Event = e
+}
+func (c *mockClient) CheckDocGenAvailability(e *Event) {
 	c.Event = e
 }
 

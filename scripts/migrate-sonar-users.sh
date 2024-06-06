@@ -77,11 +77,11 @@ if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
 
 fi
 
-Email_list=$( curl ${INSECURE} ${SONAR_URL}/api/users/search -u admin:${SONAR_ADMIN_TOKEN} | jq .users | grep login | grep @ | tr -d '"' | tr -d "," | cut -f2 -d ":" )
+Email_list=$( curl ${INSECURE} ${SONARQUBE_URL}/api/users/search -u ${SONAR_ADMIN_USERNAME}:${SONAR_ADMIN_PASSWORD} | jq .users | grep login | grep @ | tr -d '"' | tr -d "," | cut -f2 -d ":" )
 email_list_array=($Email_list)
 
 for email in "${email_list_array[@]}"
 do
-    curl ${INSECURE} -X POST -sSf -u admin:${SONAR_ADMIN_TOKEN} "${SONAR_URL}/api/users/update_identity_provider?newExternalProvider=saml&login=${email}" > /dev/null
+    curl ${INSECURE} -X POST -sSf -u ${SONAR_ADMIN_USERNAME}:${SONAR_ADMIN_PASSWORD} "${SONARQUBE_URL}/api/users/update_identity_provider?newExternalProvider=saml&login=${email}" > /dev/null
     echo "User ${email} migrated to Saml"
 done
