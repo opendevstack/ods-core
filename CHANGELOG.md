@@ -5,7 +5,7 @@
 ### Added
 - Added webhook proxy logic to skip requests with the ref id starting with "refs/notes/"
 
-### Fixed
+## [4.5.0] - 2024-06-06
 
 ### Added
 - Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
