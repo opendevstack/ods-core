@@ -392,6 +392,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
+			// Skip requests with where the ref id is starting with "refs/notes/"
+			// Reference 1: https://community.atlassian.com/t5/Bitbucket-questions/disable-quot-git-notes-add-quot-behaviour-for-semantic-release/qaq-p/1837322
+			// Reference 2: https://github.com/semantic-release/semantic-release/discussions/2017#discussioncomment-995308
+			if len(req.Changes) > 0 && strings.Contains(req.Changes[0].Ref.DisplayID, "refs/notes/") {
+				log.Println(requestID, "Skipping request with refs/notes/ prefix in ref id")
+				// Return 200 OK to Bitbucket to avoid retries
+				http.Error(w, "OK", http.StatusOK)
+				return
+			}
+
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {

@@ -3,10 +3,7 @@
 ## Unreleased
 
 ### Added
-
-### Changed
-
-### Fixed
+- Added webhook proxy logic to skip requests with the ref id starting with "refs/notes/"
 
 ## [4.5.0] - 2024-06-06
 
