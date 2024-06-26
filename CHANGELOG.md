@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+- Update SonarQube to 9.9.6 ([#1292](https://github.com/opendevstack/ods-core/pull/1292))
 
 ### Fixed
 
