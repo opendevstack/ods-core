@@ -6,6 +6,7 @@
 
 ### Changed
 - Update SonarQube to 9.9.6 ([#1292](https://github.com/opendevstack/ods-core/pull/1292))
+- Lower Webhook Proxy resources to match real usage ([#1293](https://github.com/opendevstack/ods-core/pull/1293))
 
 ### Fixed
 
