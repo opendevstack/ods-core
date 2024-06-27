@@ -21,13 +21,13 @@ parameters:
 - name: ODS_BITBUCKET_PROJECT
   required: true
 - name: WEBHOOK_PROXY_CPU_REQUEST
-  value: 50m
+  value: 10m
 - name: WEBHOOK_PROXY_CPU_LIMIT
-  value: 200m
+  value: 25m
 - name: WEBHOOK_PROXY_MEMORY_REQUEST
-  value: 128Mi
+  value: 30Mi
 - name: WEBHOOK_PROXY_MEMORY_LIMIT
-  value: 128Mi
+  value: 40Mi
 objects:
 - apiVersion: route.openshift.io/v1
   kind: Route
