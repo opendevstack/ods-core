@@ -108,6 +108,16 @@ func TestQuickstarter(t *testing.T) {
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
+		files, err := ioutil.ReadDir(testdataPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, f := range files {
+			fmt.Println("Inside Loop")
+			fmt.Println(f.Name())
+		}
+
 		fmt.Printf("\n\n\n\n")
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
 		fmt.Printf("\n\n")
