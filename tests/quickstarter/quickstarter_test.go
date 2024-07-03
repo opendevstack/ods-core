@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"log"
 
 	"github.com/opendevstack/ods-core/tests/utils"
 )
