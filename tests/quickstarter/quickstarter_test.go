@@ -105,11 +105,7 @@ func TestQuickstarter(t *testing.T) {
 		wd, _ := os.Getwd()
     	fmt.Println("Working Directory:", wd)
 
-		testdataPath := fmt.Sprintf("%s/%s/testdata", wd, quickstarterPath)
-		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
-		quickstarterName := filepath.Base(quickstarterPath)
-
-		files, err := ioutil.ReadDir(testdataPath)
+		files, err := ioutil.ReadDir(wd)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -118,6 +114,10 @@ func TestQuickstarter(t *testing.T) {
 			fmt.Println("Inside Loop")
 			fmt.Println(f.Name())
 		}
+
+		testdataPath := fmt.Sprintf("%s/%s/testdata", wd, quickstarterPath)
+		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
+		quickstarterName := filepath.Base(quickstarterPath)
 
 		fmt.Printf("\n\n\n\n")
 		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
