@@ -104,7 +104,7 @@ func TestQuickstarter(t *testing.T) {
 
 		wd, _ := os.Getwd()
     	fmt.Println("Working Directory:", wd)
-		qs := /tmp/workspace/qstestlauncher/Quickstarter-Golden-Test-Launcher/
+		qs := "/tmp/workspace/qstestlauncher/Quickstarter-Golden-Test-Launcher/"
 		fmt.Println("QS Directory:", qs)
 
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
