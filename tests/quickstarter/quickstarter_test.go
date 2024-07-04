@@ -104,8 +104,9 @@ func TestQuickstarter(t *testing.T) {
 
 		wd, _ := os.Getwd()
     	fmt.Println("Working Directory:", wd)
+		fmt.Println("QS Directory:", "%s/../../../", wd)
 
-		files, err := ioutil.ReadDir(quickstarterPath)
+		files, err := ioutil.ReadDir("%s/../../../", wd)
 		if err != nil {
 			log.Fatal(err)
 		}
