@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added webhook proxy logic to skip requests with the ref id starting with "refs/notes/"
 
 ### Changed
 - Update SonarQube to 9.9.6 ([#1292](https://github.com/opendevstack/ods-core/pull/1292))
