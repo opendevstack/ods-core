@@ -84,7 +84,7 @@ RUN cd /tmp \
     && helm plugin install https://github.com/databus23/helm-diff --version v${HELM_PLUGIN_DIFF_VERSION} \
     && helm plugin install https://github.com/jkroepke/helm-secrets --version v${HELM_PLUGIN_SECRETS_VERSION} \
     && sops --version \
-    && rm -rf /tmp/helm
+    && rm -rf /tmp/helm /tmp/helm-v${HELM_VERSION}-linux-amd64.tar.gz
 
 # Install GIT-LFS extension https://git-lfs.github.com/.
 RUN cd /tmp \
