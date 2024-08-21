@@ -595,9 +595,6 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	)
 	log.Println(e.RequestID, "Forwarding to", url)
 
-	c.CheckJenkinsAvailability(e)
-	c.CheckDocGenAvailability(e)
-
 	p := struct {
 		Env []EnvPair `json:"env"`
 	}{
