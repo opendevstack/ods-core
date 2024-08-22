@@ -1,6 +1,4 @@
 greenballs:1.15.1
 sonar:2.17.2
-blueocean:1.27.14
-email-ext:1814.v404722f34263
 ansicolor:1.0.4
 audit-trail:361.v82cde86c784e
