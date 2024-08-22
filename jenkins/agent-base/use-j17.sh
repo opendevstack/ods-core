@@ -35,4 +35,9 @@ if [ -d ${JAVA_HOME}/bin/ ]; then
 else
   msg_and_exit "Cannot configure JAVA_HOME environment variable to ${JAVA_HOME}"
 fi
+
+rm -fv /etc/profile.d/set-default-java.sh
+echo "export JAVA_HOME=${JAVA_HOME}" >> /etc/profile.d/set-default-java.sh
+echo "export USE_JAVA_VERSION=java-17" >> /etc/profile.d/set-default-java.sh
+chmod +x /etc/profile.d/set-default-java.sh
 echo "JAVA_HOME: $JAVA_HOME"
