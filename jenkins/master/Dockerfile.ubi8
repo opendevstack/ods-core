@@ -1,7 +1,5 @@
 FROM quay.io/openshift/origin-jenkins
 
-ENV JAVA_HOME /usr/lib/jvm/jre-17
-
 # ODS defaults, available to use within pipelines.
 ARG ODS_NAMESPACE
 ARG ODS_GIT_REF
@@ -15,11 +13,11 @@ ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true
 USER root
 
 COPY ./scripts_for_usr-local-bin/* /usr/local/bin/
-RUN import_certs.sh \
+RUN ensure_java_jre_is_adequate.sh master \
+    && import_certs.sh \
     && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
     && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
-        /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
-    && ensure_java_jre_is_adequate.sh master \
+    && /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && fix_openshift_scripts.sh \
     && clean_yum_cache.sh
 
