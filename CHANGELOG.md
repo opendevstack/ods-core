@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+- Webhook Proxy maintenance ([#1298](https://github.com/opendevstack/ods-core/pull/1298))
 
 ### Fixed
 
