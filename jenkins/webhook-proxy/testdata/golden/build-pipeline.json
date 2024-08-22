@@ -26,7 +26,7 @@
             "sourceSecret": {
                 "name": "cd-user-with-password"
             }
-        },        
+        },
         "triggers": [
             {
                 "type": "Generic",
