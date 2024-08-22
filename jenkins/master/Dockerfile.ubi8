@@ -19,7 +19,7 @@ RUN ensure_java_jre_is_adequate.sh master \
     && import_certs.sh \
     && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
     && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
-    && /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
+        /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && fix_openshift_scripts.sh \
     && clean_yum_cache.sh
 
