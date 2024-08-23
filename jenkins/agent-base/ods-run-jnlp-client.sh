@@ -8,6 +8,7 @@ if [ -f /etc/profile.d/set-default-java.sh ]; then
     source /etc/profile.d/set-default-java.sh
 else
     echo "WARNING: Not setting default java version."
+fi
 
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
