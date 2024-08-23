@@ -1,15 +1,13 @@
 #!/bin/bash
 set -eu
 
-# Initialize JAVA_HOME and set alternatives.
-NO_JAVA_LINK="false"
-java -version || NO_JAVA_LINK="true"
-if [ "true" == "${NO_JAVA_LINK}" ]; then
-    JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
-    JAVA_HOME="/usr/lib/jvm/${JAVA_HOME_FOLDER}"
-    alternatives --set java ${JAVA_HOME}/bin/java
-fi
-java -version
+# Initialize JAVA_HOME if not set.
+JAVA_HOME=${JAVA_HOME:-""}
+
+if [ -f /etc/profile.d/set-default-java.sh ]; then
+    source /etc/profile.d/set-default-java.sh
+else
+    echo "WARNING: Not setting default java version."
 
 if [[ ! -z ${APP_DNS:=""} ]]; then
     echo "Setting up certificates from APP_DNS=${APP_DNS} ..."; \
