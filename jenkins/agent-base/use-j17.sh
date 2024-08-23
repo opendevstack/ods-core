@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "temurin-17" | awk '{print $NF}' | head -1)
+JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
 JAVA_VERSION="17"
 
 function msg_and_exit() {
@@ -35,9 +35,4 @@ if [ -d ${JAVA_HOME}/bin/ ]; then
 else
   msg_and_exit "Cannot configure JAVA_HOME environment variable to ${JAVA_HOME}"
 fi
-
-rm -fv /etc/profile.d/set-default-java.sh
-echo "export JAVA_HOME=${JAVA_HOME}" >> /etc/profile.d/set-default-java.sh
-echo "export USE_JAVA_VERSION=java-17" >> /etc/profile.d/set-default-java.sh
-chmod +x /etc/profile.d/set-default-java.sh
 echo "JAVA_HOME: $JAVA_HOME"
