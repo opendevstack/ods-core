@@ -47,6 +47,3 @@ RUN cd /tmp \
     && tailor version
 
 USER jenkins
-
-
-
