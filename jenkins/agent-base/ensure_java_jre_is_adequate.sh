@@ -68,7 +68,7 @@ rm -fv ${JAVA_INSTALLED_PKGS_LOGS} ${JAVA_17_INSTALLED_PKGS_LOGS}
 NO_JAVA_LINK="false"
 java -version || NO_JAVA_LINK="true"
 if [ "true" == "${NO_JAVA_LINK}" ]; then
-    JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-17.*\.x86_64" | awk '{print $NF}' | head -1)
+    JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
     JAVA_HOME="/usr/lib/jvm/${JAVA_HOME_FOLDER}"
     alternatives --set java ${JAVA_HOME}/bin/java
 fi
