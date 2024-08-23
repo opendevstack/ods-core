@@ -6,6 +6,8 @@
 
 ### Changed
 
+- Jenkins maintenance ([#1299](https://github.com/opendevstack/ods-core/pull/1299)) and update java version in Jenkins ([#1295](https://github.com/opendevstack/ods-core/issues/1295))
+
 ### Fixed
 
 ## [4.5.1] - 2024-07-17
