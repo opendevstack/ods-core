@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 	"text/template"
-	"log"
 
 	"github.com/opendevstack/ods-core/tests/utils"
 )
@@ -102,19 +101,19 @@ func TestQuickstarter(t *testing.T) {
 
 	for _, quickstarterPath := range quickstarterPaths {
 
-		wd, _ := os.Getwd()
+		/*wd, _ := os.Getwd()
     	fmt.Println("Working Directory:", wd)
-		/*qs := "/tmp/workspace/qstestlauncher/Quickstarter-Golden-Test-Launcher/"
+		qs := "/tmp/workspace/qstestlauncher/Quickstarter-Golden-Test-Launcher/"
 		fmt.Println("QS Directory:", qs)
 
 		files, err := ioutil.ReadDir(qs)
 		if err != nil {
 			log.Fatal(err)
-		}*/
+		}
 
 		for _, f := range files {
 			fmt.Println(f.Name())
-		}
+		}*/
 
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
 		
