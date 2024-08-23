@@ -1,0 +1,162 @@
+properties([
+    parameters([
+        string(
+            name: 'Quickstarter',
+            defaultValue: 'all',
+            description: 'Enter the quickstarter name which is to be tested'
+        ),
+        string(
+            name: 'QuickstarterRepository',
+            defaultValue: 'ods-quickstarters',
+            description: 'Enter the repository name for the quickstarter which is to be tested'
+        ),
+        string(
+            name: 'quickstarterRef',
+            defaultValue: '4.x',
+            description: 'Enter the reference for the quickstarter (e.g., branch, tag, or commit)'
+        ),
+        string(
+            name: 'Project',
+            defaultValue: 'ods',
+            description: 'Enter the project name where the quickstarter in lower case will be provisioned'
+        ),
+        string(
+            name: 'ODS_URL',
+            defaultValue: 'https://github.com/opendevstack',
+            description: 'Enter the whole URL of the ODS files (https included)'
+        ),
+        text(
+            name: 'excludedQuickstarters',
+            defaultValue: '''inf-terraform-aws
+inf-terraform-azure
+ods-document-gen-svc
+ods-provisioning-app
+release-manager
+ds-jupyter-lab
+ds-rshiny''',
+            description: 'Enter the list of excluded quickstarters, one per line'
+        )        
+    ]),
+    disableConcurrentBuilds(),
+    buildDiscarder(logRotator(numToKeepStr: '10')),
+])
+
+// The project that we will use to test the quickstarters
+def project = params.Project
+// The Quickstarter to test
+def quickstarter = params.Quickstarter
+// Namespace fo the cd project
+def odsNamespace = env.ODS_NAMESPACE ?: "$project-cd"
+// projectID
+def projectId = env.PROJECT_ID
+// odsReference
+def odsRef = params.quickstarterRef?:"master"
+// QS repo
+def QUICKSTARTER_REPO = params.QuickstarterRepository
+
+// URIS of the repositories used 
+def QUICK_STARTERS_URL = "${ODS_URL}/${QUICKSTARTER_REPO}.git"
+def QUICK_STARTERS_BRANCH = "${quickstarterRef}"
+
+def ODS_CONFIGURATION_URL = "${ODS_URL}/ods-configuration.git"
+def ODS_CONFIGURATION_BRANCH = "${quickstarterRef}"
+
+def ODS_CORE_URL = "${ODS_URL}/ods-core.git"
+def ODS_CORE_BRANCH = "${quickstarterRef}"
+
+// List of QS that we want to exclude from the execution of the job.
+def excludedQS = params.excludedQuickstarters?:''
+
+
+echo "QUICKSTARTER_REPO : ${QUICKSTARTER_REPO}"             
+                    
+// Jenkins DeploymentConfig environment variables
+def dockerRegistry
+node {
+  dockerRegistry = env.DOCKER_REGISTRY
+}
+
+// We need a golang version >= 17, so if we don't have one we need to build it. 
+// trigger pipeline
+
+def conts = containerTemplate(
+  name: 'jnlp',
+  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:latest",
+  workingDir: '/tmp',
+  alwaysPullImage: true,
+  args: ''
+)
+def podLabel = "qs-tests"
+
+podTemplate(
+  label: podLabel,
+  cloud: 'openshift',
+  containers: [conts],
+  volumes: [],
+  serviceAccount: 'jenkins'
+) {
+  node(podLabel) {
+      
+    stage('Init') {
+        currentBuild.description = "Testing QS"
+    
+        dir('ods-quickstarters'){
+            git branch: "${QUICK_STARTERS_BRANCH}",
+                credentialsId: "${project}-cd-cd-user-with-password",
+                url: "${QUICK_STARTERS_URL}"
+        }
+        dir('ods-configuration'){
+            //git branch: "${ODS_CONFIGURATION_BRANCH}",
+            git branch: "EDPQSTEST", // hardcoded for testing, remove before merging to github
+                credentialsId: "${project}-cd-cd-user-token",
+                url: "${ODS_CONFIGURATION_URL}"
+        }
+        
+        dir('ods-core'){          
+            git branch: "${ODS_CORE_BRANCH}",
+                credentialsId: "${project}-cd-cd-user-with-password",
+                url: "${ODS_CORE_URL}"
+            
+            // Write the file used to exclude Quickstarters in the tests
+            echo "Writing file quickStartersExclusionList.txt"
+            writeFile file: './tests/quickStartersExclusionList.txt', text: excludedQS
+        }
+    }
+
+    stage('Test') {
+        echo "${WORKSPACE}"
+        
+        // If we select 'all' no one parameter will be provided, so it will try to test all the Quickstarters
+        // that have a test defined in the testdata folder.
+        def quickstarter_to_test = ""
+        quickstarter_to_test = "-q ${quickstarter}"
+        
+        echo "QUICKSTARTER TO TEST : ${quickstarter_to_test}"
+        echo "QUICKSTARTER REPO : ${QUICKSTARTER_REPO}"
+        echo "Project : ${project}"
+        
+        // In different environments SONAR_QUALITY_PROFILE can be different, with this env variable we provide 
+        // the needed value
+        withEnv([
+          "CGO_ENABLED=0", 
+          "GOMODCACHE=${WORKSPACE}/.cache", 
+          "SONAR_QUALITY_PROFILE=sonar way",
+          "ODS_GIT_REF=${odsRef}"]) {
+            sh """
+                cd ods-core/tests
+                ls -lrta
+                ./quickstarter-test.sh -p ${project} -qf "${QUICKSTARTER_REPO}/..." ${quickstarter_to_test} || true
+            """
+        }
+
+    }
+
+    stage('Get test results') {
+        archiveArtifacts artifacts: 'ods-core/tests/*.txt', followSymlinks: false
+        archiveArtifacts artifacts: 'ods-core/tests/test-quickstarter-report.xml', followSymlinks: false
+        junit(testResults:"ods-core/tests/test-quickstarter-report.xml", allowEmptyResults:true)        
+
+    }
+  }
+}
+
