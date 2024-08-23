@@ -1,16 +1,15 @@
 #!/bin/bash
 set -ue
 
-# Initialize JAVA_HOME if not set.
-JAVA_HOME=${JAVA_HOME:-""}
-
-if [ -f /etc/profile.d/set-default-java.sh ]; then
-    set -x
-    source /etc/profile.d/set-default-java.sh
-    set +x
-else
-    echo "WARNING: Not setting default java version."
+# Initialize JAVA_HOME and set alternatives.
+NO_JAVA_LINK="false"
+java -version || NO_JAVA_LINK="true"
+if [ "true" == "${NO_JAVA_LINK}" ]; then
+    JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
+    JAVA_HOME="/usr/lib/jvm/${JAVA_HOME_FOLDER}"
+    alternatives --set java ${JAVA_HOME}/bin/java
 fi
+java -version
 
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
