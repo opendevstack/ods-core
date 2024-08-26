@@ -2,9 +2,8 @@ properties([
     parameters([
         string(
             name: 'Quickstarter',
-            //defaultValue: 'all',
             defaultValue: 'docker-plain',
-            description: 'Enter the quickstarter name which is to be tested'
+            description: 'Enter the quickstarter name which is to be tested. Use 'all' to test all the quickstarters together'
         ),
         string(
             name: 'QuickstarterRepository',
@@ -13,21 +12,22 @@ properties([
         ),
         string(
             name: 'quickstarterRef',
-            //defaultValue: '4.x',
-            defaultValue: 'feature/quickstarter-golden-test',
+            defaultValue: 'master',
             description: 'Enter the reference for the quickstarter (e.g., branch, tag, or commit)'
         ),
         string(
             name: 'Project',
-            //defaultValue: 'ods',
-            defaultValue: 'edpqstest',
+            defaultValue: 'ods',
             description: 'Enter the project name where the quickstarter in lower case will be provisioned'
         ),
         string(
             name: 'ODS_URL',
-            //defaultValue: 'https://github.com/opendevstack',
-            defaultValue: 'https://bitbucket-dev.biscrum.com/scm/ODS4',
             description: 'Enter the whole URL of the ODS files (https included)'
+        ),
+        string(
+            name: 'JENKINS_AGENT_TAG',
+            defaultValue: 'latest',
+            description: 'Enter the tag for the jenkins golang agent'
         ),
         text(
             name: 'excludedQuickstarters',
@@ -68,6 +68,8 @@ def ODS_CONFIGURATION_BRANCH = "${quickstarterRef}"
 def ODS_CORE_URL = "${ODS_URL}/ods-core.git"
 def ODS_CORE_BRANCH = "${quickstarterRef}"
 
+def JENKINS_AGENT_TAG = "${JENKINS_AGENT_TAG}"
+
 // List of QS that we want to exclude from the execution of the job.
 def excludedQS = params.excludedQuickstarters?:''
 
@@ -85,7 +87,7 @@ node {
 
 def conts = containerTemplate(
   name: 'jnlp',
-  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:latest",
+  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:"${JENKINS_AGENT_TAG}"",
   workingDir: '/tmp',
   alwaysPullImage: true,
   args: ''
