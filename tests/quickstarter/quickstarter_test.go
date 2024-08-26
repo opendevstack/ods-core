@@ -58,29 +58,6 @@ func TestQuickstarter(t *testing.T) {
 		}
 	}
 
-
-	/* if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
-		if strings.HasSuffix(target, "...") {
-			quickstarterPaths = collectTestableQuickstarters(
-				t, strings.TrimSuffix(target, "/..."),
-			)
-		} else {
-			quickstarterPaths = append(quickstarterPaths, target)
-		}
-	} else {
-		// No slash = quickstarter in ods-quickstarters
-		// Ending with ... = all quickstarters in given folder
-		// otherwise = exactly one quickstarter
-		if !strings.Contains(target, "/") {
-			quickstarterPaths = []string{fmt.Sprintf("%s/../%s/%s", odsCoreRootPath, "ods-quickstarters", target)}
-		} else if strings.HasSuffix(target, "...") {
-			quickstarterPaths = collectTestableQuickstarters(
-				t, fmt.Sprintf("%s/../%s", odsCoreRootPath, strings.TrimSuffix(target, "/...")),
-			)
-		} else {
-			quickstarterPaths = []string{fmt.Sprintf("%s/../%s", odsCoreRootPath, target)}
-		}
-	} */
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -100,20 +77,6 @@ func TestQuickstarter(t *testing.T) {
 	fmt.Printf("\n\n")
 
 	for _, quickstarterPath := range quickstarterPaths {
-
-		/*wd, _ := os.Getwd()
-    	fmt.Println("Working Directory:", wd)
-		qs := "/tmp/workspace/qstestlauncher/Quickstarter-Golden-Test-Launcher/"
-		fmt.Println("QS Directory:", qs)
-
-		files, err := ioutil.ReadDir(qs)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, f := range files {
-			fmt.Println(f.Name())
-		}*/
 
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
 		
