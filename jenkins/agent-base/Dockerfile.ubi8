@@ -71,7 +71,7 @@ RUN cd /tmp \
 
 # Install Helm.
 RUN cd /tmp \
-    && dnf install -y https://github.com/mozilla/sops/releases/download/v${SOPS_VERSION}/sops-${SOPS_VERSION}.x86_64.rpm \
+    && dnf install -y https://github.com/mozilla/sops/releases/download/v${SOPS_VERSION}/sops-${SOPS_VERSION}-1.x86_64.rpm \
     && mkdir -p /tmp/helm \
     && curl -sSLO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz \
     && tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm \
