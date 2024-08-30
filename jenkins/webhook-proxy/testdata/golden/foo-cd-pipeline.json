@@ -7,16 +7,16 @@
         "resourceVersion": "0"
     },
     "spec": {
-        "output": {},
-        "resources": {},
-        "strategy": {
-            "type": "JenkinsPipeline",
-            "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "Jenkinsfile",
-                "env": null
+        "triggers": [
+            {
+                "type": "Generic",
+                "generic": {
+                    "secret": "s3cr3t",
+                    "allowEnv": true
+                }
             }
-        },
-        "postCommit": {},
+        ],
+        "runPolicy": "Serial",
         "source": {
             "type": "Git",
             "git": {
@@ -27,15 +27,16 @@
                 "name": "cd-user-with-password"
             }
         },
-        "triggers": [
-            {
-                "type": "Generic",
-                "generic": {
-                    "secret": "s3cr3t",
-                    "allowEnv": true
-                }
+        "strategy": {
+            "type": "JenkinsPipeline",
+            "jenkinsPipelineStrategy": {
+                "jenkinsfilePath": "Jenkinsfile",
+                "env": null
             }
-        ],
-        "runPolicy": "Serial"
+        },
+        "output": {},
+        "resources": {},
+        "postCommit": {},
+        "nodeSelector": {}
     }
 }
