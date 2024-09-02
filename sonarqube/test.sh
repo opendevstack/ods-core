@@ -191,7 +191,7 @@ case $SONAR_EDITION in
     community | developer | enterprise | datacenter)
         expectedPlugins=("groovy:1.8"
                 "r:0.2.2"
-                "communityrust:0.2.1" )
+                "communityrust:0.2.4" )
         ;;
 
     *)
