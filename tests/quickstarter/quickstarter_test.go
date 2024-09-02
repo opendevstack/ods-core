@@ -69,8 +69,7 @@ func TestQuickstarter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("\nConfig:\n%s", config)
-
+	
 	fmt.Printf("\n\nRunning test steps found in the following directories:\n")
 	for _, quickstarterPath := range quickstarterPaths {
 		fmt.Printf("- %s\n", quickstarterPath)
@@ -149,6 +148,9 @@ func TestQuickstarter(t *testing.T) {
 
 func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, quickstarterRepo string, quickstarterName string, config map[string]string) {
 	// cleanup and create bb resources for this test
+	fmt.Printf("\n\n\nConfig:\n%s\n\n", config)
+	fmt.Printf("\n\n\nUtils.ProjectName:\n%s\n\n", utils.PROJECT_NAME)
+	fmt.Printf("\n\n\repoName:\n%s\n\n", repoName)
 	err := recreateBitbucketRepo(config, utils.PROJECT_NAME, repoName)
 	if err != nil {
 		t.Fatal(err)
