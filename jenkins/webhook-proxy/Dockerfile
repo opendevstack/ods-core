@@ -7,8 +7,8 @@ FROM golang:1.23-alpine
 ARG allowedExternalProjects=opendevstack
 ENV ALLOWED_EXTERNAL_PROJECTS=$allowedExternalProjects
 
-RUN apk update && \
-    apk add -i ca-certificates && \
+RUN apk add -i ca-certificates && \
+    apk update  && \
     apk -i upgrade && \
     apk cache clean && \
     mkdir -p /home/webhook-proxy && \
