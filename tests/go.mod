@@ -1,6 +1,6 @@
 module github.com/opendevstack/ods-core/tests
 
-go 1.22
+go 1.23.0
 
 require (
 	github.com/ericchiang/pup v0.4.0 // indirect
