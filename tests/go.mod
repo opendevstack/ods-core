@@ -3,7 +3,7 @@ module github.com/opendevstack/ods-core/tests
 go 1.23
 
 require (
-	github.com/ghodss/yaml v1.0.0
+    github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.5.1
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
@@ -11,9 +11,6 @@ require (
 	k8s.io/api v0.0.0-20190222213804-5cb15d344471
 	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
 	k8s.io/client-go v0.0.0-20190228174230-b40b2a5939e4
-)
-
-require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/btree v1.0.0 // indirect
