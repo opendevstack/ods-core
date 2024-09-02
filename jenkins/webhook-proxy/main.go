@@ -593,10 +593,11 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 		e.Pipeline,
 		triggerSecret,
 	)
-	log.Println(e.RequestID, "Forwarding to", url)
 
 	c.CheckJenkinsAvailability(e)
 	c.CheckDocGenAvailability(e)
+
+	log.Println(e.RequestID, "Forwarding to", url)
 
 	p := struct {
 		Env []EnvPair `json:"env"`
@@ -628,9 +629,6 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 	if err != nil {
 		return 500, err
 	}
-
-	c.CheckJenkinsAvailability(e)
-	c.CheckDocGenAvailability(e)
 
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs",
@@ -672,9 +670,6 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		e.Namespace,
 		e.Pipeline,
 	)
-
-	c.CheckJenkinsAvailability(e)
-	c.CheckDocGenAvailability(e)
 
 	req, _ := http.NewRequest(
 		"DELETE",
