@@ -80,7 +80,7 @@ if [ "${httpCode}" == "404" ]; then
 elif [ "${httpCode}" == "200" ]; then
     echo_info "Found project ${BITBUCKET_PROJECT} in Bitbucket."
 else
-    echo_error "Could not determine state of project ${BITBUCKET_PROJECT} on Bitbucket with url ${BITBUCKET_URL}, got ${httpCode}."
+    echo_error "Could not determine state of project ${BITBUCKET_PROJECT} on Bitbucket, got ${httpCode}."
     exit 1
 fi
 

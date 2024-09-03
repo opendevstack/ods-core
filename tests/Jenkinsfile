@@ -2,8 +2,7 @@ properties([
     parameters([
         string(
             name: 'Quickstarter',
-            defaultValue: 'docker-plain',
-            description: 'Enter the quickstarter name which is to be tested. Use 'all' to test all the quickstarters together'
+            description: 'Enter the quickstarter name which is to be tested. Use "all" to test all the quickstarters together'
         ),
         string(
             name: 'QuickstarterRepository',
@@ -12,21 +11,30 @@ properties([
         ),
         string(
             name: 'quickstarterRef',
-            defaultValue: 'master',
+            defaultValue: '4.x',
             description: 'Enter the reference for the quickstarter (e.g., branch, tag, or commit)'
         ),
         string(
             name: 'Project',
+            description: 'Enter the project name (in lower case) where the quickstarter will be provisioned'
+        ),
+        string(
+            name: 'ODS_NAMESPACE',
             defaultValue: 'ods',
-            description: 'Enter the project name where the quickstarter in lower case will be provisioned'
+            description: 'Enter the ods namespae to fetch the jenkins agent. Include "-cd" if the ODS Namespace is not ods as default'
         ),
         string(
             name: 'ODS_URL',
+            defaultValue: 'https://github.com/opendevstack',
             description: 'Enter the whole URL of the ODS files (https included)'
         ),
         string(
             name: 'JENKINS_AGENT_TAG',
-            defaultValue: 'latest',
+            defaultValue: '4.x',
+            description: 'Enter the tag for the jenkins golang agent'
+        ),
+        string(
+            name: 'SONAR_QUALITY_PROFILE',
             description: 'Enter the tag for the jenkins golang agent'
         ),
         text(
@@ -50,9 +58,7 @@ def project = params.Project
 // The Quickstarter to test
 def quickstarter = params.Quickstarter
 // Namespace fo the cd project
-def odsNamespace = env.ODS_NAMESPACE ?: "$project-cd"
-// projectID
-def projectId = env.PROJECT_ID
+def odsNamespace = params.ODS_NAMESPACE
 // odsReference
 def odsRef = params.quickstarterRef?:"master"
 // QS repo
@@ -69,6 +75,7 @@ def ODS_CORE_URL = "${ODS_URL}/ods-core.git"
 def ODS_CORE_BRANCH = "${quickstarterRef}"
 
 def JENKINS_AGENT_TAG = "${JENKINS_AGENT_TAG}"
+def SONAR_QUALITY_PROFILE = "${SONAR_QUALITY_PROFILE}"
 
 // List of QS that we want to exclude from the execution of the job.
 def excludedQS = params.excludedQuickstarters?:''
@@ -87,7 +94,7 @@ node {
 
 def conts = containerTemplate(
   name: 'jnlp',
-  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:"${JENKINS_AGENT_TAG}"",
+  image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:${JENKINS_AGENT_TAG}",
   workingDir: '/tmp',
   alwaysPullImage: true,
   args: ''
@@ -112,8 +119,7 @@ podTemplate(
                 url: "${QUICK_STARTERS_URL}"
         }
         dir('ods-configuration'){
-            //git branch: "${ODS_CONFIGURATION_BRANCH}",
-            git branch: "EDPQSTEST", // hardcoded for testing, remove before merging to github
+            git branch: "${ODS_CONFIGURATION_BRANCH}",
                 credentialsId: "${project}-cd-cd-user-token",
                 url: "${ODS_CONFIGURATION_URL}"
         }
@@ -146,7 +152,7 @@ podTemplate(
         withEnv([
           "CGO_ENABLED=0", 
           "GOMODCACHE=${WORKSPACE}/.cache", 
-          "SONAR_QUALITY_PROFILE=sonar way",
+          "SONAR_QUALITY_PROFILE=${SONAR_QUALITY_PROFILE}",
           "ODS_GIT_REF=${odsRef}"]) {
             sh """
                 cd ods-core/tests
