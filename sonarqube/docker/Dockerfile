@@ -1,4 +1,4 @@
-ARG sonarVersion=9.9.4
+ARG sonarVersion=10.6.0
 ARG sonarEdition=community
 
 FROM sonarqube:${sonarVersion}-${sonarEdition}
@@ -23,7 +23,7 @@ RUN mkdir -p /opt/configuration/sonarqube/plugins
 # Language plugins not bundled
 ADD https://github.com/Inform-Software/sonar-groovy/releases/download/1.8/sonar-groovy-plugin-1.8.jar /opt/configuration/sonarqube/plugins/
 ADD https://github.com/Merck/sonar-r-plugin/releases/download/0.2.2/sonar-r-plugin-0.2.2.jar /opt/configuration/sonarqube/plugins/
-ADD https://github.com/elegoff/sonar-rust/releases/download/v0.2.1/community-rust-plugin-0.2.1.jar /opt/configuration/sonarqube/plugins/
+ADD https://github.com/elegoff/sonar-rust/releases/download/v0.2.4/community-rust-plugin-0.2.4.jar /opt/configuration/sonarqube/plugins/
 
 COPY run.sh $SONARQUBE_HOME/bin/
 

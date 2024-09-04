@@ -6,14 +6,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
-SONAR_VERSION=9.9.6
+SONAR_VERSION=10.6.0
 SONAR_EDITION="community"
 
 function usage {
     printf "Test SonarQube setup.\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
     printf "\t-v|--verbose\t\tEnable verbose mode\n"
-    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '9.9.4' (defaults to %s)\n" "${SONAR_VERSION}"
+    printf "\t-s|--sq-version\t\tSonarQube version, e.g. '10.6.0' (defaults to %s)\n" "${SONAR_VERSION}"
     printf "\t-e|--sq-edition\t\tSonarQube edition, e.g. 'community' or 'enterprise' (defaults to %s)\n" "${SONAR_EDITION}"
     printf "\t-i|--insecure\t\tAllow insecure server connections when using SSL\n"
     printf "\t--verify\t\tSkips setup of local docker container and instead checks existing sonarqube setup based on ods-core.env\n"
@@ -191,7 +191,7 @@ case $SONAR_EDITION in
     community | developer | enterprise | datacenter)
         expectedPlugins=("groovy:1.8"
                 "r:0.2.2"
-                "communityrust:0.2.1" )
+                "communityrust:0.2.4" )
         ;;
 
     *)
