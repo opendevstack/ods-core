@@ -1,0 +1,48 @@
+global:
+  odsImageTag: $ODS_IMAGE_TAG
+  repoBase: $REPO_BASE
+  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
+  odsGitRef: $ODS_GIT_REF
+  sonarVersion: $SONAR_VERSION
+  sonarEdition:  $SONAR_EDITION
+  odsNamespace: $ODS_NAMESPACE
+  appDNS: $APP_DNS
+  appName: 'sonarqube'
+  storageProvisioner: $STORAGE_PROVISIONER
+  storageClassData: $STORAGE_CLASS_DATA
+  sonarqubeUrl: $SONARQUBE_URL
+  sonarqubeHost: $SONARQUBE_HOST
+  sonarAdminPasswordB64: $SONAR_ADMIN_PASSWORD_B64
+  sonarDatabaseJdbcUrl: $SONAR_DATABASE_JDBC_URL
+  sonarDatabaseName: $SONAR_DATABASE_NAME
+  sonarDatabaseUser: $SONAR_DATABASE_USER
+  sonarAdminUsername: $SONAR_ADMIN_USERNAME
+  sonarDatabasePasswordB64: $SONAR_DATABASE_PASSWORD_B64
+  registry: $DOCKER_REGISTRY
+  sonarDatabaseImage: $SONAR_DATABASE_IMAGE
+postgresql:
+  name: 'sonarqube-postgresql'
+  cpuRequest: $SONARQUBE_DB_CPU_REQUEST
+  cpuLimit: $SONARQUBE_DB_CPU_LIMIT 
+  memRequest: $SONARQUBE_DB_MEMORY_REQUEST
+  memLimit: $SONARQUBE_DB_MEMORY_LIMIT
+  pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
+  pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
+sonarqube:
+  cpuRequest: $SONARQUBE_CPU_REQUEST
+  cpuLimit: $SONARQUBE_CPU_LIMIT
+  memRequest: $SONARQUBE_MEMORY_REQUEST
+  memLimit: $SONARQUBE_MEMORY_LIMIT
+  pvcDataCapacity: $SONARQUBE_DATA_CAPACITY
+  pvcExtensionsCapacity: $SONARQUBE_EXTENSIONS_CAPACITY
+  sonarAuthSaml: $SONAR_AUTH_SAML
+  sonarAuthSamlApplicationId: $SONAR_SAML_APPLICATION_ID
+  sonarAuthSamlProviderIdB64: $SONAR_SAML_PROVIDER_ID_B64
+  sonarAuthSamlLoginUrlB64: $SONAR_SAML_LOGIN_URL_B64
+  sonarAuthSamlServerBaseUrl: $SONARQUBE_URL
+  sonarAuthSamlCertficateB64: $SONAR_SAML_CERTIFICATE_B64
+buildConfig:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 1Gi
+  memLimit: 2Gi

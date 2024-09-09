@@ -19,6 +19,9 @@
   repository.createPyPiHosted('pypi-private', 'pypi-private', true, WritePolicy.ALLOW_ONCE);
   repository.createPyPiGroup('pypi-all', ['pypi-registry', 'pypi-private'], 'default');
   repository.createRawHosted('leva-documentation', 'leva-documentation', false, WritePolicy.ALLOW);
+  repository.createDockerProxy('dockerhub-proxy', 'https://registry-1.docker.io', 'HUB', null, null, null, 'docker', true, true);
+  repository.createDockerProxy('github-proxy', 'https://ghcr.io', 'REGISTRY', null, null, null, 'docker', true, true);
+  repository.createDockerGroup('docker-group', 5000, null, ['dockerhub-proxy', 'github-proxy'], true, 'docker', false);
   repositoryManager = repository.repositoryManager;
   repository = repositoryManager.get('maven-public');
   config = repository.configuration.copy();

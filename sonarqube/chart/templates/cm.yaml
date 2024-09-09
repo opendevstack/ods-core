@@ -1,0 +1,11 @@
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}
+apiVersion: v1
+data:
+  database-jdbc-url: {{ .Values.global.sonarDatabaseJdbcUrl }} 
+  database-name: {{ .Values.global.sonarDatabaseName }} 
+  database-user: {{ .Values.global.sonarDatabaseUser }} 
+  sonarqube-admin-user: {{ .Values.global.sonarAdminUsername }} 

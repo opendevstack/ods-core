@@ -28,11 +28,11 @@ sonar.java.libraries=build/libs
 sonar.junit.reportPaths=build/test-results/test
 ```
 
-The general settings are documented at https://docs.sonarqube.org/display/SONAR/Analysis+Parameters. Plugin-specific parameters can be found in the docs for each plugin, e.g. https://docs.sonarqube.org/display/PLUG/Java+Plugin+and+Bytecode.
+The general settings are documented at https://docs.sonarsource.com/sonarqube/9.9/analyzing-source-code/analysis-parameters.
 
 == Scanning in Jenkins pipelines
 
-There's a prebuilt stage (`odsComponentStageScanWithSonar`) that you can use, see https://www.opendevstack.org/ods-documentation/ods-jenkins-shared-library/latest/index.html for details.
+There's a prebuilt stage (`odsComponentStageScanWithSonar`) that you can use, see https://www.opendevstack.org/ods-documentation/opendevstack/latest/jenkins-shared-library/component-pipeline.html#_odscomponentstagescanwithsonar for details.
 
 == Scanning locally: SonarLint IDE Plugin
 

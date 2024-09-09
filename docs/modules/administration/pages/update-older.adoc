@@ -192,7 +192,7 @@ Then, create the `BuildConfig` and `ImageStream` in `prov-dev` using `oc -n prov
 apiVersion: template.openshift.io/v1
 kind: Template
 objects:
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     creationTimestamp: null
@@ -217,7 +217,7 @@ objects:
       dockerStrategy: {}
       type: Docker
     triggers: []
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:

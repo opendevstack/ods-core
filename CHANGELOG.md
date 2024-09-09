@@ -2,13 +2,65 @@
 
 ## Unreleased
 
-- Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
+### Added
+
+### Changed
+- Webhook Proxy maintenance ([#1298](https://github.com/opendevstack/ods-core/pull/1298))
+- Update SonarQube to 10.x non LTS ([#1300](https://github.com/opendevstack/ods-core/issues/1300))
+- Jenkins maintenance ([#1299](https://github.com/opendevstack/ods-core/pull/1299)) and update java version in Jenkins ([#1295](https://github.com/opendevstack/ods-core/issues/1295))
+
+### Fixed
+
+## [4.5.1] - 2024-07-17
+
+### Added
+- Added webhook proxy logic to skip requests with the ref id starting with "refs/notes/" ([#1288](https://github.com/opendevstack/ods-core/pull/1288))
+
+### Changed
+- Update SonarQube to 9.9.6 ([#1292](https://github.com/opendevstack/ods-core/pull/1292))
+
+## [4.5.0] - 2024-06-06
+
+### Added
+- Add availability check for DocGen pod ([#1277](https://github.com/opendevstack/ods-core/pull/1277))
+
+### Changed
+- Update SonarQube to 9.9.5 and configure resources for Nexus and Sonarqube in ods-configuration ([#1283](https://github.com/opendevstack/ods-core/pull/1283))
+- Update Nexus to 3.68.1-java11 to address a critical vulnerability ([#1286](https://github.com/opendevstack/ods-core/pull/1286))
+
+## [4.4.0] - 2024-04-22
+
+### Fixed
+- Update Nexus to version 3.67.1-java11 for Critical Bug Fix ([#1271](https://github.com/opendevstack/ods-core/pull/1271))
+
+### Changed
+- Nexus Maintenance (update version to latest, helm migration) ([#1242](https://github.com/opendevstack/ods-core/issues/1242))
+- Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
+- SonarQube Maintenance (LTS update, DB update, SAML setup) ([#1211](https://github.com/opendevstack/ods-core/issues/1211))
+- Update Jenkins and plugins to version v2.426.3, update agent and packages. Switch base image from "registry.redhat.io/openshift4/ose" to "registry.redhat.io/ocp-tools-4" [#1270](https://github.com/opendevstack/ods-core/pull/1270)
+
+## [4.3.1] - 2024-02-19
+
+### Fixed
+- Aqua scanner and Helm deployment conflict fix for jenkins agent ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
+- Aligned Prov-app configuration, increasing the timeouts and fixed jenkins agent image in configuration sample ([#1259](https://github.com/opendevstack/ods-core/issues/1259))
+
+## [4.3.0] - 2023-07-03
+
+### Added
 - Added webhook proxy feature to check for Jenkins availability ([#1221](https://github.com/opendevstack/ods-core/issues/1221))
 - Add SonarQube Rust plugin ([#1220](https://github.com/opendevstack/ods-core/issues/1220))
+- Added Trivy into jenkins agent base ([#1236](https://github.com/opendevstack/ods-core/issues/1236))
+
+### Changed
 - Jenkins maintenance, set durability to max performance and remove legacy plugin ([#1225](https://github.com/opendevstack/ods-core/pull/1225))
-- Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
 - Jenkins maintenance, Update resources for deployment for optimal usage ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
 - Jenkins maintenance, Update jenkins base image, plugins, git-lfs, aquacli ([#1224](https://github.com/opendevstack/ods-core/issues/1224))
+- Bump helm-diff plugin version ([#1226](https://github.com/opendevstack/ods-core/issues/1226))
+- Bump helm-diff plugin version to 3.8.1 ([#1239](https://github.com/opendevstack/ods-core/pull/1239))
+
+### Fixed
+- Memory malloc arena fix for Jenkins ([#1217](https://github.com/opendevstack/ods-core/pull/1217))
 
 ## [4.2.0] - 2023-02-21
 
@@ -18,7 +70,6 @@
 - Maintenance, update helm to version 3.11.0 and update deps ([#1203](https://github.com/opendevstack/ods-core/issues/1203))
 - Maintenance, update snyk to version 1.1097.0 ([#1203](https://github.com/opendevstack/ods-core/issues/1199))
 - Removal of Centos and deprecation of ODSBox ([#1209](https://github.com/opendevstack/ods-core/issues/1209))
-
 
 ## [4.1.1] - 2022-11-24
 

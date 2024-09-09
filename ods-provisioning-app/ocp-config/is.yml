@@ -3,7 +3,7 @@ kind: Template
 labels:
   app: ods-provisioning-app
 objects:
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: ods-provisioning-app

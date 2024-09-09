@@ -1,0 +1,99 @@
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: {{ .Values.global.appName }}
+  labels:
+    app: {{ .Values.global.appName }}
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - {{ .Values.global.appName }}
+        from:
+          kind: ImageStreamTag
+          name: {{ .Values.global.appName }}:{{ .Values.global.odsImageTag }}
+          namespace: {{ .Values.global.odsNamespace }}
+      type: ImageChange
+    - type: ConfigChange
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: {{ .Values.global.appName }}
+    deploymentconfig: {{ .Values.global.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.global.appName }}
+        deploymentconfig: {{ .Values.global.appName }}
+    spec:
+      volumes:
+        - name: {{ .Values.global.appName }}-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.global.appName }}-data
+        - name: {{ .Values.global.appName }}-db-backup
+          persistentVolumeClaim:
+            claimName: {{ .Values.global.appName }}-db-backup
+      containers:
+        - resources:
+            limits:
+              cpu: {{ .Values.nexus.cpuLimit }}
+              memory: {{ .Values.nexus.memLimit }}
+            requests:
+              cpu: {{ .Values.nexus.cpuRequest }}
+              memory: {{ .Values.nexus.memRequest }}
+          terminationMessagePath: /dev/termination-log
+          name: {{ .Values.global.appName }}
+          livenessProbe:
+            httpGet:
+              path: /service/rest/v1/status/writable
+              port: 8081
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /service/rest/v1/status/writable
+              port: 8081
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+            failureThreshold: 3
+          env:
+            - name: INSTALL4J_ADD_VM_PARAMS
+              value: '{{ .Values.global.nexusJvmParams }}'
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          imagePullPolicy: Always
+          startupProbe:
+            httpGet:
+              path: /service/rest/v1/status/writable
+              port: 8081
+              scheme: HTTP 
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
+          volumeMounts:
+            - name: {{ .Values.global.appName }}-data
+              mountPath: /nexus-data
+            - name: {{ .Values.global.appName }}-db-backup
+              mountPath: /nexus-backup
+          terminationMessagePolicy: File
+          image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}:{{ .Values.global.odsImageTag }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler

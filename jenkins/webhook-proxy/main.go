@@ -101,7 +101,8 @@ type Client interface {
 	GetPipeline(e *Event) (bool, []byte, error)
 	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
-	CheckAvailability(e *Event)
+	CheckJenkinsAvailability(e *Event)
+	CheckDocGenAvailability(e *Event)
 }
 
 type ocClient struct {
@@ -391,6 +392,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
+			// Skip requests with where the ref id is starting with "refs/notes/"
+			// Reference 1: https://community.atlassian.com/t5/Bitbucket-questions/disable-quot-git-notes-add-quot-behaviour-for-semantic-release/qaq-p/1837322
+			// Reference 2: https://github.com/semantic-release/semantic-release/discussions/2017#discussioncomment-995308
+			if len(req.Changes) > 0 && strings.Contains(req.Changes[0].Ref.DisplayID, "refs/notes/") {
+				log.Println(requestID, "Skipping request with refs/notes/ prefix in ref id")
+				// Return 200 OK to Bitbucket to avoid retries
+				http.Error(w, "OK", http.StatusOK)
+				return
+			}
+
 			if req.EventKey == "repo:refs_changed" {
 				repo = req.Repository.Slug
 				if component == "" {
@@ -582,9 +593,11 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 		e.Pipeline,
 		triggerSecret,
 	)
-	log.Println(e.RequestID, "Forwarding to", url)
 
-	c.CheckAvailability(e)
+	c.CheckJenkinsAvailability(e)
+	c.CheckDocGenAvailability(e)
+
+	log.Println(e.RequestID, "Forwarding to", url)
 
 	p := struct {
 		Env []EnvPair `json:"env"`
@@ -616,8 +629,6 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 	if err != nil {
 		return 500, err
 	}
-
-	c.CheckAvailability(e)
 
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs",
@@ -660,8 +671,6 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		e.Pipeline,
 	)
 
-	c.CheckAvailability(e)
-
 	req, _ := http.NewRequest(
 		"DELETE",
 		url,
@@ -685,7 +694,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 }
 
 // Check that Jenkins is up in case the service is idle in OpenShift.
-func (c *ocClient) CheckAvailability(e *Event) {
+func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 	url := fmt.Sprintf(
 		"http://jenkins.%s.svc.cluster.local",
 		e.Namespace,
@@ -705,6 +714,31 @@ func (c *ocClient) CheckAvailability(e *Event) {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
 		} else {
 			log.Println(e.RequestID, "Jenkins not available, status code is", res.StatusCode)
+		}
+	}
+}
+
+// Check that DocGen is up in case the service is idle in OpenShift.
+func (c *ocClient) CheckDocGenAvailability(e *Event) {
+	url := fmt.Sprintf(
+		"http://docgen.%s:8080",
+		e.Namespace,
+	)
+	req, _ := http.NewRequest(
+		"GET",
+		url,
+		nil,
+	)
+
+	res, err := c.do(req)
+
+	if err != nil {
+		log.Println(e.RequestID, "DocGen not reachable, if idled it will scale up in namespace", e.Namespace)
+	} else {
+		if res.StatusCode == 200 {
+			log.Println(e.RequestID, "DocGen available in namespace", e.Namespace)
+		} else {
+			log.Println(e.RequestID, "DocGen not available, status code is", res.StatusCode)
 		}
 	}
 }
