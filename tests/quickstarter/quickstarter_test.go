@@ -69,7 +69,6 @@ func TestQuickstarter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
 	fmt.Printf("\n\nRunning test steps found in the following directories:\n")
 	for _, quickstarterPath := range quickstarterPaths {
 		fmt.Printf("- %s\n", quickstarterPath)
@@ -79,7 +78,6 @@ func TestQuickstarter(t *testing.T) {
 	for _, quickstarterPath := range quickstarterPaths {
 
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
-		
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
