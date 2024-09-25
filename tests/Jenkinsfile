@@ -15,6 +15,11 @@ properties([
             description: 'Enter the reference for the quickstarter (e.g., branch, tag, or commit)'
         ),
         string(
+            name: 'configurationRef',
+            defaultValue: 'master',
+            description: 'Enter the reference for the configuration (e.g., branch, tag, or commit)'
+        ),
+        string(
             name: 'Project',
             description: 'Enter the project name (in lower case) where the quickstarter will be provisioned'
         ),
@@ -61,6 +66,8 @@ def quickstarter = params.Quickstarter
 def odsNamespace = params.ODS_NAMESPACE
 // odsReference
 def odsRef = params.quickstarterRef?:"master"
+// configurationReference
+def confRef = params.configurationRef?:"master"
 // QS repo
 def QUICKSTARTER_REPO = params.QuickstarterRepository
 
@@ -69,7 +76,7 @@ def QUICK_STARTERS_URL = "${ODS_URL}/${QUICKSTARTER_REPO}.git"
 def QUICK_STARTERS_BRANCH = "${quickstarterRef}"
 
 def ODS_CONFIGURATION_URL = "${ODS_URL}/ods-configuration.git"
-def ODS_CONFIGURATION_BRANCH = "${quickstarterRef}"
+def ODS_CONFIGURATION_BRANCH = "${confRef}"
 
 def ODS_CORE_URL = "${ODS_URL}/ods-core.git"
 def ODS_CORE_BRANCH = "${quickstarterRef}"

@@ -3,6 +3,7 @@ set -eux
 
 PROJECT=""
 QuickstarterRepository=""
+configurationRef=""
 SONAR_QUALITY_PROFILE=""
 ODS_GIT_REF="$ODS_GIT_REF"
 BITBUCKET_URL="$BITBUCKET_URL"
@@ -14,6 +15,9 @@ ODS_BITBUCKET_PROJECT="$ODS_BITBUCKET_PROJECT"
 while [[ "$#" > 0 ]]; do case $1 in
   -g=*|--ods-git-ref=*) ODS_GIT_REF="${1#*=}";;
   -g|--ods-git-ref) ODS_GIT_REF="$2"; shift;;
+
+  -c=*|--configurationRef=*) configurationRef="${1#*=}";;
+  -c|--configurationRef) configurationRef="$2"; shift;;
 
   -b=*|--bitbucket=*) BITBUCKET_URL="${1#*=}";;
   -b|--bitbucket) BITBUCKET_URL="$2"; shift;;
@@ -45,6 +49,7 @@ esac; shift; done
 tailor --namespace=${PROJECT}-cd --non-interactive \
   apply \
   --param=ODS_GIT_REF=${ODS_GIT_REF} \
+  --param=configurationRef=${configurationRef} \
   --param=PROJECT=${PROJECT} \
   --param=BITBUCKET_URL=${BITBUCKET_URL} \
   --param=ODS_NAMESPACE=${ODS_NAMESPACE} \

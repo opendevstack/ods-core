@@ -16,6 +16,7 @@ PARALLEL := 1
 PROJECT := unitt
 SONAR_PROFILE := "Sonar way"
 QUICKSTARTER_REPOSITORY := ods-quickstarters
+configurationRef := master
 
 ## Full test of existing ODS core installation. Caution: Creates UNITT project and ODSVERIFY project.
 test: smoketest verify test-create-projects
@@ -43,7 +44,7 @@ test-create-projects:
 ## Create Jenkins pipeline using REST API
 jenkins-pipeline:
 	@(envsubst < jenkinsPipelineCreation.sh)
-	@(./jenkinsPipelineCreation.sh -p $(PROJECT) -q $(QUICKSTARTER_REPOSITORY) -s $(SONAR_PROFILE))
+	@(./jenkinsPipelineCreation.sh -p $(PROJECT) -q $(QUICKSTARTER_REPOSITORY) -s $(SONAR_PROFILE) -c $(configurationRef))
 .PHONY: jenkins-pipeline
 
 ## Run quickstarter tests within existing ODS installation. Depends on UNITT project (default).
