@@ -46,7 +46,7 @@ objects:
       source:
         git:
           ref: ${ODS_GIT_REF}
-          uri: '${BITBUCKET_URL}/${ODS_BITBUCKET_PROJECT}/ods-core.git'
+          uri: '${BITBUCKET_URL}/scm/${ODS_BITBUCKET_PROJECT}/ods-core.git'
         sourceSecret:
           name: cd-user-with-password
         type: Git
