@@ -64,7 +64,7 @@ objects:
             - name: ODS_NAMESPACE
               value: '${ODS_NAMESPACE}'
             - name: ODS_URL
-              value: '${BITBUCKET_URL}/${ODS_BITBUCKET_PROJECT}'
+              value: '${BITBUCKET_URL}/scm/${ODS_BITBUCKET_PROJECT}'
             - name: JENKINS_AGENT_TAG
               value: '${ODS_IMAGE_TAG}'
             - name: SONAR_QUALITY_PROFILE
