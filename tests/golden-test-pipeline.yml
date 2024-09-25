@@ -1,0 +1,76 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+parameters:
+  - name: PROJECT
+    displayName: Application
+    description: The name of the application project.
+    required: true
+  - name: ODS_GIT_REF
+    displayName: Git branch
+    description: The git branch to use for the pipeline.
+    required: true
+  - name: ODS_IMAGE_TAG
+    displayName: Agent tag
+    description: The tag for the jenkins golang agent.
+    required: true
+  - name: ODS_NAMESPACE
+    displayName: ODS namespace
+    description: The ods namespae to fetch the jenkins agent. Include "-cd" if the ODS Namespace is not ods as default
+    required: true
+  - name: BITBUCKET_URL
+    displayName: Bitbucket server URL
+    description: The Bitbucket server URL.
+    required: true
+  - name: ODS_BITBUCKET_PROJECT
+    displayName: ODS Bitbucket project
+    description: The ODS Bitbucket project.
+    required: true
+  - name: SONAR_QUALITY_PROFILE
+    displayName: SonarQube Quality Profile
+    description: SonarQube Quality Profile.
+    required: true
+  - name: QuickstarterRepository
+    displayName: Quickstarter repository
+    description: Quickstarter repository.
+    required: true     
+objects:
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        template: golden-test-pipeline
+      name: '${PROJECT}-golden-test'
+    spec:
+      failedBuildsHistoryLimit: 5
+      runPolicy: Serial
+      source:
+        git:
+          ref: ${ODS_GIT_REF}
+          uri: '${BITBUCKET_URL}/${ODS_BITBUCKET_PROJECT}/ods-core.git'
+        sourceSecret:
+          name: cd-user-with-password
+        type: Git
+      strategy:
+        jenkinsPipelineStrategy:
+          env:
+            - name: Quickstarter
+              value: ''
+            - name: QuickstarterRepository
+              value: '${QuickstarterRepository}'
+            - name: quickstarterRef
+              value: '${ODS_GIT_REF}'
+            - name: Project
+              value: '${PROJECT}'
+            - name: ODS_NAMESPACE
+              value: '${ODS_NAMESPACE}'
+            - name: ODS_URL
+              value: '${BITBUCKET_URL}/${ODS_BITBUCKET_PROJECT}'
+            - name: JENKINS_AGENT_TAG
+              value: '${ODS_IMAGE_TAG}'
+            - name: SONAR_QUALITY_PROFILE
+              value: '${SONAR_QUALITY_PROFILE}'
+            - name: excludedQuickstarters
+              value: ''
+          jenkinsfilePath: Jenkinsfile
+        type: JenkinsPipeline
+      successfulBuildsHistoryLimit: 5
