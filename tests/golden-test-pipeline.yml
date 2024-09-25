@@ -71,6 +71,6 @@ objects:
               value: '${SONAR_QUALITY_PROFILE}'
             - name: excludedQuickstarters
               value: ''
-          jenkinsfilePath: Jenkinsfile
+          jenkinsfilePath: tests/Jenkinsfile
         type: JenkinsPipeline
       successfulBuildsHistoryLimit: 5
