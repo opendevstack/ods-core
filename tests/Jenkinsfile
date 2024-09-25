@@ -120,7 +120,7 @@ podTemplate(
         }
         dir('ods-configuration'){
             git branch: "${ODS_CONFIGURATION_BRANCH}",
-                credentialsId: "${project}-cd-cd-user-token",
+                credentialsId: "${project}-cd-cd-user-with-password",
                 url: "${ODS_CONFIGURATION_URL}"
         }
         
