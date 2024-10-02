@@ -26,7 +26,7 @@ if [ "OC_ERROR" == "${LOG_URL}" ]; then
     OC_ERROR="true"
     TOKEN="OC_ERROR"
 else
-    TOKEN=$(oc -n ${PROJECT} get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' | xargs -n 1 oc -n ${PROJECT} get secret --template='{{ if .data.token }}{{ .data.token }}{{end}}' | head -n 1 | base64 -d -)
+    TOKEN=$(oc whoami --show-token)
 fi
 
 if [ -f ${JENKINS_LOG_FILE} ]; then

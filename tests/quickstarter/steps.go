@@ -34,6 +34,14 @@ type TestStep struct {
 	BuildParams *TestStepBuildParams `json:"buildParams"`
 	// Parameters for "upload" step type
 	UploadParams *TestStepUploadParams `json:"uploadParams"`
+	// Parameters for "run" step type
+	RunParams *TestStepRunParams `json:"runParams"`
+}
+
+// TestStepUploadParams defines the parameters for the "provision" step type.
+type TestStepRunParams struct {
+	// File to execute relative to "testdata" directory
+	File string `json:"file"`
 }
 
 // TestStepUploadParams defines the parameters for the "provision" step type.
@@ -42,6 +50,8 @@ type TestStepUploadParams struct {
 	File string `json:"file"`
 	// Name of the uploaded file in the repository. Defaults to just the filename of +File+.
 	Filename string `json:"filename"`
+	// In case this is a template file that we want to render.
+	Render bool `json:"render"`
 }
 
 // TestStepProvisionParams defines the parameters for the "provision" step type.
@@ -126,6 +136,10 @@ type TemplateData struct {
 	SanitizedOdsGitRef string
 	// Jenkins Build number
 	BuildNumber string
+	// Name of the Sonar Quality Profile
+	SonarQualityProfile string
+	// Is enable Aqua
+	AquaEnabled bool
 }
 
 // readSteps reads "steps.yml" in given folder.
@@ -149,7 +163,7 @@ func readSteps(folder string) (*TestSteps, error) {
 	}
 	// A poor man's workaround for missing enums in Go. There are better ways
 	// to do it, but nothing as simple as this.
-	allowedTypes := map[string]bool{"provision": true, "build": true, "upload": true}
+	allowedTypes := map[string]bool{"provision": true, "build": true, "upload": true, "run": true}
 	for i, step := range s.Steps {
 		if _, ok := allowedTypes[step.Type]; !ok {
 			allowed := []string{}
