@@ -5,6 +5,10 @@
 ### Added
 
 ### Changed
+- Webhook Proxy maintenance ([#1298](https://github.com/opendevstack/ods-core/pull/1298))
+- Update SonarQube to 10.x non LTS ([#1300](https://github.com/opendevstack/ods-core/issues/1300))
+- Jenkins maintenance ([#1299](https://github.com/opendevstack/ods-core/pull/1299)) and update java version in Jenkins ([#1295](https://github.com/opendevstack/ods-core/issues/1295))
+- Update Aqua CLI version ([#1298](https://github.com/opendevstack/ods-core/pull/1298))
 
 ### Fixed
 
