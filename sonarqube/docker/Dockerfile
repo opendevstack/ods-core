@@ -1,4 +1,4 @@
-ARG sonarVersion=10.6.0
+ARG sonarVersion=10.7.0
 ARG sonarEdition=community
 
 FROM sonarqube:${sonarVersion}-${sonarEdition}
