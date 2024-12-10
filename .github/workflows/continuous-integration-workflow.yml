@@ -51,8 +51,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        version: ['10.6.0'] # 9.9 = LTS
-        edition: ['community', 'developer', 'enterprise']
+        version: ['10.8.0'] # 9.9 = LTS
+        edition: ['developer', 'enterprise']
     steps:
       -
         name: Checkout repository
