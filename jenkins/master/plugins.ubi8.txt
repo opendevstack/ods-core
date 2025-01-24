@@ -7,7 +7,7 @@ audit-trail:361.v82cde86c784e
 # Bundled plugins
 token-macro:400.v35420b_922dcb_
 email-ext:2.104
-junit:Version1256.v002534a_5f33e
+junit:1265.v65b_14fa_f12f0
 blueocean:1.27.9
 kubernetes:4174.v4230d0ccd951
 openshift-sync:1.1.0.802.v45585f8cdc07
