@@ -84,7 +84,10 @@ spec:
             - name: SONAR_SEARCH_JAVAADDITIONALOPTS
               value: '-Dlog4j2.formatMsgNoLookups=true'
             - name: SONARQUBE_JDBC_URL
-              value: 'jdbc:postgresql://{{ .Values.global.appName }}-postgresql:5432/sonarqube'
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.global.appName }}
+                  key: database-jdbc-url
             - name: SONAR_FORCEAUTHENTICATION
               value: 'true'
             - name: SONAR_AUTH_SAML_ENABLED

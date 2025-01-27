@@ -1,14 +1,13 @@
+# Aditional plugins
 greenballs:1.15.1
 sonar:2.17.2
-blueocean:1.27.9
-email-ext:2.104
 ansicolor:1.0.4
-kubernetes-credentials:0.11
-kubernetes-client-api:6.10.0-240.v57880ce8b_0b_2
-kubernetes:4186.v1d804571d5d4
-junit:1259.v65ffcef24a_88
 audit-trail:361.v82cde86c784e
-credentials:1337.v60b_d7b_c7b_c9f
-workflow-multibranch:773.vc4fe1378f1d5
-git:5.2.1
+
+# Bundled plugins
+token-macro:400.v35420b_922dcb_
+email-ext:2.104
+junit:1265.v65b_14fa_f12f0
+blueocean:1.27.9
+kubernetes:4174.v4230d0ccd951
 openshift-sync:1.1.0.802.v45585f8cdc07

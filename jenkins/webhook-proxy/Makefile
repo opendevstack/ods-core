@@ -8,7 +8,7 @@ fmt:
 
 lint:
 	golangci-lint --version
-	golangci-lint run --go=1.18
+	golangci-lint run --go=1.23
 
 build: build-linux build-darwin build-windows
 
