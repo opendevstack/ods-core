@@ -513,8 +513,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					log.Println(requestID, fmt.Sprintf(
 						"Trigger secret does not exists, updating pipeline",
 					))
-						updatePipeline = true
-						resourceVersion = bc.Metadata.ResourceVersion
+					updatePipeline = true
+					resourceVersion = bc.Metadata.ResourceVersion
 				}
 			}
 
