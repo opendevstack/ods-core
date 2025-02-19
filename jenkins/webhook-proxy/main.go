@@ -91,6 +91,11 @@ type buildConfig struct {
 				JenkinsfilePath string `json:"jenkinsfilePath"`
 			} `json:"jenkinsPipelineStrategy"`
 		} `json:"strategy"`
+		Triggers struct {
+			Generic struct {
+				Secret string `json:"triggerSecret"`
+			} `json:"generic"`
+		} `json:"triggers"`
 	} `json:"spec"`
 }
 
