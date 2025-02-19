@@ -92,6 +92,7 @@ type buildConfig struct {
             } `json:"jenkinsPipelineStrategy"`
         } `json:"strategy"`
         Triggers []struct {
+			Type string `json:"type"`
             Generic struct {
                 Secret string `json:"triggerSecret"`
             } `json:"generic"`
