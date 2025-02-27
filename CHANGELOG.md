@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add packages carvel/imgpkg and yg ([#1322](https://github.com/opendevstack/ods-core/issues/1322))
 - Adde mask-passwords and office 365 connector plugins in Jenkins ([#1313](https://github.com/opendevstack/ods-core/issues/1313)) and ([#1316](https://github.com/opendevstack/ods-core/issues/1316))
 
 ### Changed
