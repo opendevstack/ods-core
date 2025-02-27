@@ -26,7 +26,7 @@ COPY ./set-default-java.sh /etc/profile.d/set-default-java.sh
 
 RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
     && ensure_java_jre_is_adequate.sh \
-    && yum -y install make glibc-langpack-en openssl skopeo \
+    && yum -y install make glibc-langpack-en openssl skopeo yq \
     && yum -y update \
     && yum clean all \
     && rm -rf /var/cache/yum/* \
