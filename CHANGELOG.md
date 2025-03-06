@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- Webhook proxy BC recretion issue ([#1265](https://github.com/opendevstack/ods-core/issues/1265))
+
 ## [4.7.0] - 2025-1-27
 
 ### Changed
