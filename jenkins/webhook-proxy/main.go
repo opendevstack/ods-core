@@ -516,10 +516,15 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					updatePipeline = true
 					resourceVersion = bc.Metadata.ResourceVersion
 				}
-				if bc.Spec.Triggers.Type == "" {
-					log.Println(requestID, fmt.Sprintf(
-						"Trigger secret does not exists, updating pipeline",
-					))
+				triggerExists := false
+				for _, trigger := range bc.Spec.Triggers {
+					if trigger.Type != "" {
+						triggerExists = true
+						break
+					}
+				}
+				if !triggerExists {
+					log.Println(requestID, "Trigger secret does not exist, updating pipeline")
 					updatePipeline = true
 					resourceVersion = bc.Metadata.ResourceVersion
 				}
