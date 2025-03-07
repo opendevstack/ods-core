@@ -102,7 +102,7 @@ jobs:
         name: Download golangci-lint
         run: |
           curl -sSfL --output /tmp/golangci-lint.sh https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
-          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.1
+          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.6
       -
         name: Run linter
         working-directory: jenkins/webhook-proxy
