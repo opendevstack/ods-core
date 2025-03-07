@@ -1,5 +1,5 @@
 # Build stage
-FROM public.ecr.aws/docker/library/golang:1.23-alpine AS builder
+FROM public.ecr.aws/docker/library/golang:1.24-alpine AS builder
 
 RUN apk update  && \
     apk -i upgrade && \

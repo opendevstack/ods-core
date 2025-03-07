@@ -90,10 +90,10 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v4.2.2
       -
-        name: Setup Go 1.23
+        name: Setup Go 1.24
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23
+          go-version: 1.24
       -
         name: Download goimports
         run: |
