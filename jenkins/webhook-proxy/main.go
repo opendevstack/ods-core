@@ -77,21 +77,28 @@ type BuildConfigData struct {
 // buildConfig represents the relevant fields of an OpenShift BuildConfig, see
 // https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
 type buildConfig struct {
-	Metadata struct {
-		ResourceVersion string `json:"resourceVersion"`
-	} `json:"metadata"`
-	Spec struct {
-		Source struct {
-			Git struct {
-				Ref string `json:"ref"`
-			} `json:"git"`
-		} `json:"source"`
-		Strategy struct {
-			JenkinsPipelineStrategy struct {
-				JenkinsfilePath string `json:"jenkinsfilePath"`
-			} `json:"jenkinsPipelineStrategy"`
-		} `json:"strategy"`
-	} `json:"spec"`
+    Metadata struct {
+        ResourceVersion string `json:"resourceVersion"`
+    } `json:"metadata"`
+    Spec struct {
+        Source struct {
+            Git struct {
+                Ref string `json:"ref"`
+            } `json:"git"`
+        } `json:"source"`
+        Strategy struct {
+            JenkinsPipelineStrategy struct {
+                JenkinsfilePath string `json:"jenkinsfilePath"`
+            } `json:"jenkinsPipelineStrategy"`
+        } `json:"strategy"`
+        Triggers []struct {
+            Type string `json:"type"`
+            // Generic struct {
+            //     Secret string `json:"secret"`
+            //     AllowEnv bool `json:"allowEnv"`
+            // } `json:"generic"`
+        } `json:"triggers"`
+    } `json:"spec"`
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
@@ -506,6 +513,18 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 						bc.Spec.Strategy.JenkinsPipelineStrategy.JenkinsfilePath,
 						jenkinsfilePath,
 					))
+					updatePipeline = true
+					resourceVersion = bc.Metadata.ResourceVersion
+				}
+				triggerExists := false
+				for _, trigger := range bc.Spec.Triggers {
+					if trigger.Type != "" {
+						triggerExists = true
+						break
+					}
+				}
+				if !triggerExists {
+					log.Println(requestID, "Trigger secret does not exist, updating pipeline")
 					updatePipeline = true
 					resourceVersion = bc.Metadata.ResourceVersion
 				}
