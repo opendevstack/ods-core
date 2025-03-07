@@ -1,18 +1,14 @@
 # Aditional plugins
-greenballs:1.15.1
-sonar:2.17.2
-ansicolor:1.0.4
-audit-trail:361.v82cde86c784e
-Office-365-Connector:5.0.0
-mask-passwords:173.v6a_077a_291eb_5
-
-# Plugins updated to fix dependecy errors (can be removed in next version)
-workflow-step-api:657.v03b_e8115821b_
+sonar:2.18
+ansicolor:1.0.6
+audit-trail:382.vf64d6f626060
+Office-365-Connector:5.1.0
+mask-passwords:188.v66e477dcb_24a_
 
 # Bundled plugins
-token-macro:400.v35420b_922dcb_
-email-ext:2.104
-junit:1265.v65b_14fa_f12f0
-blueocean:1.27.9
-kubernetes:4174.v4230d0ccd951
-openshift-sync:1.1.0.802.v45585f8cdc07
+# token-macro:400.v35420b_922dcb_
+# email-ext:2.104
+# junit:1265.v65b_14fa_f12f0
+# blueocean:1.27.9
+# kubernetes:4174.v4230d0ccd951
+# openshift-sync:1.1.0.802.v45585f8cdc07
