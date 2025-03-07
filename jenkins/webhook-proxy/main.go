@@ -93,10 +93,6 @@ type buildConfig struct {
         } `json:"strategy"`
         Triggers []struct {
             Type string `json:"type"`
-            // Generic struct {
-            //     Secret string `json:"secret"`
-            //     AllowEnv bool `json:"allowEnv"`
-            // } `json:"generic"`
         } `json:"triggers"`
     } `json:"spec"`
 }
