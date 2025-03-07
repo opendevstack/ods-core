@@ -34,7 +34,7 @@ jobs:
           --imagename ods-jenkins-agent-base-ubi8 \
           --dockerdir jenkins/agent-base \
           --dockerfile Dockerfile.ubi8 \
-          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux"
+          --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1295.4/snyk-linux"
       - name: Push UBI8 docker image
         if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
         shell: bash
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        version: ['10.8.0'] # 9.9 = LTS
+        version: ['2025.1.0'] # 2025.1.0 = LTS
         edition: ['developer', 'enterprise']
     steps:
       -
