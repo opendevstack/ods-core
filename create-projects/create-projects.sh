@@ -48,6 +48,11 @@ oc new-project "${PROJECT_ID}-cd"
 oc new-project "${PROJECT_ID}-dev"
 oc new-project "${PROJECT_ID}-test"
 
+echo "Applying NetworkPolicy to ${PROJECT_ID}-cd, ${PROJECT_ID}-dev and ${PROJECT_ID}-test"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-cd"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-dev"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-test"
+
 echo "Allow serviceaccount 'jenkins' of ${PROJECT_ID}-cd to admin the environment projects"
 oc policy add-role-to-user "${JENKINS_ROLE}" "system:serviceaccount:${PROJECT_ID}-cd:jenkins" -n "${PROJECT_ID}-dev"
 oc policy add-role-to-user "${JENKINS_ROLE}" "system:serviceaccount:${PROJECT_ID}-cd:jenkins" -n "${PROJECT_ID}-test"
