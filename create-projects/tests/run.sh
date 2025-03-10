@@ -52,13 +52,9 @@ oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd'
 oc mock --verify
 
 echo ""
-echo "=== create-projects: With admins but no groups ==="
+echo "=== create-projects: Without admins and no groups ==="
 
 oc mock --receive='new-project' --times 3
-
-# Expect admins
-oc mock --receive 'policy add-role-to-user admin foo.bar@example.com -n foo-cd' --times 1
-oc mock --receive 'policy add-role-to-user admin baz.qux@example.com -n foo-cd' --times 1
 
 # Expect default view/edit setup
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev' --times 1
