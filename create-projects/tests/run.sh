@@ -65,7 +65,7 @@ oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-dev
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-test' --times 1
 oc mock --receive 'policy add-role-to-group view system:authenticated -n foo-cd' --times 1
 
-../create-projects.sh --project foo --admins foo.bar@example.com,baz.qux@example.com --groups=
+../create-projects.sh --project foo --groups=
 
 oc mock --verify
 
