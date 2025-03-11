@@ -75,9 +75,9 @@ oc mock --receive 'policy add-role-to-group view baz -n foo-dev' --times 1
 oc mock --receive 'policy add-role-to-group view baz -n foo-test' --times 1
 oc mock --receive 'policy add-role-to-group view baz -n foo-cd' --times 1
 
-oc mock --receive 'policy add-role-to-group edit foo -n foo-dev' --times 1
-oc mock --receive 'policy add-role-to-group edit foo -n foo-test' --times 1
-oc mock --receive 'policy add-role-to-group edit foo -n foo-cd' --times 1
+oc mock --receive 'policy add-role-to-group edit-atlassian-team foo -n foo-dev' --times 1
+oc mock --receive 'policy add-role-to-group edit-atlassian-team foo -n foo-test' --times 1
+oc mock --receive 'policy add-role-to-group edit-atlassian-team foo -n foo-cd' --times 1
 
 oc mock --receive 'policy add-role-to-group admin bar -n foo-dev' --times 1
 oc mock --receive 'policy add-role-to-group admin bar -n foo-test' --times 1
