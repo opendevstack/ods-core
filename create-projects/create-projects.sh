@@ -77,7 +77,7 @@ if [ -n "${PROJECT_GROUPS}" ]; then
     groupName=$(echo "${group}" | cut -d "=" -f1)
     groupValue=$(echo "${group}" | cut -d "=" -f2)
 
-    usergroup_role="edit"
+    usergroup_role="edit-atlassian-team"
     admingroup_role="admin"
     readonlygroup_role="view"
 
