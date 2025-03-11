@@ -69,6 +69,13 @@ if ! oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccou
   exit 1
 fi
 
+# Create a new role 'edit-atlassian-team' 
+if ! oc get clusterrole edit-atlassian-team > /dev/null 2>&1; then
+  echo "You might not have enough rights to create the new role 'edit-atlassian-team'."
+  echo "This script needs to be run by a cluster admin."
+  oc get clusterrole edit -o yaml | sed 's/name: edit/name: edit-atlassian-team/' | oc create -f -
+fi
+
 # Create cd-user secret
 cd ${SCRIPT_DIR}/ocp-config/cd-user
 ${TAILOR} -n ${NAMESPACE} apply ${NON_INTERACTIVE} ${REVEAL_SECRETS}
