@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -77,24 +77,24 @@ type BuildConfigData struct {
 // buildConfig represents the relevant fields of an OpenShift BuildConfig, see
 // https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
 type buildConfig struct {
-    Metadata struct {
-        ResourceVersion string `json:"resourceVersion"`
-    } `json:"metadata"`
-    Spec struct {
-        Source struct {
-            Git struct {
-                Ref string `json:"ref"`
-            } `json:"git"`
-        } `json:"source"`
-        Strategy struct {
-            JenkinsPipelineStrategy struct {
-                JenkinsfilePath string `json:"jenkinsfilePath"`
-            } `json:"jenkinsPipelineStrategy"`
-        } `json:"strategy"`
-        Triggers []struct {
-            Type string `json:"type"`
-        } `json:"triggers"`
-    } `json:"spec"`
+	Metadata struct {
+		ResourceVersion string `json:"resourceVersion"`
+	} `json:"metadata"`
+	Spec struct {
+		Source struct {
+			Git struct {
+				Ref string `json:"ref"`
+			} `json:"git"`
+		} `json:"source"`
+		Strategy struct {
+			JenkinsPipelineStrategy struct {
+				JenkinsfilePath string `json:"jenkinsfilePath"`
+			} `json:"jenkinsPipelineStrategy"`
+		} `json:"strategy"`
+		Triggers []struct {
+			Type string `json:"type"`
+		} `json:"triggers"`
+	} `json:"spec"`
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
@@ -128,7 +128,7 @@ type Server struct {
 }
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 func main() {
@@ -632,7 +632,7 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	return res.StatusCode, body, err
 }
 
@@ -662,7 +662,7 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return 500, fmt.Errorf("could not read OpenShift response body: %s", err)
 	}
@@ -697,7 +697,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	}
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return errors.New(string(body))
@@ -782,7 +782,7 @@ func (c *ocClient) GetPipeline(e *Event) (bool, []byte, error) {
 		return false, nil, nil
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not read OpenShift response: %s", err)
 	}
@@ -857,7 +857,7 @@ func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffe
 
 func getSecureClient() (*http.Client, error) {
 	// Load CA cert
-	caCert, err := ioutil.ReadFile(caCert)
+	caCert, err := os.ReadFile(caCert)
 	if err != nil {
 		return nil, err
 	}
@@ -879,7 +879,7 @@ func getSecureClient() (*http.Client, error) {
 }
 
 func getFileContent(filename string) (string, error) {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
