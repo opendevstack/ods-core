@@ -9,6 +9,7 @@
 - Add package cosign ([#1323](https://github.com/opendevstack/ods-core/issues/1323))
 
 ### Changed
+- Maintenance March 2025 ([#1330](https://github.com/opendevstack/ods-core/pull/1330))
 - Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325))
 
 ### Fixed
