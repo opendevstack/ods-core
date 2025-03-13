@@ -40,7 +40,7 @@ spec:
             configMapKeyRef:
               key: database-name
               name: {{ .Values.global.appName }}
-        image: {{ .Values.global.sonarDatabaseImage}}
+        image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -98,4 +98,13 @@ spec:
           claimName: {{ .Values.global.appName }}-postgresql-backup
   test: false
   triggers:
-  - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - {{ .Values.global.appName }}-postgresql
+        from:
+          kind: ImageStreamTag
+          name: {{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
+          namespace: {{ .Values.global.odsNamespace }}
+      type: ImageChange
+    - type: ConfigChange
