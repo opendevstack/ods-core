@@ -66,6 +66,21 @@ jobs:
         run: |
           cd sonarqube && ./test.sh --sq-version=${{ matrix.version }} --sq-edition=${{ matrix.edition }}
 
+  sonarqube-postgresql:
+    name: SonarQube PostgreSQL tests
+    runs-on: ubuntu-22.04
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v4.2.2
+      -
+        name: Build docker image
+        run: |
+          ./.github/workflows/build-docker-image.sh \
+          --imagename ods-sonarqube-postgresql \
+          --dockerdir sonarqube/docker \
+          --dockerfile Dockerfile.database
+
   nexus:
     name: Nexus tests
     runs-on: ubuntu-22.04
