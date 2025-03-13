@@ -1,0 +1,15 @@
+package utils
+
+var PROJECT_NAME = "unitt"
+var PROJECT_ENV_VAR = "PROJECT_ID=" + PROJECT_NAME
+var PROJECT_NAME_CD = PROJECT_NAME + "-cd"
+var PROJECT_NAME_DEV = PROJECT_NAME + "-dev"
+var PROJECT_NAME_TEST = PROJECT_NAME + "-test"
+
+func Set_project_name(project string) {
+	PROJECT_NAME = project
+	PROJECT_ENV_VAR = "PROJECT_ID=" + PROJECT_NAME
+	PROJECT_NAME_CD = PROJECT_NAME + "-cd"
+	PROJECT_NAME_DEV = PROJECT_NAME + "-dev"
+	PROJECT_NAME_TEST = PROJECT_NAME + "-test"
+}
