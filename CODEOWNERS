@@ -1,5 +1,7 @@
 tests/ @clemensutschig
-jenkins/ @oalyman
+jenkins/ @oalyman @BraisVQ
+sonarqube/ @BraisVQ
+nexus/ @BraisVQ
 scripts/ 
 ods-provisioning-app/ @stitakis
 ods-document-generation-svc/ @metmajer
