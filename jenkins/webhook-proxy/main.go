@@ -703,6 +703,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		e.Pipeline,
 	)
 
+	log.Println(e.RequestID, "Sending request to", jenkinsURL)
 	jenkinsReq, _ := http.NewRequest(
 		"POST",
 		jenkinsURL,
