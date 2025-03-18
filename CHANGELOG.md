@@ -4,13 +4,16 @@
 
 ### Added
 
-- Add packages carvel/imgpkg and yq ([#1322](https://github.com/opendevstack/ods-core/issues/1322))
+- Update CODEOWNERS ([#1329](https://github.com/opendevstack/ods-core/issues/1329))
+- Add packages carvel/imgpkg and yg ([#1322](https://github.com/opendevstack/ods-core/issues/1322))
 - Adde mask-passwords and office 365 connector plugins in Jenkins ([#1313](https://github.com/opendevstack/ods-core/issues/1313)) and ([#1316](https://github.com/opendevstack/ods-core/issues/1316))
 - Add package cosign ([#1323](https://github.com/opendevstack/ods-core/issues/1323))
 
 ### Changed
+
 - Maintenance March 2025 ([#1330](https://github.com/opendevstack/ods-core/pull/1330))
-- Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325))
+- Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325)) & ([#1332](https://github.com/opendevstack/ods-core/pull/1332))
+d3dbde71be65aacb49f3d7b5071550955476bb26
 
 ### Fixed
 
