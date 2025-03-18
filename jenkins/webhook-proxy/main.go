@@ -36,6 +36,8 @@ const (
 	acceptedEventsDefault          = "repo:refs_changed,pr:declined,pr:merged,pr:deleted"
 	openShiftAPIHostEnvVar         = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault        = "openshift.default.svc.cluster.local"
+	openShiftAppDomainEnvVar       = "OPENSHIFT_APP_DOMAIN"
+	openShiftAppDomainDefault      = ".apps.default.ocp.openshift.com"
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
 	allowedExternalProjectsDefault = "opendevstack"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
@@ -112,6 +114,7 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
+	OpenShiftAppDomain  string
 }
 
 // Server represents this service, and is a global.
@@ -189,6 +192,17 @@ func main() {
 		)
 	}
 
+	openShiftAppDomain := os.Getenv(openShiftAppDomainEnvVar)
+	if len(openShiftAppDomain) == 0 {
+		openShiftAppDomain = openShiftAppDomainDefault
+		log.Println(
+			"INFO:",
+			openShiftAppDomainEnvVar,
+			"not set, using default value:",
+			openShiftAppDomainDefault,
+		)
+	}
+
 	var allowedExternalProjects []string
 	envAllowedExternalProjects := strings.ToLower(os.Getenv(allowedExternalProjectsEnvVar))
 	if len(envAllowedExternalProjects) == 0 {
@@ -223,7 +237,7 @@ func main() {
 		}
 	}
 
-	client, err := newClient(openShiftAPIHost, triggerSecret)
+	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -683,7 +697,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	jenkinsURL := fmt.Sprintf(
 		"https://jenkins-%s-cd%s/job/%s-cd/job/%s-cd-%s/doDelete",
 		e.Namespace,
-		strings.TrimPrefix(c.OpenShiftAPIBaseURL, "https://"),
+		c.OpenShiftAppDomain,
 		e.Namespace,
 		e.Namespace,
 		e.Pipeline,
@@ -853,7 +867,7 @@ func (e *Event) String() string {
 	)
 }
 
-func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error) {
+func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain string) (*ocClient, error) {
 	token, err := getFileContent(tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token: %s", err)
@@ -874,6 +888,7 @@ func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error)
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
+		OpenShiftAppDomain:  openShiftAppDomain,
 	}, nil
 }
 
