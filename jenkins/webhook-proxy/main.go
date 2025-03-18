@@ -679,6 +679,37 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 // DeletePipeline removes the pipeline corresponding to the event from
 // OpenShift.
 func (c *ocClient) DeletePipeline(e *Event) error {
+	// Delete Jenkins pipeline
+	jenkinsURL := fmt.Sprintf(
+		"https://jenkins-%s-cd%s/job/%s-cd/job/%s-cd-%s/doDelete",
+		e.Namespace,
+		strings.TrimPrefix(c.OpenShiftAPIBaseURL, "https://"),
+		e.Namespace,
+		e.Namespace,
+		e.Pipeline,
+	)
+
+	jenkinsReq, _ := http.NewRequest(
+		"POST",
+		jenkinsURL,
+		nil,
+	)
+	jenkinsReq.Header.Set("Authorization", "Bearer "+c.Token)
+	jenkinsRes, err := c.do(jenkinsReq)
+	if err != nil {
+		return fmt.Errorf("could not make Jenkins request: %s", err)
+	}
+	defer jenkinsRes.Body.Close()
+
+	jenkinsBody, _ := io.ReadAll(jenkinsRes.Body)
+
+	if jenkinsRes.StatusCode < 200 || jenkinsRes.StatusCode >= 300 {
+		return errors.New(string(jenkinsBody))
+	}
+
+	log.Println(e.RequestID, "Deleted Jenkins pipeline", e.Pipeline)
+
+	// Delete OpenShift BuildConfig
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
 		c.OpenShiftAPIBaseURL,
@@ -703,7 +734,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 		return errors.New(string(body))
 	}
 
-	log.Println(e.RequestID, "Deleted pipeline", e.Pipeline)
+	log.Println(e.RequestID, "Deleted Openshift pipeline", e.Pipeline)
 
 	return nil
 }
