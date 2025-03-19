@@ -593,17 +593,17 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				err := s.Client.DeletePipeline(event)
 				if err != nil {
 					log.Println(requestID, err)
-					break
+					return
 				}
 				log.Println(requestID, "Pipeline deleted, checking for remaining instances")
 				exists, _, err := s.Client.GetPipeline(event)
 				if err != nil {
 					log.Println(requestID, "Error checking for remaining instances:", err)
-					break
+					return
 				}
 				if !exists {
 					log.Println(requestID, "No remaining instances found")
-					break
+					return
 				}
 			}
 		} else {
