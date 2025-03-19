@@ -12,7 +12,7 @@
 ### Changed
 - Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325)) & ([#1332](https://github.com/opendevstack/ods-core/pull/1332))
 - Fix Jenkins pipeline removal issue and update to golang 1.24 ([#1331](https://github.com/opendevstack/ods-core/issues/1331))
-- Updated nexus ([#1333](https://github.com/opendevstack/ods-core/pull/1333))
+- Updated nexus ([#1334](https://github.com/opendevstack/ods-core/pull/1334))
 
 ### Fixed
 
