@@ -904,7 +904,7 @@ func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffe
 
 func getSecureClient() (*http.Client, error) {
 	// Load CA cert
-	caCert, err := os.ReadAll(caCert)
+	caCert, err := os.ReadFile(caCert)
 	if err != nil {
 		return nil, err
 	}
@@ -926,7 +926,7 @@ func getSecureClient() (*http.Client, error) {
 }
 
 func getFileContent(filename string) (string, error) {
-	content, err := os.ReadAll(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
