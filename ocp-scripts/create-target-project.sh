@@ -44,6 +44,9 @@ echo ""
 echo "Creating project ..."
 oc new-project ${project}
 
+echo "Applying NetworkPolicy to ${project}"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${project}"
+
 echo ""
 echo "Creating serviceaccount ..."
 oc create sa ${serviceaccountName}

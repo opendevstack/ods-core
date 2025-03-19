@@ -8,7 +8,6 @@ set -e
 # and require them to be passed as parameters to the script.
 
 PROJECT_ID=""
-PROJECT_ADMINS=""
 PROJECT_GROUPS=""
 # Role 'admin' is needed to clone an entire project including role bindings
 # for env autoclonding in the Jenkins shared library.
@@ -19,7 +18,6 @@ function usage {
   printf "\t-h|--help\tPrints the usage\n"
   printf "\t-v|--verbose\tVerbose output\n"
   printf "\t-p|--project\tProject ID\n"
-  printf "\t--admins\tAdmins of the projects\n"
   printf "\t--groups\tGroups with permissions (e.g. 'USERGROUP=foo,ADMINGROUP=bar,READONLYGROUP=baz')\n"
 }
 
@@ -30,9 +28,6 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 
   -p=*|--project=*) PROJECT_ID="${1#*=}";;
   -p|--project)     PROJECT_ID="$2"; shift;;
-
-  --admins=*) PROJECT_ADMINS="${1#*=}";;
-  --admins)   PROJECT_ADMINS="$2"; shift;;
 
   --groups=*) PROJECT_GROUPS="${1#*=}";;
   --groups)   PROJECT_GROUPS="$2"; shift;;
@@ -53,6 +48,11 @@ oc new-project "${PROJECT_ID}-cd"
 oc new-project "${PROJECT_ID}-dev"
 oc new-project "${PROJECT_ID}-test"
 
+echo "Applying NetworkPolicy to ${PROJECT_ID}-cd, ${PROJECT_ID}-dev and ${PROJECT_ID}-test"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-cd"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-dev"
+oc apply -f ../ocp-config/NetworkPolicy.yml -n "${PROJECT_ID}-test"
+
 echo "Allow serviceaccount 'jenkins' of ${PROJECT_ID}-cd to admin the environment projects"
 oc policy add-role-to-user "${JENKINS_ROLE}" "system:serviceaccount:${PROJECT_ID}-cd:jenkins" -n "${PROJECT_ID}-dev"
 oc policy add-role-to-user "${JENKINS_ROLE}" "system:serviceaccount:${PROJECT_ID}-cd:jenkins" -n "${PROJECT_ID}-test"
@@ -71,24 +71,13 @@ echo "Grant serviceaccount 'default' role 'image-builder' to import images from 
 oc policy add-role-to-user system:image-builder --serviceaccount default -n "${PROJECT_ID}-dev"
 oc policy add-role-to-user system:image-builder --serviceaccount default -n "${PROJECT_ID}-test"
 
-if [ -n "${PROJECT_ADMINS}" ]; then
-  # By default only role 'dedicated-admin' has admin rights
-  echo "Seeding admins (${PROJECT_ADMINS}) ..."
-  for admin_user in ${PROJECT_ADMINS//,/ }; do
-    echo "- seeding admin: ${admin_user}"
-    oc policy add-role-to-user admin "${admin_user}" -n "${PROJECT_ID}-dev"
-    oc policy add-role-to-user admin "${admin_user}" -n "${PROJECT_ID}-test"
-    oc policy add-role-to-user admin "${admin_user}" -n "${PROJECT_ID}-cd"
-  done
-fi
-
 if [ -n "${PROJECT_GROUPS}" ]; then
   echo "Seeding special permission groups (${PROJECT_GROUPS}) ..."
   for group in ${PROJECT_GROUPS//,/ }; do
     groupName=$(echo "${group}" | cut -d "=" -f1)
     groupValue=$(echo "${group}" | cut -d "=" -f2)
 
-    usergroup_role="edit"
+    usergroup_role="edit-atlassian-team"
     admingroup_role="admin"
     readonlygroup_role="view"
 
