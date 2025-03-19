@@ -731,7 +731,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	)
 
 	jenkinsReq, _ := http.NewRequest(
-		"DELETES",
+		"DELETE",
 		jenkinsURL,
 		nil,
 	)
