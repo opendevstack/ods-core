@@ -217,6 +217,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
+		MaxDeletionChecks:       10,
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
@@ -374,6 +375,7 @@ func TestSkipsPayloads(t *testing.T) {
 				AllowedExternalProjects: []string{"opendevstack"},
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
+				MaxDeletionChecks:       10,
 			}
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
@@ -484,6 +486,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				AllowedExternalProjects: tc.allowedExternalProjects,
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
+				MaxDeletionChecks:       10,
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
@@ -795,6 +798,7 @@ func TestBuildEndpoint(t *testing.T) {
 				AllowedExternalProjects: []string{"opendevstack"},
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
+				MaxDeletionChecks:       10,
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
@@ -839,6 +843,7 @@ func TestNotFound(t *testing.T) {
 		AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
+		MaxDeletionChecks:       10,
 	}
 	server := httptest.NewServer(s.HandleRoot())
 
