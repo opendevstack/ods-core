@@ -1,6 +1,6 @@
 # Aditional plugins
 greenballs:1.15.1
-sonar:2.17.2
+sonar:2.18
 ansicolor:1.0.4
 audit-trail:361.v82cde86c784e
 Office-365-Connector:5.0.0
