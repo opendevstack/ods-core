@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -40,6 +41,8 @@ const (
 	openShiftAppDomainDefault      = ".apps.default.ocp.openshift.com"
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
 	allowedExternalProjectsDefault = "opendevstack"
+	maxDeletionChecksEnvVar        = "MAX_DELETION_CHECKS"
+	maxDeletionChecksDefault       = "10"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	namespaceSuffix                = "-cd"
@@ -128,6 +131,7 @@ type Server struct {
 	AllowedExternalProjects []string
 	AllowedChangeRefTypes   []string
 	RepoBase                string
+	MaxDeletionChecks       int
 }
 
 func init() {
@@ -237,6 +241,12 @@ func main() {
 		}
 	}
 
+	maxDeletionChecks := maxDeletionChecksDefault
+	envMaxDeletionChecks := os.Getenv(maxDeletionChecksEnvVar)
+	if len(envMaxDeletionChecks) != 0 {
+		maxDeletionChecks = envMaxDeletionChecks
+	}
+
 	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
 	if err != nil {
 		log.Fatalln(err)
@@ -249,6 +259,11 @@ func main() {
 
 	project := strings.TrimSuffix(namespace, namespaceSuffix)
 
+	maxDeletionChecksInt, err := strconv.Atoi(maxDeletionChecks)
+	if err != nil {
+		log.Fatalln("Invalid max deletion checks value:", maxDeletionChecks)
+	}
+
 	server := &Server{
 		Client:                  client,
 		Namespace:               namespace,
@@ -259,6 +274,7 @@ func main() {
 		AllowedExternalProjects: allowedExternalProjects,
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
 		RepoBase:                repoBase,
+		MaxDeletionChecks:       maxDeletionChecksInt,
 	}
 
 	log.Println("Ready to accept requests")
@@ -589,7 +605,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				)
 				return
 			}
-			for {
+			for i := 0; i < s.MaxDeletionChecks; i++ {
 				err := s.Client.DeletePipeline(event)
 				if err != nil {
 					log.Println(requestID, err)
@@ -606,7 +622,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					log.Println(requestID, "No remaining instances found")
 					return
 				}
+				if i == s.MaxDeletionChecks - 1 {
+					log.Println(requestID, "Reached maximum iterations, stopping checks")
+				}
 			}
+
 		} else {
 			log.Println(requestID, "Unrecognized event")
 		}

@@ -20,6 +20,9 @@ parameters:
   required: true
 - name: ODS_BITBUCKET_PROJECT
   required: true
+- name: MAX_DELETION_CHECKS
+  value: '10'
+  required: true
 - name: WEBHOOK_PROXY_CPU_REQUEST
   value: 25m
 - name: WEBHOOK_PROXY_CPU_LIMIT
@@ -98,6 +101,8 @@ objects:
             value: ${ODS_BITBUCKET_PROJECT}
           - name: OPENSHIFT_APP_DOMAIN
             value: ${OPENSHIFT_APPS_BASEDOMAIN}
+          - name: MAX_DELETION_CHECKS
+            value: ${MAX_DELETION_CHECKS}
           - name: TRIGGER_SECRET
             valueFrom:
               secretKeyRef:
