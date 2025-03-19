@@ -589,10 +589,22 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				)
 				return
 			}
-			err := s.Client.DeletePipeline(event)
-			if err != nil {
-				log.Println(requestID, err)
-				return
+			for {
+				err := s.Client.DeletePipeline(event)
+				if err != nil {
+					log.Println(requestID, err)
+					break
+				}
+				log.Println(requestID, "Pipeline deleted, checking for remaining instances")
+				exists, _, err := s.Client.GetPipeline(event)
+				if err != nil {
+					log.Println(requestID, "Error checking for remaining instances:", err)
+					break
+				}
+				if !exists {
+					log.Println(requestID, "No remaining instances found")
+					break
+				}
 			}
 		} else {
 			log.Println(requestID, "Unrecognized event")
@@ -702,7 +714,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	)
 
 	req, _ := http.NewRequest(
-		"DELETE",
+		"POST",
 		url,
 		nil,
 	)
