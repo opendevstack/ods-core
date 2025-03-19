@@ -8,12 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -36,8 +37,12 @@ const (
 	acceptedEventsDefault          = "repo:refs_changed,pr:declined,pr:merged,pr:deleted"
 	openShiftAPIHostEnvVar         = "OPENSHIFT_API_HOST"
 	openShiftAPIHostDefault        = "openshift.default.svc.cluster.local"
+	openShiftAppDomainEnvVar       = "OPENSHIFT_APP_DOMAIN"
+	openShiftAppDomainDefault      = ".apps.default.ocp.openshift.com"
 	allowedExternalProjectsEnvVar  = "ALLOWED_EXTERNAL_PROJECTS"
 	allowedExternalProjectsDefault = "opendevstack"
+	maxDeletionChecksEnvVar        = "MAX_DELETION_CHECKS"
+	maxDeletionChecksDefault       = "10"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	namespaceSuffix                = "-cd"
@@ -77,28 +82,24 @@ type BuildConfigData struct {
 // buildConfig represents the relevant fields of an OpenShift BuildConfig, see
 // https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
 type buildConfig struct {
-    Metadata struct {
-        ResourceVersion string `json:"resourceVersion"`
-    } `json:"metadata"`
-    Spec struct {
-        Source struct {
-            Git struct {
-                Ref string `json:"ref"`
-            } `json:"git"`
-        } `json:"source"`
-        Strategy struct {
-            JenkinsPipelineStrategy struct {
-                JenkinsfilePath string `json:"jenkinsfilePath"`
-            } `json:"jenkinsPipelineStrategy"`
-        } `json:"strategy"`
-        Triggers []struct {
-            Type string `json:"type"`
-            // Generic struct {
-            //     Secret string `json:"secret"`
-            //     AllowEnv bool `json:"allowEnv"`
-            // } `json:"generic"`
-        } `json:"triggers"`
-    } `json:"spec"`
+	Metadata struct {
+		ResourceVersion string `json:"resourceVersion"`
+	} `json:"metadata"`
+	Spec struct {
+		Source struct {
+			Git struct {
+				Ref string `json:"ref"`
+			} `json:"git"`
+		} `json:"source"`
+		Strategy struct {
+			JenkinsPipelineStrategy struct {
+				JenkinsfilePath string `json:"jenkinsfilePath"`
+			} `json:"jenkinsPipelineStrategy"`
+		} `json:"strategy"`
+		Triggers []struct {
+			Type string `json:"type"`
+		} `json:"triggers"`
+	} `json:"spec"`
 }
 
 // Client makes requests, e.g. to create and delete pipelines, or to forward
@@ -116,6 +117,7 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
+	OpenShiftAppDomain string
 }
 
 // Server represents this service, and is a global.
@@ -129,10 +131,11 @@ type Server struct {
 	AllowedExternalProjects []string
 	AllowedChangeRefTypes   []string
 	RepoBase                string
+	MaxDeletionChecks       int
 }
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 func main() {
@@ -193,6 +196,17 @@ func main() {
 		)
 	}
 
+	openShiftAppDomain := os.Getenv(openShiftAppDomainEnvVar)
+	if len(openShiftAppDomain) == 0 {
+		openShiftAppDomain = openShiftAppDomainDefault
+		log.Println(
+			"INFO:",
+			openShiftAppDomainEnvVar,
+			"not set, using default value:",
+			openShiftAppDomainDefault,
+		)
+	}
+
 	var allowedExternalProjects []string
 	envAllowedExternalProjects := strings.ToLower(os.Getenv(allowedExternalProjectsEnvVar))
 	if len(envAllowedExternalProjects) == 0 {
@@ -227,7 +241,13 @@ func main() {
 		}
 	}
 
-	client, err := newClient(openShiftAPIHost, triggerSecret)
+	maxDeletionChecks := maxDeletionChecksDefault
+	envMaxDeletionChecks := os.Getenv(maxDeletionChecksEnvVar)
+	if len(envMaxDeletionChecks) != 0 {
+		maxDeletionChecks = envMaxDeletionChecks
+	}
+
+	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -239,6 +259,11 @@ func main() {
 
 	project := strings.TrimSuffix(namespace, namespaceSuffix)
 
+	maxDeletionChecksInt, err := strconv.Atoi(maxDeletionChecks)
+	if err != nil {
+		log.Fatalln("Invalid max deletion checks value:", maxDeletionChecks)
+	}
+
 	server := &Server{
 		Client:                  client,
 		Namespace:               namespace,
@@ -249,6 +274,7 @@ func main() {
 		AllowedExternalProjects: allowedExternalProjects,
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
 		RepoBase:                repoBase,
+		MaxDeletionChecks:       maxDeletionChecksInt,
 	}
 
 	log.Println("Ready to accept requests")
@@ -579,11 +605,28 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				)
 				return
 			}
-			err := s.Client.DeletePipeline(event)
-			if err != nil {
-				log.Println(requestID, err)
-				return
+			for i := 0; i < s.MaxDeletionChecks; i++ {
+				err := s.Client.DeletePipeline(event)
+				if err != nil {
+					log.Println(requestID, err)
+					return
+				}
+				log.Println(requestID, "Pipeline deleted, checking for remaining instances")
+				time.Sleep(5 * time.Second) // Wait for 5 seconds before checking
+				exists, _, err := s.Client.GetPipeline(event)
+				if err != nil {
+					log.Println(requestID, "Error checking for remaining instances:", err)
+					return
+				}
+				if !exists {
+					log.Println(requestID, "No remaining instances found")
+					return
+				}
+				if i == s.MaxDeletionChecks - 1 {
+					log.Println(requestID, "Reached maximum iterations, stopping checks")
+				}
 			}
+
 		} else {
 			log.Println(requestID, "Unrecognized event")
 		}
@@ -636,7 +679,7 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	return res.StatusCode, body, err
 }
 
@@ -666,7 +709,7 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return 500, fmt.Errorf("could not read OpenShift response body: %s", err)
 	}
@@ -683,6 +726,7 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 // DeletePipeline removes the pipeline corresponding to the event from
 // OpenShift.
 func (c *ocClient) DeletePipeline(e *Event) error {
+	// Delete OpenShift BuildConfig
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
 		c.OpenShiftAPIBaseURL,
@@ -701,13 +745,43 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	}
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return errors.New(string(body))
 	}
 
-	log.Println(e.RequestID, "Deleted pipeline", e.Pipeline)
+	log.Println(e.RequestID, "Deleted Openshift pipeline", e.Pipeline)
+
+	// Delete Jenkins pipeline
+	jenkinsURL := fmt.Sprintf(
+		"https://jenkins-%s%s/job/%s/job/%s-%s/doDelete",
+		e.Namespace,
+		c.OpenShiftAppDomain,
+		e.Namespace,
+		e.Namespace,
+		e.Pipeline,
+	)
+
+	jenkinsReq, _ := http.NewRequest(
+		"POST",
+		jenkinsURL,
+		nil,
+	)
+	jenkinsReq.Header.Set("Authorization", "Bearer "+c.Token)
+	jenkinsRes, err := c.do(jenkinsReq)
+	if err != nil {
+		return fmt.Errorf("could not make Jenkins request: %s", err)
+	}
+	defer jenkinsRes.Body.Close()
+
+	jenkinsBody, _ := io.ReadAll(jenkinsRes.Body)
+
+	if jenkinsRes.StatusCode < 200 || jenkinsRes.StatusCode >= 300 {
+		return errors.New(string(jenkinsBody))
+	}
+
+	log.Println(e.RequestID, "Deleted Jenkins pipeline", e.Pipeline)
 
 	return nil
 }
@@ -786,7 +860,7 @@ func (c *ocClient) GetPipeline(e *Event) (bool, []byte, error) {
 		return false, nil, nil
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not read OpenShift response: %s", err)
 	}
@@ -826,7 +900,7 @@ func (e *Event) String() string {
 	)
 }
 
-func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error) {
+func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain string) (*ocClient, error) {
 	token, err := getFileContent(tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token: %s", err)
@@ -847,6 +921,7 @@ func newClient(openShiftAPIHost string, triggerSecret string) (*ocClient, error)
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
+		OpenShiftAppDomain: openShiftAppDomain,
 	}, nil
 }
 
@@ -861,7 +936,7 @@ func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffe
 
 func getSecureClient() (*http.Client, error) {
 	// Load CA cert
-	caCert, err := ioutil.ReadFile(caCert)
+	caCert, err := os.ReadFile(caCert)
 	if err != nil {
 		return nil, err
 	}
@@ -883,7 +958,7 @@ func getSecureClient() (*http.Client, error) {
 }
 
 func getFileContent(filename string) (string, error) {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
