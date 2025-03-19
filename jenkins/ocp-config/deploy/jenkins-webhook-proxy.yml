@@ -96,6 +96,8 @@ objects:
             value: ${REPO_BASE}
           - name: ALLOWED_EXTERNAL_PROJECTS
             value: ${ODS_BITBUCKET_PROJECT}
+          - name: OPENSHIFT_APP_DOMAIN
+            value: ${OPENSHIFT_APPS_BASEDOMAIN}
           - name: TRIGGER_SECRET
             valueFrom:
               secretKeyRef:

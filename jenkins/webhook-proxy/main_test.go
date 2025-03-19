@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +16,7 @@ import (
 
 // SETUP
 func TestMain(m *testing.M) {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	os.Exit(m.Run())
 }
 
@@ -313,7 +313,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = ioutil.ReadAll(res.Body)
+			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
 				t.Fatal(err)
@@ -392,7 +392,7 @@ func TestSkipsPayloads(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = ioutil.ReadAll(res.Body)
+			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
 				t.Fatal(err)
@@ -441,7 +441,7 @@ func TestNamespaceRestriction(t *testing.T) {
 			var expectedOpenshiftPayload []byte
 			var err error
 			if len(tc.expectedPipeline) > 0 {
-				expectedOpenshiftPayload, err = ioutil.ReadFile("testdata/golden/" + tc.expectedPipeline)
+				expectedOpenshiftPayload, err = os.ReadFile("testdata/golden/" + tc.expectedPipeline)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -453,7 +453,7 @@ func TestNamespaceRestriction(t *testing.T) {
 			// is to be created.
 			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if strings.HasSuffix(r.URL.Path, "/buildconfigs") && r.Method == "POST" {
-					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
+					actualOpenshiftPayload, _ = io.ReadAll(r.Body)
 				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
 					http.Error(w, "Not found", http.StatusNotFound)
@@ -496,7 +496,7 @@ func TestNamespaceRestriction(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = ioutil.ReadAll(res.Body)
+			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
 				t.Fatal(err)
@@ -579,14 +579,14 @@ func TestForward(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			var actualForwardPayload []byte
-			expectedPayload, err := ioutil.ReadFile(tc.expectedPayload)
+			expectedPayload, err := os.ReadFile(tc.expectedPayload)
 			if err != nil {
 				t.Fatal(err)
 			}
 			// Sample response from OpenShift
 			var expectedOpenshiftResponse []byte
 			if len(tc.openshiftResponse) > 0 {
-				r, err := ioutil.ReadFile(tc.openshiftResponse)
+				r, err := os.ReadFile(tc.openshiftResponse)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -595,7 +595,7 @@ func TestForward(t *testing.T) {
 
 			// Create a stub that returns the fixed response
 			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				actualForwardPayload, _ = ioutil.ReadAll(r.Body)
+				actualForwardPayload, _ = io.ReadAll(r.Body)
 				w.WriteHeader(tc.openshiftStatusCode)
 				_, err := w.Write(expectedOpenshiftResponse)
 				if err != nil {
@@ -728,7 +728,7 @@ func TestBuildEndpoint(t *testing.T) {
 			// Expected payload to create the BuildConfig
 			expectedOpenshiftPayload := []byte{}
 			if tc.bcUpsertExpectedPayload != "" {
-				e, err := ioutil.ReadFile(tc.bcUpsertExpectedPayload)
+				e, err := os.ReadFile(tc.bcUpsertExpectedPayload)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -737,7 +737,7 @@ func TestBuildEndpoint(t *testing.T) {
 
 			openshiftResponseBody := []byte{}
 			if tc.bcUpsertResponseBody != "" {
-				or, err := ioutil.ReadFile(tc.bcUpsertResponseBody)
+				or, err := os.ReadFile(tc.bcUpsertResponseBody)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -750,10 +750,10 @@ func TestBuildEndpoint(t *testing.T) {
 			// is to be created.
 			apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if strings.HasSuffix(r.URL.Path, "/buildconfigs") && r.Method == "POST" {
-					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
+					actualOpenshiftPayload, _ = io.ReadAll(r.Body)
 				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "PUT" {
-					actualOpenshiftPayload, _ = ioutil.ReadAll(r.Body)
+					actualOpenshiftPayload, _ = io.ReadAll(r.Body)
 				}
 				if strings.Contains(r.URL.Path, "/buildconfigs/") && r.Method == "GET" {
 					if len(tc.bcGetResponseBody) == 0 {
@@ -761,7 +761,7 @@ func TestBuildEndpoint(t *testing.T) {
 						return
 					}
 					w.WriteHeader(200)
-					grb, err := ioutil.ReadFile(tc.bcGetResponseBody)
+					grb, err := os.ReadFile(tc.bcGetResponseBody)
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -816,7 +816,7 @@ func TestBuildEndpoint(t *testing.T) {
 				t.Fatalf("Got request body: %s, want: %s", actualOpenshiftPayload, expectedOpenshiftPayload)
 			}
 
-			actualBody, err := ioutil.ReadAll(res.Body)
+			actualBody, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -872,7 +872,7 @@ func TestGetBuildConfig(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	configBytes, err := ioutil.ReadFile("testdata/golden/pipeline.json")
+	configBytes, err := os.ReadFile("testdata/golden/pipeline.json")
 	if err != nil {
 		t.Error(err)
 	}
