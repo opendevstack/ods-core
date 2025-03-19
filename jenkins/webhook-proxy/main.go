@@ -695,7 +695,7 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 func (c *ocClient) DeletePipeline(e *Event) error {
 // Delete Jenkins pipeline
 	jenkinsURL := fmt.Sprintf(
-		"https://jenkins-%s%s/job/%s-cd/job/%s-cd-%s/doDelete",
+		"https://jenkins-%s%s/job/%s-cd/job/%s-%s/doDelete",
 		e.Namespace,
 		c.OpenShiftAppDomain,
 		e.Namespace,
