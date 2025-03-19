@@ -596,6 +596,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 				log.Println(requestID, "Pipeline deleted, checking for remaining instances")
+				time.Sleep(5 * time.Second) // Wait for 5 seconds before checking
 				exists, _, err := s.Client.GetPipeline(event)
 				if err != nil {
 					log.Println(requestID, "Error checking for remaining instances:", err)
