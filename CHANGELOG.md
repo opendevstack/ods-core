@@ -10,6 +10,7 @@
 - Add package cosign ([#1323](https://github.com/opendevstack/ods-core/issues/1323))
 
 ### Changed
+- Update SonarQube and use local image for database ([#1335](https://github.com/opendevstack/ods-core/pull/1335)) 
 - Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325)) & ([#1332](https://github.com/opendevstack/ods-core/pull/1332))
 - Fix Jenkins pipeline removal issue and update to golang 1.24 ([#1331](https://github.com/opendevstack/ods-core/issues/1331))
 
