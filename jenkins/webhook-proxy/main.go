@@ -714,7 +714,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	)
 
 	req, _ := http.NewRequest(
-		"POST",
+		"DELETE",
 		url,
 		nil,
 	)
@@ -743,7 +743,7 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	)
 
 	jenkinsReq, _ := http.NewRequest(
-		"DELETE",
+		"POST",
 		jenkinsURL,
 		nil,
 	)
