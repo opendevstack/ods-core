@@ -693,7 +693,34 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 // DeletePipeline removes the pipeline corresponding to the event from
 // OpenShift.
 func (c *ocClient) DeletePipeline(e *Event) error {
-// Delete Jenkins pipeline
+	// Delete OpenShift BuildConfig
+	url := fmt.Sprintf(
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
+		c.OpenShiftAPIBaseURL,
+		e.Namespace,
+		e.Pipeline,
+	)
+
+	req, _ := http.NewRequest(
+		"DELETE",
+		url,
+		nil,
+	)
+	res, err := c.do(req)
+	if err != nil {
+		return fmt.Errorf("could not make OpenShift request: %s", err)
+	}
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return errors.New(string(body))
+	}
+
+	log.Println(e.RequestID, "Deleted Openshift pipeline", e.Pipeline)
+
+	// Delete Jenkins pipeline
 	jenkinsURL := fmt.Sprintf(
 		"https://jenkins-%s%s/job/%s/job/%s-%s/doDelete",
 		e.Namespace,
@@ -723,33 +750,6 @@ func (c *ocClient) DeletePipeline(e *Event) error {
 	}
 
 	log.Println(e.RequestID, "Deleted Jenkins pipeline", e.Pipeline)
-
-	// Delete OpenShift BuildConfig
-	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
-		c.OpenShiftAPIBaseURL,
-		e.Namespace,
-		e.Pipeline,
-	)
-
-	req, _ := http.NewRequest(
-		"DELETE",
-		url,
-		nil,
-	)
-	res, err := c.do(req)
-	if err != nil {
-		return fmt.Errorf("could not make OpenShift request: %s", err)
-	}
-	defer res.Body.Close()
-
-	body, _ := io.ReadAll(res.Body)
-
-	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return errors.New(string(body))
-	}
-
-	log.Println(e.RequestID, "Deleted Openshift pipeline", e.Pipeline)
 
 	return nil
 }
