@@ -1,0 +1,6 @@
+# Aditional plugins
+sonar:2.18
+ansicolor:1.0.6
+audit-trail:382.vf64d6f626060
+Office-365-Connector:5.0.0
+mask-passwords:188.v66e477dcb_24a_
