@@ -22,6 +22,9 @@
   repository.createDockerProxy('dockerhub-proxy', 'https://registry-1.docker.io', 'HUB', null, null, null, 'docker', true, true);
   repository.createDockerProxy('github-proxy', 'https://ghcr.io', 'REGISTRY', null, null, null, 'docker', true, true);
   repository.createDockerGroup('docker-group', 5000, null, ['dockerhub-proxy', 'github-proxy'], true, 'docker', false);
+  repository.createRubygemsProxy('rubygems-registry', 'https://rubygems.org', 'default', true);
+  repository.createRubygemsHosted('rubygems-private', default, true, WritePolicy.ALLOW_ONCE);
+  repository.createRubygemsGroup('rubygems-group', ['rubygems-registry', 'rubygems-private'], 'default');
   repositoryManager = repository.repositoryManager;
   repository = repositoryManager.get('maven-public');
   config = repository.configuration.copy();
