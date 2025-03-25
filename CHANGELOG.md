@@ -16,6 +16,7 @@
 ### Fixed
 
 - Webhook proxy BC recretion issue ([#1265](https://github.com/opendevstack/ods-core/issues/1265))
+- Fix Go version without 1.N.P syntax ([#1337](https://github.com/opendevstack/ods-core/pull/1337))
 
 ## [4.7.0] - 2025-1-27
 
