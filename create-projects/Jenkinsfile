@@ -80,7 +80,6 @@ podTemplate(
         sh(
           script: """./create-projects/create-projects.sh --verbose \
             --project=${projectId} \
-            --admins=${projectAdmins} \
             --groups=${projectGroups}""",
           label: 'Create OpenShift projects'
         )
