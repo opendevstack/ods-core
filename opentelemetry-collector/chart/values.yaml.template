@@ -1,0 +1,72 @@
+collector:
+  name: opentelemetry-collector
+  image: $OPENTELEMETRY_COLLECTOR_IMAGE
+  odsImageTag: $ODS_IMAGE_TAG
+  repoBase: $REPO_BASE
+  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
+  odsGitRef: $ODS_GIT_REF
+  odsNamespace: $ODS_NAMESPACE
+  collectorImageTag: $OPENTELEMETRY_COLLECTOR_IMAGE_TAG
+  args: ["--config=/conf/otel-collector-config.yaml"]
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: jaeger-thrift
+      port: 55679
+      targetPort: 55679
+    - name: metrics
+      port: 8888
+      targetPort: 8888
+    - name: prometheus
+      port: 9464
+      targetPort: 9464
+  env:
+    - name: MY_POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: GOMEMLIMIT
+      value: $OPENTELEMETRY_COLLECTOR_GOMEMLIMIT
+    - name: OTLP_API_ENDPOINT
+      value: $OPENTELEMETRY_COLLECTOR_OTLP_API_ENDPOINT
+    - name: OTLP_API_TOKEN
+      value: $OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN
+  volumeMounts:
+    - name: collector-config
+      mountPath: /conf
+  volumes:
+    - name: collector-config
+      configMap:
+        name: collector-config
+        items:
+          - key: otel-collector-config
+            path: otel-collector-config.yaml
+        defaultMode: 420
+service:
+  name: opentelemetry-collector-service
+  port: 4318
+ingress:
+  enabled: true
+  className: openshift-default
+  annotations: {}
+  tls: []        
+  hosts:
+    - host: $OPENTELEMETRY_COLLECTOR_INGRESS_HOST
+      paths:
+        - path: /
+          pathType: Prefix 
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+buildConfig:
+  cpuRequest: 200m
+  cpuLimit: 1
+  memRequest: 128Mi
+  memLimit: 256Mi

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.collector.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.collector.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.collector.name }}
+    spec:
+      containers:
+      - name: {{ .Values.collector.name }}
+        command:
+          - /otelcol-k8s
+        args:
+          - {{ toYaml .Values.collector.args | nindent 10 }}
+        image: "{{ .Values.collector.image }}"
+        ports:
+        {{- range .Values.collector.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .port }}
+        {{- end }}
+        env:
+        {{- range .Values.collector.env }}
+        - name: {{ .name }}
+          value: "{{ .value }}"
+        {{- end }}
+        volumeMounts:
+        {{- range .Values.collector.volumeMounts }}
+        - name: {{ .name }}
+          mountPath: "{{ .mountPath }}"
+        {{- end }}
+      volumes:
+      {{- range .Values.collector.volumes }}
+      - name: {{ .name }}
+        configMap:
+          name: "{{ .configMap.name }}"
+      {{- end }}
