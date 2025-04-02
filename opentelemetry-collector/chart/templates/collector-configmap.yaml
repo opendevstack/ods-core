@@ -16,7 +16,7 @@ data:
       otlphttp:
         endpoint: ${OTLP_API_ENDPOINT}
         headers:
-          Authorization: "Api-Token ${OTLP_API_TOKEN}"
+          Authorization: "${OTLP_API_TOKEN}"
 
       debug:
         verbosity: normal

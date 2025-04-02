@@ -1,12 +1,14 @@
-collector:
-  name: opentelemetry-collector
-  image: $OPENTELEMETRY_COLLECTOR_IMAGE
+global:
+  registry: $ODS_REGISTRY
   odsImageTag: $ODS_IMAGE_TAG
   repoBase: $REPO_BASE
   odsBitBucketProject: $ODS_BITBUCKET_PROJECT
   odsGitRef: $ODS_GIT_REF
   odsNamespace: $ODS_NAMESPACE
-  collectorImageTag: $OPENTELEMETRY_COLLECTOR_IMAGE_TAG
+collector:
+  name: opentelemetry-collector
+  image: $OPENTELEMETRY_COLLECTOR_IMAGE
+  imageTag: $OPENTELEMETRY_COLLECTOR_IMAGE_TAG
   args: ["--config=/conf/otel-collector-config.yaml"]
   ports:
     - name: otlp-grpc

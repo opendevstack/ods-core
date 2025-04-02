@@ -18,7 +18,7 @@ spec:
           - /otelcol-k8s
         args:
           - {{ toYaml .Values.collector.args | nindent 10 }}
-        image: "{{ .Values.collector.image }}"
+        image: "{{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.collector.name }}:{{ .Values.global.odsImageTag }}"
         ports:
         {{- range .Values.collector.ports }}
         - name: {{ .name }}

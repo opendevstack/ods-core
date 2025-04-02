@@ -10,7 +10,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: {{ printf "%s:%s" .Values.collector.name .Values.collector.odsImageTag }}
+      name: {{ printf "%s:%s" .Values.collector.name .Values.global.odsImageTag }}
   postCommit: {}
   resources:
     limits:
@@ -23,8 +23,8 @@ spec:
   source:
     contextDir: opentelemetry-collector/docker
     git:
-      uri: {{ .Values.collector.repoBase }}/{{ .Values.collector.odsBitBucketProject }}/ods-core.git
-      ref: {{ .Values.collector.odsGitRef }}
+      uri: {{ .Values.global.repoBase }}/{{ .Values.global.odsBitBucketProject }}/ods-core.git
+      ref: {{ .Values.global.odsGitRef }}
     sourceSecret:
       name: cd-user-token
     type: Git
@@ -33,7 +33,7 @@ spec:
     dockerStrategy:
       from:
         kind: DockerImage
-        name: otel/opentelemetry-collector-k8s:{{ .Values.collector.collectorImageTag }}
+        name: {{ .Values.collector.image }}:{{ .Values.collector.imageTag }}
       forcePull: true
       noCache: true
   successfulBuildsHistoryLimit: 5
