@@ -1,24 +1,14 @@
-apiVersion: template.openshift.io/v1
-kind: Template
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
 metadata:
-  name: networkpolicy-template
-parameters:
-  - name: NAMESPACE
-    description: The namespace to allow ingress from
-    required: true
-    value: "default" # Default value for the namespace
-objects:
-  - kind: NetworkPolicy
-    apiVersion: networking.k8s.io/v1
-    metadata:
-      name: only-allow-namespace-ingress
-    spec:
-      podSelector: {}
-      ingress:
-        - from:
-            - namespaceSelector:
-                matchLabels:
-                  name: "${NAMESPACE}" # Parameterized namespace
-            - podSelector: {}
-      policyTypes:
-        - Ingress
+  name: only-allow-namespace-ingress
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              policy-group.network.openshift.io/ingress: ''
+  policyTypes:
+    - Ingress
