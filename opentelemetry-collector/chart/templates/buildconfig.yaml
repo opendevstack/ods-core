@@ -1,0 +1,39 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: {{ .Values.collector.name }}
+  name: {{ .Values.collector.name }}
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ printf "%s:%s" .Values.collector.name .Values.global.odsImageTag }}
+  postCommit: {}
+  resources:
+    limits:
+      cpu: {{ .Values.buildConfig.cpuLimit }}
+      memory: {{ .Values.buildConfig.memLimit }}
+    requests:
+      cpu: {{ .Values.buildConfig.cpuRequest }}
+      memory: {{ .Values.buildConfig.memRequest }}
+  runPolicy: Serial
+  source:
+    contextDir: opentelemetry-collector/docker
+    git:
+      uri: {{ .Values.global.repoBase }}/{{ .Values.global.odsBitBucketProject }}/ods-core.git
+      ref: {{ .Values.global.odsGitRef }}
+    sourceSecret:
+      name: cd-user-token
+    type: Git
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: {{ .Values.collector.image }}:{{ .Values.collector.imageTag }}
+      forcePull: true
+      noCache: true
+  successfulBuildsHistoryLimit: 5
