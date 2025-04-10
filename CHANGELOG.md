@@ -4,9 +4,30 @@
 
 ### Added
 
+
 ### Changed
 
+
 ### Fixed
+
+
+## [4.8.0] - 2025-4-10
+
+### Added
+
+- Update CODEOWNERS ([#1329](https://github.com/opendevstack/ods-core/issues/1329))
+- Add packages carvel/imgpkg and yg ([#1322](https://github.com/opendevstack/ods-core/issues/1322))
+- Adde mask-passwords and office 365 connector plugins in Jenkins ([#1313](https://github.com/opendevstack/ods-core/issues/1313)) and ([#1316](https://github.com/opendevstack/ods-core/issues/1316))
+- Add package cosign ([#1323](https://github.com/opendevstack/ods-core/issues/1323))
+
+### Changed
+- Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325)) & ([#1332](https://github.com/opendevstack/ods-core/pull/1332))
+- Fix Jenkins pipeline removal issue and update to golang 1.24 ([#1331](https://github.com/opendevstack/ods-core/issues/1331))
+
+### Fixed
+
+- Webhook proxy BC recretion issue ([#1265](https://github.com/opendevstack/ods-core/issues/1265))
+- Fix Go version without 1.N.P syntax ([#1337](https://github.com/opendevstack/ods-core/pull/1337))
 
 ## [4.7.0] - 2025-1-27
 
