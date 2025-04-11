@@ -43,9 +43,6 @@ else
 	echo "PROJECT_ID=${PROJECT_ID}"
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ODS_CORE_DIR=${SCRIPT_DIR%/*}
-
 echo "Create projects ${PROJECT_ID}-cd, ${PROJECT_ID}-dev and ${PROJECT_ID}-test"
 oc new-project "${PROJECT_ID}-cd"
 oc new-project "${PROJECT_ID}-dev"
@@ -68,8 +65,6 @@ oc policy add-role-to-group system:image-puller "system:serviceaccounts:${PROJEC
 echo "Grant serviceaccount 'default' role 'image-builder' to import images from other cluster"
 oc policy add-role-to-user system:image-builder --serviceaccount default -n "${PROJECT_ID}-dev"
 oc policy add-role-to-user system:image-builder --serviceaccount default -n "${PROJECT_ID}-test"
-
-
 
 if [ -n "${PROJECT_GROUPS}" ]; then
   echo "Seeding special permission groups (${PROJECT_GROUPS}) ..."
