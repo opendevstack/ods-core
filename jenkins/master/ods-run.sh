@@ -4,10 +4,15 @@
 # then delegates to the original run script of the base image.
 set -ue
 
+JAVA_INSTALLED_PKGS_LOGS="/tmp/java_installed_pkgs.log"
+
 echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
 rm -rf $HOME/.kube || true
 
-echo "Verifying if Java 17 is installed ..."
+echo "Removing any existing Java package logs ..."
+rm -fv ${JAVA_INSTALLED_PKGS_LOGS}
+
+echo "Verifying if Java is installed ..."
 yum list installed | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
 if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
   echo "Java 17 is installed. Proceeding to remove other versions..."
@@ -38,8 +43,11 @@ if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
 
   echo "Cleaning up yum cache ..."
   yum clean all
+
+  echo "Removing temporary Java package logs ..."
+  rm -fv ${JAVA_INSTALLED_PKGS_LOGS}
 else
-  echo "Java 17 is not installed. Skipping removal of other versions."
+  echo "No Java version is installed. Skipping removal of other versions."
 fi
 
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
