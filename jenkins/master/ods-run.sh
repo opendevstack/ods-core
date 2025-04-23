@@ -7,6 +7,41 @@ set -ue
 echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
 rm -rf $HOME/.kube || true
 
+echo "Verifying if Java 17 is installed ..."
+yum list installed | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
+if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
+  echo "Java 17 is installed. Proceeding to remove other versions..."
+
+  echo "Checking and removing Java 8 if installed ..."
+  if grep -qi "java-1.8" ${JAVA_INSTALLED_PKGS_LOGS}; then
+    echo "Java 8 is installed. Removing..."
+    yum -y remove java-1.8*
+  else
+    echo "Java 8 is not installed. Skipping removal."
+  fi
+
+  echo "Checking and removing Java 11 if installed ..."
+  if grep -qi "java-11" ${JAVA_INSTALLED_PKGS_LOGS}; then
+    echo "Java 11 is installed. Removing..."
+    yum -y remove java-11*
+  else
+    echo "Java 11 is not installed. Skipping removal."
+  fi
+
+  echo "Checking and removing Java 21 if installed ..."
+  if grep -qi "java-21" ${JAVA_INSTALLED_PKGS_LOGS}; then
+    echo "Java 21 is installed. Removing..."
+    yum -y remove java-21*
+  else
+    echo "Java 21 is not installed. Skipping removal."
+  fi
+
+  echo "Cleaning up yum cache ..."
+  yum clean all
+else
+  echo "Java 17 is not installed. Skipping removal of other versions."
+fi
+
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
 if [[ -f $SERVICEACCOUNT_CA ]]; then
