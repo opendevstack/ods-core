@@ -29,5 +29,10 @@ func ReadConfiguration() (map[string]string, error) {
 		}
 	}
 
+	for _, e := range os.Environ() {
+		parts := strings.SplitN(e, "=", 2)
+		values[parts[0]] = parts[1]
+	}
+
 	return values, nil
 }
