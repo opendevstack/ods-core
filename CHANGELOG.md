@@ -7,6 +7,7 @@
 
 ### Changed
 
+- Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
 
 ### Fixed
 

@@ -84,13 +84,15 @@ fi
 
 if [ -n "${PROJECT_GROUPS}" ]; then
   echo "Seeding special permission groups (${PROJECT_GROUPS}) ..."
+
+  cd_usergroup_role="edit-atlassian-team"
+  usergroup_role="edit"
+  admingroup_role="admin"
+  readonlygroup_role="view"
+
   for group in ${PROJECT_GROUPS//,/ }; do
     groupName=$(echo "${group}" | cut -d "=" -f1)
     groupValue=$(echo "${group}" | cut -d "=" -f2)
-
-    usergroup_role="edit"
-    admingroup_role="admin"
-    readonlygroup_role="view"
 
     if [ "${groupValue}" == "" ]; then
       continue
@@ -101,7 +103,7 @@ if [ -n "${PROJECT_GROUPS}" ]; then
     if [[ "${groupName}" == *USERGROUP* ]]; then
       oc policy add-role-to-group "${usergroup_role}" "${groupValue}" -n "${PROJECT_ID}-dev"
       oc policy add-role-to-group "${usergroup_role}" "${groupValue}" -n "${PROJECT_ID}-test"
-      oc policy add-role-to-group "${usergroup_role}" "${groupValue}" -n "${PROJECT_ID}-cd"
+      oc policy add-role-to-group "${cd_usergroup_role}" "${groupValue}" -n "${PROJECT_ID}-cd"
     elif [[ "${groupName}" == *ADMINGROUP* ]]; then
       oc policy add-role-to-group "${admingroup_role}" "${groupValue}" -n "${PROJECT_ID}-dev"
       oc policy add-role-to-group "${admingroup_role}" "${groupValue}" -n "${PROJECT_ID}-test"
