@@ -31,10 +31,14 @@ spec:
                 source:
                   persistentVolumeClaimName: {{ .Values.global.appName }}-data
               EOF
-              # Cleanup snapshots older than 30 days
+              # Cleanup snapshots older than the TTL
               oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
-                --no-headers | awk '$5 < strftime("%Y-%m-%dT%H:%M:%SZ", systime() - {{ .Values.global.nexusSnapshotTTL }} ) { print $1 }' | \
-                xargs -r oc delete volumesnapshot --namespace {{ .Values.global.odsNamespace }}
+                --no-headers -o custom-columns=NAME:.metadata.name,CREATED:.metadata.creationTimestamp | \
+                while read name created; do
+                  if [[ $(date -d "$created" +%s) -lt $(date -d "-{{ .Values.global.nexusSnapshotTTL }} seconds" +%s) ]]; then
+                    oc delete volumesnapshot "$name" --namespace {{ .Values.global.odsNamespace }}
+                  fi
+                done
             resources: {}
             imagePullPolicy: IfNotPresent
           restartPolicy: OnFailure
