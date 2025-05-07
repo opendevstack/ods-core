@@ -14,10 +14,10 @@ global:
   openshiftAppDomain: $OPENSHIFT_APPS_BASEDOMAIN
   nexusDockerGroup: 'docker-group'
   nexusJvmParams: $NEXUS_JVM_PARAMS
-  nexusSnapshotSchedule: $NEXUS_SNAPSHOT_SCHEDULE # Cron schedule for the snapshot
-  nexusPvcName: $NEXUS_PVC_NAME # Name of the PVC to snapshot
-  nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP # Snapshot class to use
-  nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL # Time-to-live for completed jobs in seconds
+  nexusSnapshotSchedule: $NEXUS_SNAPSHOT_SCHEDULE
+  nexusPvcName: $NEXUS_PVC_NAM
+  nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP
+  nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL
 nexus:
   cpuRequest: $NEXUS_CPU_REQUEST
   cpuLimit: $NEXUS_CPU_LIMIT
