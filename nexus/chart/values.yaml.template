@@ -24,7 +24,6 @@ nexus:
   memRequest: $NEXUS_MEMORY_REQUEST
   memLimit: $NEXUS_MEMORY_LIMIT
   pvcDataCapacity: $NEXUS_DATA_CAPACITY
-  pvcDataBackupCapacity: $NEXUS_DATA_BACKUP_CAPACITY
 buildConfig:
   cpuRequest: 200m
   cpuLimit: 1
