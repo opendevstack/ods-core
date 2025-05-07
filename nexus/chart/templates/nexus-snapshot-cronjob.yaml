@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nexus-volume-snapshot
+  labels:
+    app: nexus
+spec:
+  schedule: "{{ .Values.global.nexusSnapshotSchedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.global.nexusSnapshotTTL }}
+      template:
+        spec:
+          serviceAccountName: jenkins        
+          containers:
+          - name: snapshot-creator
+            image: image-registry.openshift-image-registry.svc:5000/openshift/ose-cli:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              cat <<EOF | oc apply -f -
+              apiVersion: snapshot.storage.k8s.io/v1
+              kind: VolumeSnapshot
+              metadata:
+                name: {{ .Values.global.appName }}-snapshot.$(date +%Y-%m-%d.%H-%M-%S)
+                namespace: {{ .Values.global.odsNamespace }}
+              spec:
+                volumeSnapshotClassName: {{ .Values.global.nexusSnapshotClass }}
+                source:
+                  persistentVolumeClaimName: {{ .Values.global.appName }}-data
+              EOF
+              # Cleanup snapshots older than 30 days
+              oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
+                --no-headers | awk '$5 < strftime("%Y-%m-%dT%H:%M:%SZ", systime() - {{ .Values.global.nexusSnapshotTTL }} ) { print $1 }' | \
+                xargs -r oc delete volumesnapshot --namespace {{ .Values.global.odsNamespace }}
+            resources: {}
+            imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 30

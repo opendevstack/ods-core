@@ -6,14 +6,18 @@ global:
   odsNamespace: $ODS_NAMESPACE
   nexusImageTag: $NEXUS_IMAGE_TAG
   appName: 'nexus'
-  storageProvisioner: $STORAGE_PROVISIONER
-  storageClassData: $STORAGE_CLASS_DATA
+  storageProvisioner: $NEXUS_STORAGE_PROVISIONER
+  storageClassData: $NEXUS_STORAGE_CLASS_DATA
   nexusHost: $NEXUS_HOST
   nexusAdminPasswordB64: $NEXUS_ADMIN_PASSWORD_B64
   registry: $DOCKER_REGISTRY
   openshiftAppDomain: $OPENSHIFT_APPS_BASEDOMAIN
   nexusDockerGroup: 'docker-group'
   nexusJvmParams: $NEXUS_JVM_PARAMS
+  nexusSnapshotSchedule: $NEXUS_SNAPSHOT_SCHEDULE # Cron schedule for the snapshot
+  nexusPvcName: $NEXUS_PVC_NAME # Name of the PVC to snapshot
+  nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP # Snapshot class to use
+  nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL # Time-to-live for completed jobs in seconds
 nexus:
   cpuRequest: $NEXUS_CPU_REQUEST
   cpuLimit: $NEXUS_CPU_LIMIT
