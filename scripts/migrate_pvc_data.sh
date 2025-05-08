@@ -50,14 +50,14 @@ spec:
   containers:
   - name: rsync-container
     image: image-registry.openshift-image-registry.svc:5000/openshift/tools
-    command: ["/bin/sh", "-c", "rsync -avh /tmp/source/ /tmp/target/ > /tmp/target/rsync.log 2>&1 && while true; do sleep 3600; done"]
+    command: ["/bin/sh", "-c", "rsync -avh --omit-dir-times /tmp/source/ /tmp/target/ > /tmp/target/rsync.log 2>&1 && while true; do sleep 3600; done"]
     resources:
       requests:
-        memory: "512Mi"
+        memory: "2Gi"
         cpu: "250m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "2Gi"
+        cpu: '2'
     volumeMounts:
     - name: source-pvc
       mountPath: /tmp/source
