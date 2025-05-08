@@ -6,6 +6,7 @@
 
 
 ### Changed
+- Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
 
 
 ### Fixed
