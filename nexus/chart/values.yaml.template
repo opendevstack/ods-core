@@ -15,7 +15,6 @@ global:
   nexusDockerGroup: 'docker-group'
   nexusJvmParams: $NEXUS_JVM_PARAMS
   nexusSnapshotSchedule: $NEXUS_SNAPSHOT_SCHEDULE
-  nexusPvcName: $NEXUS_PVC_NAM
   nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP
   nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL
 nexus:
