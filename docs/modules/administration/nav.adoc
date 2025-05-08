@@ -2,6 +2,7 @@
 ** xref:administration:installation.adoc[Installation]
 ** Upgrade
 *** xref:administration:helm-migration.adoc[Helm migration]
+*** xref:administration:pvc-migration.adoc[PVC Migration]
 *** xref:administration:update-2-to-3.adoc[2.x to 3.x]
 *** xref:administration:update-older.adoc[older]
 ** xref:provisioning-app:configuration.adoc[Provisioning App]
