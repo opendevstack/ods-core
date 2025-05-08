@@ -12,7 +12,7 @@ spec:
       ttlSecondsAfterFinished: {{ .Values.global.nexusSnapshotTTL }}
       template:
         spec:
-          serviceAccountName: jenkins        
+          serviceAccountName: ods-edit
           containers:
           - name: snapshot-creator
             image: image-registry.openshift-image-registry.svc:5000/openshift/ose-cli:latest
