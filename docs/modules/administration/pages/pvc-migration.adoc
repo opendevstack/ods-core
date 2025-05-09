@@ -1,0 +1,28 @@
+= PVC Migration
+
+This document describes the process to migrate data from one Persistent Volume Claim (PVC) to another within the OpenShift cluster.
+
+== Prerequisites
+
+- Ensure the source and target PVCs exist in the desired namespace.
+- Have access to the `ods-core` repository.
+
+== Migration Process
+
+To migrate data between PVCs, follow these steps:
+
+1. Navigate to the `ods-core` repository.
+2. Run the following command:
+
+[source,sh]
+----
+make migrate-pvc-data SOURCE_PVC=<source-pvc-name> TARGET_PVC=<target-pvc-name>
+----
+
+Replace `<source-pvc-name>`, and `<target-pvc-name>` with the appropriate values for your environment.
+
+== Details
+
+- The migration process creates a temporary pod that uses `rsync` to copy data from the source PVC to the target PVC.
+- Logs of the migration are stored in `/tmp/target/rsync.log` within the target PVC.
+- After the migration, verify the data integrity and delete the temporary pod if necessary.

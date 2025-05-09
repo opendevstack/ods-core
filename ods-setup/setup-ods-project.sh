@@ -55,6 +55,15 @@ fi
 # Allow system:authenticated group to view resources in central namespace
 oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
 
+# Create ods-edit service account and grant edit permissions
+if ! oc get serviceaccount ods-edit -n ${NAMESPACE} > /dev/null 2>&1; then
+  echo "Creating service account 'ods-edit' ..."
+  oc create serviceaccount ods-edit -n ${NAMESPACE}
+  oc adm policy add-role-to-user edit system:serviceaccount:${NAMESPACE}:ods-edit -n ${NAMESPACE}
+else
+  echo "Service account 'ods-edit' already exists"
+fi
+
 # Allow system:authenticated group to pull images from central namespace
 if ! oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}; then
   echo "You might not have enough rights to assign 'system:image-puller' to 'system:authenticated'."
