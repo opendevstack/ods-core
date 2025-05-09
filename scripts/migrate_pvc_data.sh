@@ -50,7 +50,7 @@ spec:
   containers:
   - name: rsync-container
     image: image-registry.openshift-image-registry.svc:5000/openshift/tools
-    command: ["/bin/sh", "-c", "rsync -avh --omit-dir-times /tmp/source/ /tmp/target/ > /tmp/target/rsync.log 2>&1 && while true; do sleep 3600; done"]
+    command: ["/bin/sh", "-c", "time rsync -avh --omit-dir-times --stats --human-readable --info=progress2 --partial --ignore-errors /tmp/source/ /tmp/target/; while true; do sleep 3600; done"]
     resources:
       requests:
         memory: "2Gi"
@@ -76,4 +76,5 @@ EOF
 echo "Waiting for the migration pod to be ready..."
 oc wait --for=condition=Ready pod/pvc-migration-pod -n "$NAMESPACE" --timeout=300s || echo "Warning: Pod did not become ready in time."
 
-echo "Starting migration from $SOURCE_PVC to $TARGET_PVC, logging to /tmp/target/rsync.log"
+echo "Starting migration from $SOURCE_PVC to $TARGET_PVC."
+echo "Note: Remember to remove the migration pod once the process is complete."
