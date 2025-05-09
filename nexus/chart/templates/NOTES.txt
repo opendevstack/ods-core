@@ -1,1 +1,19 @@
-OpenDevStack Nexus OSS edition on version {{ .Values.global.nexusImageTag }} released with Helm!
+Thank you for installing the OpenDevStack Nexus OSS Helm chart!
+
+Nexus Repository Manager has been deployed.
+
+Access Nexus UI:
+  URL: https://{{ .Values.global.nexusHost }}
+
+Docker Registry Endpoint:
+  URL: https://{{ .Values.global.nexusDockerGroup }}-{{ .Values.global.odsNamespace }}{{ .Values.global.openshiftAppDomain}}
+
+Nexus Version: {{ .Values.global.nexusImageTag }}
+
+Persistent Data:
+  - Nexus data is stored in the PVC '{{ .Values.global.appName }}-data'
+
+For more information, visit:
+  - Sonatype Nexus Repository OSS: https://help.sonatype.com/en/ce-onboarding.html
+  - OpenDevStack: https://www.opendevstack.org/ods-documentation/opendevstack/latest/nexus/administration.html
+  - Community Support: https://community.sonatype.com/
