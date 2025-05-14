@@ -179,6 +179,13 @@ backup-sonarqube:
 .PHONY: backup-sonarqube
 
 
+# PVC MIGRATION
+## Migrate data from one PVC to another.
+migrate-pvc-data:
+	./scripts/migrate_pvc_data.sh --source-pvc $(SOURCE_PVC) --target-pvc $(TARGET_PVC) --namespace $(ODS_NAMESPACE)
+.PHONY: migrate-pvc-data
+
+
 ### HELP
 ### Based on https://gist.github.com/prwhite/8168133#gistcomment-2278355.
 help:
