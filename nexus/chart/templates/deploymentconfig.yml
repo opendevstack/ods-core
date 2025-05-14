@@ -37,7 +37,7 @@ spec:
       volumes:
         - name: {{ .Values.global.appName }}-data
           persistentVolumeClaim:
-            claimName: {{ .Values.global.appName }}-data
+            claimName: {{ .Values.global.nexusStorageName }}
       containers:
         - resources:
             limits:

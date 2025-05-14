@@ -29,7 +29,7 @@ spec:
               spec:
                 volumeSnapshotClassName: {{ .Values.global.nexusSnapshotClass }}
                 source:
-                  persistentVolumeClaimName: {{ .Values.global.appName }}-data
+                  persistentVolumeClaimName: {{ .Values.global.nexusStorageName }}
               EOF
               # Cleanup snapshots older than the TTL
               oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
