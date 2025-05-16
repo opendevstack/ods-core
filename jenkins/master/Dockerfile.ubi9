@@ -15,7 +15,7 @@ ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true
 USER root
 
 # Add UBI repositories.
-COPY yum.repos.d/ubi8.repo /etc/yum.repos.d/ubi.repo
+COPY yum.repos.d/ubi9.repo /etc/yum.repos.d/ubi.repo
 
 COPY ./scripts_for_usr-local-bin/* /usr/local/bin/
 RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
