@@ -40,6 +40,7 @@
 - Update SonarQube to 10.8 non LTS ([#1310](https://github.com/opendevstack/ods-core/pull/1310))
 - Update Nexus to version 3.70.3 ([#1298](https://github.com/opendevstack/ods-core/pull/1308))
 - Jenkins maintenance ([#1299](https://github.com/opendevstack/ods-core/pull/1299)) and update java version in Jenkins ([#1295](https://github.com/opendevstack/ods-core/issues/1295))
+- Update and fix golden tests ([#1233](https://github.com/opendevstack/ods-core/issues/1233))
 
 ### Fixed
 

@@ -7,8 +7,16 @@ MAKEFLAGS += --no-builtin-rules
 ### By default we test all quickstarters located in ods-quickstarters
 QS := ods-quickstarters/...
 
+# Load environment variables from .env file
+include ../../ods-configuration/ods-core.env
+export $(shell sed 's/=.*//' ../../ods-configuration/ods-core.env)
+
 ### By default we do not parallelize tests
 PARALLEL := 1
+PROJECT := unitt
+SONAR_PROFILE := "Sonar way"
+QUICKSTARTER_REPOSITORY := ods-quickstarters
+configurationRef := master
 
 ## Full test of existing ODS core installation. Caution: Creates UNITT project and ODSVERIFY project.
 test: smoketest verify test-create-projects
@@ -33,21 +41,28 @@ test-create-projects:
 	@(./create-projects-test.sh)
 .PHONY: test-create-projects
 
-## Run quickstarter tests within existing ODS installation. Depends on UNITT project.
+## Create Jenkins pipeline using REST API
+jenkins-pipeline:
+	@(envsubst < jenkinsPipelineCreation.sh)
+	@(./jenkinsPipelineCreation.sh -p $(PROJECT) -q $(QUICKSTARTER_REPOSITORY) -s $(SONAR_PROFILE) -c $(configurationRef))
+.PHONY: jenkins-pipeline
+
+## Run quickstarter tests within existing ODS installation. Depends on UNITT project (default).
 test-quickstarter:
-	@(./quickstarter-test.sh $(QS) $(PARALLEL))
+	@(./quickstarter-test.sh -p $(PROJECT) -q $(QS) -pa $(PARALLEL))
 .PHONY: test-quickstarter
 
 ## Install tools required for tests.
 prep-tools:
 	which go-junit-report || go get github.com/jstemmer/go-junit-report
+	which golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.60.1
 .PHONY: prep-tools
 
 ## Lint
 lint:
 	echo "Checking code ..."
 	golangci-lint --version
-	golangci-lint run --go=1.18
+	golangci-lint run --go=1.23
 .PHONY: lint
 
 ### HELP
