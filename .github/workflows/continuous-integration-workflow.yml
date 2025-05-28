@@ -12,7 +12,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
         name: Build UBI8 docker image
         run: |
@@ -27,7 +27,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       - name: Build UBI8 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
@@ -51,12 +51,12 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        version: ['9.9.4'] # 9.9 = LTS
-        edition: ['community', 'developer', 'enterprise']
+        version: ['10.8.0'] # 9.9 = LTS
+        edition: ['developer', 'enterprise']
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
         name: Check shell scripts
         run: |
@@ -72,7 +72,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
         name: Check shell scripts
         run: |
@@ -88,12 +88,12 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
-        name: Setup Go 1.18
+        name: Setup Go 1.24
         uses: actions/setup-go@v5
         with:
-          go-version: 1.18
+          go-version: 1.24
       -
         name: Download goimports
         run: |
@@ -102,7 +102,7 @@ jobs:
         name: Download golangci-lint
         run: |
           curl -sSfL --output /tmp/golangci-lint.sh https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
-          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
+          cat /tmp/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.7
       -
         name: Run linter
         working-directory: jenkins/webhook-proxy
@@ -128,7 +128,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
           name: Check shell scripts
           run: |
@@ -145,7 +145,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       -
         name: Check jsl expectations
         run: |
@@ -163,7 +163,7 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.2.2
       - 
         name: Setup Go 1.18
         uses: actions/setup-go@v5
@@ -207,7 +207,7 @@ jobs:
 #       run: jq . <<< "${GITHUB_CONTEXT}"
 #     -
 #       name: Checkout repository
-#       uses: actions/checkout@v4.1.6
+#       uses: actions/checkout@v4.2.2
 #       with:
 #         fetch-depth: 0
 #         path: 'ods-core'

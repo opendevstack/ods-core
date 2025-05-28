@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nexus-volume-snapshot
+  labels:
+    app: nexus
+spec:
+  schedule: "{{ .Values.global.nexusSnapshotSchedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.global.nexusSnapshotTTL }}
+      template:
+        spec:
+          serviceAccountName: ods-edit
+          containers:
+          - name: snapshot-creator
+            image: image-registry.openshift-image-registry.svc:5000/openshift/ose-cli:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              cat <<EOF | oc apply -f -
+              apiVersion: snapshot.storage.k8s.io/v1
+              kind: VolumeSnapshot
+              metadata:
+                name: {{ .Values.global.appName }}-snapshot.$(date +%Y-%m-%d.%H-%M-%S)
+                namespace: {{ .Values.global.odsNamespace }}
+              spec:
+                volumeSnapshotClassName: {{ .Values.global.nexusSnapshotClass }}
+                source:
+                  persistentVolumeClaimName: {{ .Values.global.nexusStorageName }}
+              EOF
+              # Cleanup snapshots older than the TTL
+              oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
+                --no-headers -o custom-columns=NAME:.metadata.name,CREATED:.metadata.creationTimestamp | \
+                while read name created; do
+                  if [[ $(date -d "$created" +%s) -lt $(date -d "-{{ .Values.global.nexusSnapshotTTL }} seconds" +%s) ]]; then
+                    oc delete volumesnapshot "$name" --namespace {{ .Values.global.odsNamespace }}
+                  fi
+                done
+            resources: {}
+            imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 30

@@ -267,18 +267,6 @@ objects:
     name: '${JENKINS_SERVICE_NAME}'
     labels:
       template: ods-jenkins-template
-- apiVersion: authorization.openshift.io/v1
-  kind: RoleBinding
-  metadata:
-    name: '${JENKINS_SERVICE_NAME}_edit'
-    labels:
-      template: ods-jenkins-template
-  roleRef:
-    name: edit
-  subjects:
-    - kind: ServiceAccount
-      name: '${JENKINS_SERVICE_NAME}'
-      namespace: '${TAILOR_NAMESPACE}'
 - apiVersion: v1
   kind: Service
   metadata:
