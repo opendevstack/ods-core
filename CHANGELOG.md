@@ -7,7 +7,7 @@
 
 ### Changed
 - Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
-
+- Update SonarQube and use local image for database ([#1343](https://github.com/opendevstack/ods-core/pull/1343))
 - Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
 
 ### Fixed
