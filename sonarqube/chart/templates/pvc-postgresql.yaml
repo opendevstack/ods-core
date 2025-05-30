@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     volume.beta.kubernetes.io/storage-provisioner: {{ .Values.global.storageProvisioner }}
+    helm.sh/resource-policy: keep
   finalizers:
   - kubernetes.io/pvc-protection
   labels:
