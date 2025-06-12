@@ -10,6 +10,8 @@
 
 - Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
 
+- Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
+
 ### Fixed
 
 
