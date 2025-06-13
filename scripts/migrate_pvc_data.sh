@@ -29,8 +29,6 @@ while [[ "$#" -gt 0 ]]; do
     -p=*|--threads=*) THREADS="${1#*=}" ;;
     -c|--cpu) CPU_REQUEST="$2"; shift ;;
     -c=*|--cpu=*) CPU_REQUEST="${1#*=}" ;;
-    --cpu) CPU_REQUEST="$2"; shift ;;
-    --cpu=*) CPU_REQUEST="${1#*=}" ;;
     *) echo "Unknown parameter passed: $1"; usage; exit 1 ;;
   esac
   shift
