@@ -7,10 +7,9 @@
 
 ### Changed
 - Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
-
 - Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
-
 - Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
+- Update PVC migration script, adding threads to rsync execution ([#1345](https://github.com/opendevstack/ods-core/pull/1345))
 
 ### Fixed
 
