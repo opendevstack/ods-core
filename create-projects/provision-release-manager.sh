@@ -247,7 +247,7 @@ generate_provision_repo_post_data()
     "value" : "$PACKAGE_NAME"
   }, {
     "name" : "ODS_NAMESPACE",
-    "value" : "$ODS_ODS_NAMESPACE"
+    "value" : "$ODS_NAMESPACE"
   }, {
     "name" : "ODS_BITBUCKET_PROJECT",
     "value" : "$ODS_BITBUCKET_PROJECT"
