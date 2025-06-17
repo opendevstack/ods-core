@@ -11,7 +11,8 @@ usage() {
   printf "\t-t|--target-pvc\t\tName of the target PVC\n"
   printf "\t-n|--namespace\t\tNamespace where the PVCs are located\n"
   printf "\t-p|--threads\t\tNumber of parallel threads (default: 5)\n"
-  printf "\t-c|--cpu\t\tNumber of CPU cores to request (default: 1)\n"
+  printf "\t-c|--cpu\t\tNumber of CPU cores to request in cores (default: 1)\n"
+  printf "\t-m|--memory\tMemory request and limit in Gigabytes (default: 2)\n"
 }
 
 # Parse arguments
@@ -29,14 +30,17 @@ while [[ "$#" -gt 0 ]]; do
     -p=*|--threads=*) THREADS="${1#*=}" ;;
     -c|--cpu) CPU_REQUEST="$2"; shift ;;
     -c=*|--cpu=*) CPU_REQUEST="${1#*=}" ;;
+    -m|--memory) MEMORY="$2"; shift ;;
+    -m=*|--memory=*) MEMORY="${1#*=}" ;;
     *) echo "Unknown parameter passed: $1"; usage; exit 1 ;;
   esac
   shift
 done
 
-# Set default threads and cpu if not provided
+# Set default threads, cpu, and memory if not provided
 THREADS="${THREADS:-5}"
 CPU_REQUEST="${CPU_REQUEST:-1}"
+MEMORY="${MEMORY:-2}"
 
 # Calculate CPU limit (always 2 more than request)
 CPU_LIMIT=$((CPU_REQUEST + 2))
@@ -80,10 +84,10 @@ spec:
         while true; do sleep 3600; done
     resources:
       requests:
-        memory: "2Gi"
+        memory: "${MEMORY}Gi"
         cpu: "${CPU_REQUEST}"
       limits:
-        memory: "2Gi"
+        memory: "${MEMORY}Gi"
         cpu: '${CPU_LIMIT}'
     volumeMounts:
     - name: source-pvc
