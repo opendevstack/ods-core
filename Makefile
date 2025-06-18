@@ -180,9 +180,9 @@ backup-sonarqube:
 
 
 # PVC MIGRATION
-## Migrate data from one PVC to another. Options: SOURCE_PVC, TARGET_PVC, THREADS (default: 5), CPU_REQUEST (default: 1)
+## Migrate data from one PVC to another. Options: SOURCE_PVC, TARGET_PVC, THREADS (default: 5), CPU_REQUEST (default: 1), MEMORY (default: 2)
 migrate-pvc-data:
-	./scripts/migrate_pvc_data.sh --source-pvc $(SOURCE_PVC) --target-pvc $(TARGET_PVC) --namespace $(ODS_NAMESPACE) --threads $(THREADS) --cpu $(CPU_REQUEST)
+	./scripts/migrate_pvc_data.sh --source-pvc $(SOURCE_PVC) --target-pvc $(TARGET_PVC) --namespace $(ODS_NAMESPACE) --threads $(THREADS) --cpu $(CPU_REQUEST) --memory $(MEMORY)
 .PHONY: migrate-pvc-data
 
 

@@ -16,15 +16,16 @@ To migrate data between PVCs, follow these steps:
 
 [source,sh]
 ----
-make migrate-pvc-data SOURCE_PVC=<source-pvc-name> TARGET_PVC=<target-pvc-name> [THREADS=<num-threads>] [CPU_REQUEST=<num-cpu>]
+make migrate-pvc-data SOURCE_PVC=<source-pvc-name> TARGET_PVC=<target-pvc-name> [THREADS=<num-threads>] [CPU_REQUEST=<num-cpu>] [MEMORY=<memory-in-gb>]
 ----
 
-Replace `<source-pvc-name>`, `<target-pvc-name>`, `<num-threads>`, and `<num-cpu>` with the appropriate values for your environment.
+Replace `<source-pvc-name>`, `<target-pvc-name>`, `<num-threads>`, `<num-cpu>`, and `<memory-in-gb>` with the appropriate values for your environment.
 - `THREADS` (optional): Number of parallel threads to use for migration (default: 5).
 - `CPU_REQUEST` (optional): Number of CPU cores to request for the migration pod (default: 1).
+- `MEMORY` (optional): Memory request and limit in Gigabytes for the migration pod (default: 2).
 
 == Details
 
 - The migration process creates a temporary pod that uses parallelized `rsync` to copy data from the source PVC to the target PVC.
-- You can control the number of parallel threads and CPU resources via the `THREADS` and `CPU_REQUEST` options.
+- You can control the number of parallel threads and CPU/memory resources via the `THREADS`, `CPU_REQUEST`, and `MEMORY` options.
 - After the migration, verify the data integrity and delete the temporary pod.
