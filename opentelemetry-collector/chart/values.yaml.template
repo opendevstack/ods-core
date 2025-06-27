@@ -35,8 +35,7 @@ collector:
       value: $OPENTELEMETRY_COLLECTOR_GOMEMLIMIT
     - name: OTLP_API_ENDPOINT
       value: $OPENTELEMETRY_COLLECTOR_OTLP_API_ENDPOINT
-    - name: OTLP_API_TOKEN
-      value: $OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN
+  secretValue: $OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN
   volumeMounts:
     - name: collector-config
       mountPath: /conf

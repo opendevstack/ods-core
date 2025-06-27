@@ -26,9 +26,16 @@ spec:
         {{- end }}
         env:
         {{- range .Values.collector.env }}
+        {{- if ne .name "OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN" }}
         - name: {{ .name }}
           value: "{{ .value }}"
         {{- end }}
+        {{- end }}
+        - name: OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.collector.name }}-secret
+              key: otlp-api-token
         volumeMounts:
         {{- range .Values.collector.volumeMounts }}
         - name: {{ .name }}
