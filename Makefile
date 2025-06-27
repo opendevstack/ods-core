@@ -165,7 +165,7 @@ configure-nexus:
 
 # OPENTELEMETRY COLLECTOR
 ## Install or update Opentelemetry Collector.
-install-nexus: apply-opentelemetry-collector-chart start-opentelemetry-collector-build
+install-opentelemetry-collector: apply-opentelemetry-collector-chart start-opentelemetry-collector-build
 .PHONY: opentelemetry-collector
 
 ## Apply OpenShift resources related to the Opentelemetry Collector.
