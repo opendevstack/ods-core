@@ -1,5 +1,5 @@
 global:
-  registry: $ODS_REGISTRY
+  registry: $DOCKER_REGISTRY
   odsImageTag: $ODS_IMAGE_TAG
   repoBase: $REPO_BASE
   odsBitBucketProject: $ODS_BITBUCKET_PROJECT
@@ -48,6 +48,13 @@ collector:
           - key: otel-collector-config
             path: otel-collector-config.yaml
         defaultMode: 420
+  resources:
+    requests:
+      cpu: $OPENTELEMETRY_COLLECTOR_CPU_REQUEST
+      memory: $OPENTELEMETRY_COLLECTOR_MEMORY_REQUEST
+    limits:
+      cpu: $OPENTELEMETRY_COLLECTOR_CPU_LIMIT
+      memory: $OPENTELEMETRY_COLLECTOR_MEMORY_LIMIT
 service:
   name: opentelemetry-collector-service
   port: 4318

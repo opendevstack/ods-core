@@ -34,6 +34,13 @@ spec:
         - name: {{ .name }}
           mountPath: "{{ .mountPath }}"
         {{- end }}
+        resources:
+          requests:
+            cpu: {{ .Values.collector.resources.requests.cpu | quote }}
+            memory: {{ .Values.collector.resources.requests.memory | quote }}
+          limits:
+            cpu: {{ .Values.collector.resources.limits.cpu | quote }}
+            memory: {{ .Values.collector.resources.limits.memory | quote }}
       volumes:
       {{- range .Values.collector.volumes }}
       - name: {{ .name }}
