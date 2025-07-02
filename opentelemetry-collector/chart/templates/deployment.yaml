@@ -31,7 +31,7 @@ spec:
           value: "{{ .value }}"
         {{- end }}
         {{- end }}
-        - name: OPENTELEMETRY_COLLECTOR_OTLP_API_TOKEN
+        - name: OTLP_API_TOKEN
           valueFrom:
             secretKeyRef:
               name: {{ .Values.collector.name }}-secret
