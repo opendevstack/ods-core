@@ -260,22 +260,26 @@ generate_provision_repo_post_data()
   } ],
   "branch" : "$BRANCH",
   "repository" : "ods-quickstarters",
-  "project" : "$PROJECT_KEY",
+  "project" : "$ODS_BITBUCKET_PROJECT",
   "url" : "$WEBHOOK_ENDPOINT"
 }
 }
 EOF
 }
 
+echo
 echo "Calling the repository creation script"
 sh ./create-bitbucket-repository.sh -k $PROJECT_KEY -n $REPO_NAME -b $BITBUCKET_URL -u $BASIC_AUTH_USER -p $BASIC_AUTH_PWD -ag $ADMIN_GROUP -ug $USER_GROUP
 
+echo
+echo
 echo "Provision release manager repository ${REPO_NAME} for project ${PROJECT_KEY} through Webhook Proxy ${WEBHOOK_ENDPOINT}"
+echo
+echo "With post data: $(generate_provision_repo_post_data)"
+echo
+
 curl --silent \
     --header 'Accept: application/json' \
     --header 'Content-Type: application/json' \
     --url "${WEBHOOK_ENDPOINT}" \
     --data "$(generate_provision_repo_post_data)"
-
-
-
