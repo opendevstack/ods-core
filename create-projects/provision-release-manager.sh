@@ -10,7 +10,7 @@ function usage {
   printf "\t-bu|--bitbucket_url\tBitbucket Url\n"
   printf "\t-w|--webhook_proxy_url\tWebhook Proxy Url\n"
   printf "\t-c|--component_id\tComponent Id\n"
-  printf "\t-b|--brach\tBranch\n"
+  printf "\t-b|--branch\tBranch\n"
   printf "\t-u|--username\tUsername\n"
   printf "\t-p|--password\tPassword\n"
   printf "\t-sh|--git_url_ssh\tGit Url SSH\n"
@@ -45,8 +45,8 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   -c=*|--component_id=*) COMPONENT_ID="${1#*=}";;
   -c|--component_id)     COMPONENT_ID="$2"; shift;;
 
-  -b=*|--brach=*) BRANCH="${1#*=}";;
-  -b|--brach)     BRANCH="$2"; shift;;
+  -b=*|--branch=*) BRANCH="${1#*=}";;
+  -b|--branch)     BRANCH="$2"; shift;;
 
   -u=*|--username=*) BASIC_AUTH_USER="${1#*=}";;
   -u|--username)     BASIC_AUTH_USER="$2"; shift;;
