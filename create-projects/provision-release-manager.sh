@@ -269,7 +269,7 @@ EOF
 
 echo
 echo "Calling the repository creation script"
-sh ./create-bitbucket-repository.sh -k $PROJECT_KEY -n $REPO_NAME -b $BITBUCKET_URL -u $BASIC_AUTH_USER -p $BASIC_AUTH_PWD -ag $ADMIN_GROUP -ug $USER_GROUP
+sh ./create-projects/create-bitbucket-repository.sh -k $PROJECT_KEY -n $REPO_NAME -b $BITBUCKET_URL -u $BASIC_AUTH_USER -p $BASIC_AUTH_PWD -ag $ADMIN_GROUP -ug $USER_GROUP
 
 echo
 echo
