@@ -112,7 +112,7 @@ podTemplate(
               --trigger_secret ${pipelineTriggerSecret} \
               --project_key ${projectId} \
               --webhook_proxy_url ${env.JENKINS_URL.replace('jenkins-ods', 'webhook-proxy-ods').replaceAll('/$', '')} \
-              --component_id ${projectId.toLowerCase()}-releasemanager \
+              --component_id releasemanager \
               --branch ${odsGitRef} \
               --git_url_ssh ssh://git@${bitbucketUrl.replaceFirst(/^https?:\/\//, '')}:7999/${projectId.toLowerCase()}/${projectId.toLowerCase()}-releasemanager.git \
               --git_url_http ${bitbucketUrl}/scm/${projectId.toLowerCase()}/${projectId.toLowerCase()}-releasemanager.git \
@@ -125,7 +125,7 @@ podTemplate(
               --bitbucket_url ${bitbucketUrl} \
               --username ${username} \
               --password ${password} \
-              --admin_group BI-AS-ATLASSIAN-P-${projectId.toUpperCase()}-MANAGER} \
+              --admin_group BI-AS-ATLASSIAN-P-${projectId.toUpperCase()}-MANAGER \
               --user_group BI-AS-ATLASSIAN-P-${projectId.toUpperCase()}-TEAM""",
             label: 'Auto provision releasemanager component'
           )    
