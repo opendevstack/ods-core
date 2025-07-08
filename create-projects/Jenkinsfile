@@ -106,10 +106,14 @@ podTemplate(
     stage('Auto provision releasemanager component') {
       dir('ods-core') {
         def credentialsId = "${odsNamespace}-cd-user-with-password"
+        def odsPipelineTriggerSecret = sh(
+          script: "grep '^PIPELINE_TRIGGER_SECRET=' ../ods-configuration/ods-core.env | cut -d'=' -f2",
+          returnStdout: true
+        ).trim()
         withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
           sh(
-            script: """./create-projects/provision-release-manager.sh \
-              --trigger_secret ${pipelineTriggerSecret} \
+            script: """./create-projects/provision-release-manager.sh --verbose \
+              --trigger_secret ${odsPipelineTriggerSecret} \
               --project_key ${projectId} \
               --webhook_proxy_url ${env.JENKINS_URL.replace('jenkins-ods', 'webhook-proxy-ods').replaceAll('/$', '')} \
               --component_id releasemanager \
