@@ -108,7 +108,7 @@ podTemplate(
         def credentialsId = "${odsNamespace}-cd-user-with-password"
         withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
           sh(
-            script: """./create-projects/provision-release-manager.sh --verbose \
+            script: """./create-projects/provision-release-manager.sh \
               --trigger_secret ${pipelineTriggerSecret} \
               --project_key ${projectId} \
               --webhook_proxy_url ${env.JENKINS_URL.replace('jenkins-ods', 'webhook-proxy-ods').replaceAll('/$', '')} \
