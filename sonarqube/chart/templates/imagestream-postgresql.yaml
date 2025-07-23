@@ -1,0 +1,9 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}-postgresql
+spec:
+  lookupPolicy:
+    local: false
