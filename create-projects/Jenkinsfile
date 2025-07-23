@@ -110,6 +110,14 @@ podTemplate(
           script: "grep '^PIPELINE_TRIGGER_SECRET=' ../ods-configuration/ods-core.env | cut -d'=' -f2",
           returnStdout: true
         ).trim()
+        def jiraUrl = sh(
+          script: "grep '^JIRA_URL=' ../ods-configuration/ods-core.env | cut -d'=' -f2",
+          returnStdout: true
+        ).trim()     
+        def mktUrl = sh(
+          script: "grep '^MARKETPLACE_URL=' ../ods-configuration/ods-core.env | cut -d'=' -f2",
+          returnStdout: true
+        ).trim()              
         withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
           sh(
             script: """./create-projects/provision-release-manager.sh --verbose \
@@ -131,9 +139,25 @@ podTemplate(
               --password ${password} \
               --admin_group BI-AS-ATLASSIAN-P-${projectId.toUpperCase()}-MANAGER \
               --user_group BI-AS-ATLASSIAN-P-${projectId.toUpperCase()}-TEAM""",
-            label: 'Auto provision releasemanager component'
+            label: 'provision releasemanager'
+          )
+          sh(
+            script: """./create-projects/create-jira-component.sh --verbose \
+              --project_key ${projectId} \
+              --jira_url ${jiraUrl} \
+              --username ${username} \
+              --password ${password}""",
+            label: 'create releasemanager component in jira'
           )    
-        }
+          sh(
+            script: """./create-projects/create-marketplace-component.sh --verbose \
+              --project_key ${projectId} \
+              --mkt_url ${mktUrl} \
+              --username ${username} \
+              --password ${password}""",
+            label: 'create releasemanager component in marketplace'
+          )
+        }       
       }
     }
   }
