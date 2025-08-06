@@ -163,6 +163,22 @@ configure-nexus:
 ### configure-nexus is not part of install-nexus because it is not idempotent yet.
 
 
+# OPENTELEMETRY COLLECTOR
+## Install or update Opentelemetry Collector.
+install-opentelemetry-collector: apply-opentelemetry-collector-chart start-opentelemetry-collector-build
+.PHONY: opentelemetry-collector
+
+## Apply OpenShift resources related to the Opentelemetry Collector.
+apply-opentelemetry-collector-chart:
+	cd opentelemetry-collector/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) opentelemetry-collector . && rm values.yaml
+.PHONY: apply-opentelemetry-collector-chart
+
+## Start build of BuildConfig "Opentelemetry Collector".
+start-opentelemetry-collector-build:
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config opentelemetry-collector
+.PHONY: start-opentelemetry-collector-build
+
+
 # BACKUP
 ## Create a backup of the current state.
 backup: backup-sonarqube backup-ocp-config
