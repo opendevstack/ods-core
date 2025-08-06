@@ -7,13 +7,15 @@
 
 ### Changed
 - Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
-
-- Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
-
 - Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
 
 ### Fixed
 
+
+## [4.9.0] - 2025-8-06
+
+- Security improvements ([#1328](https://github.com/opendevstack/ods-core/pull/1328))
+- Added Helm Opentelemetry Collector Infrastructure configuration (([#1339](https://github.com/opendevstack/ods-core/issues/1339))
 
 ## [4.8.0] - 2025-4-10
 
@@ -23,7 +25,6 @@
 - Add packages carvel/imgpkg and yg ([#1322](https://github.com/opendevstack/ods-core/issues/1322))
 - Adde mask-passwords and office 365 connector plugins in Jenkins ([#1313](https://github.com/opendevstack/ods-core/issues/1313)) and ([#1316](https://github.com/opendevstack/ods-core/issues/1316))
 - Add package cosign ([#1323](https://github.com/opendevstack/ods-core/issues/1323))
-- Added Helm Opentelemetry Collector Infrastructure configuration (([#1339](https://github.com/opendevstack/ods-core/issues/1339))
 
 ### Changed
 - Updated Aqua CLI ([#1325](https://github.com/opendevstack/ods-core/pull/1325)) & ([#1332](https://github.com/opendevstack/ods-core/pull/1332))
