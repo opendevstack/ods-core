@@ -46,3 +46,8 @@ buildConfig:
   cpuLimit: 1
   memRequest: 1Gi
   memLimit: 2Gi
+scan:
+  sonarEnabled: $SONAR_SCAN_ENABLED
+  sonarExclusions: $SONAR_SCAN_EXCLUSIONS
+  sonarNexusRepository: $SONAR_SCAN_NEXUS_REPOSITORY
+  sonaralertEmails: $SONAR_SCAN_ALERT_EMAILS
