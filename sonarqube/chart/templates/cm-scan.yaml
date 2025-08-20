@@ -1,7 +1,7 @@
 kind: ConfigMap
 metadata:
   labels:
-    app: {{ .Values.global.appName }}-scan
+    app: {{ .Values.global.appName }}
   name: {{ .Values.global.appName }}-scan
 apiVersion: v1
 data:
