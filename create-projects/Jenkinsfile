@@ -110,8 +110,8 @@ podTemplate(
         set +e
         ready=0
         for i in {1..30}; do
-          oc get pods -n ${projectId}-cd -l app=jenkins | grep -E 'jenkins.*Running' && { ready=1; break; }
-          echo "Jenkins not ready yet, waiting 30s..."
+          oc get pods -n ${projectId}-cd -l app=jenkins-master | grep -E 'jenkins.*Running' && { ready=1; break; }
+          echo "Jenkins not ready yet, waiting 15s..."
           sleep 15
         done
         set -e
