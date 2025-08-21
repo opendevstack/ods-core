@@ -102,5 +102,34 @@ podTemplate(
         )
       }
     }
+
+    stage('Wait for Jenkins and Idle') {
+      echo "Waiting for Jenkins to be up and running in project ${projectId}-cd..."
+      sh(
+        script: """
+        set +e
+        ready=0
+        for i in {1..30}; do
+          oc get pods -n ${projectId}-cd -l app=jenkins | grep -E 'jenkins.*Running' && { ready=1; break; }
+          echo "Jenkins not ready yet, waiting 30s..."
+          sleep 15
+        done
+        set -e
+        if [ "\$ready" -ne 1 ]; then
+          echo "WARNING: Jenkins pod did not become ready after waiting. Attempting recovery..."
+          oc rollout cancel dc/jenkins -n ${projectId}-cd || true
+          oc scale dc/jenkins --replicas=0 -n ${projectId}-cd
+          oc rollout latest dc/jenkins -n ${projectId}-cd
+          oc scale dc/jenkins --replicas=1 -n ${projectId}-cd
+          echo "Idling Jenkins deployment in project ${projectId}-cd..."
+          oc idle -n ${projectId}-cd jenkins
+        else
+          echo "Idling Jenkins deployment in project ${projectId}-cd..."
+          oc idle -n ${projectId}-cd jenkins
+        fi
+        """,
+        label: 'Wait for Jenkins and Idle'
+      )
+    }
   }
 }
