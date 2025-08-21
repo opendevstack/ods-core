@@ -6,6 +6,6 @@ metadata:
 apiVersion: v1
 data:
   alertEmails: {{ .Values.scan.sonaralertEmails }} 
-  enabled: {{ .Values.scan.sonarEnabled }} 
-  exclusions: {{ .Values.scan.sonarExclusions }} 
+  enabled: {{ .Values.scan.sonarEnabled | quote }} 
+  exclusions: {{ .Values.scan.sonarExclusions | quote }}
   nexusRepository: {{ .Values.scan.sonarNexusRepository }} 
