@@ -110,7 +110,11 @@ podTemplate(
         set +e
         ready=0
         for i in {1..30}; do
-          oc get pods -n ${projectId}-cd -l app=jenkins-master | grep -E 'jenkins.*Running' && { ready=1; break; }
+          oc get pods -n ${projectId}-cd -l name=jenkins -o json | jq -e '
+            .items[0].status.conditions
+            | map(select((.type=="Ready" or .type=="ContainersReady") and .status=="True"))
+            | length == 2
+          ' && { ready=1; break; }
           echo "Jenkins not ready yet, waiting 15s..."
           sleep 15
         done
