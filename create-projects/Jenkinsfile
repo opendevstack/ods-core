@@ -123,7 +123,7 @@ podTemplate(
           echo "Idling Jenkins deployment in project ${projectId}-cd..."
           oc idle -n ${projectId}-cd jenkins
         else
-          echo "Jenkins not ready yet, not idling."
+          echo "Jenkins not ready in time, not idling."
         fi
         """,
         label: 'Wait for Jenkins and Idle'
