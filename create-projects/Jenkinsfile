@@ -109,7 +109,7 @@ podTemplate(
         script: """
         set +e
         ready=0
-        for i in {1..30}; do
+        for i in {1..3}; do
           oc get pods -n ${projectId}-cd -l name=jenkins -o json | jq -e '
             .items[0].status.conditions
             | map(select((.type=="Ready" or .type=="ContainersReady") and .status=="True"))
