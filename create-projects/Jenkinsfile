@@ -109,40 +109,21 @@ podTemplate(
         script: """
         set +e
         ready=0
-        for i in {1..3}; do
+        for i in {1..15}; do
           oc get pods -n ${projectId}-cd -l name=jenkins -o json | jq -e '
             .items[0].status.conditions
             | map(select((.type=="Ready" or .type=="ContainersReady") and .status=="True"))
             | length == 2
           ' && { ready=1; break; }
-          echo "Jenkins not ready yet, waiting 15s..."
-          sleep 15
+          echo "Jenkins not ready yet, waiting 30s..."
+          sleep 30
         done
         set -e
-        if [ "\$ready" -ne 1 ]; then
-          echo "WARNING: Jenkins pod did not become ready after waiting. Attempting recovery..."
-          oc rollout cancel dc/jenkins -n ${projectId}-cd || true
-
-          # Wait for rollout to be canceled/failed
-          for i in {1..10}; do
-            status=\$(oc rollout status dc/jenkins -n ${projectId}-cd 2>&1)
-            echo "\$status" | grep -qE 'failed' && break
-            echo "Waiting for rollout to be failed..."
-            sleep 5
-          done
-
-          oc scale dc/jenkins --replicas=0 -n ${projectId}-cd
-          oc rollout latest dc/jenkins -n ${projectId}-cd
-
-          # Wait for new rollout to complete
-          oc rollout status dc/jenkins -n ${projectId}-cd --watch
-
-          oc scale dc/jenkins --replicas=1 -n ${projectId}-cd
+        if [ "\$ready" -eq 1 ]; then
           echo "Idling Jenkins deployment in project ${projectId}-cd..."
           oc idle -n ${projectId}-cd jenkins
         else
-          echo "Idling Jenkins deployment in project ${projectId}-cd..."
-          oc idle -n ${projectId}-cd jenkins
+          echo "Jenkins not ready yet, not idling."
         fi
         """,
         label: 'Wait for Jenkins and Idle'
