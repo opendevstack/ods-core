@@ -122,8 +122,21 @@ podTemplate(
         if [ "\$ready" -ne 1 ]; then
           echo "WARNING: Jenkins pod did not become ready after waiting. Attempting recovery..."
           oc rollout cancel dc/jenkins -n ${projectId}-cd || true
+
+          # Wait for rollout to be canceled/failed
+          for i in {1..10}; do
+            status=\$(oc rollout status dc/jenkins -n ${projectId}-cd 2>&1)
+            echo "\$status" | grep -qE 'failed' && break
+            echo "Waiting for rollout to be failed..."
+            sleep 5
+          done
+
           oc scale dc/jenkins --replicas=0 -n ${projectId}-cd
           oc rollout latest dc/jenkins -n ${projectId}-cd
+
+          # Wait for new rollout to complete
+          oc rollout status dc/jenkins -n ${projectId}-cd --watch
+
           oc scale dc/jenkins --replicas=1 -n ${projectId}-cd
           echo "Idling Jenkins deployment in project ${projectId}-cd..."
           oc idle -n ${projectId}-cd jenkins
