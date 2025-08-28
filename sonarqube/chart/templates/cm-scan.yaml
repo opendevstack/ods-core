@@ -5,7 +5,9 @@ metadata:
   name: {{ .Values.global.appName }}-scan
 apiVersion: v1
 data:
-  alertEmails: {{ .Values.scan.sonaralertEmails }} 
+  alertEmails: {{ .Values.scan.sonarAlertEmails }} 
   enabled: {{ .Values.scan.sonarEnabled | quote }} 
   exclusions: {{ .Values.scan.sonarExclusions | quote }}
   nexusRepository: {{ .Values.scan.sonarNexusRepository }} 
+  sonarQubeAccount: {{ .Values.scan.sonarQubeAccount }} 
+  sonarQubeProjectsPrivate: {{ .Values.scan.sonarQubeProjectsPrivate | quote }} 

@@ -50,4 +50,6 @@ scan:
   sonarEnabled: $SONAR_SCAN_ENABLED
   sonarExclusions: $SONAR_SCAN_EXCLUSIONS
   sonarNexusRepository: $SONAR_SCAN_NEXUS_REPOSITORY
-  sonaralertEmails: $SONAR_SCAN_ALERT_EMAILS
+  sonarAlertEmails: $SONAR_SCAN_ALERT_EMAILS
+  sonarProjectsPrivate: $SONAR_SCAN_PROJECTS_PRIVATE
+  sonarQubeAccount: $SONAR_SCAN_ACCOUNT
