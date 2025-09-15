@@ -197,26 +197,43 @@ else
     echo_info "Default '${ADMIN_USER_NAME}' password is not in use."
 fi
 
+# Check whether pipeline user exists; create it if missing.
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists ..."
 encodedPipelineUser="$(uriencode "${PIPELINE_USER_NAME}")"
-encodedPipelinePassword="$(uriencode "${ADMIN_USER_PASSWORD}")"
-if curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
-    "${SONARQUBE_URL}/api/users/search?q=${encodedPipelineUser}" | grep '"users":\[\]' >/dev/null; then
-    echo_info "No user '${PIPELINE_USER_NAME}' present yet."
+
+# Query SonarQube for matching users and get count (fallback to 0 on error).
+userCount=$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+    "${SONARQUBE_URL}/api/users/search?q=${encodedPipelineUser}" | jq -r '.users | length' || echo 0)
+
+if [ "${userCount}" -eq 0 ]; then
+    echo_info "No user '${PIPELINE_USER_NAME}' found — creating it now."
+
     if [ -z "${PIPELINE_USER_PWD}" ]; then
-        echo "Please enter '${PIPELINE_USER_NAME}' password:"
+        echo "Enter password for '${PIPELINE_USER_NAME}':"
         read -r -e -s input
         PIPELINE_USER_PWD=${input:-""}
     fi
-    echo_info "Trying to login in as '${PIPELINE_USER_NAME}' ..."
+
+    encodedPipelinePassword="$(uriencode "${PIPELINE_USER_PWD}")"
+
+    echo_info "Creating SonarQube user '${PIPELINE_USER_NAME}' ..."
+    if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/users/create?login=${encodedPipelineUser}&name=${encodedPipelineUser}&password=${encodedPipelinePassword}"; then
+        echo_error "Could not create user '${PIPELINE_USER_NAME}'."
+        exit 1
+    fi
+    echo_info "User '${PIPELINE_USER_NAME}' created."
+
+    echo_info "Verifying login for '${PIPELINE_USER_NAME}' ..."
     if ! curl ${INSECURE} -X POST -sSf \
         "${SONARQUBE_URL}/api/authentication/login?login=${encodedPipelineUser}&password=${encodedPipelinePassword}"; then
-        echo_error "Could not login as '${PIPELINE_USER_NAME}'."
+        echo_error "Login verification for '${PIPELINE_USER_NAME}' failed."
         exit 1
     fi
     echo_info "Login for '${PIPELINE_USER_NAME}' successful."
+else
+    echo_info "User '${PIPELINE_USER_NAME}' already exists in SonarQube."
 fi
-echo_info "User '${PIPELINE_USER_NAME}' exists in SonarQube."
 
 sampleToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
 configuredToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
