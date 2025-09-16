@@ -279,6 +279,11 @@ if [ -z "${authTokenVerified}" ]; then
     fi
 fi
 
+if [ -n "${VALUES_WRITTEN_TO_CONFIG}" ]; then
+    echo_warn "Some values in '${ODS_CONFIGURATION_DIR}/ods-core.env' have been updated."
+    echo_warn "Commit and push the changes to Bitbucket."
+fi
+
 # Create and configure a quality gate and make it default.
 echo_info "Ensuring quality gate 'ODS Default Quality Gate' exists and is set as default ..."
 GATE_NAME="ODS Default Quality Gate"
@@ -395,9 +400,28 @@ if true; then
     fi
 fi
 
-if [ -n "${VALUES_WRITTEN_TO_CONFIG}" ]; then
-    echo_warn "Some values in '${ODS_CONFIGURATION_DIR}/ods-core.env' have been updated."
-    echo_warn "Commit and push the changes to Bitbucket."
+# New: update default project visibility to 'private' when configured
+configured_visibility=""
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    configured_visibility=$(grep -E '^SONAR_SCAN_PROJECTS_PRIVATE=' "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d"=" -f2- | tr -d '\r' | tr -d '"' | tr -d ' ' || echo "")
+fi
+
+if [ "${configured_visibility}" = "true" ]; then
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE='true' — setting default project visibility to 'private' ..."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=private"; then
+        echo_info "Default project visibility set to 'private'."
+    else
+        echo_warn "Failed to set default project visibility to 'private'."
+    fi
+else
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE is not 'true' (value: '${configured_visibility}') setting default project visibility to 'public'."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=public"; then
+        echo_info "Default project visibility set to 'public'."
+    else
+        echo_warn "Failed to set default project visibility to 'public'."
+    fi
 fi
 
 echo_done "SonarQube configured."
