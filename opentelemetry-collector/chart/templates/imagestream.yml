@@ -1,0 +1,9 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: {{ .Values.collector.name }}
+  name: {{ .Values.collector.name }}
+spec:
+  lookupPolicy:
+    local: false
