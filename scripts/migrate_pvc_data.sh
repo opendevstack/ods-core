@@ -10,9 +10,9 @@ usage() {
   printf "\t-s|--source-pvc\t\tName of the source PVC\n"
   printf "\t-t|--target-pvc\t\tName of the target PVC\n"
   printf "\t-n|--namespace\t\tNamespace where the PVCs are located\n"
-  printf "\t-p|--threads\t\tNumber of parallel threads (default: 5)\n"
-  printf "\t-c|--cpu\t\tNumber of CPU cores to request in cores (default: 1)\n"
-  printf "\t-m|--memory\tMemory request and limit in Gigabytes (default: 2)\n"
+  printf "\t-p|--threads\t\tNumber of parallel threads (default: 10)\n"
+  printf "\t-c|--cpu\t\tNumber of CPU cores to request in cores (default: 2)\n"
+  printf "\t-m|--memory\tMemory request and limit in Gigabytes (default: 5)\n"
 }
 
 # Parse arguments
@@ -38,9 +38,9 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Set default threads, cpu, and memory if not provided
-THREADS="${THREADS:-5}"
-CPU_REQUEST="${CPU_REQUEST:-1}"
-MEMORY="${MEMORY:-2}"
+THREADS="${THREADS:-10}"
+CPU_REQUEST="${CPU_REQUEST:-2}"
+MEMORY="${MEMORY:-5}"
 
 # Calculate CPU limit (always 2 more than request)
 CPU_LIMIT=$((CPU_REQUEST + 2))
