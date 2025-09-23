@@ -10,4 +10,4 @@ data:
   exclusions: {{ .Values.scan.sonarExclusions | quote }}
   nexusRepository: {{ .Values.scan.sonarNexusRepository }} 
   sonarQubeAccount: {{ .Values.scan.sonarQubeAccount }} 
-  sonarQubeProjectsPrivate: {{ .Values.scan.sonarQubeProjectsPrivate | quote }} 
+  sonarQubeProjectsPrivate: {{ .Values.scan.sonarProjectsPrivate | quote }} 
