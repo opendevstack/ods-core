@@ -197,26 +197,43 @@ else
     echo_info "Default '${ADMIN_USER_NAME}' password is not in use."
 fi
 
+# Check whether pipeline user exists; create it if missing.
 echo_info "Checking if '${PIPELINE_USER_NAME}' exists ..."
 encodedPipelineUser="$(uriencode "${PIPELINE_USER_NAME}")"
-encodedPipelinePassword="$(uriencode "${ADMIN_USER_PASSWORD}")"
-if curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
-    "${SONARQUBE_URL}/api/users/search?q=${encodedPipelineUser}" | grep '"users":\[\]' >/dev/null; then
-    echo_info "No user '${PIPELINE_USER_NAME}' present yet."
+
+# Query SonarQube for matching users and get count (fallback to 0 on error).
+userCount=$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+    "${SONARQUBE_URL}/api/users/search?q=${encodedPipelineUser}" | jq -r '.users | length' || echo 0)
+
+if [ "${userCount}" -eq 0 ]; then
+    echo_info "No user '${PIPELINE_USER_NAME}' found — creating it now."
+
     if [ -z "${PIPELINE_USER_PWD}" ]; then
-        echo "Please enter '${PIPELINE_USER_NAME}' password:"
+        echo "Enter password for '${PIPELINE_USER_NAME}':"
         read -r -e -s input
         PIPELINE_USER_PWD=${input:-""}
     fi
-    echo_info "Trying to login in as '${PIPELINE_USER_NAME}' ..."
+
+    encodedPipelinePassword="$(uriencode "${PIPELINE_USER_PWD}")"
+
+    echo_info "Creating SonarQube user '${PIPELINE_USER_NAME}' ..."
+    if ! curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/users/create?login=${encodedPipelineUser}&name=${encodedPipelineUser}&password=${encodedPipelinePassword}"; then
+        echo_error "Could not create user '${PIPELINE_USER_NAME}'."
+        exit 1
+    fi
+    echo_info "User '${PIPELINE_USER_NAME}' created."
+
+    echo_info "Verifying login for '${PIPELINE_USER_NAME}' ..."
     if ! curl ${INSECURE} -X POST -sSf \
         "${SONARQUBE_URL}/api/authentication/login?login=${encodedPipelineUser}&password=${encodedPipelinePassword}"; then
-        echo_error "Could not login as '${PIPELINE_USER_NAME}'."
+        echo_error "Login verification for '${PIPELINE_USER_NAME}' failed."
         exit 1
     fi
     echo_info "Login for '${PIPELINE_USER_NAME}' successful."
+else
+    echo_info "User '${PIPELINE_USER_NAME}' already exists in SonarQube."
 fi
-echo_info "User '${PIPELINE_USER_NAME}' exists in SonarQube."
 
 sampleToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
 configuredToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
@@ -224,7 +241,7 @@ authTokenVerified=""
 if [ "${configuredToken}" == "${sampleToken}" ]; then
     echo_info "Auth token in ods-core.env is the sample value."
 else
-    echo_info "Checking if login with token from ods-core.env is possible ..."
+    echo_info "Checking if login with token from ods.core.env is possible ..."
     if curl ${INSECURE} -sSf --user "${configuredToken}": "${SONARQUBE_URL}/api/user_tokens/search?login=cd_user" > /dev/null; then
         echo_info "Configured token for '${PIPELINE_USER_NAME}' verified."
         authTokenVerified="y"
@@ -265,6 +282,146 @@ fi
 if [ -n "${VALUES_WRITTEN_TO_CONFIG}" ]; then
     echo_warn "Some values in '${ODS_CONFIGURATION_DIR}/ods-core.env' have been updated."
     echo_warn "Commit and push the changes to Bitbucket."
+fi
+
+# Create and configure a quality gate and make it default.
+echo_info "Ensuring quality gate 'ODS Default Quality Gate' exists and is set as default ..."
+GATE_NAME="ODS Default Quality Gate"
+encodedGateName="$(uriencode "${GATE_NAME}")"
+
+# Check if gate exists (search by name). Fetch list first, then query with jq to avoid
+# complex command substitution that can introduce syntax issues.
+resp="$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+    "${SONARQUBE_URL}/api/qualitygates/list" 2>/dev/null || echo '{"qualitygates": []}')"
+
+gateCheck="$(echo "${resp}" | jq -r --arg name "${GATE_NAME}" '.qualitygates[]? | select(.name == $name) | .name' 2>/dev/null || echo "")"
+
+if [ -z "${gateCheck}" ]; then
+    echo_info "Quality gate '${GATE_NAME}' not found, creating ..."
+    createResp=$(curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/create?name=${encodedGateName}" || true)
+
+    # try to get id or name from response, but continue using name for further calls
+    gateName=$(echo "${createResp}" | jq -r '.name // empty' 2>/dev/null || echo "")
+
+    if [ -z "${gateName}" ]; then
+        # creation returned only errors or minimal info — log and continue using name for further calls
+        echo_info "Quality gate '${GATE_NAME}' creation response: ${createResp}"
+    else
+        echo_info "Quality gate '${GATE_NAME}' is created."
+    fi
+else
+    echo_info "Quality gate '${GATE_NAME}' already exists."
+fi
+
+# Helper to add a condition (ignores errors if duplicate)
+add_condition() {
+    local metric="$1"; shift
+    local op="$1"; shift
+    local error="$1"; shift
+    local scope="${1:-}"   # optional: "new" for new code conditions; anything else => overall
+
+    # decide onNewCode parameter
+    local onNewParam=""
+    if [ "${scope}" == "new" ]; then
+        onNewParam="&onNewCode=true"
+        echo_info "Adding condition for NEW CODE: metric='${metric}' op='${op}' error='${error}'"
+    else
+        onNewParam="&onNewCode=false"
+        echo_info "Adding condition for OVERALL CODE: metric='${metric}' op='${op}' error='${error}'"
+    fi
+
+    # Use gateName (encoded) instead of gateId
+    if ! curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/create_condition?gateName=${encodedGateName}&metric=${metric}&op=${op}&error=${error}${onNewParam}" >/dev/null 2>&1; then
+        echo_warn "Could not add condition (might already exist): metric='${metric}' scope='${scope}'"
+    else
+        echo_info "Condition for '${metric}' added (scope='${scope}')."
+    fi
+}
+
+# Helper to remove overall (non-new-code) condition(s) for a metric if present
+remove_overall_condition() {
+    local metric="$1"
+    echo_info "Checking for overall (non-new-code) condition(s) for metric='${metric}' to remove ..."
+    # Fetch gate details and extract condition ids where onNewCode is false or absent (overall)
+    gateResp=$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/show?name=${encodedGateName}" 2>/dev/null || echo '{"conditions": []}')
+    ids=$(echo "${gateResp}" | jq -r --arg m "${metric}" '.conditions[]? | select(.metric == $m and (.onNewCode == false or .onNewCode == null)) | .id' 2>/dev/null || echo "")
+    if [ -z "${ids}" ]; then
+        echo_info "No overall condition for metric='${metric}' found."
+        return 0
+    fi
+    for id in ${ids}; do
+        echo_info "Removing overall condition id='${id}' for metric='${metric}' ..."
+        if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+            "${SONARQUBE_URL}/api/qualitygates/delete_condition?id=${id}" >/dev/null 2>&1; then
+            echo_info "Removed condition id='${id}'."
+        else
+            echo_warn "Failed to remove condition id='${id}' for metric='${metric}'."
+        fi
+    done
+}
+
+if true; then
+    # Conditions required by the request:
+    # - For NEW CODE only:
+    #   - Issues is greater than 0
+    #   - Security Hotspots Reviewed is less than 100%
+    #   - Coverage is less than 80%
+    #   - Duplicated Lines (%) is greater than 3%
+    #
+    # - For OVERALL code:
+    #   - Security Rating is worse than A (A maps to 1 => worse than A is > 1)
+    #   - Security Hotspots Reviewed is less than 100%
+    #   - Reliability Rating is worse than C (C maps to 3 => worse than C is > 3)
+
+    # New-code-only conditions
+    add_condition "issues" "GT" "0" "new"
+    add_condition "security_hotspots_reviewed" "LT" "100" "new"
+    add_condition "coverage" "LT" "80" "new"
+    add_condition "duplicated_lines_density" "GT" "3" "new"
+
+    # Overall conditions
+    add_condition "security_rating" "GT" "1"
+    add_condition "reliability_rating" "GT" "3"
+
+    # Remove unwanted overall conditions first (coverage & duplicated lines)
+    remove_overall_condition "coverage"
+    remove_overall_condition "duplicated_lines_density"
+
+    # Set gate as default using name parameter (ignore absence of id)
+    echo_info "Setting '${GATE_NAME}' as default quality gate (using name) ..."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/set_as_default?name=${encodedGateName}"; then
+        echo_info "Quality gate '${GATE_NAME}' set as default."
+    else
+        echo_warn "Failed to set '${GATE_NAME}' as default using name."
+    fi
+fi
+
+# New: update default project visibility to 'private' when configured
+configured_visibility=""
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    configured_visibility=$(grep -E '^SONAR_SCAN_PROJECTS_PRIVATE=' "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d"=" -f2- | tr -d '\r' | tr -d '"' | tr -d ' ' || echo "")
+fi
+
+if [ "${configured_visibility}" = "true" ]; then
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE='true' — setting default project visibility to 'private' ..."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=private"; then
+        echo_info "Default project visibility set to 'private'."
+    else
+        echo_warn "Failed to set default project visibility to 'private'."
+    fi
+else
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE is not 'true' (value: '${configured_visibility}') setting default project visibility to 'public'."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=public"; then
+        echo_info "Default project visibility set to 'public'."
+    else
+        echo_warn "Failed to set default project visibility to 'public'."
+    fi
 fi
 
 echo_done "SonarQube configured."
