@@ -58,9 +58,9 @@ buildConfig:
   memRequest: 1Gi
   memLimit: 2Gi
 scan:
-  sonarAlertEmails: $SONAR_SCAN_ALERT_EMAILS
   sonarEnabled: $SONAR_SCAN_ENABLED
   sonarExclusions: $SONAR_SCAN_EXCLUSIONS
   sonarNexusRepository: $SONAR_SCAN_NEXUS_REPOSITORY
+  sonarAlertEmails: $SONAR_SCAN_ALERT_EMAILS
   sonarProjectsPrivate: $SONAR_SCAN_PROJECTS_PRIVATE
   sonarQubeAccount: $SONAR_SCAN_ACCOUNT
