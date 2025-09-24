@@ -102,5 +102,32 @@ podTemplate(
         )
       }
     }
+
+    stage('Wait for Jenkins and Idle') {
+      echo "Waiting for Jenkins to be up and running in project ${projectId}-cd..."
+      sh(
+        script: """
+        set +e
+        ready=0
+        for i in {1..15}; do
+          oc get pods -n ${projectId}-cd -l name=jenkins -o json | jq -e '
+            .items[0].status.conditions
+            | map(select((.type=="Ready" or .type=="ContainersReady") and .status=="True"))
+            | length == 2
+          ' && { ready=1; break; }
+          echo "Jenkins not ready yet, waiting 30s..."
+          sleep 30
+        done
+        set -e
+        if [ "\$ready" -eq 1 ]; then
+          echo "Idling Jenkins deployment in project ${projectId}-cd..."
+          oc idle -n ${projectId}-cd jenkins
+        else
+          echo "Jenkins not ready in time, not idling."
+        fi
+        """,
+        label: 'Wait for Jenkins and Idle'
+      )
+    }
   }
 }
