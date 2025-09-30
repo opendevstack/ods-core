@@ -7,6 +7,7 @@ metadata:
 spec:
   schedule: "{{ .Values.global.nexusSnapshotCleanupSchedule }}"
   concurrencyPolicy: Forbid
+  suspend: false
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: {{ int .Values.global.nexusSnapshotTTL }}
