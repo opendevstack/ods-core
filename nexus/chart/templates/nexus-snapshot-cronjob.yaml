@@ -12,6 +12,7 @@ spec:
       ttlSecondsAfterFinished: {{ .Values.global.nexusSnapshotTTL }}
       template:
         spec:
+          backoffLimit: 0
           serviceAccountName: ods-edit
           containers:
           - name: snapshot-creator
@@ -20,27 +21,42 @@ spec:
             - /bin/sh
             - -c
             - |
+              # compute snapshot name so we can check it later
+              SNAP_NAME="{{ .Values.global.appName }}-snapshot.$(date +%Y-%m-%d.%H-%M-%S)"
               cat <<EOF | oc apply -f -
               apiVersion: snapshot.storage.k8s.io/v1
               kind: VolumeSnapshot
               metadata:
-                name: {{ .Values.global.appName }}-snapshot.$(date +%Y-%m-%d.%H-%M-%S)
+                name: $SNAP_NAME
                 namespace: {{ .Values.global.odsNamespace }}
               spec:
                 volumeSnapshotClassName: {{ .Values.global.nexusSnapshotClass }}
                 source:
                   persistentVolumeClaimName: {{ .Values.global.nexusStorageName }}
               EOF
-              # Cleanup snapshots older than the TTL
-              oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
-                --no-headers -o custom-columns=NAME:.metadata.name,CREATED:.metadata.creationTimestamp | \
-                while read name created; do
-                  if [[ $(date -d "$created" +%s) -lt $(date -d "-{{ .Values.global.nexusSnapshotTTL }} seconds" +%s) ]]; then
-                    oc delete volumesnapshot "$name" --namespace {{ .Values.global.odsNamespace }}
-                  fi
-                done
+
+              # Wait for the VolumeSnapshot to become Ready (configurable timeout)
+              TIMEOUT={{ .Values.global.nexusSnapshotCheckTimeout }}
+              INTERVAL=30
+              elapsed=0
+              TIMED_OUT=0
+              echo "Waiting for VolumeSnapshot $SNAP_NAME to be ready (timeout: $TIMEOUT seconds)..."
+              until [ $elapsed -ge $TIMEOUT ]; do
+                ready=$(oc get volumesnapshot "$SNAP_NAME" -n {{ .Values.global.odsNamespace }} -o jsonpath='{.status.readyToUse}' 2>/dev/null || echo "false")
+                if [ "$ready" = "true" ]; then
+                  echo "VolumeSnapshot $SNAP_NAME is ready"
+                  break
+                fi
+                sleep $INTERVAL
+                elapsed=$((elapsed + INTERVAL))
+                echo "  ... waited $elapsed seconds out of $TIMEOUT seconds"
+              done
+              if [ $elapsed -ge $TIMEOUT ]; then
+                echo "Timeout waiting for VolumeSnapshot $SNAP_NAME to be ready" >&2
+                exit 1
+              fi
             resources: {}
             imagePullPolicy: IfNotPresent
-          restartPolicy: OnFailure
+          restartPolicy: Never
   successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 30

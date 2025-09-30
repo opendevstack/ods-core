@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: volume-snapshot-cleanup
+  labels:
+    app: nexus
+spec:
+  schedule: "{{ .Values.global.nexusSnapshotCleanupSchedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ int .Values.global.nexusSnapshotTTL }}
+      template:
+        spec:
+          serviceAccountName: ods-edit
+          containers:
+          - name: snapshot-cleaner
+            image: image-registry.openshift-image-registry.svc:5000/openshift/ose-cli:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Delete VolumeSnapshots older than the configured TTL (in seconds)
+              oc get volumesnapshots --namespace {{ .Values.global.odsNamespace }} \
+                --no-headers -o custom-columns=NAME:.metadata.name,CREATED:.metadata.creationTimestamp | \
+                while read name created; do
+                  if [[ $(date -d "$created" +%s) -lt $(date -d "-{{ int .Values.global.nexusSnapshotTTL }} seconds" +%s) ]]; then
+                    oc delete volumesnapshot "$name" --namespace {{ .Values.global.odsNamespace }}
+                  else
+                    echo "Keeping VolumeSnapshot $name created at $created"
+                  fi
+                done
+            resources: {}
+            imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 30

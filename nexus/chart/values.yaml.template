@@ -7,7 +7,7 @@ global:
   nexusImageTag: $NEXUS_IMAGE_TAG
   appName: 'nexus'
   storageProvisioner: $NEXUS_STORAGE_PROVISIONER
-  storageClassData: $NEXUS_STORAGE_CLASS_DATA
+  storageClassName: $NEXUS_STORAGE_CLASS_NAME
   nexusHost: $NEXUS_HOST
   nexusAdminPasswordB64: $NEXUS_ADMIN_PASSWORD_B64
   registry: $DOCKER_REGISTRY
@@ -18,6 +18,8 @@ global:
   nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP
   nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL
   nexusStorageName: $NEXUS_STORAGE_NAME
+  nexusSnapshotCheckTimeout: $NEXUS_SNAPSHOT_CHECK_TIMEOUT
+  nexusSnapshotCleanupSchedule: $NEXUS_SNAPSHOT_CLEANUP_SCHEDULE
 nexus:
   cpuRequest: $NEXUS_CPU_REQUEST
   cpuLimit: $NEXUS_CPU_LIMIT
