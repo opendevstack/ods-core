@@ -55,7 +55,13 @@ spec:
                 echo "Timeout waiting for VolumeSnapshot $SNAP_NAME to be ready" >&2
                 exit 1
               fi
-            resources: {}
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
             imagePullPolicy: IfNotPresent
           restartPolicy: Never
   successfulJobsHistoryLimit: 30

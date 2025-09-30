@@ -12,6 +12,7 @@ spec:
       ttlSecondsAfterFinished: {{ int .Values.global.nexusSnapshotTTL }}
       template:
         spec:
+          backoffLimit: 0
           serviceAccountName: ods-edit
           containers:
           - name: snapshot-cleaner
@@ -30,7 +31,13 @@ spec:
                     echo "Keeping VolumeSnapshot $name created at $created"
                   fi
                 done
-            resources: {}
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
             imagePullPolicy: IfNotPresent
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 30
