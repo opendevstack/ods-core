@@ -15,5 +15,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.nexus.pvcDataCapacity }}
-  storageClassName: {{ .Values.global.storageClassData }}
+  storageClassName: {{ .Values.global.storageClassName }}
   volumeMode: Filesystem
