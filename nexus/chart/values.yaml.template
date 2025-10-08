@@ -6,21 +6,26 @@ global:
   odsNamespace: $ODS_NAMESPACE
   nexusImageTag: $NEXUS_IMAGE_TAG
   appName: 'nexus'
-  storageProvisioner: $STORAGE_PROVISIONER
-  storageClassData: $STORAGE_CLASS_DATA
+  storageProvisioner: $NEXUS_STORAGE_PROVISIONER
+  storageClassName: $NEXUS_STORAGE_CLASS_NAME
   nexusHost: $NEXUS_HOST
   nexusAdminPasswordB64: $NEXUS_ADMIN_PASSWORD_B64
   registry: $DOCKER_REGISTRY
   openshiftAppDomain: $OPENSHIFT_APPS_BASEDOMAIN
   nexusDockerGroup: 'docker-group'
   nexusJvmParams: $NEXUS_JVM_PARAMS
+  nexusSnapshotSchedule: $NEXUS_SNAPSHOT_SCHEDULE
+  nexusSnapshotClass: $NEXUS_STORAGE_CLASS_BACKUP
+  nexusSnapshotTTL: $NEXUS_SNAPSHOT_TTL
+  nexusStorageName: $NEXUS_STORAGE_NAME
+  nexusSnapshotCheckTimeout: $NEXUS_SNAPSHOT_CHECK_TIMEOUT
+  nexusSnapshotCleanupSchedule: $NEXUS_SNAPSHOT_CLEANUP_SCHEDULE
 nexus:
   cpuRequest: $NEXUS_CPU_REQUEST
   cpuLimit: $NEXUS_CPU_LIMIT
   memRequest: $NEXUS_MEMORY_REQUEST
   memLimit: $NEXUS_MEMORY_LIMIT
   pvcDataCapacity: $NEXUS_DATA_CAPACITY
-  pvcDataBackupCapacity: $NEXUS_DATA_BACKUP_CAPACITY
 buildConfig:
   cpuRequest: 200m
   cpuLimit: 1

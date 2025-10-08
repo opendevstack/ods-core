@@ -3,16 +3,17 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     volume.beta.kubernetes.io/storage-provisioner: {{ .Values.global.storageProvisioner }}
+    helm.sh/resource-policy: keep
   finalizers:
     - kubernetes.io/pvc-protection
   labels:
     app: {{ .Values.global.appName }}
-  name: {{ .Values.global.appName }}-data
+  name: {{ .Values.global.nexusStorageName }}
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.nexus.pvcDataCapacity }}
-  storageClassName: {{ .Values.global.storageClassData }}
+  storageClassName: {{ .Values.global.storageClassName }}
   volumeMode: Filesystem

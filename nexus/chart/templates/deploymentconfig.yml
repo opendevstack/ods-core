@@ -37,10 +37,7 @@ spec:
       volumes:
         - name: {{ .Values.global.appName }}-data
           persistentVolumeClaim:
-            claimName: {{ .Values.global.appName }}-data
-        - name: {{ .Values.global.appName }}-db-backup
-          persistentVolumeClaim:
-            claimName: {{ .Values.global.appName }}-db-backup
+            claimName: {{ .Values.global.nexusStorageName }}
       containers:
         - resources:
             limits:
@@ -88,8 +85,6 @@ spec:
           volumeMounts:
             - name: {{ .Values.global.appName }}-data
               mountPath: /nexus-data
-            - name: {{ .Values.global.appName }}-db-backup
-              mountPath: /nexus-backup
           terminationMessagePolicy: File
           image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}:{{ .Values.global.odsImageTag }}
       restartPolicy: Always
