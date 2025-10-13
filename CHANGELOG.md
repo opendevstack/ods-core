@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added post creation process ([#1351](https://github.com/opendevstack/ods-core/pull/1351))
 
 
 ### Changed
