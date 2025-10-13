@@ -3,15 +3,18 @@
 ## Unreleased
 
 ### Added
-- Added post creation process ([#1351](https://github.com/opendevstack/ods-core/pull/1351))
-
 
 ### Changed
-- Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
 - Adapted Sonarqube server configuration to make projects private and have custom gate ([#1347](https://github.com/opendevstack/ods-core/pull/1347))
 
 ### Fixed
 
+## [4.10.0] - 2025-10-08
+### Added
+- Added post creation process ([#1351](https://github.com/opendevstack/ods-core/pull/1351))
+
+## Changed
+- Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
 
 ## [4.9.1] - 2025-10-08
 ### Changed
