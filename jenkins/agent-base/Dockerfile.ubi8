@@ -3,7 +3,7 @@ FROM quay.io/openshift/origin-jenkins-agent-base
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV SONAR_SCANNER_VERSION=6.2.1.4610 \
-    SONAR_REPORT_VERSION=1.0 \
+    SONAR_REPORT_VERSION=1.0-snapshot \
     COSIGN_VERSION=2.4.3 \
     TAILOR_VERSION=1.3.4 \
     SOPS_VERSION=3.9.0 \
