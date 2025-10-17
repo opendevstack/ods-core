@@ -4,17 +4,24 @@
 
 ### Added
 
-
 ### Changed
-- Change Cnes report to custom SonarQube report ([#1354](https://github.com/opendevstack/ods-core/pull/1354))
-- Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
-- Update PVC migration script, adding threads to rsync execution ([#1345](https://github.com/opendevstack/ods-core/pull/1345))
-- Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
 - Adapted Sonarqube server configuration to make projects private and have custom gate ([#1347](https://github.com/opendevstack/ods-core/pull/1347))
-
+- Update Aqua cli to 2022.4.829 ([#1353](https://github.com/opendevstack/ods-core/pull/1353))
 
 ### Fixed
 
+## [4.10.0] - 2025-10-08
+### Added
+- Added post creation process ([#1351](https://github.com/opendevstack/ods-core/pull/1351))
+
+## Changed
+- Update Aqua cli to 760 ([#1344](https://github.com/opendevstack/ods-core/pull/1344))
+
+## [4.9.1] - 2025-10-08
+### Changed
+- Nexus storage change ([#1341](https://github.com/opendevstack/ods-core/issues/1341))
+- Update PVC migration script, adding threads to rsync execution ([#1345](https://github.com/opendevstack/ods-core/pull/1345))
+- Improve Nexus cronjobs for snapshots ([#1349](https://github.com/opendevstack/ods-core/pull/1349))
 
 ## [4.9.0] - 2025-8-06
 
