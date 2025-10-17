@@ -7,6 +7,7 @@
 ### Changed
 - Adapted Sonarqube server configuration to make projects private and have custom gate ([#1347](https://github.com/opendevstack/ods-core/pull/1347))
 - Update Aqua cli to 2022.4.829 ([#1353](https://github.com/opendevstack/ods-core/pull/1353))
+- Update SonarQube and use local image for database ([#1343](https://github.com/opendevstack/ods-core/pull/1343))
 
 ### Fixed
 
