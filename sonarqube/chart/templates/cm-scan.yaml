@@ -1,0 +1,13 @@
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ .Values.global.appName }}
+  name: {{ .Values.global.appName }}-scan
+apiVersion: v1
+data:
+  alertEmails: {{ .Values.scan.sonarAlertEmails }} 
+  enabled: {{ .Values.scan.sonarEnabled | quote }} 
+  exclusions: {{ .Values.scan.sonarExclusions | quote }}
+  nexusRepository: {{ .Values.scan.sonarNexusRepository }} 
+  sonarQubeAccount: {{ .Values.scan.sonarQubeAccount }} 
+  sonarQubeProjectsPrivate: {{ .Values.scan.sonarProjectsPrivate | quote }} 

@@ -102,5 +102,147 @@ podTemplate(
         )
       }
     }
+
+    stage('Setup Post-Creation Scripts') {
+        // Load post-creation scripts configuration
+        def postCreationEnabled = getConfigValue('POST_CREATION_SCRIPTS_ENABLED', 'ods-configuration/ods-core.env', 'false')
+
+        if (!postCreationEnabled || postCreationEnabled != 'true') {
+            echo("Post-creation scripts are disabled or not configured. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        def scriptsOrder = getConfigValue('POST_CREATION_SCRIPTS_ORDER', 'ods-configuration/ods-core.env').trim()
+        if (!scriptsOrder || scriptsOrder.trim().isEmpty()) {
+            echo("No scripts specified in POST_CREATION_SCRIPTS_ORDER. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        echo("Post-creation scripts are enabled. Retrieving configuration...")
+        
+        // Get scripts repository configuration
+        def scriptsRepoUrl    = getConfigValue('POST_CREATION_SCRIPTS_REPO_URL', 'ods-configuration/ods-core.env')
+        def scriptsBranch     = getConfigValue('POST_CREATION_SCRIPTS_BRANCH', 'ods-configuration/ods-core.env', 'master')
+        def scriptsConfigFile = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_FILE', 'ods-configuration/ods-core.env')
+
+        def configRepoUrl    = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_URL', 'ods-configuration/ods-core.env')
+        def configRepoBranch = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_BRANCH', 'ods-configuration/ods-core.env', 'master')
+                
+        // Check if required configuration is missing
+        if (!scriptsRepoUrl || scriptsRepoUrl.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_REPO_URL is not configured. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        if (!scriptsConfigFile || scriptsConfigFile.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_CONFIG_FILE is not configured. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+        
+        echo("Scripts repository: ${scriptsRepoUrl}")
+        echo("Scripts branch: ${scriptsBranch}")
+        echo("Scripts order: ${scriptsOrder}")
+        echo("Scripts config file: ${scriptsConfigFile}")
+        echo("Config repo URL: ${configRepoUrl}")
+        echo("Config repo branch: ${configRepoBranch}")
+
+        def credentialsId = "${pipelineOpenShiftProject}-cd-user-with-password"
+        
+        // Clone the scripts repository
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${scriptsBranch}"]],
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[
+            $class: 'RelativeTargetDirectory',
+            relativeTargetDir: 'post-creation-scripts'
+          ]],
+          submoduleCfg: [],
+          userRemoteConfigs: [[
+            credentialsId: "${credentialsId}",
+            url: "${scriptsRepoUrl}"
+          ]]
+        ])
+        
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${configRepoBranch}"]],
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[
+            $class: 'RelativeTargetDirectory',
+            relativeTargetDir: 'post-creation-config'
+          ]],
+          submoduleCfg: [],
+          userRemoteConfigs: [[
+            credentialsId: "${credentialsId}",
+            url: "${configRepoUrl}"
+          ]]
+        ])
+        
+        // Store configuration for next stage
+        env.POST_SCRIPTS_ENABLED = 'true'
+        env.POST_SCRIPTS_ORDER = scriptsOrder
+        env.POST_SCRIPTS_CONFIG_FILE = scriptsConfigFile
+    }
+
+    stage('Execute Post-Creation Scripts') {
+      dir('post-creation-scripts') {
+
+        if (env.POST_SCRIPTS_ENABLED != 'true') {
+          echo("Post-creation scripts execution is disabled. Skipping.")
+          return
+        }
+
+        def credentialsId = "${odsNamespace}-cd-user-with-password"
+        
+        def scripts = env.POST_SCRIPTS_ORDER.split(',')
+        def odsConfigPath = "${env.WORKSPACE}/ods-configuration/ods-core.env"
+        def scriptsConfigPath = "${env.WORKSPACE}/post-creation-config/${env.POST_SCRIPTS_CONFIG_FILE}"
+        
+        withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
+          withEnv([
+            "PROJECT_ID=${projectId}",
+            "PROJECT_GROUPS=${projectGroups}",
+            "PROJECT_ADMIN=${projectAdmins}",
+            "ODS_NAMESPACE=${odsNamespace}",
+            "ODS_IMAGE_TAG=${odsImageTag}",
+            "ODS_GIT_REF=${odsGitRef}",
+            "ODS_BITBUCKET_PROJECT=${odsBitbucketProject}",
+            "BITBUCKET_URL=${bitbucketUrl}",
+            "DOCKER_REGISTRY=${dockerRegistry}",
+            "CD_USERNAME=${username}",
+            "CD_PASSWORD=${password}",
+            "CD_USER_CREDENTIALS_ID=${credentialsId}"
+          ]) {
+              echo("Environment variables for scripts:")
+
+              for (script in scripts) {
+                  def scriptName = script.trim()
+                  def scriptPath = "post-project-creation/${scriptName}"
+
+                  echo("Executing script: ${scriptName}")
+                  
+                  sh(
+                      script: """
+                      "${scriptPath}" "${odsConfigPath}" "${scriptsConfigPath}"
+                      """,
+                      label: "Execute script: ${scriptName}"
+                  )
+              }
+          }
+        }
+      }
+    }
   }
+}
+
+def getConfigValue(field, file, defaultValue = '') {
+  return sh(
+    script: "grep '^${field}=' ${file} | cut -d'=' -f2 | tr -d '\"' || echo '${defaultValue}'",
+    returnStdout: true
+  ).trim()
 }
