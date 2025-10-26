@@ -82,8 +82,6 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/pgsql/data
           name: {{ .Values.global.appName }}-postgresql-data
-        - mountPath: /var/lib/pgsql/backups
-          name: {{ .Values.global.appName }}-postgresql-backup
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -93,9 +91,6 @@ spec:
       - name: {{ .Values.global.appName }}-postgresql-data
         persistentVolumeClaim:
           claimName: {{ .Values.global.appName }}-postgresql
-      - name: {{ .Values.global.appName }}-postgresql-backup
-        persistentVolumeClaim:
-          claimName: {{ .Values.global.appName }}-postgresql-backup
   test: false
   triggers:
     - imageChangeParams:
