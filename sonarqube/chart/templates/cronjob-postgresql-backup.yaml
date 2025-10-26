@@ -1,0 +1,53 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.global.appName }}-postgresql-backup
+  labels:
+    app: {{ .Values.global.appName }}
+spec:
+  schedule: "{{ .Values.postgresql.backupSchedule }}"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - name: postgresql-backup
+            image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              # Create backup filename with timestamp
+              BACKUP_FILE="/var/lib/pgsql/backups/sonarqube_backup_$(date +%Y-%m-%d_%H-%M-%S).dump"
+
+              # Run pg_dump with consistent snapshot
+              pg_dump \
+                --host={{ .Values.global.appName }}-postgresql \
+                --username={{ .Values.global.sonarDatabaseUser }} \
+                --dbname={{ .Values.global.sonarDatabaseName }} \
+                --format=custom \
+                --compress=9 \
+                --file="$BACKUP_FILE"
+
+              # List the backup file
+              echo "Backup completed successfully:"
+              ls -la "$BACKUP_FILE"
+
+              # Optional: Clean up old backups (keep last 30 days)
+              find /var/lib/pgsql/backups -name "sonarqube_backup_*.dump" -mtime +30 -delete 2>/dev/null || true
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-postgresql
+                  key: database-password
+            volumeMounts:
+            - name: postgresql-backup
+              mountPath: /var/lib/pgsql/backups
+          volumes:
+          - name: postgresql-backup
+            persistentVolumeClaim:
+              claimName: {{ .Values.global.appName }}-postgresql-backup
+          restartPolicy: Never

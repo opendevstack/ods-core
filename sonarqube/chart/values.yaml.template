@@ -28,6 +28,7 @@ postgresql:
   memLimit: $SONARQUBE_DB_MEMORY_LIMIT
   pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
   pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
+  backupSchedule: $SONARQUBE_DB_BACKUP_SCHEDULE
 sonarqube:
   cpuRequest: $SONARQUBE_CPU_REQUEST
   cpuLimit: $SONARQUBE_CPU_LIMIT
