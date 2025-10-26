@@ -1,1 +1,1 @@
-FROM public.ecr.aws/docker/library/postgres:15-alpine
+FROM public.ecr.aws/docker/library/postgres:16-alpine
