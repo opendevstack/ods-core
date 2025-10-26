@@ -43,12 +43,19 @@ spec:
         image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -h
+            - 127.0.0.1
+            - -U
+            - $POSTGRESQL_USER
+            - -d
+            - $POSTGRESQL_DATABASE
           failureThreshold: 3
           initialDelaySeconds: 30
           periodSeconds: 10
           successThreshold: 1
-          tcpSocket:
-            port: 5432
           timeoutSeconds: 1
         name: {{ .Values.postgresql.name }}
         ports:
@@ -57,11 +64,13 @@ spec:
         readinessProbe:
           exec:
             command:
-            - /bin/sh
-            - -i
-            - -c
-            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
-              'SELECT 1'
+            - pg_isready
+            - -h
+            - 127.0.0.1
+            - -U
+            - $POSTGRESQL_USER
+            - -d
+            - $POSTGRESQL_DATABASE
           failureThreshold: 3
           initialDelaySeconds: 5
           periodSeconds: 10
