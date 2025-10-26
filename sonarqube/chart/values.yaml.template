@@ -10,6 +10,12 @@ global:
   appName: 'sonarqube'
   storageProvisioner: $STORAGE_PROVISIONER
   storageClassData: $STORAGE_CLASS_DATA
+  sonarqubeFastStorageProvisioner: $SONARQUBE_FAST_STORAGE_PROVISIONER
+  sonarqubeFastStorageClassData: $SONARQUBE_FAST_STORAGE_CLASS_DATA
+  sonarqubeFastStorageClassBackup: $SONARQUBE_FAST_STORAGE_CLASS_BACKUP
+  sonarqubeDataStorageName: $SONARQUBE_DATA_STORAGE_NAME
+  sonarqubeStorageProvisioner: $SONARQUBE_STORAGE_PROVISIONER
+  sonarqubeStorageClassData: $SONARQUBE_STORAGE_CLASS_DATA
   sonarqubeUrl: $SONARQUBE_URL
   sonarqubeHost: $SONARQUBE_HOST
   sonarAdminPasswordB64: $SONAR_ADMIN_PASSWORD_B64
@@ -29,6 +35,7 @@ postgresql:
   pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
   pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
   backupSchedule: $SONARQUBE_DB_BACKUP_SCHEDULE
+  backupTTL: $SONARQUBE_DB_BACKUP_TTL
 sonarqube:
   cpuRequest: $SONARQUBE_CPU_REQUEST
   cpuLimit: $SONARQUBE_CPU_LIMIT

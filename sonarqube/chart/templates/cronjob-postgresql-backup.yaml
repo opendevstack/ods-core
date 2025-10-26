@@ -35,8 +35,8 @@ spec:
               echo "Backup completed successfully:"
               ls -la "$BACKUP_FILE"
 
-              # Optional: Clean up old backups (keep last 30 days)
-              find /var/lib/pgsql/backups -name "sonarqube_backup_*.dump" -mtime +30 -delete 2>/dev/null || true
+              # Optional: Clean up old backups
+              find /var/lib/pgsql/backups -name "sonarqube_backup_*.dump" -mtime +{{ .Values.postgresql.backupTTL }} -delete 2>/dev/null || true
             env:
             - name: PGPASSWORD
               valueFrom:
