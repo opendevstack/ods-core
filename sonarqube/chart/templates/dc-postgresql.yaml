@@ -99,7 +99,7 @@ spec:
       volumes:
       - name: {{ .Values.global.appName }}-postgresql-data
         persistentVolumeClaim:
-          claimName: {{ .Values.global.appName }}-postgresql
+          claimName: {{ .Values.global.appName }}-postgresql-data
   test: false
   triggers:
     - imageChangeParams:

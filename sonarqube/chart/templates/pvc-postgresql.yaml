@@ -8,7 +8,7 @@ metadata:
     - kubernetes.io/pvc-protection
   labels:
     app: {{ .Values.global.appName }}
-  name: {{ .Values.global.appName }}-postgresql
+  name: {{ .Values.global.appName }}-postgresql-data
 spec:
   accessModes:
   - ReadWriteOnce
