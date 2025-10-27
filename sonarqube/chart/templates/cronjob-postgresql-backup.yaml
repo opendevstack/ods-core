@@ -5,49 +5,69 @@ metadata:
   labels:
     app: {{ .Values.global.appName }}
 spec:
-  schedule: "{{ .Values.postgresql.backupSchedule }}"
+  schedule: "{{ .Values.global.backupSchedule }}"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 3600
+  suspend: false
   jobTemplate:
     spec:
       backoffLimit: 0
+      ttlSecondsAfterFinished: 604800
       template:
         spec:
-          containers:
-          - name: postgresql-backup
-            image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
-            command: ["/bin/bash", "-c"]
-            args:
-            - |
-              # Create backup filename with timestamp
-              BACKUP_FILE="/var/lib/pgsql/backups/sonarqube_backup_$(date +%Y-%m-%d_%H-%M-%S).dump"
-
-              # Run pg_dump with consistent snapshot
-              pg_dump \
-                --host={{ .Values.global.appName }}-postgresql \
-                --username={{ .Values.global.sonarDatabaseUser }} \
-                --dbname={{ .Values.global.sonarDatabaseName }} \
-                --format=custom \
-                --compress=9 \
-                --file="$BACKUP_FILE"
-
-              # List the backup file
-              echo "Backup completed successfully:"
-              ls -la "$BACKUP_FILE"
-
-              # Optional: Clean up old backups
-              find /var/lib/pgsql/backups -name "sonarqube_backup_*.dump" -mtime +{{ .Values.postgresql.backupTTL }} -delete 2>/dev/null || true
-            env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.global.appName }}-postgresql
-                  key: database-password
-            volumeMounts:
-            - name: postgresql-backup
-              mountPath: /var/lib/pgsql/backups
+          serviceAccountName: ods-edit
           volumes:
-          - name: postgresql-backup
-            persistentVolumeClaim:
-              claimName: {{ .Values.global.appName }}-postgresql-backup
+            - name: postgresql-backup
+              persistentVolumeClaim:
+                claimName: sonarqube-postgresql-backup
+          containers:
+            - resources:
+                limits:
+                  cpu: '1'
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              terminationMessagePath: /dev/termination-log
+              name: postgresql-backup
+              command:
+                - /bin/bash
+                - '-c'
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: sonarqube-postgresql
+                      key: database-password
+              imagePullPolicy: Always
+              volumeMounts:
+                - name: postgresql-backup
+                  mountPath: /var/lib/pgsql/backups
+              terminationMessagePolicy: File
+              image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
+              args:
+              - |
+                # Create backup filename with timestamp
+                BACKUP_FILE="/var/lib/pgsql/backups/sonarqube_backup_$(date +%Y-%m-%d_%H-%M-%S).dump"
+
+                # Run pg_dump with consistent snapshot
+                pg_dump \
+                  --host={{ .Values.global.appName }}-postgresql \
+                  --username={{ .Values.global.sonarDatabaseUser }} \
+                  --dbname={{ .Values.global.sonarDatabaseName }} \
+                  --format=custom \
+                  --compress=9 \
+                  --file="$BACKUP_FILE"
+
+                # List the backup file
+                echo "Backup completed successfully:"
+                ls -la "/var/lib/pgsql/backups/"
+
+                # Clean up old backups
+                echo "Cleaning up backups older than {{ .Values.postgresql.backupTTL }} days..."
+                find /var/lib/pgsql/backups -name "sonarqube_backup_*.dump" -mtime +{{ .Values.postgresql.backupTTL }} -print -delete || true
+                echo "Cleanup completed."
           restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 30

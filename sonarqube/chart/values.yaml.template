@@ -26,6 +26,7 @@ global:
   sonarDatabasePasswordB64: $SONAR_DATABASE_PASSWORD_B64
   registry: $DOCKER_REGISTRY
   sonarDatabaseImage: $SONAR_DATABASE_IMAGE
+  backupSchedule: $SONARQUBE_BACKUP_SCHEDULE
 postgresql:
   name: 'sonarqube-postgresql'
   cpuRequest: $SONARQUBE_DB_CPU_REQUEST
@@ -34,7 +35,6 @@ postgresql:
   memLimit: $SONARQUBE_DB_MEMORY_LIMIT
   pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
   pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
-  backupSchedule: $SONARQUBE_DB_BACKUP_SCHEDULE
   backupTTL: $SONARQUBE_DB_BACKUP_TTL
 sonarqube:
   cpuRequest: $SONARQUBE_CPU_REQUEST
