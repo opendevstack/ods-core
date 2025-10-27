@@ -33,7 +33,7 @@ spec:
     dockerStrategy:
       from:
         kind: DockerImage
-        name: sonarqube:{{ .Values.global.sonarVersion }}-{{ .Values.global.sonarEdition }}
+        name: sonarqube:25.9.0.112764-community
       forcePull: true
       noCache: true
       buildArgs:
