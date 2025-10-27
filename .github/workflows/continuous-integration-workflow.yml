@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        version: ['2025.1.1'] # 2025.1.1 = LTS
+        version: ['2025.5.0']
         edition: ['developer', 'enterprise']
     steps:
       -
