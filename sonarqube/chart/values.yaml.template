@@ -1,63 +1,63 @@
 global:
-  odsImageTag: $ODS_IMAGE_TAG
-  repoBase: $REPO_BASE
-  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
-  odsGitRef: $ODS_GIT_REF
-  sonarVersion: $SONAR_VERSION
-  sonarEdition:  $SONAR_EDITION
-  odsNamespace: $ODS_NAMESPACE
   appDNS: $APP_DNS
   appName: 'sonarqube'
-  storageProvisioner: $STORAGE_PROVISIONER
-  storageClassData: $STORAGE_CLASS_DATA
-  sonarqubeFastStorageProvisioner: $SONARQUBE_FAST_STORAGE_PROVISIONER
-  sonarqubeFastStorageClassData: $SONARQUBE_FAST_STORAGE_CLASS_DATA
-  sonarqubeFastStorageClassBackup: $SONARQUBE_FAST_STORAGE_CLASS_BACKUP
-  sonarqubeDataStorageName: $SONARQUBE_DATA_STORAGE_NAME
-  sonarqubeStorageProvisioner: $SONARQUBE_STORAGE_PROVISIONER
-  sonarqubeStorageClassData: $SONARQUBE_STORAGE_CLASS_DATA
-  sonarqubeUrl: $SONARQUBE_URL
-  sonarqubeHost: $SONARQUBE_HOST
+  backupSchedule: $SONARQUBE_BACKUP_SCHEDULE
+  odsBitBucketProject: $ODS_BITBUCKET_PROJECT
+  odsGitRef: $ODS_GIT_REF
+  odsImageTag: $ODS_IMAGE_TAG
+  odsNamespace: $ODS_NAMESPACE
+  registry: $DOCKER_REGISTRY
+  repoBase: $REPO_BASE
   sonarAdminPasswordB64: $SONAR_ADMIN_PASSWORD_B64
+  sonarAdminUsername: $SONAR_ADMIN_USERNAME
+  sonarDatabaseImage: $SONAR_DATABASE_IMAGE
   sonarDatabaseJdbcUrl: $SONAR_DATABASE_JDBC_URL
   sonarDatabaseName: $SONAR_DATABASE_NAME
-  sonarDatabaseUser: $SONAR_DATABASE_USER
-  sonarAdminUsername: $SONAR_ADMIN_USERNAME
   sonarDatabasePasswordB64: $SONAR_DATABASE_PASSWORD_B64
-  registry: $DOCKER_REGISTRY
-  sonarDatabaseImage: $SONAR_DATABASE_IMAGE
-  backupSchedule: $SONARQUBE_BACKUP_SCHEDULE
+  sonarDatabaseUser: $SONAR_DATABASE_USER
+  sonarEdition: $SONAR_EDITION
+  sonarVersion: $SONAR_VERSION
+  sonarqubeDataStorageName: $SONARQUBE_DATA_STORAGE_NAME
+  sonarqubeFastStorageClassBackup: $SONARQUBE_FAST_STORAGE_CLASS_BACKUP
+  sonarqubeFastStorageClassData: $SONARQUBE_FAST_STORAGE_CLASS_DATA
+  sonarqubeFastStorageProvisioner: $SONARQUBE_FAST_STORAGE_PROVISIONER
+  sonarqubeHost: $SONARQUBE_HOST
+  sonarqubeStorageClassData: $SONARQUBE_STORAGE_CLASS_DATA
+  sonarqubeStorageProvisioner: $SONARQUBE_STORAGE_PROVISIONER
+  sonarqubeUrl: $SONARQUBE_URL
+  storageClassData: $STORAGE_CLASS_DATA
+  storageProvisioner: $STORAGE_PROVISIONER
 postgresql:
-  name: 'sonarqube-postgresql'
-  cpuRequest: $SONARQUBE_DB_CPU_REQUEST
-  cpuLimit: $SONARQUBE_DB_CPU_LIMIT 
-  memRequest: $SONARQUBE_DB_MEMORY_REQUEST
-  memLimit: $SONARQUBE_DB_MEMORY_LIMIT
-  pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
-  pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
   backupTTL: $SONARQUBE_DB_BACKUP_TTL
+  cpuLimit: $SONARQUBE_DB_CPU_LIMIT
+  cpuRequest: $SONARQUBE_DB_CPU_REQUEST
+  memLimit: $SONARQUBE_DB_MEMORY_LIMIT
+  memRequest: $SONARQUBE_DB_MEMORY_REQUEST
+  name: 'sonarqube-postgresql'
+  pvcDatabaseBackupCapacity: $SONARQUBE_DB_BACKUP_CAPACITY
+  pvcDatabaseCapacity: $SONARQUBE_DB_CAPACITY
 sonarqube:
-  cpuRequest: $SONARQUBE_CPU_REQUEST
   cpuLimit: $SONARQUBE_CPU_LIMIT
-  memRequest: $SONARQUBE_MEMORY_REQUEST
+  cpuRequest: $SONARQUBE_CPU_REQUEST
   memLimit: $SONARQUBE_MEMORY_LIMIT
+  memRequest: $SONARQUBE_MEMORY_REQUEST
   pvcDataCapacity: $SONARQUBE_DATA_CAPACITY
   pvcExtensionsCapacity: $SONARQUBE_EXTENSIONS_CAPACITY
   sonarAuthSaml: $SONAR_AUTH_SAML
   sonarAuthSamlApplicationId: $SONAR_SAML_APPLICATION_ID
-  sonarAuthSamlProviderIdB64: $SONAR_SAML_PROVIDER_ID_B64
-  sonarAuthSamlLoginUrlB64: $SONAR_SAML_LOGIN_URL_B64
-  sonarAuthSamlServerBaseUrl: $SONARQUBE_URL
   sonarAuthSamlCertficateB64: $SONAR_SAML_CERTIFICATE_B64
+  sonarAuthSamlLoginUrlB64: $SONAR_SAML_LOGIN_URL_B64
+  sonarAuthSamlProviderIdB64: $SONAR_SAML_PROVIDER_ID_B64
+  sonarAuthSamlServerBaseUrl: $SONARQUBE_URL
 buildConfig:
   cpuRequest: 200m
   cpuLimit: 1
   memRequest: 1Gi
   memLimit: 2Gi
 scan:
+  sonarAlertEmails: $SONAR_SCAN_ALERT_EMAILS
   sonarEnabled: $SONAR_SCAN_ENABLED
   sonarExclusions: $SONAR_SCAN_EXCLUSIONS
   sonarNexusRepository: $SONAR_SCAN_NEXUS_REPOSITORY
-  sonarAlertEmails: $SONAR_SCAN_ALERT_EMAILS
   sonarProjectsPrivate: $SONAR_SCAN_PROJECTS_PRIVATE
   sonarQubeAccount: $SONAR_SCAN_ACCOUNT
