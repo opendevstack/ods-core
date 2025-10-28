@@ -11,7 +11,7 @@ metadata:
   name: {{ .Values.global.appName }}-postgresql-backup
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.postgresql.pvcDatabaseBackupCapacity }}
