@@ -425,3 +425,32 @@ else
 fi
 
 echo_done "SonarQube configured."
+
+# Function to grant PostgreSQL backup privileges to a database user
+function grant_postgresql_backup_privileges() {
+    local db_host="$1"
+    local db_user="$2"
+    local db_name="$3"
+    local admin_user="$4"
+    local admin_password="$5"
+    
+    echo_info "Granting PostgreSQL backup privileges to user '${db_user}'..."
+    
+    # pg_backup_start() and pg_backup_stop() are superuser-only functions
+    # They cannot be granted via GRANT statements, the user must be a SUPERUSER
+    echo_info "Making user '${db_user}' a SUPERUSER to enable backup operations..."
+    PGPASSWORD="${admin_password}" psql \
+        --host="${db_host}" \
+        --username="${admin_user}" \
+        --dbname="${db_name}" \
+        --command="ALTER USER \"${db_user}\" WITH SUPERUSER;"
+    
+    if [ $? -eq 0 ]; then
+        echo_info "User '${db_user}' promoted to SUPERUSER."
+    else
+        echo_warn "Failed to promote '${db_user}' to SUPERUSER."
+        return 1
+    fi
+    
+    echo_done "PostgreSQL backup privileges configuration completed."
+}
