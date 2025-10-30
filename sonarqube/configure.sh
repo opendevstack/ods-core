@@ -5,6 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
+# Source the configuration file to load all environment variables
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    set +u
+    source "${ODS_CONFIGURATION_DIR}/ods-core.env"
+    set -u
+fi
+
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
 }
@@ -424,33 +431,62 @@ else
     fi
 fi
 
-echo_done "SonarQube configured."
+# Grant PostgreSQL backup privileges to database user
+# Uses oc exec to execute commands in the SonarQube PostgreSQL pod
+echo_info "Configuring PostgreSQL backup privileges..."
 
-# Function to grant PostgreSQL backup privileges to a database user
-function grant_postgresql_backup_privileges() {
-    local db_host="$1"
-    local db_user="$2"
-    local db_name="$3"
-    local admin_user="$4"
-    local admin_password="$5"
+# Get values from environment variables
+oc_namespace="${ODS_NAMESPACE}"
+db_user="${SONAR_DATABASE_SUPER_NAME}"
+db_name="${SONAR_DATABASE_NAME}"
+db_password_b64="${SONAR_DATABASE_SUPER_PASSWORD_B64}"
+
+if [ -z "${oc_namespace}" ] || [ -z "${db_user}" ] || [ -z "${db_name}" ]; then
+    echo_warn "Skipping PostgreSQL backup privileges configuration - missing environment variables"
+    echo_info "Required: ODS_NAMESPACE, SONAR_DATABASE_SUPER_NAME, SONAR_DATABASE_NAME"
+else
+    # Decode the base64 password
+    db_password=$(echo "${db_password_b64}" | base64 -d)
     
-    echo_info "Granting PostgreSQL backup privileges to user '${db_user}'..."
+    # Fetch the PostgreSQL pod name dynamically
+    echo_info "Fetching SonarQube PostgreSQL pod in namespace '${oc_namespace}'..."
+    db_pod_name=$(oc get pods -n "${oc_namespace}" -l name=sonarqube-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     
-    # pg_backup_start() and pg_backup_stop() are superuser-only functions
-    # They cannot be granted via GRANT statements, the user must be a SUPERUSER
-    echo_info "Making user '${db_user}' a SUPERUSER to enable backup operations..."
-    PGPASSWORD="${admin_password}" psql \
-        --host="${db_host}" \
-        --username="${admin_user}" \
-        --dbname="${db_name}" \
-        --command="ALTER USER \"${db_user}\" WITH SUPERUSER;"
-    
-    if [ $? -eq 0 ]; then
-        echo_info "User '${db_user}' promoted to SUPERUSER."
+    if [ -z "${db_pod_name}" ]; then
+        echo_warn "Could not find PostgreSQL pod in namespace '${oc_namespace}' with label 'name=sonarqube-postgresql'"
     else
-        echo_warn "Failed to promote '${db_user}' to SUPERUSER."
-        return 1
+        echo_info "Found PostgreSQL pod: ${db_pod_name}"
+        echo_info "Granting PostgreSQL backup privileges to user '${db_user}' in pod '${db_pod_name}'..."
+        
+        # pg_backup_start() and pg_backup_stop() are superuser-only functions
+        # They cannot be granted via GRANT statements, the user must be a SUPERUSER
+        echo_info "Making user '${db_user}' a SUPERUSER to enable backup operations..."
+        
+        # Use oc exec to run psql command inside the PostgreSQL pod
+        # Connect as postgres user (superuser) to create/alter the backup user
+        # No password needed as we're running as root via oc exec inside the pod
+        psql_command="
+        DO \$\$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${db_user}') THEN
+                CREATE USER \"${db_user}\" WITH PASSWORD '${db_password}' SUPERUSER;
+                RAISE NOTICE 'User ${db_user} created as SUPERUSER.';
+            ELSE
+                ALTER USER \"${db_user}\" PASSWORD '${db_password}' SUPERUSER;
+                RAISE NOTICE 'User ${db_user} updated to SUPERUSER.';
+            END IF;
+        END
+        \$\$;
+        "
+        
+        if oc exec -n "${oc_namespace}" "${db_pod_name}" -- \
+            psql -U postgres -d "${db_name}" -c "${psql_command}"; then
+            echo_info "User '${db_user}' configured as SUPERUSER."
+            echo_done "PostgreSQL backup privileges configuration completed."
+        else
+            echo_warn "Failed to configure '${db_user}' as SUPERUSER."
+        fi
     fi
-    
-    echo_done "PostgreSQL backup privileges configuration completed."
-}
+fi
+
+echo_done "SonarQube configured."

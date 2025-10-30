@@ -14,7 +14,9 @@ global:
   sonarDatabaseJdbcUrl: $SONAR_DATABASE_JDBC_URL
   sonarDatabaseName: $SONAR_DATABASE_NAME
   sonarDatabasePasswordB64: $SONAR_DATABASE_PASSWORD_B64
+  sonarDatabaseSuperPasswordB64: $SONAR_DATABASE_SUPER_PASSWORD_B64
   sonarDatabaseUser: $SONAR_DATABASE_USER
+  sonarDatabaseSuperUser: $SONAR_DATABASE_SUPER_NAME
   sonarEdition: $SONAR_EDITION
   sonarVersion: $SONAR_VERSION
   sonarqubeDataStorageName: $SONARQUBE_DATA_STORAGE_NAME

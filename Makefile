@@ -131,7 +131,7 @@ apply-sonarqube-chart:
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube-postgresql
 	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
 .PHONY: start-sonarqube-build
 

@@ -37,7 +37,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: sonarqube-postgresql
-                      key: database-password
+                      key: superuser-password
               imagePullPolicy: IfNotPresent
               terminationMessagePolicy: File
               image: image-registry.openshift-image-registry.svc:5000/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
@@ -48,7 +48,7 @@ spec:
                 # Compute snapshot name
                 SNAP_NAME="{{ .Values.global.appName }}-postgresql-snapshot-$(date +%Y-%m-%d-%H-%M-%S)"
                 DB_HOST="{{ .Values.global.appName }}-postgresql"
-                DB_USER="{{ .Values.global.sonarDatabaseUser }}"
+                DB_USER="{{ .Values.global.sonarDatabaseSuperUser }}"
                 DB_NAME="{{ .Values.global.sonarDatabaseName }}"
                 ODS_NAMESPACE="{{ .Values.global.odsNamespace }}"
                 STORAGE_CLASS="{{ .Values.global.sonarqubeFastStorageClassBackup }}"
