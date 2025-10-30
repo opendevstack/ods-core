@@ -6,7 +6,7 @@ USER root
 RUN if command -v apk &> /dev/null; then \
       curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin; \
     elif command -v yum &> /dev/null; then \
-      curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin && \
+      curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin; \
     fi
 
 USER postgres
