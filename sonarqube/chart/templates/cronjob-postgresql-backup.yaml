@@ -14,6 +14,9 @@ spec:
       backoffLimit: 0
       ttlSecondsAfterFinished: 604800
       template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         spec:
           serviceAccountName: ods-edit
           containers:
