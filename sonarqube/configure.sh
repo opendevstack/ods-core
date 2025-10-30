@@ -8,6 +8,7 @@ ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 # Source the configuration file to load all environment variables
 if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
     set +u
+    # shellcheck source=/dev/null
     source "${ODS_CONFIGURATION_DIR}/ods-core.env"
     set -u
 fi
