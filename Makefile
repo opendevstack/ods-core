@@ -137,7 +137,7 @@ start-sonarqube-build:
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) $(INSECURE_FLAG)
+	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) --database-config=true $(INSECURE_FLAG)
 .PHONY: configure-sonarqube
 
 
