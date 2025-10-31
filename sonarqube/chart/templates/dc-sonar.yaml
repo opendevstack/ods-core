@@ -53,23 +53,43 @@ spec:
           terminationMessagePath: /dev/termination-log
           name: {{ .Values.global.appName }}
           livenessProbe:
-            httpGet:
-              path: /api/system/status
-              port: 9000
-              scheme: HTTP
-            periodSeconds: 10
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  RESPONSE=$(wget --no-proxy -qO- --header="X-Sonar-Passcode: $SONAR_WEB_SYSTEMPASSCODE" "http://localhost:9000/api/system/liveness" 2>&1)
+                  if [ $? -eq 0 ]; then
+                    exit 0
+                  else
+                    echo "SonarQube response: $RESPONSE"
+                    exit 1
+                  fi
+            periodSeconds: 30
             successThreshold: 1
-            timeoutSeconds: 2
-            failureThreshold: 3
+            timeoutSeconds: 1
+            failureThreshold: 5
           readinessProbe:
-            httpGet:
-              path: /api/system/status
-              port: 9000
-              scheme: HTTP
-            periodSeconds: 10
+            exec:
+              command:
+                - sh
+                - '-c'
+                - |
+                  #!/bin/bash
+                  # A Sonarqube container is considered ready if the status is UP, DB_MIGRATION_NEEDED or DB_MIGRATION_RUNNING
+                  # status about migration are added to prevent the node to be kill while SonarQube is upgrading the database.
+                  # The possible values are STARTING, UP, DOWN, RESTARTING, DB_MIGRATION_NEEDED and DB_MIGRATION_RUNNING.
+                  STATUS=$(wget --no-proxy -qO- http://localhost:9000/api/system/status 2>&1)
+                  if echo "$STATUS" | grep -q -e '"status":"UP"' -e '"status":"DB_MIGRATION_NEEDED"' -e '"status":"DB_MIGRATION_RUNNING"'; then
+                    exit 0
+                  fi
+                  STATUS_VALUE=$(echo "$STATUS" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                  echo "SonarQube status: ${STATUS_VALUE:-unknown}"
+                  exit 1
+            periodSeconds: 30
             successThreshold: 1
-            timeoutSeconds: 2
-            failureThreshold: 3
+            timeoutSeconds: 1
+            failureThreshold: 5
           env:
             - name: SONARQUBE_JDBC_USERNAME
               valueFrom:
@@ -88,6 +108,11 @@ spec:
                 configMapKeyRef:
                   name: {{ .Values.global.appName }}
                   key: database-jdbc-url
+            - name: SONAR_WEB_SYSTEMPASSCODE 
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.appName }}-app
+                  key: web-system-passcode
             - name: SONAR_FORCEAUTHENTICATION
               value: 'true'
             - name: SONAR_AUTH_SAML_ENABLED
@@ -132,7 +157,7 @@ spec:
               path: /api/system/status
               port: 9000
               scheme: HTTP 
-            timeoutSeconds: 1
+            timeoutSeconds: 2
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 30

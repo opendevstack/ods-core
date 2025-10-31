@@ -8,6 +8,7 @@ global:
   odsNamespace: $ODS_NAMESPACE
   registry: $DOCKER_REGISTRY
   repoBase: $REPO_BASE
+  sonarPasscodeB64: $SONAR_WEB_SYSTEMPASSCODE_B64
   sonarAdminPasswordB64: $SONAR_ADMIN_PASSWORD_B64
   sonarAdminUsername: $SONAR_ADMIN_USERNAME
   sonarDatabaseImage: $SONAR_DATABASE_IMAGE
