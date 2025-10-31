@@ -250,18 +250,13 @@ fi
 
 sampleToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
 configuredToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
-authTokenVerified=""
+tokenMatch=""
 if [ "${configuredToken}" == "${sampleToken}" ]; then
     echo_info "Auth token in ods-core.env is the sample value."
-else
-    echo_info "Checking if login with token from ods.core.env is possible ..."
-    if curl ${INSECURE} -sSf --user "${configuredToken}": "${SONARQUBE_URL}/api/user_tokens/search?login=cd_user" > /dev/null; then
-        echo_info "Configured token for '${PIPELINE_USER_NAME}' verified."
-        authTokenVerified="y"
-    fi
+    tokenMatch="y"
 fi
 
-if [ -z "${authTokenVerified}" ]; then
+if [ "${tokenMatch}" == "y" ]; then
     echo_info "Creating token for '${PIPELINE_USER_NAME}' ..."
     encodedTokenName="$(uriencode "${TOKEN_NAME}")"
     tokenResponse=$(curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
