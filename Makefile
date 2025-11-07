@@ -131,13 +131,13 @@ apply-sonarqube-chart:
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube-postgresql
 	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
 .PHONY: start-sonarqube-build
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) $(INSECURE_FLAG)
+	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) --database-config=true $(INSECURE_FLAG)
 .PHONY: configure-sonarqube
 
 
@@ -181,19 +181,13 @@ start-opentelemetry-collector-build:
 
 # BACKUP
 ## Create a backup of the current state.
-backup: backup-sonarqube backup-ocp-config
+backup: backup-ocp-config
 .PHONY: backup
 
 ## Create a backup of OpenShift resources in "ods" namespace.
 backup-ocp-config:
 	tailor export --namespace $(ODS_NAMESPACE) > backup_ods.yml
 .PHONY: backup-ocp-config
-
-## Create a backup of the SonarQube database in backup storage and in the current directory.
-backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --local-copy=true --backup-dir `pwd`
-.PHONY: backup-sonarqube
-
 
 # PVC MIGRATION
 ## Migrate data from one PVC to another. Options: SOURCE_PVC, TARGET_PVC, THREADS (default: 5), CPU_REQUEST (default: 1), MEMORY (default: 2)

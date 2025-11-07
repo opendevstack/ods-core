@@ -5,6 +5,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
+# Source the configuration file to load all environment variables
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    set +u
+    # shellcheck source=/dev/null
+    source "${ODS_CONFIGURATION_DIR}/ods-core.env"
+    set -u
+fi
+
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
 }
@@ -38,6 +46,7 @@ SONARQUBE_URL=""
 INSECURE=""
 CONFIGURATION_LOCATED=""
 VALUES_WRITTEN_TO_CONFIG=""
+DATABASE_CONFIG=""
 
 function usage {
     printf "Setup SonarQube.\n\n"
@@ -52,6 +61,7 @@ function usage {
     printf "\t-p|--pipeline-user\tName of Jenkins pipeline user (defaults to 'cd_user')\n"
     printf "\t-t|--token-name\t\tName of SonarQube user token (defaults to 'ods-jenkins-shared-library')\n"
     printf "\t-w|--write-to-config\tIf token/password should be written to ods-core.env\n"
+    printf "\t-d|--database-config\tConfigure PostgreSQL, create/add super user"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -79,6 +89,9 @@ while [[ "$#" -gt 0 ]]; do
 
     -s|--sonarqube) SONARQUBE_URL="$2"; shift;;
     -s=*|--sonarqube=*) SONARQUBE_URL="${1#*=}";;
+
+    -d|--database-config) DATABASE_CONFIG="$2"; shift;;
+    -d=*|--database-config*) DATABASE_CONFIG="${1#*=}";;
 
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -237,18 +250,13 @@ fi
 
 sampleToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
 configuredToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
-authTokenVerified=""
+tokenMatch=""
 if [ "${configuredToken}" == "${sampleToken}" ]; then
     echo_info "Auth token in ods-core.env is the sample value."
-else
-    echo_info "Checking if login with token from ods.core.env is possible ..."
-    if curl ${INSECURE} -sSf --user "${configuredToken}": "${SONARQUBE_URL}/api/user_tokens/search?login=cd_user" > /dev/null; then
-        echo_info "Configured token for '${PIPELINE_USER_NAME}' verified."
-        authTokenVerified="y"
-    fi
+    tokenMatch="y"
 fi
 
-if [ -z "${authTokenVerified}" ]; then
+if [ "${tokenMatch}" == "y" ]; then
     echo_info "Creating token for '${PIPELINE_USER_NAME}' ..."
     encodedTokenName="$(uriencode "${TOKEN_NAME}")"
     tokenResponse=$(curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
@@ -421,6 +429,66 @@ else
         echo_info "Default project visibility set to 'public'."
     else
         echo_warn "Failed to set default project visibility to 'public'."
+    fi
+fi
+
+if [ "${DATABASE_CONFIG}" = "true" ]; then
+    # Grant PostgreSQL backup privileges to database user
+    # Uses oc exec to execute commands in the SonarQube PostgreSQL pod
+    echo_info "Configuring PostgreSQL backup privileges..."
+
+    # Get values from environment variables
+    oc_namespace="${ODS_NAMESPACE}"
+    db_user="${SONAR_DATABASE_SUPER_NAME}"
+    db_name="${SONAR_DATABASE_NAME}"
+    db_password_b64="${SONAR_DATABASE_SUPER_PASSWORD_B64}"
+
+    if [ -z "${oc_namespace}" ] || [ -z "${db_user}" ] || [ -z "${db_name}" ]; then
+        echo_warn "Skipping PostgreSQL backup privileges configuration - missing environment variables"
+        echo_info "Required: ODS_NAMESPACE, SONAR_DATABASE_SUPER_NAME, SONAR_DATABASE_NAME"
+    else
+        # Decode the base64 password
+        db_password=$(echo "${db_password_b64}" | base64 -d)
+        
+        # Fetch the PostgreSQL pod name dynamically
+        echo_info "Fetching SonarQube PostgreSQL pod in namespace '${oc_namespace}'..."
+        db_pod_name=$(oc get pods -n "${oc_namespace}" -l name=sonarqube-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+        
+        if [ -z "${db_pod_name}" ]; then
+            echo_warn "Could not find PostgreSQL pod in namespace '${oc_namespace}' with label 'name=sonarqube-postgresql'"
+        else
+            echo_info "Found PostgreSQL pod: ${db_pod_name}"
+            echo_info "Granting PostgreSQL backup privileges to user '${db_user}' in pod '${db_pod_name}'..."
+            
+            # pg_backup_start() and pg_backup_stop() are superuser-only functions
+            # They cannot be granted via GRANT statements, the user must be a SUPERUSER
+            echo_info "Making user '${db_user}' a SUPERUSER to enable backup operations..."
+            
+            # Use oc exec to run psql command inside the PostgreSQL pod
+            # Connect as postgres user (superuser) to create/alter the backup user
+            # No password needed as we're running as root via oc exec inside the pod
+            psql_command="
+            DO \$\$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${db_user}') THEN
+                    CREATE USER \"${db_user}\" WITH PASSWORD '${db_password}' SUPERUSER;
+                    RAISE NOTICE 'User ${db_user} created as SUPERUSER.';
+                ELSE
+                    ALTER USER \"${db_user}\" PASSWORD '${db_password}' SUPERUSER;
+                    RAISE NOTICE 'User ${db_user} updated to SUPERUSER.';
+                END IF;
+            END
+            \$\$;
+            "
+            
+            if oc exec -n "${oc_namespace}" "${db_pod_name}" -- \
+                psql -U postgres -d "${db_name}" -c "${psql_command}"; then
+                echo_info "User '${db_user}' configured as SUPERUSER."
+                echo_done "PostgreSQL backup privileges configuration completed."
+            else
+                echo_warn "Failed to configure '${db_user}' as SUPERUSER."
+            fi
+        fi
     fi
 fi
 
