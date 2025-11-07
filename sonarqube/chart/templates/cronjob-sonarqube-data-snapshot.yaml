@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Values.global.appName }}
 spec:
-  schedule: "{{ .Values.global.nexusSnapshotSchedule }}"
+  schedule: "{{ .Values.global.backupSchedule }}"
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 3600
   suspend: false
@@ -32,9 +32,9 @@ spec:
                 name: $SNAP_NAME
                 namespace: {{ .Values.global.odsNamespace }}
               spec:
-                volumeSnapshotClassName: {{ .Values.global.nexusSnapshotClass }}
+                volumeSnapshotClassName: {{ .Values.global.sonarqubeFastStorageClassBackup }}
                 source:
-                  persistentVolumeClaimName: {{ .Values.global.nexusStorageName }}
+                  persistentVolumeClaimName: {{ .Values.global.sonarqubeDataStorageName }}
               EOF
             resources:
               limits:

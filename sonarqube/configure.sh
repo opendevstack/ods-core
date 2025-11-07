@@ -5,6 +5,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ODS_CORE_DIR=${SCRIPT_DIR%/*}
 ODS_CONFIGURATION_DIR="${ODS_CORE_DIR}/../ods-configuration"
 
+# Source the configuration file to load all environment variables
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    set +u
+    # shellcheck source=/dev/null
+    source "${ODS_CONFIGURATION_DIR}/ods-core.env"
+    set -u
+fi
+
 echo_done(){
     echo -e "\033[92mDONE\033[39m: $1"
 }
@@ -38,6 +46,7 @@ SONARQUBE_URL=""
 INSECURE=""
 CONFIGURATION_LOCATED=""
 VALUES_WRITTEN_TO_CONFIG=""
+DATABASE_CONFIG=""
 
 function usage {
     printf "Setup SonarQube.\n\n"
@@ -52,6 +61,7 @@ function usage {
     printf "\t-p|--pipeline-user\tName of Jenkins pipeline user (defaults to 'cd_user')\n"
     printf "\t-t|--token-name\t\tName of SonarQube user token (defaults to 'ods-jenkins-shared-library')\n"
     printf "\t-w|--write-to-config\tIf token/password should be written to ods-core.env\n"
+    printf "\t-d|--database-config\tConfigure PostgreSQL, create/add super user"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -79,6 +89,9 @@ while [[ "$#" -gt 0 ]]; do
 
     -s|--sonarqube) SONARQUBE_URL="$2"; shift;;
     -s=*|--sonarqube=*) SONARQUBE_URL="${1#*=}";;
+
+    -d|--database-config) DATABASE_CONFIG="$2"; shift;;
+    -d=*|--database-config*) DATABASE_CONFIG="${1#*=}";;
 
     *) echo_error "Unknown parameter passed: $1"; exit 1;;
 esac; shift; done
@@ -220,18 +233,13 @@ echo_info "User '${PIPELINE_USER_NAME}' exists in SonarQube."
 
 sampleToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CORE_DIR}/configuration-sample/ods-core.env.sample" | cut -d "=" -f 2-)
 configuredToken=$(grep SONAR_AUTH_TOKEN_B64 "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d "=" -f 2- | base64 --decode)
-authTokenVerified=""
+tokenMatch=""
 if [ "${configuredToken}" == "${sampleToken}" ]; then
     echo_info "Auth token in ods-core.env is the sample value."
-else
-    echo_info "Checking if login with token from ods-core.env is possible ..."
-    if curl ${INSECURE} -sSf --user "${configuredToken}": "${SONARQUBE_URL}/api/user_tokens/search?login=cd_user" > /dev/null; then
-        echo_info "Configured token for '${PIPELINE_USER_NAME}' verified."
-        authTokenVerified="y"
-    fi
+    tokenMatch="y"
 fi
 
-if [ -z "${authTokenVerified}" ]; then
+if [ "${tokenMatch}" == "y" ]; then
     echo_info "Creating token for '${PIPELINE_USER_NAME}' ..."
     encodedTokenName="$(uriencode "${TOKEN_NAME}")"
     tokenResponse=$(curl ${INSECURE} -X POST -sSf --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
@@ -265,6 +273,206 @@ fi
 if [ -n "${VALUES_WRITTEN_TO_CONFIG}" ]; then
     echo_warn "Some values in '${ODS_CONFIGURATION_DIR}/ods-core.env' have been updated."
     echo_warn "Commit and push the changes to Bitbucket."
+fi
+
+# Create and configure a quality gate and make it default.
+echo_info "Ensuring quality gate 'ODS Default Quality Gate' exists and is set as default ..."
+GATE_NAME="ODS Default Quality Gate"
+encodedGateName="$(uriencode "${GATE_NAME}")"
+
+# Check if gate exists (search by name). Fetch list first, then query with jq to avoid
+# complex command substitution that can introduce syntax issues.
+resp="$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+    "${SONARQUBE_URL}/api/qualitygates/list" 2>/dev/null || echo '{"qualitygates": []}')"
+
+gateCheck="$(echo "${resp}" | jq -r --arg name "${GATE_NAME}" '.qualitygates[]? | select(.name == $name) | .name' 2>/dev/null || echo "")"
+
+if [ -z "${gateCheck}" ]; then
+    echo_info "Quality gate '${GATE_NAME}' not found, creating ..."
+    createResp=$(curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/create?name=${encodedGateName}" || true)
+
+    # try to get id or name from response, but continue using name for further calls
+    gateName=$(echo "${createResp}" | jq -r '.name // empty' 2>/dev/null || echo "")
+
+    if [ -z "${gateName}" ]; then
+        # creation returned only errors or minimal info — log and continue using name for further calls
+        echo_info "Quality gate '${GATE_NAME}' creation response: ${createResp}"
+    else
+        echo_info "Quality gate '${GATE_NAME}' is created."
+    fi
+else
+    echo_info "Quality gate '${GATE_NAME}' already exists."
+fi
+
+# Helper to add a condition (ignores errors if duplicate)
+add_condition() {
+    local metric="$1"; shift
+    local op="$1"; shift
+    local error="$1"; shift
+    local scope="${1:-}"   # optional: "new" for new code conditions; anything else => overall
+
+    # decide onNewCode parameter
+    local onNewParam=""
+    if [ "${scope}" == "new" ]; then
+        onNewParam="&onNewCode=true"
+        echo_info "Adding condition for NEW CODE: metric='${metric}' op='${op}' error='${error}'"
+    else
+        onNewParam="&onNewCode=false"
+        echo_info "Adding condition for OVERALL CODE: metric='${metric}' op='${op}' error='${error}'"
+    fi
+
+    # Use gateName (encoded) instead of gateId
+    if ! curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/create_condition?gateName=${encodedGateName}&metric=${metric}&op=${op}&error=${error}${onNewParam}" >/dev/null 2>&1; then
+        echo_warn "Could not add condition (might already exist): metric='${metric}' scope='${scope}'"
+    else
+        echo_info "Condition for '${metric}' added (scope='${scope}')."
+    fi
+}
+
+# Helper to remove overall (non-new-code) condition(s) for a metric if present
+remove_overall_condition() {
+    local metric="$1"
+    echo_info "Checking for overall (non-new-code) condition(s) for metric='${metric}' to remove ..."
+    # Fetch gate details and extract condition ids where onNewCode is false or absent (overall)
+    gateResp=$(curl ${INSECURE} -sS --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/show?name=${encodedGateName}" 2>/dev/null || echo '{"conditions": []}')
+    ids=$(echo "${gateResp}" | jq -r --arg m "${metric}" '.conditions[]? | select(.metric == $m and (.onNewCode == false or .onNewCode == null)) | .id' 2>/dev/null || echo "")
+    if [ -z "${ids}" ]; then
+        echo_info "No overall condition for metric='${metric}' found."
+        return 0
+    fi
+    for id in ${ids}; do
+        echo_info "Removing overall condition id='${id}' for metric='${metric}' ..."
+        if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+            "${SONARQUBE_URL}/api/qualitygates/delete_condition?id=${id}" >/dev/null 2>&1; then
+            echo_info "Removed condition id='${id}'."
+        else
+            echo_warn "Failed to remove condition id='${id}' for metric='${metric}'."
+        fi
+    done
+}
+
+if true; then
+    # Conditions required by the request:
+    # - For NEW CODE only:
+    #   - Issues is greater than 0
+    #   - Security Hotspots Reviewed is less than 100%
+    #   - Coverage is less than 80%
+    #   - Duplicated Lines (%) is greater than 3%
+    #
+    # - For OVERALL code:
+    #   - Security Rating is worse than A (A maps to 1 => worse than A is > 1)
+    #   - Security Hotspots Reviewed is less than 100%
+    #   - Reliability Rating is worse than C (C maps to 3 => worse than C is > 3)
+
+    # New-code-only conditions
+    add_condition "issues" "GT" "0" "new"
+    add_condition "security_hotspots_reviewed" "LT" "100" "new"
+    add_condition "coverage" "LT" "80" "new"
+    add_condition "duplicated_lines_density" "GT" "3" "new"
+
+    # Overall conditions
+    add_condition "security_rating" "GT" "1"
+    add_condition "reliability_rating" "GT" "3"
+
+    # Remove unwanted overall conditions first (coverage & duplicated lines)
+    remove_overall_condition "coverage"
+    remove_overall_condition "duplicated_lines_density"
+
+    # Set gate as default using name parameter (ignore absence of id)
+    echo_info "Setting '${GATE_NAME}' as default quality gate (using name) ..."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/qualitygates/set_as_default?name=${encodedGateName}"; then
+        echo_info "Quality gate '${GATE_NAME}' set as default."
+    else
+        echo_warn "Failed to set '${GATE_NAME}' as default using name."
+    fi
+fi
+
+# New: update default project visibility to 'private' when configured
+configured_visibility=""
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
+    configured_visibility=$(grep -E '^SONAR_SCAN_PROJECTS_PRIVATE=' "${ODS_CONFIGURATION_DIR}/ods-core.env" | cut -d"=" -f2- | tr -d '\r' | tr -d '"' | tr -d ' ' || echo "")
+fi
+
+if [ "${configured_visibility}" = "true" ]; then
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE='true' — setting default project visibility to 'private' ..."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=private"; then
+        echo_info "Default project visibility set to 'private'."
+    else
+        echo_warn "Failed to set default project visibility to 'private'."
+    fi
+else
+    echo_info "SONAR_SCAN_PROJECTS_PRIVATE is not 'true' (value: '${configured_visibility}') setting default project visibility to 'public'."
+    if curl ${INSECURE} -sS -X POST --user "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" \
+        "${SONARQUBE_URL}/api/projects/update_default_visibility?projectVisibility=public"; then
+        echo_info "Default project visibility set to 'public'."
+    else
+        echo_warn "Failed to set default project visibility to 'public'."
+    fi
+fi
+
+if [ "${DATABASE_CONFIG}" = "true" ]; then
+    # Grant PostgreSQL backup privileges to database user
+    # Uses oc exec to execute commands in the SonarQube PostgreSQL pod
+    echo_info "Configuring PostgreSQL backup privileges..."
+
+    # Get values from environment variables
+    oc_namespace="${ODS_NAMESPACE}"
+    db_user="${SONAR_DATABASE_SUPER_NAME}"
+    db_name="${SONAR_DATABASE_NAME}"
+    db_password_b64="${SONAR_DATABASE_SUPER_PASSWORD_B64}"
+
+    if [ -z "${oc_namespace}" ] || [ -z "${db_user}" ] || [ -z "${db_name}" ]; then
+        echo_warn "Skipping PostgreSQL backup privileges configuration - missing environment variables"
+        echo_info "Required: ODS_NAMESPACE, SONAR_DATABASE_SUPER_NAME, SONAR_DATABASE_NAME"
+    else
+        # Decode the base64 password
+        db_password=$(echo "${db_password_b64}" | base64 -d)
+        
+        # Fetch the PostgreSQL pod name dynamically
+        echo_info "Fetching SonarQube PostgreSQL pod in namespace '${oc_namespace}'..."
+        db_pod_name=$(oc get pods -n "${oc_namespace}" -l name=sonarqube-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+        
+        if [ -z "${db_pod_name}" ]; then
+            echo_warn "Could not find PostgreSQL pod in namespace '${oc_namespace}' with label 'name=sonarqube-postgresql'"
+        else
+            echo_info "Found PostgreSQL pod: ${db_pod_name}"
+            echo_info "Granting PostgreSQL backup privileges to user '${db_user}' in pod '${db_pod_name}'..."
+            
+            # pg_backup_start() and pg_backup_stop() are superuser-only functions
+            # They cannot be granted via GRANT statements, the user must be a SUPERUSER
+            echo_info "Making user '${db_user}' a SUPERUSER to enable backup operations..."
+            
+            # Use oc exec to run psql command inside the PostgreSQL pod
+            # Connect as postgres user (superuser) to create/alter the backup user
+            # No password needed as we're running as root via oc exec inside the pod
+            psql_command="
+            DO \$\$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${db_user}') THEN
+                    CREATE USER \"${db_user}\" WITH PASSWORD '${db_password}' SUPERUSER;
+                    RAISE NOTICE 'User ${db_user} created as SUPERUSER.';
+                ELSE
+                    ALTER USER \"${db_user}\" PASSWORD '${db_password}' SUPERUSER;
+                    RAISE NOTICE 'User ${db_user} updated to SUPERUSER.';
+                END IF;
+            END
+            \$\$;
+            "
+            
+            if oc exec -n "${oc_namespace}" "${db_pod_name}" -- \
+                psql -U postgres -d "${db_name}" -c "${psql_command}"; then
+                echo_info "User '${db_user}' configured as SUPERUSER."
+                echo_done "PostgreSQL backup privileges configuration completed."
+            else
+                echo_warn "Failed to configure '${db_user}' as SUPERUSER."
+            fi
+        fi
+    fi
 fi
 
 echo_done "SonarQube configured."

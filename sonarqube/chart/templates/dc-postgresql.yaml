@@ -40,15 +40,22 @@ spec:
             configMapKeyRef:
               key: database-name
               name: {{ .Values.global.appName }}
-        image: {{ .Values.global.sonarDatabaseImage}}
+        image: {{ .Values.global.registry }}/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -h
+            - 127.0.0.1
+            - -U
+            - $POSTGRESQL_USER
+            - -d
+            - $POSTGRESQL_DATABASE
           failureThreshold: 3
           initialDelaySeconds: 30
           periodSeconds: 10
           successThreshold: 1
-          tcpSocket:
-            port: 5432
           timeoutSeconds: 1
         name: {{ .Values.postgresql.name }}
         ports:
@@ -57,11 +64,13 @@ spec:
         readinessProbe:
           exec:
             command:
-            - /bin/sh
-            - -i
-            - -c
-            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
-              'SELECT 1'
+            - pg_isready
+            - -h
+            - 127.0.0.1
+            - -U
+            - $POSTGRESQL_USER
+            - -d
+            - $POSTGRESQL_DATABASE
           failureThreshold: 3
           initialDelaySeconds: 5
           periodSeconds: 10
@@ -82,8 +91,6 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/pgsql/data
           name: {{ .Values.global.appName }}-postgresql-data
-        - mountPath: /var/lib/pgsql/backups
-          name: {{ .Values.global.appName }}-postgresql-backup
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -92,10 +99,16 @@ spec:
       volumes:
       - name: {{ .Values.global.appName }}-postgresql-data
         persistentVolumeClaim:
-          claimName: {{ .Values.global.appName }}-postgresql
-      - name: {{ .Values.global.appName }}-postgresql-backup
-        persistentVolumeClaim:
-          claimName: {{ .Values.global.appName }}-postgresql-backup
+          claimName: {{ .Values.global.appName }}-postgresql-data
   test: false
   triggers:
-  - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - {{ .Values.global.appName }}-postgresql
+        from:
+          kind: ImageStreamTag
+          name: {{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
+          namespace: {{ .Values.global.odsNamespace }}
+      type: ImageChange
+    - type: ConfigChange

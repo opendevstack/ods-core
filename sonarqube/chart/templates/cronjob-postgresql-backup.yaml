@@ -1,0 +1,161 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.global.appName }}-postgresql-backup
+  labels:
+    app: {{ .Values.global.appName }}
+spec:
+  schedule: "{{ .Values.global.backupSchedule }}"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  suspend: false
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        spec:
+          serviceAccountName: ods-edit
+          containers:
+            - resources:
+                limits:
+                  cpu: '1'
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              terminationMessagePath: /dev/termination-log
+              name: postgresql-backup
+              command:
+                - /bin/bash
+                - '-c'
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: sonarqube-postgresql
+                      key: superuser-password
+              imagePullPolicy: IfNotPresent
+              terminationMessagePolicy: File
+              image: image-registry.openshift-image-registry.svc:5000/{{ .Values.global.odsNamespace }}/{{ .Values.global.appName }}-postgresql:{{ .Values.global.odsImageTag }}
+              args:
+              - |
+                set -e
+                
+                # Compute snapshot name
+                SNAP_NAME="{{ .Values.global.appName }}-postgresql-snapshot-$(date +%Y-%m-%d-%H-%M-%S)"
+                DB_HOST="{{ .Values.global.appName }}-postgresql"
+                DB_USER="{{ .Values.global.sonarDatabaseSuperUser }}"
+                DB_NAME="{{ .Values.global.sonarDatabaseName }}"
+                ODS_NAMESPACE="{{ .Values.global.odsNamespace }}"
+                STORAGE_CLASS="{{ .Values.global.sonarqubeFastStorageClassBackup }}"
+                APP_NAME="{{ .Values.global.appName }}"
+                
+                echo "Starting PostgreSQL backup process..."
+                
+                # Create the VolumeSnapshot manifest
+                cat > /tmp/snapshot.yaml <<EOF
+                apiVersion: snapshot.storage.k8s.io/v1
+                kind: VolumeSnapshot
+                metadata:
+                  name: ${SNAP_NAME}
+                  namespace: ${ODS_NAMESPACE}
+                  labels:
+                    app: ${APP_NAME}
+                    backup-type: postgresql
+                spec:
+                  volumeSnapshotClassName: ${STORAGE_CLASS}
+                  source:
+                    persistentVolumeClaimName: ${APP_NAME}-postgresql-data
+                EOF
+                
+                # Start backup mode and keep a single psql session open for entire operation
+                echo "Putting PostgreSQL into backup mode and creating snapshot..."
+                
+                # Create a named pipe for psql stdin/stdout
+                FIFO="/tmp/psql_backup_$$"
+                mkfifo "$FIFO" || exit 1
+                
+                # Start psql in background, keeping the session alive
+                psql \
+                  --host="${DB_HOST}" \
+                  --username="${DB_USER}" \
+                  --dbname="${DB_NAME}" \
+                  < "$FIFO" > /tmp/psql_output_$$.log 2>&1 &
+                PSQL_PID=$!
+                
+                # Execute commands through the FIFO to maintain single session
+                exec 3>"$FIFO"
+                
+                # Start backup mode
+                echo "SELECT pg_backup_start('backup', false) AS backup_lsn;" >&3
+                sleep 1
+                
+                echo "Creating volume snapshot..."
+                oc apply -f /tmp/snapshot.yaml
+                OC_APPLY_EXIT=$?
+                
+                if [ $OC_APPLY_EXIT -ne 0 ]; then
+                    echo "ERROR: Failed to create volume snapshot!"
+                    echo "SELECT pg_backup_stop();" >&3
+                    exec 3>&-
+                    wait $PSQL_PID
+                    rm -f "$FIFO" /tmp/psql_output_$$.log
+                    exit 1
+                fi
+                
+                echo "Waiting for snapshot to reach Ready status..."
+                oc wait --for='jsonpath={.status.readyToUse}=true' volumesnapshot/${SNAP_NAME} -n ${ODS_NAMESPACE} --timeout=1800s > /dev/null || true
+                OC_WAIT_EXIT=$?
+                
+                # Stop backup mode (same session) - ALWAYS do this regardless of wait result
+                echo "Stopping PostgreSQL backup mode..."
+                echo "SELECT pg_backup_stop() AS backup_end_info;" >&3
+                echo "\q" >&3
+                sleep 2
+                
+                # Close the FIFO and wait for psql to finish
+                exec 3>&-
+                wait $PSQL_PID
+                PSQL_EXIT=$?
+                
+                # Print psql output for verification
+                echo "PostgreSQL session output:"
+                cat /tmp/psql_output_$$.log
+                
+                # Check if pg_backup_stop was actually executed
+                if grep -i "backup_end_info" /tmp/psql_output_$$.log > /dev/null; then
+                    echo "✓ PostgreSQL backup mode stopped successfully"
+                else
+                    echo "⚠ WARNING: Could not confirm pg_backup_stop() execution - check logs above"
+                fi
+                
+                # Check for errors
+                if grep -i "error" /tmp/psql_output_$$.log > /dev/null; then
+                    echo "ERROR: PostgreSQL error detected!"
+                    rm -f "$FIFO" /tmp/psql_output_$$.log
+                    exit 1
+                fi
+                
+                if [ $PSQL_EXIT -ne 0 ]; then
+                    echo "ERROR: PostgreSQL session failed with exit code $PSQL_EXIT!"
+                    rm -f "$FIFO" /tmp/psql_output_$$.log
+                    exit 1
+                fi
+                
+                # Check snapshot wait result AFTER backup is stopped
+                if [ $OC_WAIT_EXIT -ne 0 ]; then
+                    echo "ERROR: Snapshot did not reach Ready status in time!"
+                    rm -f "$FIFO" /tmp/psql_output_$$.log
+                    exit 1
+                fi
+                
+                echo "Backup snapshot created successfully: $SNAP_NAME"
+                rm -f "$FIFO" /tmp/psql_output_$$.log
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 30

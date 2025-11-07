@@ -7,13 +7,14 @@ metadata:
 spec:
   schedule: "{{ .Values.global.nexusSnapshotCleanupSchedule }}"
   concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
   suspend: false
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: {{ int .Values.global.nexusSnapshotTTL }}
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 604800
       template:
         spec:
-          backoffLimit: 0
           serviceAccountName: ods-edit
           containers:
           - name: snapshot-cleaner
