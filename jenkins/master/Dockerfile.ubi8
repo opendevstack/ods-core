@@ -14,6 +14,8 @@ ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true
 
 USER root
 
+RUN curl -sSL https://get.jenkins.io/war-stable/2.462.1/jenkins.war -o /usr/lib/jenkins/jenkins.war
+
 # Add UBI repositories.
 COPY yum.repos.d/ubi.repo /etc/yum.repos.d/ubi.repo
 
