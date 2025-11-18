@@ -22,10 +22,14 @@ RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
     && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
         /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && ensure_java_jre_is_adequate.sh master \
-    && yum -y update \
+    && yum -y --nogpgcheck update \
     && import_certs.sh \
     && fix_openshift_scripts.sh \
     && clean_yum_cache.sh
+# RUN ensure_java_jre_is_adequate.sh master \
+#     && yum -y --nogpgcheck update \
+#     && fix_openshift_scripts.sh \
+#     && clean_yum_cache.sh
 
 # Copy configuration and plugins.
 COPY plugins.ubi8.txt /opt/openshift/configuration/plugins.txt

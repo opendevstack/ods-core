@@ -8,7 +8,7 @@ MAKEFLAGS += --no-builtin-rules
 include ../ods-configuration/ods-core.env
 export $(shell sed 's/=.*//' ../ods-configuration/ods-core.env)
 
-INSECURE := false
+INSECURE := true
 INSECURE_FLAG :=
 ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
     INSECURE_FLAG = --insecure
