@@ -108,7 +108,7 @@ spec:
                 fi
                 
                 echo "Waiting for snapshot to reach Ready status..."
-                oc wait --for='jsonpath={.status.readyToUse}=true' volumesnapshot/${SNAP_NAME} -n ${ODS_NAMESPACE} --timeout=1800s > /dev/null || true
+                oc wait --for='jsonpath={.status.readyToUse}=true' volumesnapshot/${SNAP_NAME} -n ${ODS_NAMESPACE} --timeout=3600s > /dev/null || true
                 OC_WAIT_EXIT=$?
                 
                 # Stop backup mode (same session) - ALWAYS do this regardless of wait result
