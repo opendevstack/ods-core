@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -146,8 +144,9 @@ type TestStepVerify struct {
 // For example, TMPL_MyVariable will be accessible as {{.MyVariable}} in templates.
 //
 // Example usage in templates:
-//   {{.ProjectID}}-{{.ComponentID}}
-//   {{.MyVariable}}
+//
+//	{{.ProjectID}}-{{.ComponentID}}
+//	{{.MyVariable}}
 type TemplateData map[string]interface{}
 
 // readSteps reads "steps.yml" in given folder.

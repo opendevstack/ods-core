@@ -392,7 +392,7 @@ func templateData(config map[string]string, componentID string, buildName string
 		buildNumber = buildParts[len(buildParts)-1]
 	}
 	aquaEnabled, _ := strconv.ParseBool(config["AQUA_ENABLED"])
-	
+
 	// Initialize template data map with standard fields
 	data := TemplateData{
 		"ProjectID":           utils.PROJECT_NAME,
@@ -406,15 +406,15 @@ func templateData(config map[string]string, componentID string, buildName string
 		"SonarQualityProfile": utils.GetEnv("SONAR_QUALITY_PROFILE", "Sonar way"),
 		"AquaEnabled":         aquaEnabled,
 	}
-	
+
 	// Automatically load all environment variables with TMPL_ prefix
 	// Example: TMPL_MyVariable becomes accessible as {{.MyVariable}}
 	// We check known TMPL_ variables and also scan all environment variables
 	tmplVars := []string{
 		"TMPL_SonarQualityGate",
-		"TMPL_SonarQualityProfile", 
+		"TMPL_SonarQualityProfile",
 	}
-	
+
 	tmplCount := 0
 	// First, add any explicitly known TMPL_ variables
 	for _, tmplVar := range tmplVars {
@@ -425,7 +425,7 @@ func templateData(config map[string]string, componentID string, buildName string
 			tmplCount++
 		}
 	}
-	
+
 	// Also scan all environment variables for any other TMPL_ prefixed ones
 	for _, env := range os.Environ() {
 		if strings.HasPrefix(env, "TMPL_") {
@@ -441,13 +441,13 @@ func templateData(config map[string]string, componentID string, buildName string
 			}
 		}
 	}
-	
+
 	if tmplCount == 0 {
 		fmt.Printf("WARNING: No TMPL_ environment variables found!\n")
 	} else {
 		fmt.Printf("Loaded %d TMPL_ environment variables\n", tmplCount)
 	}
-	
+
 	return data
 }
 
