@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+
 	v1 "k8s.io/api/rbac/v1"
 )
 
@@ -25,4 +26,14 @@ func FindClusterRoleBinding(roleBindings *v1.ClusterRoleBindingList, subjectName
 		}
 	}
 	return fmt.Errorf("Subject '%s' of kind '%s' in namespace '%s' does not have the cluster role '%s'", subjectName, subjectType, subjectNamespace, roleName)
+}
+
+func FindRoleBindingByName(roleBindings *v1.RoleBindingList, roleBindingName string) error {
+	for _, roleBinding := range roleBindings.Items {
+		if roleBindingName == roleBinding.Name {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("RoleBinding '%s' not found.", roleBindingName)
 }

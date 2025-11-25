@@ -24,10 +24,16 @@ type ImageTag struct {
 }
 
 type Resources struct {
-	Namespace         string
-	ImageTags         []ImageTag
-	BuildConfigs      []string
-	DeploymentConfigs []string
-	Services          []string
-	ImageStreams      []string
+	Namespace              string
+	ImageTags              []ImageTag
+	BuildConfigs           []string
+	DeploymentConfigs      []string
+	Services               []string
+	ImageStreams           []string
+	Routes                 []string
+	ConfigMaps             []string
+	Secrets                []string
+	PersistentVolumeClaims []string
+	ServiceAccounts        []string
+	RoleBindings           []string
 }

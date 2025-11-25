@@ -122,6 +122,18 @@ type TestStepVerify struct {
 		DeploymentConfigs []string `json:"deploymentConfigs"`
 		// Service resources. The check includes verifying that a running, ready pod is assigned.
 		Services []string `json:"services"`
+		// Route resources
+		Routes []string `json:"routes"`
+		// ConfigMap resources
+		ConfigMaps []string `json:"configMaps"`
+		// Secret resources
+		Secrets []string `json:"secrets"`
+		// PersistentVolumeClaim resources
+		PersistentVolumeClaims []string `json:"persistentVolumeClaims"`
+		// ServiceAccount resources
+		ServiceAccounts []string `json:"serviceAccounts"`
+		// RoleBinding resources
+		RoleBindings []string `json:"roleBindings"`
 	} `json:"openShiftResources"`
 }
 

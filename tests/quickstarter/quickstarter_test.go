@@ -557,12 +557,18 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 			)
 		}
 		resources := utils.Resources{
-			Namespace:         ocNamespace,
-			ImageTags:         imageTags,
-			BuildConfigs:      renderTemplates(t, verify.OpenShiftResources.BuildConfigs, tmplData),
-			DeploymentConfigs: renderTemplates(t, verify.OpenShiftResources.DeploymentConfigs, tmplData),
-			Services:          renderTemplates(t, verify.OpenShiftResources.Services, tmplData),
-			ImageStreams:      renderTemplates(t, verify.OpenShiftResources.ImageStreams, tmplData),
+			Namespace:              ocNamespace,
+			ImageTags:              imageTags,
+			BuildConfigs:           renderTemplates(t, verify.OpenShiftResources.BuildConfigs, tmplData),
+			DeploymentConfigs:      renderTemplates(t, verify.OpenShiftResources.DeploymentConfigs, tmplData),
+			Services:               renderTemplates(t, verify.OpenShiftResources.Services, tmplData),
+			ImageStreams:           renderTemplates(t, verify.OpenShiftResources.ImageStreams, tmplData),
+			Routes:                 renderTemplates(t, verify.OpenShiftResources.Routes, tmplData),
+			ConfigMaps:             renderTemplates(t, verify.OpenShiftResources.ConfigMaps, tmplData),
+			Secrets:                renderTemplates(t, verify.OpenShiftResources.Secrets, tmplData),
+			PersistentVolumeClaims: renderTemplates(t, verify.OpenShiftResources.PersistentVolumeClaims, tmplData),
+			ServiceAccounts:        renderTemplates(t, verify.OpenShiftResources.ServiceAccounts, tmplData),
+			RoleBindings:           renderTemplates(t, verify.OpenShiftResources.RoleBindings, tmplData),
 		}
 		utils.CheckResources(resources, t)
 	}
