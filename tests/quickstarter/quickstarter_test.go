@@ -409,16 +409,43 @@ func templateData(config map[string]string, componentID string, buildName string
 	
 	// Automatically load all environment variables with TMPL_ prefix
 	// Example: TMPL_MyVariable becomes accessible as {{.MyVariable}}
+	// We check known TMPL_ variables and also scan all environment variables
+	tmplVars := []string{
+		"TMPL_SonarQualityGate",
+		"TMPL_SonarQualityProfile", 
+	}
+	
+	tmplCount := 0
+	// First, add any explicitly known TMPL_ variables
+	for _, tmplVar := range tmplVars {
+		if value, ok := os.LookupEnv(tmplVar); ok {
+			key := strings.TrimPrefix(tmplVar, "TMPL_")
+			data[key] = value
+			fmt.Printf("Loading environment variable: %s -> %s = '%s'\n", tmplVar, key, value)
+			tmplCount++
+		}
+	}
+	
+	// Also scan all environment variables for any other TMPL_ prefixed ones
 	for _, env := range os.Environ() {
 		if strings.HasPrefix(env, "TMPL_") {
 			pair := strings.SplitN(env, "=", 2)
-			fmt.Printf("Loading environment variable: %s\n", pair[0])
 			if len(pair) == 2 {
-				// Remove TMPL_ prefix from key
 				key := strings.TrimPrefix(pair[0], "TMPL_")
-				data[key] = pair[1]
+				// Only add if not already added above
+				if _, exists := data[key]; !exists {
+					data[key] = pair[1]
+					fmt.Printf("Loading environment variable: %s -> %s = '%s'\n", pair[0], key, pair[1])
+					tmplCount++
+				}
 			}
 		}
+	}
+	
+	if tmplCount == 0 {
+		fmt.Printf("WARNING: No TMPL_ environment variables found!\n")
+	} else {
+		fmt.Printf("Loaded %d TMPL_ environment variables\n", tmplCount)
 	}
 	
 	return data
