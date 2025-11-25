@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -127,33 +129,26 @@ type TestStepVerify struct {
 
 // TemplateData holds template parameters. Those will be applied to all
 // values defined in the steps, as they are treated as Go templates.
-// For example, Jenkins run attachments can be defined like this:
+// TemplateData is a map containing template variables that can be used in golden files.
+// Standard fields are populated automatically:
+//   - ProjectID: Project ID (the prefix of the *-cd, *-dev and *-test namespaces)
+//   - ComponentID: Component ID (the value of the overall "componentID" or the specific step "componentID")
+//   - OdsNamespace: ODS namespace read from the ods-core.env configuration (e.g. "ods")
+//   - OdsGitRef: ODS Git reference read from the ods-core.env configuration (e.g. "v3.0.0")
+//   - OdsImageTag: ODS image tag read from the ods-core.env configuration (e.g. "3.x")
+//   - OdsBitbucketProject: ODS Bitbucket project name read from the ods-core.env configuration (e.g. "OPENDEVSTACK")
+//   - SanitizedOdsGitRef: ODS Git reference with underscores instead of slashes and dashes
+//   - BuildNumber: Jenkins Build number
+//   - SonarQualityProfile: Name of the Sonar Quality Profile
+//   - AquaEnabled: Is enable Aqua
 //
-//	runAttachments:
-//	- SCRR-{{.ProjectID}}-{{.ComponentID}}.docx, and then the
-type TemplateData struct {
-	// Project ID (the prefix of the *-cd, *-dev and *-test namespaces).
-	ProjectID string
-	// Component ID (the value of the overall "componentID" or the specific
-	// step  "componentID").
-	ComponentID string
-	// ODS namespace read from the ods-core.env configuration (e.g. "ods")
-	OdsNamespace string
-	// ODS Git reference read from the ods-core.env configuration (e.g. "v3.0.0")
-	OdsGitRef string
-	// ODS image tag read from the ods-core.env configuration (e.g. "3.x")
-	OdsImageTag string
-	// ODS Bitbucket project name read from the ods-core.env configuration (e.g. "OPENDEVSTACK")
-	OdsBitbucketProject string
-	// ODS Git reference with underscores instead of slashes and dashes.
-	SanitizedOdsGitRef string
-	// Jenkins Build number
-	BuildNumber string
-	// Name of the Sonar Quality Profile
-	SonarQualityProfile string
-	// Is enable Aqua
-	AquaEnabled bool
-}
+// Additionally, any environment variable with prefix TMPL_ will be automatically loaded.
+// For example, TMPL_MyVariable will be accessible as {{.MyVariable}} in templates.
+//
+// Example usage in templates:
+//   {{.ProjectID}}-{{.ComponentID}}
+//   {{.MyVariable}}
+type TemplateData map[string]interface{}
 
 // readSteps reads "steps.yml" in given folder.
 // It does not allow extra fields to avoid typos, and checks if the given

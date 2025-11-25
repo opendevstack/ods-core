@@ -392,18 +392,35 @@ func templateData(config map[string]string, componentID string, buildName string
 		buildNumber = buildParts[len(buildParts)-1]
 	}
 	aquaEnabled, _ := strconv.ParseBool(config["AQUA_ENABLED"])
-	return TemplateData{
-		ProjectID:           utils.PROJECT_NAME,
-		ComponentID:         componentID,
-		OdsNamespace:        config["ODS_NAMESPACE"],
-		OdsGitRef:           config["ODS_GIT_REF"],
-		OdsImageTag:         config["ODS_IMAGE_TAG"],
-		OdsBitbucketProject: config["ODS_BITBUCKET_PROJECT"],
-		SanitizedOdsGitRef:  sanitizedOdsGitRef,
-		BuildNumber:         buildNumber,
-		SonarQualityProfile: utils.GetEnv("SONAR_QUALITY_PROFILE", "Sonar way"),
-		AquaEnabled:         aquaEnabled,
+	
+	// Initialize template data map with standard fields
+	data := TemplateData{
+		"ProjectID":           utils.PROJECT_NAME,
+		"ComponentID":         componentID,
+		"OdsNamespace":        config["ODS_NAMESPACE"],
+		"OdsGitRef":           config["ODS_GIT_REF"],
+		"OdsImageTag":         config["ODS_IMAGE_TAG"],
+		"OdsBitbucketProject": config["ODS_BITBUCKET_PROJECT"],
+		"SanitizedOdsGitRef":  sanitizedOdsGitRef,
+		"BuildNumber":         buildNumber,
+		"SonarQualityProfile": utils.GetEnv("SONAR_QUALITY_PROFILE", "Sonar way"),
+		"AquaEnabled":         aquaEnabled,
 	}
+	
+	// Automatically load all environment variables with TMPL_ prefix
+	// Example: TMPL_MyVariable becomes accessible as {{.MyVariable}}
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, "TMPL_") {
+			pair := strings.SplitN(env, "=", 2)
+			if len(pair) == 2 {
+				// Remove TMPL_ prefix from key
+				key := strings.TrimPrefix(pair[0], "TMPL_")
+				data[key] = pair[1]
+			}
+		}
+	}
+	
+	return data
 }
 
 // verifyPipelineRun checks that all expected values from the TestStepVerify
