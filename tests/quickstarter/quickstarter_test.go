@@ -412,6 +412,7 @@ func templateData(config map[string]string, componentID string, buildName string
 	for _, env := range os.Environ() {
 		if strings.HasPrefix(env, "TMPL_") {
 			pair := strings.SplitN(env, "=", 2)
+			fmt.Printf("Loading environment variable: %s\n", pair[0])
 			if len(pair) == 2 {
 				// Remove TMPL_ prefix from key
 				key := strings.TrimPrefix(pair[0], "TMPL_")
