@@ -56,6 +56,7 @@ function create_url() {
 
     # URL encode the @ symbol in the username
     user=$(echo $user | sed 's/@/%40/g')
+    password=$(echo $password | sed 's/@/%40/g')
 
     protocol=$(echo $url | grep :// | sed -e's,^\(.*://\).*,\1,g')
     url=$(echo $url | sed -e s,$protocol,,g)
