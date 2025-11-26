@@ -4,7 +4,6 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,6 +14,30 @@ import (
 
 	"github.com/opendevstack/ods-core/tests/utils"
 )
+
+// Step type constants
+const (
+	StepTypeUpload    = "upload"
+	StepTypeRun       = "run"
+	StepTypeProvision = "provision"
+	StepTypeBuild     = "build"
+)
+
+// Default values
+const (
+	DefaultBranch      = "master"
+	DefaultJenkinsfile = "Jenkinsfile"
+	DefaultNamespace   = "dev"
+)
+
+// Context for verifications
+type VerificationContext struct {
+	TestdataPath string
+	RepoName     string
+	BuildName    string
+	Config       map[string]string
+	TmplData     TemplateData
+}
 
 // TestQuickstarter tests given quickstarters. It expects a "steps.yml" file in
 // a "testdata" directory within each quickstarter to test.
@@ -106,22 +129,22 @@ func TestQuickstarter(t *testing.T) {
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
 				tmplData := templateData(config, step.ComponentID, "")
 
-				if step.Type == "upload" {
+				if step.Type == StepTypeUpload {
 					executeStepUpload(t, step, testdataPath, tmplData, repoName, config)
 					continue
 				}
 
-				if step.Type == "run" {
+				if step.Type == StepTypeRun {
 					executeStepRun(t, step, testdataPath)
 					continue
 				}
 
-				if step.Type == "provision" {
+				if step.Type == StepTypeProvision {
 					executeProvision(t, step, testdataPath, tmplData, repoName, quickstarterRepo, quickstarterName, config)
 					continue
 				}
 
-				if step.Type == "build" {
+				if step.Type == StepTypeBuild {
 					executeBuild(t, step, testdataPath, tmplData, repoName, config)
 					continue
 				}
@@ -156,14 +179,16 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 		t.Fatal(err)
 	}
 
-	if step.ProvisionParams.TestResourcesCleanUp != nil && len(step.ProvisionParams.TestResourcesCleanUp) > 0 {
+	if len(step.ProvisionParams.TestResourcesCleanUp) > 0 {
 		for _, it := range step.ProvisionParams.TestResourcesCleanUp {
-			tmp_namespace := it.Namespace
-			if tmp_namespace == "" || len(tmp_namespace) == 0 {
-				tmp_namespace = "dev"
+			tmpNamespace := it.Namespace
+			if tmpNamespace == "" {
+				tmpNamespace = DefaultNamespace
 			}
-			namespace := fmt.Sprintf("%s-%s", utils.PROJECT_NAME, tmp_namespace)
-			err = deleteOpenShiftResourceByName(it.ResourceType, it.ResourceName, namespace)
+			namespace := fmt.Sprintf("%s-%s", utils.PROJECT_NAME, tmpNamespace)
+			if err := deleteOpenShiftResourceByName(it.ResourceType, it.ResourceName, namespace); err != nil {
+				t.Logf("Warning: failed to cleanup resource %s/%s: %v", it.ResourceType, it.ResourceName, err)
+			}
 		}
 	}
 
@@ -219,24 +244,28 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	}
 
 	t.Cleanup(func() {
-		err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV)
-		err = deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_TEST)
+		if err := deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV); err != nil {
+			t.Logf("Warning: failed to cleanup DEV resources: %v", err)
+		}
+		if err := deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_TEST); err != nil {
+			t.Logf("Warning: failed to cleanup TEST resources: %v", err)
+		}
 	})
 
-	// Checks if it was overrided including a repository name in the same project like 'repo/quickstarter'.
+	// Checks if it was overridden including a repository name in the same project like 'repo/quickstarter'.
 	var repository string = quickstarterRepo
 	var repositoryIndex int = strings.Index(step.ProvisionParams.Quickstarter, "/")
 	if len(step.ProvisionParams.Quickstarter) > 0 && repositoryIndex != -1 {
 		repository = step.ProvisionParams.Quickstarter[:repositoryIndex]
 	}
-	// If quickstarter is overwritten, use that value. Otherwise
+	// If quickstarter is overridden, use that value. Otherwise
 	// we use the quickstarter under test.
-	var jenkinsfile string = fmt.Sprintf("%s/Jenkinsfile", quickstarterName)
+	var jenkinsfile string = fmt.Sprintf("%s/%s", quickstarterName, DefaultJenkinsfile)
 	if len(step.ProvisionParams.Quickstarter) > 0 {
-		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter)
+		jenkinsfile = fmt.Sprintf("%s/%s", step.ProvisionParams.Quickstarter, DefaultJenkinsfile)
 	}
 	if len(step.ProvisionParams.Quickstarter) > 0 && repositoryIndex != -1 {
-		jenkinsfile = fmt.Sprintf("%s/Jenkinsfile", step.ProvisionParams.Quickstarter[repositoryIndex+1:])
+		jenkinsfile = fmt.Sprintf("%s/%s", step.ProvisionParams.Quickstarter[repositoryIndex+1:], DefaultJenkinsfile)
 	}
 
 	pipelineName := step.ProvisionParams.Pipeline
@@ -257,7 +286,7 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 }
 
 func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, config map[string]string) {
-	branch := "master"
+	branch := DefaultBranch
 	if len(step.BuildParams.Branch) > 0 {
 		branch = renderTemplate(t, step.BuildParams.Branch, tmplData)
 	}
@@ -271,7 +300,7 @@ func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData Tem
 		Project:    utils.PROJECT_NAME,
 		Env:        step.BuildParams.Env,
 	}
-	jenkinsfile := "Jenkinsfile"
+	jenkinsfile := DefaultJenkinsfile
 	pipelineName := step.BuildParams.Pipeline
 	verify := step.BuildParams.Verify
 
@@ -283,10 +312,10 @@ func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData Tem
 }
 
 func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplData TemplateData, repoName string, config map[string]string) {
-	if step.UploadParams == nil || len(step.UploadParams.File) == 0 {
+	if step.UploadParams == nil || step.UploadParams.File == "" {
 		t.Fatalf("Missing upload parameters.")
 	}
-	if len(step.UploadParams.Filename) == 0 {
+	if step.UploadParams.Filename == "" {
 		step.UploadParams.Filename = filepath.Base(step.UploadParams.File)
 	}
 	cdUserPassword, err := b64.StdEncoding.DecodeString(config["CD_USER_PWD_B64"])
@@ -341,7 +370,7 @@ func executeStepUpload(t *testing.T, step TestStep, testdataPath string, tmplDat
 }
 
 func executeStepRun(t *testing.T, step TestStep, testdataPath string) {
-	if step.RunParams == nil || len(step.RunParams.File) == 0 {
+	if step.RunParams == nil || step.RunParams.File == "" {
 		t.Fatalf("Missing run parameters, not defined script file.")
 	}
 
@@ -366,7 +395,7 @@ func executeStepRun(t *testing.T, step TestStep, testdataPath string) {
 // a "testdata" directory.
 func collectTestableQuickstarters(t *testing.T, dir string) []string {
 	testableQuickstarters := []string{}
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -384,8 +413,8 @@ func collectTestableQuickstarters(t *testing.T, dir string) []string {
 }
 
 func templateData(config map[string]string, componentID string, buildName string) TemplateData {
-	sanitizedOdsGitRef := strings.Replace(config["ODS_GIT_REF"], "/", "_", -1)
-	sanitizedOdsGitRef = strings.Replace(sanitizedOdsGitRef, "-", "_", -1)
+	sanitizedOdsGitRef := strings.ReplaceAll(config["ODS_GIT_REF"], "/", "_")
+	sanitizedOdsGitRef = strings.ReplaceAll(sanitizedOdsGitRef, "-", "_")
 	var buildNumber string
 	if len(buildName) > 0 {
 		buildParts := strings.Split(buildName, "-")
@@ -458,120 +487,144 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 		fmt.Println("Nothing to verify for", buildName)
 		return
 	}
-
-	tmplData := templateData(config, step.ComponentID, buildName)
-
+	ctx := VerificationContext{
+		TestdataPath: testdataPath,
+		RepoName:     repoName,
+		BuildName:    buildName,
+		Config:       config,
+		TmplData:     templateData(config, step.ComponentID, buildName),
+	}
 	if len(verify.JenkinsStages) > 0 {
-		fmt.Printf("Verifying Jenkins stages of %s ...\n", buildName)
-		stages, err := utils.RetrieveJenkinsBuildStagesForBuild(utils.PROJECT_NAME_CD, buildName)
-		if err != nil {
-			t.Fatal(err)
-		}
-		fmt.Printf("%s pipeline run for %s returned:\n%s", step.Type, step.ComponentID, stages)
-		err = verifyJSONGoldenFile(
-			step.ComponentID,
-			fmt.Sprintf("%s/%s", testdataPath, verify.JenkinsStages),
-			stages,
-			tmplData,
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
+		verifyJenkinsStages(t, step, verify, ctx)
 	}
-
 	if len(verify.SonarScan) > 0 {
-		fmt.Printf("Verifying Sonar scan of %s ...\n", buildName)
-		sonarscan, err := retrieveSonarScan(repoName, config)
-		if err != nil {
-			t.Fatal(err)
-		}
-		err = verifyJSONGoldenFile(
-			step.ComponentID,
-			fmt.Sprintf("%s/%s", testdataPath, verify.SonarScan),
-			sonarscan,
-			tmplData,
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
+		verifySonarScan(t, step, verify, ctx)
 	}
-
 	if len(verify.RunAttachments) > 0 {
-		fmt.Printf("Verifying Jenkins run attachments of %s ...\n", buildName)
-		artifactsToVerify := []string{}
-		for _, a := range verify.RunAttachments {
-			artifactsToVerify = append(
-				artifactsToVerify,
-				renderTemplate(t, a, tmplData),
-			)
-		}
-		err := utils.VerifyJenkinsRunAttachments(utils.PROJECT_NAME_CD, buildName, artifactsToVerify)
-		if err != nil {
-			t.Fatal(err)
-		}
+		verifyRunAttachments(t, verify, ctx)
 	}
-
 	if verify.TestResults > 0 {
-		fmt.Printf("Verifying unit tests of %s ...\n", buildName)
-		stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/print-jenkins-unittest-results.sh", []string{
-			utils.PROJECT_NAME_CD,
-			buildName,
-		}, []string{})
-		if err != nil {
-			t.Fatalf("Could not find unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
-				buildName, stdout, stderr, err)
-		}
-
-		r := regexp.MustCompile("([0-9]+) tests")
-		match := r.FindStringSubmatch(stdout)
-		if match == nil {
-			t.Fatalf("Could not find any unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
-				buildName, stdout, stderr, err)
-		}
-		foundTests, err := strconv.Atoi(match[1])
-		if err != nil {
-			t.Fatalf("Could not convert number of unit tests to int: %s", err)
-		}
-		if foundTests < verify.TestResults {
-			t.Fatalf("Expected %d unit tests, but found only %d for build:%s\n",
-				verify.TestResults, foundTests, buildName)
-		}
+		verifyTestResults(t, verify, ctx)
 	}
-
 	if verify.OpenShiftResources != nil {
-		var ocNamespace string
-		if len(verify.OpenShiftResources.Namespace) > 0 {
-			ocNamespace = renderTemplate(t, verify.OpenShiftResources.Namespace, tmplData)
-		} else {
-			ocNamespace = utils.PROJECT_NAME_DEV
-		}
-		fmt.Printf("Verifying OpenShift resources of %s in %s ...\n", step.ComponentID, ocNamespace)
-		imageTags := []utils.ImageTag{}
-		for _, it := range verify.OpenShiftResources.ImageTags {
-			imageTags = append(
-				imageTags,
-				utils.ImageTag{
-					Name: renderTemplate(t, it.Name, tmplData),
-					Tag:  renderTemplate(t, it.Tag, tmplData),
-				},
-			)
-		}
-		resources := utils.Resources{
-			Namespace:              ocNamespace,
-			ImageTags:              imageTags,
-			BuildConfigs:           renderTemplates(t, verify.OpenShiftResources.BuildConfigs, tmplData),
-			DeploymentConfigs:      renderTemplates(t, verify.OpenShiftResources.DeploymentConfigs, tmplData),
-			Services:               renderTemplates(t, verify.OpenShiftResources.Services, tmplData),
-			ImageStreams:           renderTemplates(t, verify.OpenShiftResources.ImageStreams, tmplData),
-			Routes:                 renderTemplates(t, verify.OpenShiftResources.Routes, tmplData),
-			ConfigMaps:             renderTemplates(t, verify.OpenShiftResources.ConfigMaps, tmplData),
-			Secrets:                renderTemplates(t, verify.OpenShiftResources.Secrets, tmplData),
-			PersistentVolumeClaims: renderTemplates(t, verify.OpenShiftResources.PersistentVolumeClaims, tmplData),
-			ServiceAccounts:        renderTemplates(t, verify.OpenShiftResources.ServiceAccounts, tmplData),
-			RoleBindings:           renderTemplates(t, verify.OpenShiftResources.RoleBindings, tmplData),
-		}
-		utils.CheckResources(resources, t)
+		verifyOpenShiftResources(t, step, verify, ctx)
 	}
+}
+
+// Verifies Jenkins stages
+func verifyJenkinsStages(t *testing.T, step TestStep, verify *TestStepVerify, ctx VerificationContext) {
+	fmt.Printf("Verifying Jenkins stages of %s ...\n", ctx.BuildName)
+	stages, err := utils.RetrieveJenkinsBuildStagesForBuild(utils.PROJECT_NAME_CD, ctx.BuildName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("%s pipeline run for %s returned:\n%s", step.Type, step.ComponentID, stages)
+	err = verifyJSONGoldenFile(
+		step.ComponentID,
+		fmt.Sprintf("%s/%s", ctx.TestdataPath, verify.JenkinsStages),
+		stages,
+		ctx.TmplData,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Verifies the Sonar scan
+func verifySonarScan(t *testing.T, step TestStep, verify *TestStepVerify, ctx VerificationContext) {
+	fmt.Printf("Verifying Sonar scan of %s ...\n", ctx.BuildName)
+	sonarscan, err := retrieveSonarScan(ctx.RepoName, ctx.Config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = verifyJSONGoldenFile(
+		step.ComponentID,
+		fmt.Sprintf("%s/%s", ctx.TestdataPath, verify.SonarScan),
+		sonarscan,
+		ctx.TmplData,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Verifies run attachments
+func verifyRunAttachments(t *testing.T, verify *TestStepVerify, ctx VerificationContext) {
+	fmt.Printf("Verifying Jenkins run attachments of %s ...\n", ctx.BuildName)
+	artifactsToVerify := []string{}
+	for _, a := range verify.RunAttachments {
+		artifactsToVerify = append(
+			artifactsToVerify,
+			renderTemplate(t, a, ctx.TmplData),
+		)
+	}
+	err := utils.VerifyJenkinsRunAttachments(utils.PROJECT_NAME_CD, ctx.BuildName, artifactsToVerify)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Verifies test results
+func verifyTestResults(t *testing.T, verify *TestStepVerify, ctx VerificationContext) {
+	fmt.Printf("Verifying unit tests of %s ...\n", ctx.BuildName)
+	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/print-jenkins-unittest-results.sh", []string{
+		utils.PROJECT_NAME_CD,
+		ctx.BuildName,
+	}, []string{})
+	if err != nil {
+		t.Fatalf("Could not find unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
+			ctx.BuildName, stdout, stderr, err)
+	}
+	r := regexp.MustCompile("([0-9]+) tests")
+	match := r.FindStringSubmatch(stdout)
+	if match == nil {
+		t.Fatalf("Could not find any unit tests for build:%s\nstdout: %s\nstderr:%s\nerr: %s\n",
+			ctx.BuildName, stdout, stderr, err)
+	}
+	foundTests, err := strconv.Atoi(match[1])
+	if err != nil {
+		t.Fatalf("Could not convert number of unit tests to int: %s", err)
+	}
+	if foundTests < verify.TestResults {
+		t.Fatalf("Expected %d unit tests, but found only %d for build:%s\n",
+			verify.TestResults, foundTests, ctx.BuildName)
+	}
+}
+
+// Verifies OpenShift resources
+func verifyOpenShiftResources(t *testing.T, step TestStep, verify *TestStepVerify, ctx VerificationContext) {
+	var ocNamespace string
+	if len(verify.OpenShiftResources.Namespace) > 0 {
+		ocNamespace = renderTemplate(t, verify.OpenShiftResources.Namespace, ctx.TmplData)
+	} else {
+		ocNamespace = utils.PROJECT_NAME_DEV
+	}
+	fmt.Printf("Verifying OpenShift resources of %s in %s ...\n", step.ComponentID, ocNamespace)
+	imageTags := []utils.ImageTag{}
+	for _, it := range verify.OpenShiftResources.ImageTags {
+		imageTags = append(
+			imageTags,
+			utils.ImageTag{
+				Name: renderTemplate(t, it.Name, ctx.TmplData),
+				Tag:  renderTemplate(t, it.Tag, ctx.TmplData),
+			},
+		)
+	}
+	resources := utils.Resources{
+		Namespace:              ocNamespace,
+		ImageTags:              imageTags,
+		BuildConfigs:           renderTemplates(t, verify.OpenShiftResources.BuildConfigs, ctx.TmplData),
+		DeploymentConfigs:      renderTemplates(t, verify.OpenShiftResources.DeploymentConfigs, ctx.TmplData),
+		Services:               renderTemplates(t, verify.OpenShiftResources.Services, ctx.TmplData),
+		ImageStreams:           renderTemplates(t, verify.OpenShiftResources.ImageStreams, ctx.TmplData),
+		Routes:                 renderTemplates(t, verify.OpenShiftResources.Routes, ctx.TmplData),
+		ConfigMaps:             renderTemplates(t, verify.OpenShiftResources.ConfigMaps, ctx.TmplData),
+		Secrets:                renderTemplates(t, verify.OpenShiftResources.Secrets, ctx.TmplData),
+		PersistentVolumeClaims: renderTemplates(t, verify.OpenShiftResources.PersistentVolumeClaims, ctx.TmplData),
+		ServiceAccounts:        renderTemplates(t, verify.OpenShiftResources.ServiceAccounts, ctx.TmplData),
+		RoleBindings:           renderTemplates(t, verify.OpenShiftResources.RoleBindings, ctx.TmplData),
+	}
+	utils.CheckResources(resources, t)
 }
 
 func renderTemplates(t *testing.T, tpls []string, tmplData TemplateData) []string {
