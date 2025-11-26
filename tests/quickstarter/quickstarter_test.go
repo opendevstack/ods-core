@@ -468,7 +468,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 			t.Fatal(err)
 		}
 		fmt.Printf("%s pipeline run for %s returned:\n%s", step.Type, step.ComponentID, stages)
-		err = verifyGoldenFile(
+		err = verifyJSONGoldenFile(
 			step.ComponentID,
 			fmt.Sprintf("%s/%s", testdataPath, verify.JenkinsStages),
 			stages,
@@ -485,7 +485,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = verifyGoldenFile(
+		err = verifyJSONGoldenFile(
 			step.ComponentID,
 			fmt.Sprintf("%s/%s", testdataPath, verify.SonarScan),
 			sonarscan,
