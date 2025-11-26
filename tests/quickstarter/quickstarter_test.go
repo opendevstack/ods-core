@@ -307,7 +307,7 @@ func executeBuild(t *testing.T, step TestStep, testdataPath string, tmplData Tem
 		Env:        step.BuildParams.Env,
 	}
 	jenkinsfile := DefaultJenkinsfile
-	pipelineName := step.BuildParams.Pipeline
+	pipelineName := renderTemplate(t, step.BuildParams.Pipeline, tmplData)
 	verify := step.BuildParams.Verify
 
 	buildName, err := utils.RunJenkinsPipeline(jenkinsfile, request, pipelineName)
