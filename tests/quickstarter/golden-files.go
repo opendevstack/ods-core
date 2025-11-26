@@ -21,8 +21,7 @@ func verifyJSONGoldenFile(componentID string, wantFile string, gotFile string, t
 		return fmt.Errorf("failed to render file to verify state: %w", err)
 	}
 
-	// Pretty print both JSONs before comparison
-	var wantJSON, gotJSON bytes.Buffer
+	// Unmarshal both JSONs into objects
 	var wantObj, gotObj interface{}
 	if err := json.Unmarshal(want.Bytes(), &wantObj); err != nil {
 		return fmt.Errorf("failed to unmarshal want json: %w", err)
@@ -30,14 +29,9 @@ func verifyJSONGoldenFile(componentID string, wantFile string, gotFile string, t
 	if err := json.Unmarshal([]byte(gotFile), &gotObj); err != nil {
 		return fmt.Errorf("failed to unmarshal got json: %w", err)
 	}
-	if err := json.Indent(&wantJSON, want.Bytes(), "", "  "); err != nil {
-		return fmt.Errorf("failed to pretty print want json: %w", err)
-	}
-	if err := json.Indent(&gotJSON, []byte(gotFile), "", "  "); err != nil {
-		return fmt.Errorf("failed to pretty print got json: %w", err)
-	}
 
-	if diff := cmp.Diff(wantJSON.String(), gotJSON.String()); diff != "" {
+	// Compare the actual objects, not the strings
+	if diff := cmp.Diff(wantObj, gotObj); diff != "" {
 		return fmt.Errorf("state mismatch for %s (-want +got):\n%s", componentID, diff)
 	}
 
