@@ -59,3 +59,60 @@ func runOcCmd(args []string) (string, string, error) {
 	err := cmd.Run()
 	return stdout.String(), stderr.String(), err
 }
+
+func deleteHelmRelease(releaseName string, namespace string) error {
+	fmt.Printf("-- checking for Helm release: %s in %s\n", releaseName, namespace)
+
+	// Check if the release exists
+	stdout, stderr, err := runHelmCmd([]string{
+		"list",
+		"-n", namespace,
+		"-q",              // quiet output, just release names
+		"-f", releaseName, // filter by release name
+	})
+
+	if err != nil {
+		return fmt.Errorf(
+			"Could not list Helm releases in %s: \nStdOut: %s\nStdErr: %s\n\nErr: %w",
+			namespace,
+			stdout,
+			stderr,
+			err,
+		)
+	}
+
+	// If the release doesn't exist, skip cleanup
+	if stdout == "" || len(bytes.TrimSpace([]byte(stdout))) == 0 {
+		fmt.Printf("-- Helm release %s not found, skipping cleanup\n", releaseName)
+		return nil
+	}
+
+	fmt.Printf("-- starting cleanup for Helm release: %s\n", releaseName)
+
+	stdout, stderr, err = runHelmCmd([]string{
+		"uninstall", releaseName,
+		"-n", namespace,
+	})
+
+	if err != nil {
+		return fmt.Errorf(
+			"Could not delete Helm release %s: \nStdOut: %s\nStdErr: %s\n\nErr: %w",
+			releaseName,
+			stdout,
+			stderr,
+			err,
+		)
+	}
+
+	fmt.Printf("-- cleaned up Helm release: %s\n", releaseName)
+	return nil
+}
+
+func runHelmCmd(args []string) (string, string, error) {
+	cmd := exec.Command("helm", args...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
+}

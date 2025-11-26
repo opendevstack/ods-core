@@ -250,6 +250,12 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 		if err := deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_TEST); err != nil {
 			t.Logf("Warning: failed to cleanup TEST resources: %v", err)
 		}
+		if err := deleteHelmRelease(step.ComponentID, utils.PROJECT_NAME_DEV); err != nil {
+			t.Logf("Warning: failed to cleanup Helm release in DEV namespace: %v", err)
+		}
+		if err := deleteHelmRelease(step.ComponentID, utils.PROJECT_NAME_TEST); err != nil {
+			t.Logf("Warning: failed to cleanup Helm release in TEST namespace: %v", err)
+		}
 	})
 
 	// Checks if it was overridden including a repository name in the same project like 'repo/quickstarter'.
