@@ -83,6 +83,7 @@ config:
       org.springframework: $DEFAULT_LOG_LEVEL
       org.opendevstack.apiservice: $DEFAULT_LOG_LEVEL
       org.springframework.security: $DEFAULT_LOG_LEVEL
+      io.opentelemetry: WARN
       org.opendevstack.apiservice.externalservice: $DEFAULT_LOG_LEVEL
       org.opendevstack.apiservice.externalservice.projectsinfoservice.config: $DEFAULT_LOG_LEVEL
       org.opendevstack.apiservice.externalservice.projectsinfoservice.server.controllers: $DEFAULT_LOG_LEVEL
