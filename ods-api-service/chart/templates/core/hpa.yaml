@@ -1,0 +1,23 @@
+{{- if .Values.autoscaling.enabled -}}
+{{- $fullName := include "chart.fullname" . -}}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $fullName }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+          type: Utilization
+{{- end }}

@@ -1,0 +1,19 @@
+{{- if .Values.externalServices.aap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-aap-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: aap-config
+data:
+  ANSIBLE_BASE_URL: {{ .Values.externalServices.aap.baseUrl | quote }}
+  ANSIBLE_TIMEOUT: {{ .Values.externalServices.aap.timeout | quote }}
+  ANSIBLE_SSL_VERIFY: {{ .Values.externalServices.aap.ssl.verifyCertificates | quote }}
+  {{- if .Values.externalServices.aap.ssl.trustStorePath }}
+  ANSIBLE_SSL_TRUSTSTORE_PATH: {{ .Values.externalServices.aap.ssl.trustStorePath | quote }}
+  {{- end }}
+  {{- if .Values.externalServices.aap.ssl.trustStoreType }}
+  ANSIBLE_SSL_TRUSTSTORE_TYPE: {{ .Values.externalServices.aap.ssl.trustStoreType | quote }}
+  {{- end }}
+{{- end }}

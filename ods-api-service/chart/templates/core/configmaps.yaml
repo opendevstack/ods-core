@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  application.yaml: |
+{{ include "chart.application.yaml" . | nindent 4 }}
+
