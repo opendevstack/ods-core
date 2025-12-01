@@ -1,0 +1,17 @@
+{{- if gt (len .Values.externalServices.openshift.instances) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-openshift-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: openshift-config
+data:
+  {{- range $index, $instance := .Values.externalServices.openshift.instances }}
+  OPENSHIFT_{{ $instance.name | upper | replace "-" "_" }}_API_URL: {{ $instance.apiUrl | quote }}
+  OPENSHIFT_{{ $instance.name | upper | replace "-" "_" }}_NAMESPACE: {{ $instance.namespace | quote }}
+  OPENSHIFT_{{ $instance.name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
+  OPENSHIFT_{{ $instance.name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeout | quote }}
+  OPENSHIFT_{{ $instance.name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
+  {{- end }}
+{{- end }}

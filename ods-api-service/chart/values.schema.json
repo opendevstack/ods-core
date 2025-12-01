@@ -1,0 +1,556 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "replicaCount": {
+      "description": "Number of replicas to deploy",
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "imagePullSecrets": {
+      "description": "List of image pull secrets",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "nameOverride": {
+      "description": "Override the name of the chart",
+      "type": "string",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "description": "Override the full name of the chart",
+      "type": "string",
+      "default": ""
+    },
+    "image": {
+      "description": "Container image to deploy",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "registry": {
+          "description": "Image registry",
+          "type": "string",
+          "default": "public.ecr.aws"
+        },
+        "path": {
+          "description": "Image path",
+          "type": "string",
+          "default": "nginx"
+        },
+        "name": {
+          "description": "Image name",
+          "type": "string",
+          "default": "nginx-unprivileged"
+        },
+        "tag": {
+          "description": "Image tag",
+          "type": "string",
+          "default": "alpine-slim"
+        },
+        "pullPolicy": {
+          "description": "Image pull policy",
+          "type": "string",
+          "default": "IfNotPresent"
+        }
+      }
+    },
+    "ingress": {
+      "description": "Ingress configuration for the Helm chart",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable ingress",
+          "type": "boolean",
+          "default": false
+        },
+        "className": {
+          "description": "Ingress class name",
+          "type": "string",
+          "default": "openshift-default"
+        },
+        "router": {
+          "description": "Router label for the ingress",
+          "type": "string"
+        },
+        "annotations": {
+          "description": "Annotations for the ingress",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "hosts": {
+          "description": "List of ingress hosts",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "description": "Hostname",
+                "type": "string"
+              },
+              "paths": {
+                "description": "Paths for the host",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "description": "Path",
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "description": "Path type",
+                      "type": "string",
+                      "enum": ["ImplementationSpecific", "Exact", "Prefix"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": {
+          "description": "TLS configuration",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hosts": {
+                "description": "List of TLS hosts",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "secretName": {
+                "description": "Secret name for TLS",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "service": {
+      "description": "Service configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable service",
+          "type": "boolean",
+          "default": true
+        },
+        "port": {
+          "description": "Service port",
+          "type": "integer",
+          "default": 8080
+        },
+        "type": {
+          "description": "Service type",
+          "type": "string",
+            "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"],
+            "default": "ClusterIP"
+        }
+      }
+    },
+    "deploymentStrategy": {
+      "description": "Deployment strategy configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "description": "Deployment strategy type",
+          "type": "string",
+          "default": "RollingUpdate"
+        },
+        "rollingUpdate": {
+          "description": "Rolling update configuration",
+          "type": "object",
+          "properties": {
+            "maxUnavailable": {
+              "description": "Maximum unavailable pods during update",
+              "type": "string",
+              "default": "0%"
+            },
+            "maxSurge": {
+              "description": "Maximum surge pods during update",
+              "type": "string",
+              "default": "50%"
+            }
+          }
+        }
+      }
+    },
+    "probes": {
+      "description": "Probes configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "livenessProbe": {
+          "description": "Liveness probe configuration",
+          "type": "object",
+          "properties": {
+            "exec": {
+              "description": "Exec probe configuration",
+              "type": "object",
+              "properties": {
+                "command": {
+                  "description": "Command to execute",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "tcpSocket": {
+              "description": "TCP socket probe configuration",
+              "type": "object",
+              "properties": {
+                "port": {
+                  "description": "Port to probe",
+                  "type": "integer"
+                }
+              }
+            },
+            "failureThreshold": {
+              "description": "Failure threshold",
+              "type": "integer",
+              "default": 3
+            },
+            "httpGet": {
+              "description": "HTTP GET configuration for liveness probe",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "description": "Path to probe",
+                  "type": "string",
+                  "default": "/"
+                },
+                "port": {
+                  "description": "Port to probe",
+                  "type": "integer",
+                  "default": 8080
+                },
+                "scheme": {
+                  "description": "Scheme to use",
+                  "type": "string",
+                  "default": "HTTP"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "description": "Initial delay in seconds",
+              "type": "integer",
+              "default": 5
+            },
+            "periodSeconds": {
+              "description": "Period in seconds",
+              "type": "integer",
+              "default": 10
+            },
+            "successThreshold": {
+              "description": "Success threshold",
+              "type": "integer",
+              "default": 1
+            },
+            "timeoutSeconds": {
+              "description": "Timeout in seconds",
+              "type": "integer",
+              "default": 3
+            }
+          }
+        },
+        "readinessProbe": {
+          "description": "Readiness probe configuration",
+          "type": "object",
+          "properties": {
+            "exec": {
+              "description": "Exec probe configuration",
+              "type": "object",
+              "properties": {
+                "command": {
+                  "description": "Command to execute",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "tcpSocket": {
+              "description": "TCP socket probe configuration",
+              "type": "object",
+              "properties": {
+                "port": {
+                  "description": "Port to probe",
+                  "type": "integer"
+                }
+              }
+            },
+            "failureThreshold": {
+              "description": "Failure threshold",
+              "type": "integer",
+              "default": 3
+            },
+            "httpGet": {
+              "description": "HTTP GET configuration for liveness probe",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "description": "Path to probe",
+                  "type": "string",
+                  "default": "/"
+                },
+                "port": {
+                  "description": "Port to probe",
+                  "type": "integer",
+                  "default": 8080
+                },
+                "scheme": {
+                  "description": "Scheme to use",
+                  "type": "string",
+                  "default": "HTTP"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "description": "Initial delay in seconds",
+              "type": "integer",
+              "default": 5
+            },
+            "periodSeconds": {
+              "description": "Period in seconds",
+              "type": "integer",
+              "default": 10
+            },
+            "successThreshold": {
+              "description": "Success threshold",
+              "type": "integer",
+              "default": 1
+            },
+            "timeoutSeconds": {
+              "description": "Timeout in seconds",
+              "type": "integer",
+              "default": 3
+            }
+          }
+        }
+      }
+    },
+    "serviceAccount": {
+      "description": "Service account configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "create": {
+          "description": "Create service account",
+          "type": "boolean",
+          "default": false
+        },
+        "annotations": {
+          "description": "Annotations for the service account",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "description": "Name of the service account",
+          "type": "string"
+        }
+      }
+    },
+    "podAnnotations": {
+      "description": "Annotations for the pod",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "podSecurityContext": {
+      "description": "Pod security context",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fsGroup": {
+          "description": "Filesystem group",
+          "type": "integer"
+        }
+      }
+    },
+    "securityContext": {
+      "description": "Container security context",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "description": "Security capabilities",
+          "type": "object",
+          "properties": {
+            "drop": {
+              "description": "Capabilities to drop",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "readOnlyRootFilesystem": {
+          "description": "Read-only root filesystem",
+          "type": "boolean"
+        },
+        "runAsNonRoot": {
+          "description": "Run as non-root user",
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "description": "User ID to run as",
+          "type": "integer"
+        }
+      }
+    },
+    "resources": {
+      "description": "Resource requests and limits",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "description": "Resource limits",
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "description": "CPU limit",
+              "type": "string",
+              "default": "100m"
+            },
+            "memory": {
+              "description": "Memory limit",
+              "type": "string",
+              "default": "128Mi"
+            }
+          }
+        },
+        "requests": {
+          "description": "Resource requests",
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "description": "CPU request",
+              "type": "string",
+              "default": "50m"
+            },
+            "memory": {
+              "description": "Memory request",
+              "type": "string",
+              "default": "64Mi"
+            }
+          }
+        }
+      }
+    },
+    "autoscaling": {
+      "description": "Autoscaling configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable autoscaling",
+          "type": "boolean",
+          "default": false
+        },
+        "minReplicas": {
+          "description": "Minimum number of replicas",
+          "type": "integer",
+          "default": 1
+        },
+        "maxReplicas": {
+          "description": "Maximum number of replicas",
+          "type": "integer",
+          "default": 100
+        },
+        "targetCPUUtilizationPercentage": {
+          "description": "Target CPU utilization percentage",
+          "type": "integer",
+          "default": 80
+        },
+        "targetMemoryUtilizationPercentage": {
+          "description": "Target memory utilization percentage",
+          "type": "integer"
+        }
+      }
+    },
+    "nodeSelector": {
+      "description": "Node selector for pod assignment",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tolerations": {
+      "description": "Tolerations for pod assignment",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "affinity": {
+      "description": "Affinity rules for pod assignment",
+      "type": "object"
+    },
+    "podAntiAffinity": {
+      "description": "Pod anti-affinity rules",
+      "type": ["string", "null"],
+      "default": "soft",
+      "enum": ["soft", "hard", null]
+    },
+    "registry": {
+      "description": "Registry configuration - Injected by ODS pipeline",
+      "type": "string"
+    },
+    "componentId": {
+      "description": "Component ID - Injected by ODS pipeline",
+      "type": "string"
+    },
+    "imageTag": {
+      "description": "Image tag - Injected by ODS pipeline",
+      "type":  ["integer", "string"]
+    },
+    "imageNamespace": {
+      "description": "Image namespace",
+      "type": "string"
+    },
+    "global": {
+      "description": "Global configuration - Injected by ODS pipeline",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "imageNamespace": {
+          "description": "Image namespace - Injected by ODS pipeline",
+          "type": "string"
+        },
+        "registry": {
+          "description": "Registry configuration - Injected by ODS pipeline",
+          "type": "string"
+        },
+        "componentId": {
+          "description": "Component ID - Injected by ODS pipeline",
+          "type": "string"
+        },
+        "imageTag": {
+          "description": "Image tag - Injected by ODS pipeline",
+          "type":  ["integer", "string"]
+        }
+      }
+    }
+  }
+}

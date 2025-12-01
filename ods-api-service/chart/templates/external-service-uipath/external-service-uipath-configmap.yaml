@@ -1,0 +1,21 @@
+{{- if .Values.externalServices.uipath.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-uipath-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: uipath-config
+data:
+  UIPATH_HOST: {{ .Values.externalServices.uipath.host | quote }}
+  UIPATH_TENANCY_NAME: {{ .Values.externalServices.uipath.tenancyName | quote }}
+  UIPATH_ORGANIZATION_UNIT_ID: {{ .Values.externalServices.uipath.organizationUnitId | quote }}
+  UIPATH_TIMEOUT: {{ .Values.externalServices.uipath.timeout | quote }}
+  UIPATH_SSL_VERIFY: {{ .Values.externalServices.uipath.ssl.verifyCertificates | quote }}
+  {{- if .Values.externalServices.uipath.ssl.trustStorePath }}
+  UIPATH_SSL_TRUSTSTORE_PATH: {{ .Values.externalServices.uipath.ssl.trustStorePath | quote }}
+  {{- end }}
+  {{- if .Values.externalServices.uipath.ssl.trustStoreType }}
+  UIPATH_SSL_TRUSTSTORE_TYPE: {{ .Values.externalServices.uipath.ssl.trustStoreType | quote }}
+  {{- end }}
+{{- end }}
