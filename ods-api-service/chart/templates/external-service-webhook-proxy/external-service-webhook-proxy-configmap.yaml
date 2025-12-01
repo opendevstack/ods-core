@@ -1,0 +1,17 @@
+{{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-webhook-proxy-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook-proxy-config
+data:
+  {{- range $index, $cluster := .Values.externalServices.webhookProxy.clusters }}
+  WEBHOOK_PROXY_{{ $cluster.name | upper | replace "-" "_" }}_CLUSTER_BASE: {{ $cluster.clusterBase | quote }}
+  WEBHOOK_PROXY_{{ $cluster.name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $cluster.connectionTimeout | quote }}
+  WEBHOOK_PROXY_{{ $cluster.name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $cluster.readTimeout | quote }}
+  WEBHOOK_PROXY_{{ $cluster.name | upper | replace "-" "_" }}_TRUST_ALL: {{ $cluster.trustAllCertificates | quote }}
+  WEBHOOK_PROXY_{{ $cluster.name | upper | replace "-" "_" }}_JENKINSFILE_PATH: {{ $cluster.defaultJenkinsfilePath | quote }}
+  {{- end }}
+{{- end }}

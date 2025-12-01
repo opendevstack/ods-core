@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- New core component, OpenDevStack API service ([#1356](https://github.com/opendevstack/ods-core/pull/1356))
 
 ### Changed
 - Change Cnes report to custom SonarQube report ([#1354](https://github.com/opendevstack/ods-core/pull/1354))
