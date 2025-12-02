@@ -21,7 +21,7 @@ parameters:
   - name: ODS_GIT_REF
     description: "Git reference (branch or tag)"
     required: true
-  - name: API_SERVICE_VERSION
+  - name: ODS_API_SERVICE_VERSION
     description: "API Service version"
     required: false
     value: "latest"
@@ -72,8 +72,8 @@ objects:
           noCache: true
           forcePull: true
           buildArgs:
-            - name: API_SERVICE_VERSION
-              value: ${API_SERVICE_VERSION}
+            - name: ODS_API_SERVICE_VERSION
+              value: ${ODS_API_SERVICE_VERSION}
       postCommit: {}
       source:
         type: Git
