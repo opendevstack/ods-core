@@ -4,9 +4,9 @@ FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:latest
 # This applies for version from 2.10 and not below.
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
-ARG API_SERVICE_VERSION=latest
+ARG ODS_API_SERVICE_VERSION=latest
 
-RUN curl -L https://github.com/opendevstack/ods-api-service/releases/download/$API_SERVICE_VERSION/app.jar -o app.jar
+RUN curl -L https://github.com/opendevstack/ods-api-service/releases/download/v$ODS_API_SERVICE_VERSION/app.jar -o app.jar
 
 # Environment variable for certificate URLs (comma-separated) ENV CERT_URLS="" it is needed to install the certificates
 COPY install-certs.sh /opt/install-certs.sh
