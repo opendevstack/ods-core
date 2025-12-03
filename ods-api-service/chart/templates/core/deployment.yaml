@@ -1,0 +1,133 @@
+{{- include "chart.validate.all" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    {{- toYaml .Values.deploymentStrategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          # Priority is on Values from CICD jenkins injected Helm values, if not then use values from values.yaml
+          image: {{ include "image.fullname" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            {{- if .Values.env.CERT_URLS }}
+            - name: CERT_URLS
+              value: {{ .Values.env.CERT_URLS | quote }}
+            {{- end }}
+            - name: OAUTH2_ISSUER
+              value: {{ .Values.env.OAUTH2_ISSUER | quote }}
+            - name: OAUTH2_AUDIENCE
+              value: {{ .Values.env.OAUTH2_AUDIENCE | quote }}
+            - name: OAUTH2_JWK_SET_URI
+              value: {{ .Values.env.OAUTH2_JWK_SET_URI | quote }}
+            - name: JAVA_OPTS
+              value: {{ .Values.env.JAVA_OPTS | quote }}
+          envFrom:
+          {{- if .Values.externalServices.aap.enabled }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-aap-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-aap-credentials
+          {{- end }}
+          {{- if .Values.apis.projectUsers.enabled }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-project-users-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-project-users-credentials
+          {{- end }}
+          {{- if .Values.externalServices.uipath.enabled }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-uipath-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-uipath-credentials
+          {{- end }}
+          {{- if .Values.externalServices.projectsInfoService.enabled }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-projects-info-service-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-projects-info-service-credentials
+          {{- end }}
+          {{- if gt (len .Values.externalServices.openshift.instances) 0 }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-openshift-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-openshift-credentials
+          {{- end }}
+          {{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-bitbucket-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-bitbucket-credentials
+          {{- end }}
+          {{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-webhook-proxy-config
+          {{- end }}
+          {{- if gt (len .Values.externalServices.jenkins.environments) 0 }}
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-jenkins-credentials
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.probes.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.probes.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: spring-config
+              mountPath: /home/default/config/
+
+      affinity:
+      {{- with .Values.affinity }}
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+        {{- if eq .Values.podAntiAffinity "soft" }}
+        podAntiAffinity: {{- include "common.affinities.pods.soft" . | nindent 10 }}
+        {{- end }}
+        {{- if eq .Values.podAntiAffinity "hard" }}
+        podAntiAffinity: {{- include "common.affinities.pods.hard" . | nindent 10 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      volumes:
+        - name: spring-config
+          configMap:
+            name: {{ .Release.Name }}-config

@@ -1,19 +1,20 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: nexus-volume-snapshot
+  name: {{ .Values.global.appName }}-volume-snapshot
   labels:
-    app: nexus
+    app: {{ .Values.global.appName }}
 spec:
   schedule: "{{ .Values.global.nexusSnapshotSchedule }}"
   concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
   suspend: false
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: {{ .Values.global.nexusSnapshotTTL }}
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 604800
       template:
         spec:
-          backoffLimit: 0
           serviceAccountName: ods-edit
           containers:
           - name: snapshot-creator
@@ -35,27 +36,6 @@ spec:
                 source:
                   persistentVolumeClaimName: {{ .Values.global.nexusStorageName }}
               EOF
-
-              # Wait for the VolumeSnapshot to become Ready (configurable timeout)
-              TIMEOUT={{ .Values.global.nexusSnapshotCheckTimeout }}
-              INTERVAL=30
-              elapsed=0
-              TIMED_OUT=0
-              echo "Waiting for VolumeSnapshot $SNAP_NAME to be ready (timeout: $TIMEOUT seconds)..."
-              until [ $elapsed -ge $TIMEOUT ]; do
-                ready=$(oc get volumesnapshot "$SNAP_NAME" -n {{ .Values.global.odsNamespace }} -o jsonpath='{.status.readyToUse}' 2>/dev/null || echo "false")
-                if [ "$ready" = "true" ]; then
-                  echo "VolumeSnapshot $SNAP_NAME is ready"
-                  break
-                fi
-                sleep $INTERVAL
-                elapsed=$((elapsed + INTERVAL))
-                echo "  ... waited $elapsed seconds out of $TIMEOUT seconds"
-              done
-              if [ $elapsed -ge $TIMEOUT ]; then
-                echo "Timeout waiting for VolumeSnapshot $SNAP_NAME to be ready" >&2
-                exit 1
-              fi
             resources:
               limits:
                 cpu: '1'
@@ -65,5 +45,6 @@ spec:
                 memory: 256Mi
             imagePullPolicy: IfNotPresent
           restartPolicy: Never
+          terminationGracePeriodSeconds: 30
   successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 30

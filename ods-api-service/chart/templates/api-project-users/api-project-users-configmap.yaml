@@ -1,0 +1,12 @@
+{{- if .Values.apis.projectUsers.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-project-users-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: project-users-config
+data:
+  API_PROJECT_USERS_WORKFLOW_NAME: {{ .Values.apis.projectUsers.workflowName | quote }}
+  API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS: {{ .Values.apis.projectUsers.token.expirationHours | quote }}
+{{- end }}

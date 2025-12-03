@@ -4,9 +4,13 @@ SHELL = /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-# Load environment variables from .env file
+# Load environment variables from ods-core.env file
 include ../ods-configuration/ods-core.env
 export $(shell sed 's/=.*//' ../ods-configuration/ods-core.env)
+
+# Load environment variables from ods-core.ods-api-service.env file
+include ../ods-configuration/ods-core.ods-api-service.env
+export $(shell sed 's/=.*//' ../ods-configuration/ods-core.ods-api-service.env)
 
 INSECURE := false
 INSECURE_FLAG :=
@@ -131,13 +135,13 @@ apply-sonarqube-chart:
 
 ## Start build of BuildConfig "sonarqube".
 start-sonarqube-build:
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config sonarqube-postgresql
 	@echo "Visit $(SONARQUBE_URL)/setup to see if any update actions need to be taken."
 .PHONY: start-sonarqube-build
 
 ## Configure SonarQube service.
 configure-sonarqube:
-	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) $(INSECURE_FLAG)
+	cd sonarqube && ./configure.sh --sonarqube=$(SONARQUBE_URL) --database-config=true $(INSECURE_FLAG)
 .PHONY: configure-sonarqube
 
 
@@ -178,22 +182,47 @@ start-opentelemetry-collector-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config opentelemetry-collector
 .PHONY: start-opentelemetry-collector-build
 
+# ODS API SERVICE
+## Install or update Ods API Service.
+install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart
+.PHONY: ods-api-service
+
+## Start build of BuildConfig "Ods API Service".
+start-ods-api-service-build:
+	cd ods-api-service/build-config && oc process -f template.yaml -p ODS_NAMESPACE=$(ODS_NAMESPACE) -p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) -p BITBUCKET_URL=$(BITBUCKET_URL) -p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) -p ODS_GIT_REF=$(ODS_GIT_REF) -p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service
+.PHONY: start-ods-api-service-build
+
+## Apply OpenShift resources related to the Ods API Service.
+apply-ods-api-service-chart:
+	cd ods-api-service/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) \
+		-f values.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
+		ods-api-service . && rm values.yaml
+.PHONY: apply-ods-api-service-chart
+
 
 # BACKUP
 ## Create a backup of the current state.
-backup: backup-sonarqube backup-ocp-config
+backup: backup-ocp-config
 .PHONY: backup
 
 ## Create a backup of OpenShift resources in "ods" namespace.
 backup-ocp-config:
 	tailor export --namespace $(ODS_NAMESPACE) > backup_ods.yml
 .PHONY: backup-ocp-config
-
-## Create a backup of the SonarQube database in backup storage and in the current directory.
-backup-sonarqube:
-	cd sonarqube && ./backup.sh --namespace $(ODS_NAMESPACE) --local-copy=true --backup-dir `pwd`
-.PHONY: backup-sonarqube
-
 
 # PVC MIGRATION
 ## Migrate data from one PVC to another. Options: SOURCE_PVC, TARGET_PVC, THREADS (default: 5), CPU_REQUEST (default: 1), MEMORY (default: 2)

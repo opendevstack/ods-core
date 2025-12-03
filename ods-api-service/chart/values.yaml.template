@@ -1,0 +1,335 @@
+## Default values for chart.
+## This is a YAML-formatted file. Intendation matters!
+## Comments are prefixed with two hashes (##), examples are commented with one hash (#)
+## Declare variables to be passed into your templates.
+
+## The number of replicas to deploy.
+## For high availability use more than 1 replica
+replicaCount: 1
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "ods-api-service"
+# NOTE: By default image Values are injected from CICD Jenkins pipeline, values defined here are used when not being on CICD Jenkins pipeline context.
+# Default values here are provided in case one needs to use the chart without CICD (i.e.: testing the chart).
+image:
+  pullPolicy: IfNotPresent
+ingress:
+  enabled: true
+  className: 'openshift-default'
+  # router: external
+  annotations:
+    ## adjust openshift timeouts (default is 60s)
+    haproxy.router.openshift.io/timeout: 300s
+    haproxy.router.openshift.io/timeout-tunnel: 300s
+    ## e.g. add cert-manager support by annotating the ingress https://cert-manager.io/docs/usage/ingress/
+    ## ask in your company for good defaults
+  hosts: [] # When defining a host you must define also a path
+  # - host: yourapp.yourdomain.com
+  #   paths:
+  #     - path: /
+  #       pathType: Prefix
+  tls: [] # If `tls` is left empty then the default OpenShift TLS config will be loaded (i.e.: TLS edge termination with HTTP redirect to HTTPS)
+  # - secretName: chart-example-tls
+  #   hosts:
+  #     - yourapp.yourdomain.com
+service:
+  enabled: true
+  port: 8080
+  type: ClusterIP
+# There are two types of strategy: `Recreate` and `RollingUpdate`
+# Please refer to https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0%
+    maxSurge: 50%
+probes:
+  livenessProbe:
+    failureThreshold: 10
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    successThreshold: 1
+    timeoutSeconds: 5
+  readinessProbe:
+    failureThreshold: 5
+    httpGet:
+      path: "/actuator/health"
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 5
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+# This file is used to override the default values in the chart/values.yaml file for deployment in 'dev' environment
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  # Certificate URLs to be installed at container startup
+  CERT_URLS: "$CERT_URLS"
+  OAUTH2_ISSUER: "$OAUTH2_ISSUER"
+  OAUTH2_AUDIENCE: "$OAUTH2_AUDIENCE"
+  OAUTH2_JWK_SET_URI: "$OAUTH2_JWK_SET_URI"
+  JAVA_OPTS: "$JAVA_OPTS"
+# Development-specific configuration
+config:
+  debug: true
+  logging:
+    level:
+      org.springframework: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice: $DEFAULT_LOG_LEVEL
+      org.springframework.security: $DEFAULT_LOG_LEVEL
+      io.opentelemetry: WARN
+      org.opendevstack.apiservice.externalservice: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice.externalservice.projectsinfoservice.config: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice.externalservice.projectsinfoservice.server.controllers: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice.externalservice.projectsinfoservice.server.service: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice.externalservice.projectsinfoservice.server.annotations: $DEFAULT_LOG_LEVEL
+      org.opendevstack.apiservice.externalservice.projectsinfoservice.server: $DEFAULT_LOG_LEVEL
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: openapi, swagger-ui, beans, caches, configprops, env, health, httpexchanges, info, loggers, mappings
+    endpoint:
+      configprops:
+        show-values: always
+      env:
+        show-values: always
+      loggers:
+        access: unrestricted
+    info:
+      git:
+        mode: full
+    httpexchanges:
+      recording:
+        include: request-headers, response-headers, authorization_header, cookie_headers, principal, remote_address, session_id, time_taken
+  springdoc:
+    show-actuator: true
+    swagger-ui:
+      doc-expansion: none
+      try-it-out-enabled: true
+      filter: true
+      tags-sorter: alpha
+      operations-sorter: alpha
+  openapi:
+    info:
+      title: "ODS API Server"
+      description: "API documentation for ODS (Open DevStack) API Service with project and user management capabilities"
+      version: "v0.0.1"
+      contact:
+        name: "ODS Team"
+        email: "$CONTACT_EMAIL"
+    servers:
+      - url: "$OPENAPI_SERVER_URL"
+        description: "Development environment"
+  spring: {}
+  otel:
+    service:
+      name: devstack-api-service-dev
+      version: 0.0.1-SNAPSHOT
+    exporter:
+      otlp:
+        endpoint: $OTEL_EXPORTER_OTLP_ENDPOINT
+    traces:
+      exporter: logging,otlp
+      sampler: parentbased_traceidratio
+      sampler_arg: 1.0
+    metrics:
+      exporter: none
+    resource:
+      attributes: service.name=devstack-api-service,service.version=0.0.1-SNAPSHOT,deployment.environment=development
+  custom: {}
+  # Declarative Security Configuration
+  app:
+    security:
+      enabled: true
+      jwt-validation-enabled: false
+      issuer: ${OAUTH2_ISSUER:}
+      audience: ${OAUTH2_AUDIENCE:}
+      jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
+      public-endpoints:
+        - "/actuator/health"
+        - "/actuator/info"
+        - "/swagger-ui/**"
+        - "/swagger-ui.html"
+        - "/v3/api-docs/**"
+        - "/v3/api-docs.yaml/**"
+        - "/swagger-resources/**"
+        - "/webjars/**"
+      flows:
+        global:
+          enabled-flows:
+            - "authorization-code"
+            - "client-credentials"
+            - "on-behalf-of"
+          default-flow: "client-credentials"
+        apis:
+          project:
+            default-flow: "client-credentials"
+            endpoints:
+              - pattern: "/api/v1/projects/*/users/**"
+                flows: ["client-credentials"]
+                require-authentication: true
+              - pattern: "/api/v1/projects/*/platforms/**"
+                permit-all: true
+  environment: dev
+# External Services Secrets
+externalServices:
+  # AAP Configuration for dev environment
+  aap:
+    enabled: true
+    baseUrl: "$AAP_BASE_URL"
+    # username and password should be set via environment variables
+    username: "$AAP_USERNAME"
+    password: "$AAP_PASSWORD"
+    timeout: 30000
+    ssl:
+      verifyCertificates: false
+      trustStorePath: ""
+      trustStorePassword: ""
+      trustStoreType: "JKS"
+  # UIPath Configuration for dev environment
+  uipath:
+    enabled: true
+    host: "$UIPATH_HOST"
+    clientId: "$UIPATH_CLIENT_ID"
+    clientSecret: "$UIPATH_CLIENT_SECRET"
+    tenancyName: "$UIPATH_TENANCY_NAME"
+    organizationUnitId: $UIPATH_ORGANIZATION_UNIT_ID
+    loginEndpoint: "$UIPATH_LOGIN_ENDPOINT"
+    queueItemsEndpoint: "$UIPATH_QUEUE_ITEMS_ENDPOINT"
+    timeout: 30000
+    ssl:
+      verifyCertificates: false
+      trustStorePassword: ""
+      trustStorePath: ""
+      trustStoreType: "JKS"
+  # Projects Info Service for dev environment
+  projectsInfoService:
+    enabled: true
+    baseUrl: "$PROJECTS_INFO_SERVICE_BASE_URL"
+    ssl:
+      verifyCertificates: "false"
+      trustStorePath: ""
+      trustStorePassword: ""
+      trustStoreType: "JKS"
+    azure:
+      accessToken: "$AZURE_ACCESS_TOKEN"
+      datahub:
+        groupId: "$AZURE_DATAHUB_GROUP_ID"
+      groups:
+        pageSize: 100
+    testingHub:
+      default:
+        projects: "$TESTING_HUB_DEFAULT_PROJECTS"
+      api:
+        url: "$TESTING_HUB_API_URL"
+        token: "$TESTING_HUB_API_TOKEN"
+        pageSize: 100
+    custom:
+      cache:
+        default:
+          ttlSeconds: 3600 # seconds (1 hour)
+          maximumSize: 1000
+        fallback:
+          ttlSeconds: 7200 # seconds (2 hour)
+          maximumSize: 1000
+    mock:
+      clusters: "1-test, 2-test, 3-test"
+      projects:
+        default: "PROJECT-1:1-test, PROJECT-2-cn, PROJECT-3, SORIAOLI:1-test, VILAXICOIP:1-test, FELST:1-test"
+        users: "{PEPE:[PROJECT-3, PROJECT-4]; PPT:[PROJECT-3, PROJECT-5]}"
+    openshift:
+      api:
+        clusters:
+          usTest:
+            url: "$OPENSHIFT_USTEST_API_URL"
+            token: $OPENSHIFT_USTEST_TOKEN
+          euDev:
+            url: "$OPENSHIFT_EUDEV_API_URL"
+            token: $OPENSHIFT_EUDEV_TOKEN
+          usDev:
+            url: "$OPENSHIFT_USDEV_API_URL"
+            token: $OPENSHIFT_USDEV_TOKEN
+          cnDev:
+            url: "$OPENSHIFT_CNDEV_API_URL"
+            token: $OPENSHIFT_CNDEV_TOKEN
+          inhDev:
+            url: "$OPENSHIFT_INHDEV_API_URL"
+            token: $OPENSHIFT_INHDEV_TOKEN
+    platforms:
+      basePath: "$BITBUCKET_PLATFORMS_BASE_PATH"
+      clusters:
+        usTest: "$BITBUCKET_PLATFORMS_USTEST"
+        euDev: "$BITBUCKET_PLATFORMS_EUDEV"
+        usDev: "$BITBUCKET_PLATFORMS_USDEV"
+        cnDev: "$BITBUCKET_PLATFORMS_CNDEV"
+        inhDev: "$BITBUCKET_PLATFORMS_INHDEV"
+      bearer:
+        token: $BITBUCKET_PLATFORMS_BEARER_TOKEN
+  # Add OpenShift instances with tokens as needed
+  openshift:
+    instances: []
+    # Example:
+    # - name: 1-test
+    #   apiUrl: "https://api.1-test.ocp.com:6443"
+    #   token: ""  # Set in secrets.dev.enc.yaml
+    #   namespace: "devstack-dev"
+    #   connectionTimeout: 30000
+    #   readTimeout: 30000
+    #   trustAllCertificates: false
+  # Add Bitbucket instances with credentials as needed
+  bitbucket:
+    instances: []
+    # Example:
+    # - name: dev
+    #   baseUrl: "https://bitbucket.example.com"
+    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #   connectionTimeout: 30000
+    #   readTimeout: 30000
+    #   trustAllCertificates: false
+  # Webhook Proxy Clusters for dev
+  webhookProxy:
+    clusters: []
+    # Example:
+    # - name: 1-test
+    #   clusterBase: "apps.1-test.ocp.com"
+    #   connectionTimeout: 30000
+    #   readTimeout: 30000
+    #   trustAllCertificates: false
+    #   defaultJenkinsfilePath: "Jenkinsfile"
+  # Add Jenkins environments with API tokens as needed
+  jenkins:
+    environments: []
+    # Example:
+    # - name: eu-dev
+    #   apiToken: ""  # Set in secrets.dev.enc.yaml
+# API Configuration Secrets
+apis:
+  projectUsers:
+    enabled: true
+    workflowName: "$PROJECT_USERS_WORKFLOW_NAME"
+    token:
+      # JWT secret key (minimum 256 bits / 32 characters)
+      secret: "$PROJECT_USERS_JWT_SECRET"
+      expirationHours: $PROJECT_USERS_JWT_EXPIRATION_HOURS
+# Environment-specific configuration (loaded based on active profile)
+envConfig: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 2Gi
+  requests:
+    cpu: 250m
+    memory: 1Gi
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+podAntiAffinity: soft
