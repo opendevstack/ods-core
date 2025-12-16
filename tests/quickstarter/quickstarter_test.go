@@ -244,6 +244,9 @@ func executeProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	}
 
 	t.Cleanup(func() {
+		if err := deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_CD); err != nil {
+			t.Logf("Warning: failed to cleanup DEV resources: %v", err)
+		}
 		if err := deleteOpenShiftResources(utils.PROJECT_NAME, step.ComponentID, utils.PROJECT_NAME_DEV); err != nil {
 			t.Logf("Warning: failed to cleanup DEV resources: %v", err)
 		}
