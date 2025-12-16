@@ -448,6 +448,17 @@ func templateData(config map[string]string, componentID string, buildName string
 		"AquaEnabled":         aquaEnabled,
 	}
 
+	// Add all config map entries whose keys don't contain PASSWORD, PASS, or TOKEN
+	for key, value := range config {
+		keyUpper := strings.ToUpper(key)
+		if !strings.Contains(keyUpper, "PASSWORD") && !strings.Contains(keyUpper, "PASS") && !strings.Contains(keyUpper, "TOKEN") {
+			// Only add if not already present to avoid overwriting standard fields
+			if _, exists := data[key]; !exists {
+				data[key] = value
+			}
+		}
+	}
+
 	// Automatically load all environment variables with TMPL_ prefix
 	// Example: TMPL_MyVariable becomes accessible as {{.MyVariable}}
 	// We check known TMPL_ variables and also scan all environment variables
