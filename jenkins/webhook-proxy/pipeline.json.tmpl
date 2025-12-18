@@ -4,7 +4,10 @@
     "metadata": {
         "name": "{{.Name}}",
         "creationTimestamp": null,
-        "resourceVersion": "{{.ResourceVersion}}"
+        "resourceVersion": "{{.ResourceVersion}}",
+        "annotations": {
+            "jenkins.openshift.io/refspec": "{{.RefSpec}}"
+        }
     },
     "spec": {
         "triggers": [
@@ -21,7 +24,7 @@
             "type": "Git",
             "git": {
                 "uri": "{{.GitURI}}",
-                "ref": "{{.Branch}}"
+                "ref": "{{.Ref}}"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"

@@ -4,7 +4,10 @@
     "metadata": {
         "name": "ods-provisioning-app-production",
         "creationTimestamp": null,
-        "resourceVersion": "0"
+        "resourceVersion": "0",
+        "annotations": {
+            "jenkins.openshift.io/refspec": "+refs/pull-requests/*/from:refs/remotes/origin/pr/*"
+        }
     },
     "spec": {
         "triggers": [
