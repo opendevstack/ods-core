@@ -11,7 +11,7 @@ JAVA_INSTALLED_PKGS_LOGS="/tmp/java_installed_pkgs.log"
 JAVA_VERSIONS_TO_REMOVE=("java-1.8" "java-11" "java-21")
 
 echo "Verifying if Java is installed ..."
-yum list installed | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
+rpm -qa | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
 
 if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
   echo "Java 17 is installed. Proceeding to remove other versions..."
