@@ -7,33 +7,6 @@ set -ue
 echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
 rm -rf $HOME/.kube || true
 
-JAVA_INSTALLED_PKGS_LOGS="/tmp/java_installed_pkgs.log"
-JAVA_VERSIONS_TO_REMOVE=("java-1.8" "java-11" "java-21")
-
-echo "Verifying if Java is installed ..."
-rpm -qa | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
-
-if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
-  echo "Java 17 is installed. Proceeding to remove other versions..."
-
-  for java_version in "${JAVA_VERSIONS_TO_REMOVE[@]}"; do
-    if grep -qi "$java_version" ${JAVA_INSTALLED_PKGS_LOGS}; then
-      echo "$java_version is installed. Removing..."
-      yum -y remove "${java_version}*"
-    else
-      echo "$java_version is not installed. Skipping removal."
-    fi
-  done
-
-  echo "Cleaning up yum cache ..."
-  yum clean all
-else
-  echo "No Java 17 version found."
-fi
-
-echo "Removing temporary Java package logs ..."
-rm -fv ${JAVA_INSTALLED_PKGS_LOGS}
-
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
 if [[ -f $SERVICEACCOUNT_CA ]]; then
