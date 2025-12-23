@@ -64,6 +64,4 @@ else
 fi
 
 rm -fv ${JAVA_INSTALLED_PKGS_LOGS} ${JAVA_17_INSTALLED_PKGS_LOGS}
-
-source /etc/profile.d/set-default-java.sh
 java -version
