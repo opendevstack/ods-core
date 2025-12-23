@@ -24,6 +24,7 @@ ARG AQUASEC_SCANNERCLI_URL
 COPY yum.repos.d/ubi8.repo /etc/yum.repos.d/ubi.repo
 
 COPY ensure_java_jre_is_adequate.sh /usr/local/bin/
+COPY ./set-default-java.sh /etc/profile.d/set-default-java.sh
 
 RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
     && ensure_java_jre_is_adequate.sh \
