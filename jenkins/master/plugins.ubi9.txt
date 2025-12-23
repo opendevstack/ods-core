@@ -1,0 +1,8 @@
+# Aditional plugins
+#greenballs:1.15.1
+sonar:2.18.2
+ansicolor:1.0.6
+audit-trail:436.vc0d1e79fc5a_3
+Office-365-Connector:5.2.0
+mask-passwords:212.v4967a_a_73b_506
+pipeline-graph-view:661.v6003f4542123
