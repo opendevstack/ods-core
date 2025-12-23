@@ -24,3 +24,9 @@ ionicons-api:94.vcc3065403257
 metrics:4.2.33-484.v2fcd689980d1
 commons-lang3-api:3.18.0-98.v3a_674c06072d
 structs:350.v3b_30f09f2363
+echarts-api:5.6.0-5
+pipeline-model-api:2.2265.v140e610fe9d5
+pipeline-model-extensions:2.2265.v140e610fe9d5
+credentials-binding:696.v256688029804
+pipeline-stage-tags-metadata:2.2265.v140e610fe9d5
+jackson2-api:2.19.2-408.v18248a_324cfe
