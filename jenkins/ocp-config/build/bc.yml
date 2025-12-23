@@ -54,8 +54,6 @@ parameters:
   description: optional uri that points to the aquasec binary distribution (i.e. https://download.aquasec.com/scanner/6.0.0/scannercli)
 - name: SONAR_EDITION
   description: SonarQube edition. One of "community", "developer", "enterprise" or "datacenter".
-- name: SONAR_VERSION
-  description: SonarQube version, e.g. "7.9"
 - name: JENKINS_WEBHOOK_PROXY_BUILD_CPU_REQUEST
   value: 200m
 - name: JENKINS_WEBHOOK_PROXY_BUILD_CPU_LIMIT
@@ -111,8 +109,6 @@ objects:
             value: ${ODS_IMAGE_TAG}
           - name: SONAR_EDITION
             value: ${SONAR_EDITION}
-          - name: SONAR_VERSION
-            value: ${SONAR_VERSION}
         dockerfilePath: ${JENKINS_MASTER_DOCKERFILE_PATH}
         from:
           kind: DockerImage
