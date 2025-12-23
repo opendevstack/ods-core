@@ -1,5 +1,4 @@
 # Aditional plugins
-#greenballs:1.15.1
 sonar:2.18.2
 ansicolor:1.0.6
 audit-trail:436.vc0d1e79fc5a_3
