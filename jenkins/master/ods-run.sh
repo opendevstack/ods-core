@@ -7,6 +7,33 @@ set -ue
 echo "Deleting .kube to avoid weird caching issues (see https://github.com/opendevstack/ods-core/issues/473)"
 rm -rf $HOME/.kube || true
 
+JAVA_INSTALLED_PKGS_LOGS="/tmp/java_installed_pkgs.log"
+JAVA_VERSIONS_TO_REMOVE=("java-1.8" "java-11" "java-21")
+
+echo "Verifying if Java is installed ..."
+yum list installed | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
+
+if grep -qi "java-17" ${JAVA_INSTALLED_PKGS_LOGS}; then
+  echo "Java 17 is installed. Proceeding to remove other versions..."
+
+  for java_version in "${JAVA_VERSIONS_TO_REMOVE[@]}"; do
+    if grep -qi "$java_version" ${JAVA_INSTALLED_PKGS_LOGS}; then
+      echo "$java_version is installed. Removing..."
+      yum -y remove "${java_version}*"
+    else
+      echo "$java_version is not installed. Skipping removal."
+    fi
+  done
+
+  echo "Cleaning up yum cache ..."
+  yum clean all
+else
+  echo "No Java 17 version found."
+fi
+
+echo "Removing temporary Java package logs ..."
+rm -fv ${JAVA_INSTALLED_PKGS_LOGS}
+
 # Openshift default CA. See https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets
 SERVICEACCOUNT_CA='/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt'
 if [[ -f $SERVICEACCOUNT_CA ]]; then
@@ -42,13 +69,13 @@ else
   echo "ERROR: Neither NEXUS_URL or NEXUS_HOST present."
   exit 1
 fi
-NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g" | sed -e "s|http://||g")
+NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g;s|http://||g")
 mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
-sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
+sed -i -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" \
+    -e "s|__NEXUS_HOST|$nexusUrl|g" \
+    -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" \
+    -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
 if [ -e "${JENKINS_HOME}/plugins" ]; then
   # RHEL base images install plugins (defined in the yum package jenkins-2-plugins)
@@ -82,19 +109,16 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   cp -n /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
 
   echo " "
-  echo "Plugins version already installed in Jenkins: "
-  ls -la "${JENKINS_HOME}/plugins/"
-
-  echo " "
   echo "Enforcing plugin versions defined in the image ..."
-  if [ "$(ls /opt/openshift/plugins/* 2>/dev/null)" ]; then
-    echo "Copying $(ls /opt/openshift/plugins/* | wc -l) files to ${JENKINS_HOME} ..."
-    for FILENAME in /opt/openshift/plugins/* ; do
-      # also need to nuke the metadir; it will get properly populated on jenkins startup
-      basefilename=`basename $FILENAME .jpi`
-      rm -rfv "${JENKINS_HOME}/plugins/${basefilename}"
-      cp -v --remove-destination $FILENAME ${JENKINS_HOME}/plugins
-    done
+  if [ -d /opt/openshift/plugins ] && [ -n "$(find /opt/openshift/plugins -maxdepth 1 -type f 2>/dev/null | head -1)" ]; then
+    echo "Copying plugins to ${JENKINS_HOME} ..."
+    
+    # Remove all old plugin metadata directories at once
+    find "${JENKINS_HOME}/plugins" -maxdepth 1 -type d \( -name "*.jpi" -o -name "*.hpi" \) -exec rm -rf {} + 2>/dev/null || true
+    
+    # Copy all plugins in one operation
+    find /opt/openshift/plugins -maxdepth 1 -type f \( -name "*.jpi" -o -name "*.hpi" \) -exec cp --remove-destination {} "${JENKINS_HOME}/plugins" \;
+    
     rm -rf /opt/openshift/plugins
   fi
 fi
