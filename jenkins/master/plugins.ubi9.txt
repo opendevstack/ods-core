@@ -1,31 +1,7 @@
 # Aditional plugins
 sonar:2.18.2
 ansicolor:1.0.6
-audit-trail:436.vc0d1e79fc5a_3
-Office-365-Connector:5.2.0
-mask-passwords:212.v4967a_a_73b_506
-pipeline-graph-view:661.v6003f4542123
-
-# Plugins updated to fix dependency errors (can be removed in next version)
-apache-httpcomponents-client-5-api:5.5-157.vb_43ef2f6845e
-workflow-durable-task-step:1452.v0ee719c104a_7
-credentials:1419.v2337d1ceceef
-workflow-cps:4183.v94b_6fd39da_c1
-workflow-job:1540.v295eccc9778f
-durable-task:595.ve87b_f1318d67
-workflow-step-api:704.ve4f0967e98fa_
-pipeline-model-definition:2.2265.v140e610fe9d5
-github-branch-source:1848.v42f74f7f4500
-display-url-api:2.217.va_6b_de84cc74b_
-pipeline-input-step:534.v352f0a_e98918
-junit:1354.v5b_348580de7f
-ionicons-api:94.vcc3065403257
-metrics:4.2.33-484.v2fcd689980d1
-commons-lang3-api:3.18.0-98.v3a_674c06072d
-structs:350.v3b_30f09f2363
-echarts-api:5.6.0-5
-pipeline-model-api:2.2265.v140e610fe9d5
-pipeline-model-extensions:2.2265.v140e610fe9d5
-credentials-binding:696.v256688029804
-pipeline-stage-tags-metadata:2.2265.v140e610fe9d5
-jackson2-api:2.19.2-408.v18248a_324cfe
+audit-trail:395.vce180b_359a_b_5
+Office-365-Connector:5.1.0
+mask-passwords:196.v7d505d39886e
+pipeline-graph-view:600.vc287d1a_d4b_47
