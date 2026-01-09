@@ -1,4 +1,4 @@
-package quickstarter
+package steps
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"os/exec"
 )
 
+// deleteOpenShiftResources deletes all OpenShift resources with the app label
 func deleteOpenShiftResources(projectID string, componentID string, namespace string) error {
 	fmt.Printf("-- starting cleanup for component: %s\n", componentID)
 	label := fmt.Sprintf("app=%s-%s", projectID, componentID)
@@ -28,6 +29,7 @@ func deleteOpenShiftResources(projectID string, componentID string, namespace st
 	return nil
 }
 
+// deleteOpenShiftResourceByName deletes a specific OpenShift resource by name
 func deleteOpenShiftResourceByName(resourceType string, resourceName string, namespace string) error {
 	fmt.Printf("-- starting cleanup for resource: %s/%s in %s\n", resourceType, resourceName, namespace)
 	resource := fmt.Sprintf("%s/%s", resourceType, resourceName)
@@ -51,15 +53,7 @@ func deleteOpenShiftResourceByName(resourceType string, resourceName string, nam
 	return nil
 }
 
-func runOcCmd(args []string) (string, string, error) {
-	cmd := exec.Command("oc", args...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
-}
-
+// deleteHelmRelease deletes a Helm release
 func deleteHelmRelease(releaseName string, namespace string) error {
 	fmt.Printf("-- checking for Helm release: %s in %s\n", releaseName, namespace)
 
@@ -108,6 +102,17 @@ func deleteHelmRelease(releaseName string, namespace string) error {
 	return nil
 }
 
+// runOcCmd executes an oc command
+func runOcCmd(args []string) (string, string, error) {
+	cmd := exec.Command("oc", args...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
+}
+
+// runHelmCmd executes a helm command
 func runHelmCmd(args []string) (string, string, error) {
 	cmd := exec.Command("helm", args...)
 	var stdout, stderr bytes.Buffer

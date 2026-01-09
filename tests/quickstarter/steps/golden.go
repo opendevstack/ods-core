@@ -1,4 +1,4 @@
-package quickstarter
+package steps
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// verifyJSONGoldenFile compares actual JSON output against a golden file template
 func verifyJSONGoldenFile(componentID string, wantFile string, gotFile string, tmplData TemplateData) error {
 
 	var want bytes.Buffer

@@ -1,4 +1,4 @@
-package quickstarter
+package steps
 
 import (
 	"encoding/base64"
@@ -7,6 +7,7 @@ import (
 	"github.com/opendevstack/ods-core/tests/utils"
 )
 
+// recreateBitbucketRepo recreates a Bitbucket repository
 func recreateBitbucketRepo(config map[string]string, project string, repo string) error {
 
 	password, err := base64.StdEncoding.DecodeString(config["CD_USER_PWD_B64"])
