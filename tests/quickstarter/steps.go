@@ -41,14 +41,17 @@ func readSteps(folder string) (*TestSteps, error) {
 	// A poor man's workaround for missing enums in Go. There are better ways
 	// to do it, but nothing as simple as this.
 	allowedTypes := map[string]bool{
-		steps.StepTypeProvision: true,
-		steps.StepTypeBuild:     true,
-		steps.StepTypeUpload:    true,
-		steps.StepTypeRun:       true,
-		steps.StepTypeHTTP:      true,
-		steps.StepTypeWait:      true,
-		steps.StepTypeInspect:   true,
+		steps.StepTypeProvision:     true,
+		steps.StepTypeBuild:         true,
+		steps.StepTypeUpload:        true,
+		steps.StepTypeRun:           true,
+		steps.StepTypeHTTP:          true,
+		steps.StepTypeWait:          true,
+		steps.StepTypeInspect:       true,
+		steps.StepTypeExposeService: true,
+		steps.StepTypeBitbucket:     true,
 	}
+
 	for i, step := range s.Steps {
 		if _, ok := allowedTypes[step.Type]; !ok {
 			allowed := []string{}

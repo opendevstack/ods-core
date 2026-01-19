@@ -12,6 +12,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -25,18 +26,21 @@ func ExecuteHTTP(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 
 	// Resolve URL using smart resolution (route -> in-cluster -> port-forward)
 	url := ResolveServiceURL(t, params.URL, tmplData)
+	logger.KeyValue("URL", url)
 
 	// Default method to GET
 	method := params.Method
 	if method == "" {
 		method = "GET"
 	}
+	logger.KeyValue("Method", method)
 
 	// Default timeout to 30 seconds
 	timeout := params.Timeout
 	if timeout == 0 {
 		timeout = 30
 	}
+	logger.KeyValue("Timeout", fmt.Sprintf("%ds", timeout))
 
 	// Default retry attempts
 	retryAttempts := 1
@@ -54,8 +58,11 @@ func ExecuteHTTP(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 			}
 		}
 	}
+	if retryAttempts > 1 {
+		logger.KeyValue("Retries", fmt.Sprintf("%d (delay: %v)", retryAttempts, retryDelay))
+	}
 
-	fmt.Printf("Testing HTTP endpoint: %s %s\n", method, url)
+	logger.Running(fmt.Sprintf("Testing HTTP endpoint: %s %s", method, url))
 
 	var lastErr error
 	var resp *http.Response
@@ -64,7 +71,7 @@ func ExecuteHTTP(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 	// Retry logic
 	for attempt := 1; attempt <= retryAttempts; attempt++ {
 		if attempt > 1 {
-			fmt.Printf("Retry attempt %d/%d after %v\n", attempt, retryAttempts, retryDelay)
+			logger.Waiting(fmt.Sprintf("Retry attempt %d/%d after %v", attempt, retryAttempts, retryDelay))
 			time.Sleep(retryDelay)
 		}
 
@@ -87,26 +94,31 @@ func ExecuteHTTP(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 	}
 
 	if lastErr != nil {
+		logger.Failure(fmt.Sprintf("HTTP request after %d attempts", retryAttempts), lastErr)
 		t.Fatalf("HTTP request failed after %d attempts: %v", retryAttempts, lastErr)
 	}
 
-	fmt.Printf("HTTP request successful: %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	logger.Success(fmt.Sprintf("HTTP request returned %d %s", resp.StatusCode, http.StatusText(resp.StatusCode)))
 
 	// Verify expected body if provided
 	if params.ExpectedBody != "" {
+		logger.Waiting("Verifying response body against golden file")
 		goldenFile := fmt.Sprintf("%s/%s", testdataPath, params.ExpectedBody)
 		if err := verifyJSONGoldenFile(step.ComponentID, goldenFile, string(body), tmplData); err != nil {
+			logger.Failure("Response body verification", err)
 			t.Fatalf("Response body mismatch: %v", err)
 		}
-		fmt.Printf("Response body matches golden file\n")
+		logger.Success("Response body matches golden file")
 	}
 
 	// Run assertions
 	if len(params.Assertions) > 0 {
+		logger.Waiting(fmt.Sprintf("Running %d assertion(s)", len(params.Assertions)))
 		if err := verifyHTTPAssertions(params.Assertions, body, tmplData, t); err != nil {
+			logger.Failure("HTTP assertions", err)
 			t.Fatalf("Assertion failed: %v", err)
 		}
-		fmt.Printf("All %d assertions passed\n", len(params.Assertions))
+		logger.Success(fmt.Sprintf("All %d assertions passed", len(params.Assertions)))
 	}
 }
 

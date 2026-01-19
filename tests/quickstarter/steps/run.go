@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/opendevstack/ods-core/tests/utils"
@@ -34,7 +35,7 @@ func ExecuteRun(t *testing.T, step TestStep, testdataPath string, tmplData Templ
 }
 
 // buildScriptEnvironment creates environment variables for shell scripts
-// This allows scripts to access resolved service URLs and other test context
+// This allows scripts to access test context and configuration
 func buildScriptEnvironment(t *testing.T, step TestStep, tmplData TemplateData, projectName string) []string {
 	envVars := []string{
 		fmt.Sprintf("COMPONENT_ID=%s", step.ComponentID),
@@ -42,14 +43,29 @@ func buildScriptEnvironment(t *testing.T, step TestStep, tmplData TemplateData, 
 		fmt.Sprintf("NAMESPACE=%s-dev", projectName),
 	}
 
-	// If there's a service URL pattern we can detect, resolve it and pass it
-	// This constructs the standard service URL and resolves it
-	if step.ComponentID != "" {
-		serviceURL := ConstructServiceURL(step.ComponentID, projectName+"-dev", "8080", "")
-		resolvedURL := ResolveServiceURL(t, serviceURL, tmplData)
-		envVars = append(envVars, fmt.Sprintf("SERVICE_URL=%s", resolvedURL))
-
-		fmt.Printf("   Setting SERVICE_URL=%s for script\n", resolvedURL)
+	// If services are defined in runParams, export each as a named environment variable
+	// Example: {"api": "api-service", "backend": "backend-service"} becomes
+	//          API_SERVICE_URL and BACKEND_SERVICE_URL
+	if step.RunParams != nil && len(step.RunParams.Services) > 0 {
+		for serviceName, actualServiceName := range step.RunParams.Services {
+			// Render service name template if needed
+			renderedServiceName := renderTemplate(t, actualServiceName, tmplData)
+			serviceKey := fmt.Sprintf("ExposedService_%s", renderedServiceName)
+			if exposedURL, ok := tmplData[serviceKey].(string); ok && exposedURL != "" {
+				envVarName := fmt.Sprintf("%s_SERVICE_URL", strings.ToUpper(serviceName))
+				envVars = append(envVars, fmt.Sprintf("%s=%s", envVarName, exposedURL))
+				fmt.Printf("   Setting %s=%s for script (from exposed service)\n", envVarName, exposedURL)
+			}
+		}
+	} else if step.ComponentID != "" {
+		// Fallback: If no services map defined, export the ComponentID service as SERVICE_URL
+		// This maintains backward compatibility
+		renderedComponentID := renderTemplate(t, step.ComponentID, tmplData)
+		serviceKey := fmt.Sprintf("ExposedService_%s", renderedComponentID)
+		if exposedURL, ok := tmplData[serviceKey].(string); ok && exposedURL != "" {
+			envVars = append(envVars, fmt.Sprintf("SERVICE_URL=%s", exposedURL))
+			fmt.Printf("   Setting SERVICE_URL=%s for script (from exposed service)\n", exposedURL)
+		}
 	}
 
 	// Pass through template data as environment variables

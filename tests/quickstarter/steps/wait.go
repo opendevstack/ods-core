@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // Wait condition constants
@@ -33,6 +35,7 @@ func ExecuteWait(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 		namespace = fmt.Sprintf("%s-dev", projectName)
 	}
 	namespace = renderTemplate(t, namespace, tmplData)
+	logger.KeyValue("Namespace", namespace)
 
 	// Default timeout to 300s
 	timeout := params.Timeout
@@ -43,6 +46,7 @@ func ExecuteWait(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 	if err != nil {
 		t.Fatalf("Invalid timeout duration: %s", timeout)
 	}
+	logger.KeyValue("Timeout", timeout)
 
 	// Default interval to 5s
 	interval := params.Interval
@@ -53,52 +57,59 @@ func ExecuteWait(t *testing.T, step TestStep, testdataPath string, tmplData Temp
 	if err != nil {
 		t.Fatalf("Invalid interval duration: %s", interval)
 	}
+	logger.KeyValue("Interval", interval)
 
-	fmt.Printf("Waiting for condition: %s (timeout: %s, interval: %s)\n", params.Condition, timeout, interval)
+	logger.SubSection(fmt.Sprintf("Waiting for condition: %s", params.Condition))
 
 	// Execute the wait based on condition type
 	switch params.Condition {
 	case WaitConditionPodReady:
 		if err := waitForPodReady(t, params, namespace, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("Pod ready condition for %s", params.Resource), err)
 			t.Fatal(err)
 		}
 	case WaitConditionDeploymentComplete:
 		if err := waitForDeploymentComplete(t, params, namespace, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("Deployment completion for %s", params.Resource), err)
 			t.Fatal(err)
 		}
 	case WaitConditionJobComplete:
 		if err := waitForJobComplete(t, params, namespace, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("Job completion for %s", params.Resource), err)
 			t.Fatal(err)
 		}
 	case WaitConditionRouteAccessible:
 		if err := waitForRouteAccessible(t, params, namespace, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("Route accessibility for %s", params.Resource), err)
 			t.Fatal(err)
 		}
 	case WaitConditionHTTPAccessible:
 		if err := waitForHTTPAccessible(t, params, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("HTTP accessibility for %s", params.URL), err)
 			t.Fatal(err)
 		}
 	case WaitConditionLogContains:
 		if err := waitForLogContains(t, params, namespace, tmplData, timeoutDuration, intervalDuration); err != nil {
+			logger.Failure(fmt.Sprintf("Log contains message: %s", params.Message), err)
 			t.Fatal(err)
 		}
 	default:
 		t.Fatalf("Unknown wait condition: %s", params.Condition)
 	}
 
-	fmt.Printf("Condition met: %s\n", params.Condition)
+	logger.Success(fmt.Sprintf("Condition met: %s", params.Condition))
 }
 
 // waitForPodReady waits for pods to be ready
 func waitForPodReady(t *testing.T, params *TestStepWaitParams, namespace string, tmplData TemplateData, timeout, interval time.Duration) error {
 	resource := renderTemplate(t, params.Resource, tmplData)
 
-	fmt.Printf("Waiting for pod to be ready: %s in namespace %s\n", resource, namespace)
+	logger.Waiting(fmt.Sprintf("Pod to be ready: %s in namespace %s", resource, namespace))
 
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		// Use oc wait command
-		fmt.Printf("Executing command: oc wait --for=condition=Ready %s -n %s --timeout=%s\n", resource, namespace, interval.String())
+		logger.Debug(fmt.Sprintf("Executing command: oc wait --for=condition=Ready %s -n %s --timeout=%s", resource, namespace, interval.String()))
 		cmd := exec.Command("oc", "wait", "--for=condition=Ready", "pod", resource,
 			"-n", namespace,
 			"--timeout="+interval.String())
@@ -114,7 +125,7 @@ func waitForPodReady(t *testing.T, params *TestStepWaitParams, namespace string,
 
 		// Check if it's a timeout (continue waiting) or a real error
 		if !strings.Contains(stderr.String(), "timed out") {
-			fmt.Printf("Warning: %s (retrying...)\n", stderr.String())
+			logger.Warn(fmt.Sprintf("oc wait command error: %s (retrying...)", stderr.String()))
 		}
 
 		time.Sleep(interval)
@@ -126,8 +137,7 @@ func waitForPodReady(t *testing.T, params *TestStepWaitParams, namespace string,
 // waitForDeploymentComplete waits for a deployment to complete
 func waitForDeploymentComplete(t *testing.T, params *TestStepWaitParams, namespace string, tmplData TemplateData, timeout, interval time.Duration) error {
 	resource := renderTemplate(t, params.Resource, tmplData)
-
-	fmt.Printf("Waiting for deployment to complete: %s in namespace %s\n", resource, namespace)
+	logger.Waiting(fmt.Sprintf("Deployment to complete: %s in namespace %s", resource, namespace))
 
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
@@ -154,8 +164,7 @@ func waitForDeploymentComplete(t *testing.T, params *TestStepWaitParams, namespa
 // waitForJobComplete waits for a job to complete
 func waitForJobComplete(t *testing.T, params *TestStepWaitParams, namespace string, tmplData TemplateData, timeout, interval time.Duration) error {
 	resource := renderTemplate(t, params.Resource, tmplData)
-
-	fmt.Printf("Waiting for job to complete: %s in namespace %s\n", resource, namespace)
+	logger.Waiting(fmt.Sprintf("Job to complete: %s in namespace %s", resource, namespace))
 
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
@@ -189,7 +198,7 @@ func waitForRouteAccessible(t *testing.T, params *TestStepWaitParams, namespace 
 		routeName = parts[len(parts)-1]
 	}
 
-	fmt.Printf("Waiting for route to be accessible: %s in namespace %s\n", routeName, namespace)
+	logger.Waiting(fmt.Sprintf("Route to be accessible: %s in namespace %s", routeName, namespace))
 
 	// First, wait for the route to exist
 	deadline := time.Now().Add(timeout)
@@ -225,7 +234,7 @@ func waitForRouteAccessible(t *testing.T, params *TestStepWaitParams, namespace 
 func waitForHTTPAccessible(t *testing.T, params *TestStepWaitParams, tmplData TemplateData, timeout, interval time.Duration) error {
 	url := renderTemplate(t, params.URL, tmplData)
 
-	fmt.Printf("Waiting for HTTP endpoint to be accessible: %s\n", url)
+	logger.Waiting(fmt.Sprintf("HTTP endpoint to be accessible: %s", url))
 
 	return waitForHTTPURL(url, timeout, interval)
 }
@@ -246,7 +255,7 @@ func waitForHTTPURL(url string, timeout, interval time.Duration) error {
 			statusCode := stdout.String()
 			// Accept any 2xx or 3xx status code
 			if strings.HasPrefix(statusCode, "2") || strings.HasPrefix(statusCode, "3") {
-				fmt.Printf("HTTP endpoint is accessible: %s (status: %s)\n", url, statusCode)
+				logger.Success(fmt.Sprintf("HTTP endpoint is accessible: %s (status: %s)", url, statusCode))
 				return nil
 			}
 		}
@@ -262,7 +271,7 @@ func waitForLogContains(t *testing.T, params *TestStepWaitParams, namespace stri
 	resource := renderTemplate(t, params.Resource, tmplData)
 	message := renderTemplate(t, params.Message, tmplData)
 
-	fmt.Printf("Waiting for log message in %s: %q\n", resource, message)
+	logger.Waiting(fmt.Sprintf("Log message in %s: %q", resource, message))
 
 	deadline := time.Now().Add(timeout)
 
@@ -275,7 +284,7 @@ func waitForLogContains(t *testing.T, params *TestStepWaitParams, namespace stri
 
 		err := cmd.Run()
 		if err == nil && strings.Contains(stdout.String(), message) {
-			fmt.Printf("Log message found: %q\n", message)
+			logger.Success(fmt.Sprintf("Log message found: %q", message))
 			return nil
 		}
 

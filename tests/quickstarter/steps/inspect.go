@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // ExecuteInspect handles the inspect step type for inspecting container runtime behavior.
@@ -27,10 +29,10 @@ func ExecuteInspect(t *testing.T, step TestStep, testdataPath string, tmplData T
 	// Render resource with template data
 	resource := renderTemplate(t, params.Resource, tmplData)
 
-	fmt.Printf("Inspecting resource: %s in namespace %s\n", resource, namespace)
+	logger.Running(fmt.Sprintf("Inspecting resource: %s in namespace %s", resource, namespace))
 
 	if params.Checks == nil {
-		fmt.Printf("No checks specified, skipping inspection\n")
+		logger.Info("No checks specified, skipping inspection")
 		return
 	}
 
@@ -55,12 +57,12 @@ func ExecuteInspect(t *testing.T, step TestStep, testdataPath string, tmplData T
 		}
 	}
 
-	fmt.Printf("All inspection checks passed for %s\n", resource)
+	logger.Success(fmt.Sprintf("All inspection checks passed for %s", resource))
 }
 
 // checkLogs verifies log content
 func checkLogs(t *testing.T, resource string, namespace string, logChecks *LogChecks) error {
-	fmt.Printf("Checking logs for %s...\n", resource)
+	logger.Waiting(fmt.Sprintf("Checking logs for %s", resource))
 
 	// Get logs from the resource
 	cmd := exec.Command("oc", "logs", resource, "-n", namespace, "--tail=500")
@@ -80,7 +82,7 @@ func checkLogs(t *testing.T, resource string, namespace string, logChecks *LogCh
 		if !strings.Contains(logs, required) {
 			return fmt.Errorf("logs do not contain required string: %q", required)
 		}
-		fmt.Printf("  ✓ Found required string: %q\n", required)
+		logger.KeyValue("Found required string", required)
 	}
 
 	// Check for forbidden strings
@@ -88,7 +90,7 @@ func checkLogs(t *testing.T, resource string, namespace string, logChecks *LogCh
 		if strings.Contains(logs, forbidden) {
 			return fmt.Errorf("logs contain forbidden string: %q", forbidden)
 		}
-		fmt.Printf("  ✓ Does not contain forbidden string: %q\n", forbidden)
+		logger.KeyValue("Does not contain", forbidden)
 	}
 
 	// Check regex patterns
@@ -100,16 +102,16 @@ func checkLogs(t *testing.T, resource string, namespace string, logChecks *LogCh
 		if !matched {
 			return fmt.Errorf("logs do not match required pattern: %q", pattern)
 		}
-		fmt.Printf("  ✓ Matches required pattern: %q\n", pattern)
+		logger.KeyValue("Matches required pattern", pattern)
 	}
 
-	fmt.Printf("Log checks passed\n")
+	logger.Success("Log checks passed")
 	return nil
 }
 
 // checkEnvironmentVariables verifies environment variables in the container
 func checkEnvironmentVariables(t *testing.T, resource string, namespace string, expectedEnv map[string]string, tmplData TemplateData) error {
-	fmt.Printf("Checking environment variables for %s...\n", resource)
+	logger.Waiting(fmt.Sprintf("Checking environment variables for %s", resource))
 
 	// Extract resource type and name
 	parts := strings.Split(resource, "/")
@@ -165,16 +167,16 @@ func checkEnvironmentVariables(t *testing.T, resource string, namespace string, 
 			// Key exists but value might be different - let's try to extract and compare
 			return fmt.Errorf("environment variable %s exists but value does not match %q", key, renderedValue)
 		}
-		fmt.Printf("  ✓ Environment variable %s = %q\n", key, renderedValue)
+		logger.KeyValue(fmt.Sprintf("Environment variable %s", key), renderedValue)
 	}
 
-	fmt.Printf("Environment variable checks passed\n")
+	logger.Success("Environment variable checks passed")
 	return nil
 }
 
 // checkResources verifies resource limits and requests
 func checkResources(t *testing.T, resource string, namespace string, resourceChecks *ResourceChecks) error {
-	fmt.Printf("Checking resource limits/requests for %s...\n", resource)
+	logger.Waiting(fmt.Sprintf("Checking resource limits/requests for %s", resource))
 
 	// Extract resource type and name
 	parts := strings.Split(resource, "/")
@@ -216,7 +218,7 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 			if !matched {
 				return fmt.Errorf("CPU limit does not match expected value: %s", resourceChecks.Limits.CPU)
 			}
-			fmt.Printf("  ✓ CPU limit: %s\n", resourceChecks.Limits.CPU)
+			logger.KeyValue("CPU limit", resourceChecks.Limits.CPU)
 		}
 		if resourceChecks.Limits.Memory != "" {
 			searchPattern := fmt.Sprintf(`limits:.*?memory:%s`, regexp.QuoteMeta(resourceChecks.Limits.Memory))
@@ -224,7 +226,7 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 			if !matched {
 				return fmt.Errorf("Memory limit does not match expected value: %s", resourceChecks.Limits.Memory)
 			}
-			fmt.Printf("  ✓ Memory limit: %s\n", resourceChecks.Limits.Memory)
+			logger.KeyValue("Memory limit", resourceChecks.Limits.Memory)
 		}
 	}
 
@@ -236,7 +238,7 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 			if !matched {
 				return fmt.Errorf("CPU request does not match expected value: %s", resourceChecks.Requests.CPU)
 			}
-			fmt.Printf("  ✓ CPU request: %s\n", resourceChecks.Requests.CPU)
+			logger.KeyValue("CPU request", resourceChecks.Requests.CPU)
 		}
 		if resourceChecks.Requests.Memory != "" {
 			searchPattern := fmt.Sprintf(`requests:.*?memory:%s`, regexp.QuoteMeta(resourceChecks.Requests.Memory))
@@ -244,10 +246,10 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 			if !matched {
 				return fmt.Errorf("Memory request does not match expected value: %s", resourceChecks.Requests.Memory)
 			}
-			fmt.Printf("  ✓ Memory request: %s\n", resourceChecks.Requests.Memory)
+			logger.KeyValue("Memory request", resourceChecks.Requests.Memory)
 		}
 	}
 
-	fmt.Printf("Resource checks passed\n")
+	logger.Success("Resource checks passed")
 	return nil
 }

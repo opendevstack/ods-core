@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // CreateTemplateData creates the template data map for rendering templates
@@ -56,7 +58,7 @@ func CreateTemplateData(config map[string]string, componentID string, buildName 
 		if value, ok := os.LookupEnv(tmplVar); ok {
 			key := strings.TrimPrefix(tmplVar, "TMPL_")
 			data[key] = value
-			fmt.Printf("Loading environment variable: %s -> %s = '%s'\n", tmplVar, key, value)
+			logger.Debug(fmt.Sprintf("Loading environment variable: %s -> %s = '%s'", tmplVar, key, value))
 		}
 	}
 
@@ -69,7 +71,7 @@ func CreateTemplateData(config map[string]string, componentID string, buildName 
 				// Only add if not already added above
 				if _, exists := data[key]; !exists {
 					data[key] = pair[1]
-					fmt.Printf("Loading environment variable: %s -> %s = '%s'\n", pair[0], key, pair[1])
+					logger.Debug(fmt.Sprintf("Loading environment variable: %s -> %s = '%s'", pair[0], key, pair[1]))
 				}
 			}
 		}

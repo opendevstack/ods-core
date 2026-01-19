@@ -9,6 +9,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // PortForwardManager manages the lifecycle of port-forwards for local development
@@ -56,12 +58,12 @@ func (m *PortForwardManager) ensurePortForward(serviceName, namespace, remotePor
 	// Check if port-forward already exists and is healthy
 	if pf, exists := m.forwards[key]; exists {
 		if m.isHealthy(pf) {
-			fmt.Printf("♻️  Reusing existing port-forward: localhost:%d -> %s/%s:%s\n",
-				pf.LocalPort, namespace, serviceName, remotePort)
+			logger.Success(fmt.Sprintf("Reusing existing port-forward: localhost:%d -> %s/%s:%s",
+				pf.LocalPort, namespace, serviceName, remotePort))
 			return pf.LocalPort, nil
 		}
 		// Port-forward exists but is unhealthy, clean it up
-		fmt.Printf("⚠️  Existing port-forward is unhealthy, recreating...\n")
+		logger.Warn("Existing port-forward is unhealthy, recreating...")
 		m.cleanup(pf)
 		delete(m.forwards, key)
 	}
@@ -76,8 +78,8 @@ func (m *PortForwardManager) ensurePortForward(serviceName, namespace, remotePor
 	}
 
 	m.forwards[key] = pf
-	fmt.Printf("✓ Port-forward established: localhost:%d -> %s/%s:%s\n",
-		localPort, namespace, serviceName, remotePort)
+	logger.Success(fmt.Sprintf("Port-forward established: localhost:%d -> %s/%s:%s",
+		localPort, namespace, serviceName, remotePort))
 
 	return localPort, nil
 }
@@ -92,7 +94,7 @@ func (m *PortForwardManager) startPortForward(serviceName, namespace, remotePort
 		if attempt > 1 {
 			// Try next port
 			currentPort = startPort + attempt - 1
-			fmt.Printf("   ⚠️  Port %d in use, trying port %d...\n", currentPort-1, currentPort)
+			logger.Warn(fmt.Sprintf("Port %d in use, trying port %d...", currentPort-1, currentPort))
 		}
 
 		pf, err := m.startPortForwardAttempt(serviceName, namespace, remotePort, currentPort)
@@ -101,8 +103,8 @@ func (m *PortForwardManager) startPortForward(serviceName, namespace, remotePort
 			if currentPort >= m.nextLocalPort {
 				m.nextLocalPort = currentPort + 1
 			}
-			fmt.Printf("   ✓ Port-forward established: localhost:%d -> %s/%s:%s\n",
-				currentPort, namespace, serviceName, remotePort)
+			logger.Success(fmt.Sprintf("Port-forward established: localhost:%d -> %s/%s:%s",
+				currentPort, namespace, serviceName, remotePort))
 			return pf, nil
 		}
 		lastErr = err
@@ -230,16 +232,16 @@ func (m *PortForwardManager) cleanupAll() {
 		return
 	}
 
-	fmt.Printf("\n🧹 Cleaning up %d port-forward(s)...\n", len(m.forwards))
+	logger.SubSection("Cleaning up port-forwards")
 
 	for key, pf := range m.forwards {
-		fmt.Printf("  Terminating port-forward: localhost:%d -> %s/%s:%s\n",
-			pf.LocalPort, pf.Namespace, pf.ServiceName, pf.RemotePort)
+		logger.Running(fmt.Sprintf("Terminating port-forward: localhost:%d -> %s/%s:%s",
+			pf.LocalPort, pf.Namespace, pf.ServiceName, pf.RemotePort))
 		m.cleanup(pf)
 		delete(m.forwards, key)
 	}
 
-	fmt.Printf("✓ All port-forwards cleaned up\n\n")
+	logger.Success("All port-forwards cleaned up")
 }
 
 // GetActivePortForwards returns information about active port-forwards (for debugging)

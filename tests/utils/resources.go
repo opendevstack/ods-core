@@ -8,7 +8,9 @@ import (
 	imageClientV1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	routeClientV1 "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 )
 
@@ -103,29 +105,8 @@ func CheckDeploymentConfigs(namespace string, deploymentConfigs []string, config
 	}
 }
 
-func CheckServices(namespace string, services []string, config *rest.Config, t *testing.T) {
-
-	if len(services) == 0 {
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	serviceClient := clientset.CoreV1().Services(namespace)
-	serviceList, err := serviceClient.List(metav1.ListOptions{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, service := range services {
-		if err = FindServiceHasPods(serviceList, service); err != nil {
-			t.Error(err)
-		}
-	}
+func CheckServices(namespace string, services []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, services, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "services"}, nil, t)
 }
 
 func CheckResources(resources Resources, t *testing.T) {
@@ -135,17 +116,33 @@ func CheckResources(resources Resources, t *testing.T) {
 		t.Fatal(err)
 	}
 
+	dyn, err := dynamic.NewForConfig(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	CheckImageStreams(resources.Namespace, resources.ImageStreams, config, t)
 	CheckImageTags(resources.Namespace, resources.ImageTags, config, t)
 	CheckBuildConfigs(resources.Namespace, resources.BuildConfigs, config, t)
 	CheckDeploymentConfigs(resources.Namespace, resources.DeploymentConfigs, config, t)
-	CheckServices(resources.Namespace, resources.Services, config, t)
+	CheckDeployments(resources.Namespace, resources.Deployments, dyn, t)
+	CheckStatefulSets(resources.Namespace, resources.StatefulSets, dyn, t)
+	CheckDaemonSets(resources.Namespace, resources.DaemonSets, dyn, t)
+	CheckReplicaSets(resources.Namespace, resources.ReplicaSets, dyn, t)
+	CheckServices(resources.Namespace, resources.Services, dyn, t)
 	CheckRoutes(resources.Namespace, resources.Routes, config, t)
-	CheckConfigMaps(resources.Namespace, resources.ConfigMaps, config, t)
-	CheckSecrets(resources.Namespace, resources.Secrets, config, t)
-	CheckPersistentVolumeClaims(resources.Namespace, resources.PersistentVolumeClaims, config, t)
-	CheckServiceAccounts(resources.Namespace, resources.ServiceAccounts, config, t)
-	CheckRoleBindings(resources.Namespace, resources.RoleBindings, config, t)
+	CheckIngresses(resources.Namespace, resources.Ingresses, dyn, t)
+	CheckConfigMaps(resources.Namespace, resources.ConfigMaps, dyn, t)
+	CheckSecrets(resources.Namespace, resources.Secrets, dyn, t)
+	CheckPersistentVolumeClaims(resources.Namespace, resources.PersistentVolumeClaims, dyn, t)
+	CheckServiceAccounts(resources.Namespace, resources.ServiceAccounts, dyn, t)
+	CheckRoles(resources.Namespace, resources.Roles, dyn, t)
+	CheckRoleBindings(resources.Namespace, resources.RoleBindings, dyn, t)
+	CheckNetworkPolicies(resources.Namespace, resources.NetworkPolicies, dyn, t)
+	CheckJobs(resources.Namespace, resources.Jobs, dyn, t)
+	CheckCronJobs(resources.Namespace, resources.CronJobs, dyn, t)
+	CheckPods(resources.Namespace, resources.Pods, dyn, t)
+	CheckHorizontalPodAutoscalers(resources.Namespace, resources.HorizontalPodAutoscalers, dyn, t)
 
 }
 
@@ -172,122 +169,122 @@ func CheckRoutes(namespace string, routes []string, config *rest.Config, t *test
 	}
 }
 
-func CheckConfigMaps(namespace string, configMaps []string, config *rest.Config, t *testing.T) {
-
-	if len(configMaps) == 0 {
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	configMapClient := clientset.CoreV1().ConfigMaps(namespace)
-	configMapList, err := configMapClient.List(metav1.ListOptions{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, configMap := range configMaps {
-		if err = FindConfigMap(configMapList, configMap); err != nil {
-			t.Error(err)
-		}
-	}
+func CheckConfigMaps(namespace string, configMaps []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, configMaps, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "configmaps"}, nil, t)
 }
 
-func CheckSecrets(namespace string, secrets []string, config *rest.Config, t *testing.T) {
-
-	if len(secrets) == 0 {
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	secretClient := clientset.CoreV1().Secrets(namespace)
-	secretList, err := secretClient.List(metav1.ListOptions{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, secret := range secrets {
-		if err = FindSecret(secretList, secret); err != nil {
-			t.Error(err)
-		}
-	}
+func CheckSecrets(namespace string, secrets []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, secrets, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "secrets"}, nil, t)
 }
 
-func CheckPersistentVolumeClaims(namespace string, pvcs []string, config *rest.Config, t *testing.T) {
-
-	if len(pvcs) == 0 {
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pvcClient := clientset.CoreV1().PersistentVolumeClaims(namespace)
-	pvcList, err := pvcClient.List(metav1.ListOptions{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, pvc := range pvcs {
-		if err = FindPersistentVolumeClaim(pvcList, pvc); err != nil {
-			t.Error(err)
-		}
-	}
+func CheckPersistentVolumeClaims(namespace string, pvcs []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, pvcs, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "persistentvolumeclaims"}, nil, t)
 }
 
-func CheckServiceAccounts(namespace string, serviceAccounts []string, config *rest.Config, t *testing.T) {
-
-	if len(serviceAccounts) == 0 {
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	serviceAccountClient := clientset.CoreV1().ServiceAccounts(namespace)
-	serviceAccountList, err := serviceAccountClient.List(metav1.ListOptions{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, serviceAccount := range serviceAccounts {
-		if err = FindServiceAccount(serviceAccountList, serviceAccount); err != nil {
-			t.Error(err)
-		}
-	}
+func CheckServiceAccounts(namespace string, serviceAccounts []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, serviceAccounts, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "serviceaccounts"}, nil, t)
 }
 
-func CheckRoleBindings(namespace string, roleBindings []string, config *rest.Config, t *testing.T) {
+func CheckRoleBindings(namespace string, roleBindings []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, roleBindings, dyn, schema.GroupVersionResource{Group: "rbac.authorization.k8s.io", Version: "v1", Resource: "rolebindings"}, nil, t)
+}
 
-	if len(roleBindings) == 0 {
+func CheckCronJobs(namespace string, cronJobs []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(
+		namespace,
+		cronJobs,
+		dyn,
+		schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "cronjobs"},
+		[]schema.GroupVersionResource{{Group: "batch", Version: "v1beta1", Resource: "cronjobs"}},
+		t,
+	)
+}
+
+func CheckDeployments(namespace string, deployments []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, deployments, dyn, schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}, nil, t)
+}
+
+func CheckStatefulSets(namespace string, statefulSets []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, statefulSets, dyn, schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "statefulsets"}, nil, t)
+}
+
+func CheckDaemonSets(namespace string, daemonSets []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, daemonSets, dyn, schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "daemonsets"}, nil, t)
+}
+
+func CheckReplicaSets(namespace string, replicaSets []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, replicaSets, dyn, schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "replicasets"}, nil, t)
+}
+
+func CheckIngresses(namespace string, ingresses []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(
+		namespace,
+		ingresses,
+		dyn,
+		schema.GroupVersionResource{Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
+		[]schema.GroupVersionResource{
+			{Group: "networking.k8s.io", Version: "v1beta1", Resource: "ingresses"},
+			{Group: "extensions", Version: "v1beta1", Resource: "ingresses"},
+		},
+		t,
+	)
+}
+
+func CheckRoles(namespace string, roles []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, roles, dyn, schema.GroupVersionResource{Group: "rbac.authorization.k8s.io", Version: "v1", Resource: "roles"}, nil, t)
+}
+
+func CheckNetworkPolicies(namespace string, networkPolicies []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, networkPolicies, dyn, schema.GroupVersionResource{Group: "networking.k8s.io", Version: "v1", Resource: "networkpolicies"}, nil, t)
+}
+
+func CheckJobs(namespace string, jobs []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, jobs, dyn, schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}, nil, t)
+}
+
+func CheckPods(namespace string, pods []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, pods, dyn, schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}, nil, t)
+}
+
+func CheckHorizontalPodAutoscalers(namespace string, hpas []string, dyn dynamic.Interface, t *testing.T) {
+	checkResourceNamesDynamic(namespace, hpas, dyn, schema.GroupVersionResource{Group: "autoscaling", Version: "v1", Resource: "horizontalpodautoscalers"}, nil, t)
+}
+
+func checkResourceNamesDynamic(namespace string, expected []string, dyn dynamic.Interface, primary schema.GroupVersionResource, fallbacks []schema.GroupVersionResource, t *testing.T) {
+	if len(expected) == 0 {
 		return
 	}
 
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatal(err)
+	candidates := append([]schema.GroupVersionResource{primary}, fallbacks...)
+
+	var used schema.GroupVersionResource
+	var list *unstructured.UnstructuredList
+	var err error
+
+	for _, gvr := range candidates {
+		used = gvr
+		list, err = dyn.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
+		if err == nil {
+			break
+		}
 	}
 
-	rbacClient := clientset.RbacV1()
-	roleBindingList, err := rbacClient.RoleBindings(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Failed to list %s in %s: %v", primary.Resource, namespace, err)
+		return
 	}
 
-	for _, roleBinding := range roleBindings {
-		if err = FindRoleBindingByName(roleBindingList, roleBinding); err != nil {
-			t.Error(err)
+	t.Logf("Checking namespace %s for %s, found %d total", namespace, used.Resource, len(list.Items))
+	names := make(map[string]struct{}, len(list.Items))
+	for i := range list.Items {
+		name := list.Items[i].GetName()
+		names[name] = struct{}{}
+		t.Logf("Found %s: %s", used.Resource, name)
+	}
+
+	for _, resourceName := range expected {
+		if _, ok := names[resourceName]; !ok {
+			t.Errorf("%s '%s' not found in namespace %s", used.Resource, resourceName, namespace)
 		}
 	}
 }

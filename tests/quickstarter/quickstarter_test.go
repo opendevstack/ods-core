@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
+	"github.com/opendevstack/ods-core/tests/quickstarter/reporting"
 	"github.com/opendevstack/ods-core/tests/quickstarter/steps"
 	"github.com/opendevstack/ods-core/tests/utils"
 )
@@ -22,6 +24,12 @@ import (
 // "ods-quickstarters". If the argument ends with "...", all directories with a
 // "testdata" directory are tested, otherwise only the given folder is run.
 func TestQuickstarter(t *testing.T) {
+	// Initialize the logger
+	logger.Init()
+	log := logger.GetLogger()
+
+	log.Infof("🚀 Starting Quickstarter Test Framework\n")
+
 	// Ensure cleanup of port-forwards even on panic or interrupt
 	defer steps.CleanupAllPortForwards()
 
@@ -30,7 +38,7 @@ func TestQuickstarter(t *testing.T) {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sigChan
-		fmt.Printf("\n\n⚠️  Interrupt received, cleaning up...\n")
+		logger.Interrupt()
 		steps.CleanupAllPortForwards()
 		os.Exit(1)
 	}()
@@ -64,7 +72,7 @@ func TestQuickstarter(t *testing.T) {
 	}
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error:", err)
+		logger.Error(fmt.Sprintf("Failed to get working directory: %v", err))
 		return
 	}
 	quickstarterPaths = utils.RemoveExcludedQuickstarters(t, dir, quickstarterPaths)
@@ -74,71 +82,113 @@ func TestQuickstarter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("\n\nRunning test steps found in the following directories:\n")
+	logger.Section("Test Paths")
+	logger.List(fmt.Sprintf("Found %d quickstarter(s) to test:", len(quickstarterPaths)))
 	for _, quickstarterPath := range quickstarterPaths {
-		fmt.Printf("- %s\n", quickstarterPath)
+		logger.List(quickstarterPath)
 	}
-	fmt.Printf("\n\n")
 
 	for _, quickstarterPath := range quickstarterPaths {
 		testdataPath := fmt.Sprintf("%s/testdata", quickstarterPath)
 		quickstarterRepo := filepath.Base(filepath.Dir(quickstarterPath))
 		quickstarterName := filepath.Base(quickstarterPath)
 
-		fmt.Printf("\n\n\n\n")
-		fmt.Printf("Running tests for quickstarter %s\n", quickstarterName)
-		fmt.Printf("\n\n")
+		logger.Section(fmt.Sprintf("Testing Quickstarter: %s", quickstarterName))
 
 		// Run each quickstarter test in a subtest to avoid exiting early
 		// when t.Fatal is used.
 		t.Run(quickstarterName, func(t *testing.T) {
 			t.Parallel()
+			// Ensure port-forwards are cleaned up after each subtest
+			defer steps.CleanupAllPortForwards()
+
 			s, err := readSteps(testdataPath)
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			// Create test report for this quickstarter
+			report := reporting.NewTestReport(quickstarterName)
+			defer func() {
+				report.Finalize()
+				log := logger.GetLogger()
+				log.Infof("\n%s\n", report.String())
+
+				// Optionally export reports (can be controlled via env var)
+				if os.Getenv("EXPORT_TEST_REPORTS") == "true" {
+					reportFile := filepath.Join(testdataPath, fmt.Sprintf("test-report-%s.json", quickstarterName))
+					if err := reporting.ExportJSON(report, reportFile); err != nil {
+						log.Warnf("Failed to export JSON report: %v", err)
+					}
+				}
+			}()
+
+			// Create shared template data outside the loop so it persists across steps
+			// This allows steps like expose-service to store data for later steps to use
+			tmplData := steps.CreateTemplateData(config, s.ComponentID, "", utils.PROJECT_NAME)
+
+			logger.SubSection(fmt.Sprintf("Component: %s", s.ComponentID))
+			logger.List(fmt.Sprintf("Total steps to execute: %d", len(s.Steps)))
 
 			for i, step := range s.Steps {
 				// Step might overwrite component ID
 				if len(step.ComponentID) == 0 {
 					step.ComponentID = s.ComponentID
 				}
-				fmt.Printf(
-					"\n\nRun step #%d (%s) of quickstarter %s/%s ... %s\n",
-					(i + 1),
+
+				// Check if step should be skipped
+				if steps.ShouldSkipStep(t, &step, tmplData) {
+					logger.Info(fmt.Sprintf("⊘ Skipping step %d: %s (skip=%v, skipIf=%q)", i+1, step.Type, step.Skip, step.SkipIf))
+					continue
+				}
+
+				logger.Step(
+					i+1,
+					len(s.Steps),
 					step.Type,
-					quickstarterRepo,
-					quickstarterName,
 					step.Description,
 				)
 
-				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
-				tmplData := steps.CreateTemplateData(config, step.ComponentID, "", utils.PROJECT_NAME)
+				report.RecordStepStart(i, step.Type, step.Description)
 
-				// Execute the appropriate step based on type
-				switch step.Type {
-				case steps.StepTypeUpload:
-					steps.ExecuteUpload(t, step, testdataPath, tmplData, repoName, config, utils.PROJECT_NAME)
-				case steps.StepTypeRun:
-					steps.ExecuteRun(t, step, testdataPath, tmplData, utils.PROJECT_NAME)
-				case steps.StepTypeProvision:
-					steps.ExecuteProvision(t, step, testdataPath, tmplData, repoName, quickstarterRepo, quickstarterName, config, utils.PROJECT_NAME)
-				case steps.StepTypeBuild:
-					steps.ExecuteBuild(t, step, testdataPath, tmplData, repoName, config, utils.PROJECT_NAME)
-				case steps.StepTypeHTTP:
-					steps.ExecuteHTTP(t, step, testdataPath, tmplData)
-				case steps.StepTypeWait:
-					steps.ExecuteWait(t, step, testdataPath, tmplData, utils.PROJECT_NAME)
-				case steps.StepTypeInspect:
-					steps.ExecuteInspect(t, step, testdataPath, tmplData, utils.PROJECT_NAME)
-				default:
-					t.Fatalf("Unknown step type: %s", step.Type)
+				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
+
+				// Execute the appropriate step based on type with error handling
+				var stepErr error
+				executor := steps.NewStepExecutor(testdataPath, tmplData)
+
+				// Get the handler from the registry
+				handler, err := steps.DefaultRegistry().Get(step.Type)
+				if err != nil {
+					t.Fatalf("Step %d failed: %v", i+1, err)
+				}
+
+				// Build execution parameters
+				params := &steps.ExecutionParams{
+					TestdataPath:     testdataPath,
+					TmplData:         tmplData,
+					RepoName:         repoName,
+					QuickstarterRepo: quickstarterRepo,
+					QuickstarterName: quickstarterName,
+					Config:           config,
+					ProjectName:      utils.PROJECT_NAME,
+				}
+
+				// Execute the step with hooks
+				stepErr = executor.ExecuteWithHooks(t, &step, func() error {
+					return handler.Execute(t, &step, params)
+				})
+
+				if stepErr != nil {
+					report.RecordStepEnd(i, "failed", stepErr, nil)
+					t.Fatalf("Step %d failed: %v", i+1, stepErr)
+				} else {
+					report.RecordStepEnd(i, "passed", nil, nil)
+					logger.StepSuccess(step.Type)
 				}
 			}
 
-			fmt.Printf("\n\n\n\n")
-			fmt.Printf("========== End test for Quickstarter %s\n", quickstarterName)
-			fmt.Printf("\n\n")
+			logger.Success(fmt.Sprintf("All steps completed for quickstarter %s", quickstarterName))
 		})
 
 	}

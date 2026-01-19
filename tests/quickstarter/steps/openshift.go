@@ -5,18 +5,20 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // deleteOpenShiftResources deletes all OpenShift resources with the app label
 func deleteOpenShiftResources(projectID string, componentID string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for component: %s in namespace: %s\n", componentID, namespace)
+		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for component: %s in namespace: %s", componentID, namespace))
 		return nil
 	}
-	fmt.Printf("-- starting cleanup for component: %s\n", componentID)
+	logger.Running(fmt.Sprintf("Cleanup for component: %s in namespace: %s", componentID, namespace))
 	label := fmt.Sprintf("app=%s-%s", projectID, componentID)
-	fmt.Printf("-- delete resources labelled with: %s\n", label)
+	logger.Debug(fmt.Sprintf("Delete resources labelled with: %s", label))
 	stdout, stderr, err := runOcCmd([]string{
 		"-n", namespace,
 		"delete", "all", "-l", label,
@@ -31,7 +33,7 @@ func deleteOpenShiftResources(projectID string, componentID string, namespace st
 		)
 	}
 
-	fmt.Printf("-- cleaned up resources with label: %s\n", label)
+	logger.Success(fmt.Sprintf("Cleaned up resources with label: %s", label))
 	return nil
 }
 
@@ -39,10 +41,10 @@ func deleteOpenShiftResources(projectID string, componentID string, namespace st
 func deleteOpenShiftResourceByName(resourceType string, resourceName string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for resource: %s/%s in namespace: %s\n", resourceType, resourceName, namespace)
+		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for resource: %s/%s in namespace: %s", resourceType, resourceName, namespace))
 		return nil
 	}
-	fmt.Printf("-- starting cleanup for resource: %s/%s in %s\n", resourceType, resourceName, namespace)
+	logger.Running(fmt.Sprintf("Cleanup for resource: %s/%s in %s", resourceType, resourceName, namespace))
 	resource := fmt.Sprintf("%s/%s", resourceType, resourceName)
 
 	stdout, stderr, err := runOcCmd([]string{
@@ -60,7 +62,7 @@ func deleteOpenShiftResourceByName(resourceType string, resourceName string, nam
 		)
 	}
 
-	fmt.Printf("-- cleaned up resource: %s\n", resource)
+	logger.Success(fmt.Sprintf("Cleaned up resource: %s", resource))
 	return nil
 }
 
@@ -68,10 +70,10 @@ func deleteOpenShiftResourceByName(resourceType string, resourceName string, nam
 func deleteHelmRelease(releaseName string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for Helm release: %s in namespace: %s\n", releaseName, namespace)
+		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for Helm release: %s in namespace: %s", releaseName, namespace))
 		return nil
 	}
-	fmt.Printf("-- checking for Helm release: %s in %s\n", releaseName, namespace)
+	logger.Waiting(fmt.Sprintf("Checking for Helm release: %s in %s", releaseName, namespace))
 
 	// Check if the release exists
 	stdout, stderr, err := runHelmCmd([]string{
@@ -93,11 +95,11 @@ func deleteHelmRelease(releaseName string, namespace string) error {
 
 	// If the release doesn't exist, skip cleanup
 	if stdout == "" || len(bytes.TrimSpace([]byte(stdout))) == 0 {
-		fmt.Printf("-- Helm release %s not found, skipping cleanup\n", releaseName)
+		logger.Info(fmt.Sprintf("Helm release %s not found, skipping cleanup", releaseName))
 		return nil
 	}
 
-	fmt.Printf("-- starting cleanup for Helm release: %s\n", releaseName)
+	logger.Running(fmt.Sprintf("Cleanup for Helm release: %s", releaseName))
 
 	stdout, stderr, err = runHelmCmd([]string{
 		"uninstall", releaseName,
@@ -114,7 +116,7 @@ func deleteHelmRelease(releaseName string, namespace string) error {
 		)
 	}
 
-	fmt.Printf("-- cleaned up Helm release: %s\n", releaseName)
+	logger.Success(fmt.Sprintf("Cleaned up Helm release: %s", releaseName))
 	return nil
 }
 

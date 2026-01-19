@@ -26,12 +26,12 @@ BITBUCKET_PWD=""
 BITBUCKET_PROJECT="unitt"
 REPOSITORY=
 BRANCH=master
-FILE=
-REPO_FILE=
+PATHS=()
+COMMIT_MESSAGE="Remove files/folders"
 
 
 function usage {
-    printf "Upload file to bitbucket.\n\n"
+    printf "Delete files/folders from bitbucket.\n\n"
     printf "This script will ask interactively for parameters by default.\n"
     printf "However, you can also pass them directly. Usage:\n\n"
     printf "\t-h|--help\t\tPrint usage\n"
@@ -42,10 +42,9 @@ function usage {
     printf "\t-u|--user\t\tBitbucket user\n"
     printf "\t-p|--password\t\tBitbucket password\n"
     printf "\t-t|--project\tName of the Bitbucket project (defaults to '%s')\n" "${BITBUCKET_PROJECT}"
-    printf "\t-r|--repository\tName of the repository"
-    printf "\t-f|--file\tFile to upload"
-    printf "\t-n|--filename\tName of the file"
-
+    printf "\t-r|--repository\tName of the repository\n"
+    printf "\t-f|--files\tFiles/folders to delete (can be specified multiple times)\n"
+    printf "\t-m|--message\tCommit message (defaults to 'Remove files/folders')\n"
 }
 
 
@@ -91,11 +90,11 @@ while [[ "$#" -gt 0 ]]; do
     -r|--repository) REPOSITORY="$2"; shift;;
     -r=*|--repository=*) REPOSITORY="${1#*=}";;
 
-    -f|--file) FILE="$2"; shift;;
-    -f=*|--file=*) FILE="${1#*=}";;
+    -f|--files) PATHS+=("$2"); shift;;
+    -f=*|--files=*) PATHS+=("${1#*=}");;
 
-    -n|--filename) REPO_FILE="$2"; shift;;
-    -n=*|--filename=*) REPO_FILE="${1#*=}";;
+    -m|--message) COMMIT_MESSAGE="$2"; shift;;
+    -m=*|--message=*) COMMIT_MESSAGE="${1#*=}";;
 
   *) echo_error "Unknown parameter passed: $1"; usage; exit 1;;
 esac; shift; done
@@ -116,23 +115,33 @@ cd "${TEMP_DIR}"
 # Switch to the desired branch
 git checkout "${BRANCH}"
 
-# Ensure the target directory exists when a path is provided
-mkdir -p "$(dirname "${REPO_FILE}")"
+# Delete the files/folders
+deleted_count=0
+for path in "${PATHS[@]}"; do
+    if [ -e "$path" ]; then
+        git rm -rf "$path"
+        deleted_count=$((deleted_count + 1))
+        echo_info "Deleted: $path"
+    else
+        echo_warn "Path not found, skipping: $path"
+    fi
+done
 
-# Copy the file into the repository
-cp -f "$SCRIPT_DIR/${FILE}" "${REPO_FILE}"
+if [ $deleted_count -eq 0 ]; then
+    echo_info "No files/folders found to delete"
+    cd -
+    rm -rf "${TEMP_DIR}"
+    exit 0
+fi
 
-# Add the file to the repository
-git add "${REPO_FILE}"
-
-# Commit and push only if there are changes
+# Check if there are changes to commit
 if git diff --cached --quiet; then
-    echo_info "No changes to commit, file is already up to date"
+    echo_info "No changes to commit, all files already deleted or not found"
 else
-    # Commit the change
-    git commit -m "Automated commit from test script"
+    # Commit the changes
+    git commit -m "${COMMIT_MESSAGE}"
 
-    # Push the change
+    # Push the changes
     git push origin "${BRANCH}"
 fi
 
@@ -141,3 +150,5 @@ cd -
 
 # Remove the temporary directory
 rm -rf "${TEMP_DIR}"
+
+echo_done "Deleted $deleted_count file(s)/folder(s) from ${BITBUCKET_PROJECT}/${REPOSITORY}"

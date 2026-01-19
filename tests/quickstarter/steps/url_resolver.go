@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/opendevstack/ods-core/tests/quickstarter/logger"
 )
 
 // RouteCache caches route lookups to avoid repeated queries
@@ -50,27 +52,27 @@ func ResolveServiceURL(t *testing.T, rawURL string, tmplData TemplateData) strin
 	serviceURL, err := parseInternalServiceURL(rendered)
 	if err != nil {
 		// Can't parse, return as-is and let it fail naturally
-		fmt.Printf("⚠️  Warning: Could not parse service URL: %s (error: %v)\n", rendered, err)
+		logger.Warn(fmt.Sprintf("Could not parse service URL: %s (error: %v)", rendered, err))
 		return rendered
 	}
 
-	fmt.Printf("\n🔍 Resolving service URL: %s/%s:%s\n", serviceURL.Namespace, serviceURL.ServiceName, serviceURL.Port)
+	logger.Running(fmt.Sprintf("Resolving service URL: %s/%s:%s", serviceURL.Namespace, serviceURL.ServiceName, serviceURL.Port))
 
 	// Strategy 1: Try to get route (works everywhere)
 	if routeURL := getRouteURL(serviceURL.ServiceName, serviceURL.Namespace); routeURL != "" {
 		finalURL := routeURL + serviceURL.Path
-		fmt.Printf("   ✓ Using route: %s\n", finalURL)
+		logger.Success(fmt.Sprintf("Using route: %s", finalURL))
 		return finalURL
 	}
 
 	// Strategy 2: If in cluster, use service DNS
 	if isRunningInCluster() {
-		fmt.Printf("   ✓ Running in cluster, using service DNS: %s\n", rendered)
+		logger.Success(fmt.Sprintf("Running in cluster, using service DNS: %s", rendered))
 		return rendered
 	}
 
 	// Strategy 3: Local development - setup port-forward
-	fmt.Printf("   ℹ️  Running locally, setting up port-forward...\n")
+	logger.Running("Running locally, setting up port-forward...")
 	localPort, err := EnsurePortForward(serviceURL.ServiceName, serviceURL.Namespace, serviceURL.Port)
 	if err != nil {
 		if t != nil {
@@ -81,7 +83,7 @@ func ResolveServiceURL(t *testing.T, rawURL string, tmplData TemplateData) strin
 	}
 
 	localURL := fmt.Sprintf("http://localhost:%d%s", localPort, serviceURL.Path)
-	fmt.Printf("   ✓ Using port-forward: %s\n", localURL)
+	logger.Success(fmt.Sprintf("Using port-forward: %s", localURL))
 	return localURL
 }
 
@@ -202,7 +204,7 @@ func ClearRouteCache() {
 // WaitForServiceReady waits for a service to become accessible
 // This is useful after a build step completes, before running HTTP tests
 func WaitForServiceReady(serviceName, namespace string, timeout time.Duration) error {
-	fmt.Printf("\n⏳ Waiting for service %s/%s to be ready...\n", namespace, serviceName)
+	logger.Waiting(fmt.Sprintf("Waiting for service %s/%s to be ready...", namespace, serviceName))
 
 	deadline := time.Now().Add(timeout)
 	attempt := 0
@@ -218,20 +220,13 @@ func WaitForServiceReady(serviceName, namespace string, timeout time.Duration) e
 
 		output, err := cmd.CombinedOutput()
 		if err == nil && strings.TrimSpace(string(output)) == serviceName {
-			fmt.Printf("   ✓ Service is ready after %d check(s)\n", attempt)
+			logger.Success(fmt.Sprintf("Service is ready after %d check(s)", attempt))
 			return nil
-		}
-
-		if attempt == 1 {
-			fmt.Printf("   Waiting...")
-		} else {
-			fmt.Printf(".")
 		}
 
 		time.Sleep(2 * time.Second)
 	}
 
-	fmt.Printf("\n")
 	return fmt.Errorf("service %s/%s did not become ready within %v", namespace, serviceName, timeout)
 }
 
