@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -21,6 +22,10 @@ func ExecuteProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	projectNameTest := fmt.Sprintf("%s-test", projectName)
 	projectNameCD := fmt.Sprintf("%s-cd", projectName)
 
+	err = deleteOpenShiftResources(projectName, step.ComponentID, projectNameCD)
+	if err != nil {
+		t.Fatal(err)
+	}
 	err = deleteOpenShiftResources(projectName, step.ComponentID, projectNameDev)
 	if err != nil {
 		t.Fatal(err)
@@ -95,6 +100,11 @@ func ExecuteProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	}
 
 	t.Cleanup(func() {
+		// Check if resources should be kept
+		if os.Getenv("KEEP_RESOURCES") == "true" {
+			fmt.Printf("\n⚠️  KEEP_RESOURCES=true: Skipping resource cleanup for component %s\n", step.ComponentID)
+			return
+		}
 		if err := deleteOpenShiftResources(projectName, step.ComponentID, projectNameCD); err != nil {
 			t.Logf("Warning: failed to cleanup CD resources: %v", err)
 		}

@@ -3,11 +3,17 @@ package steps
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 )
 
 // deleteOpenShiftResources deletes all OpenShift resources with the app label
 func deleteOpenShiftResources(projectID string, componentID string, namespace string) error {
+	// Check if resources should be kept
+	if os.Getenv("KEEP_RESOURCES") == "true" {
+		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for component: %s in namespace: %s\n", componentID, namespace)
+		return nil
+	}
 	fmt.Printf("-- starting cleanup for component: %s\n", componentID)
 	label := fmt.Sprintf("app=%s-%s", projectID, componentID)
 	fmt.Printf("-- delete resources labelled with: %s\n", label)
@@ -31,6 +37,11 @@ func deleteOpenShiftResources(projectID string, componentID string, namespace st
 
 // deleteOpenShiftResourceByName deletes a specific OpenShift resource by name
 func deleteOpenShiftResourceByName(resourceType string, resourceName string, namespace string) error {
+	// Check if resources should be kept
+	if os.Getenv("KEEP_RESOURCES") == "true" {
+		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for resource: %s/%s in namespace: %s\n", resourceType, resourceName, namespace)
+		return nil
+	}
 	fmt.Printf("-- starting cleanup for resource: %s/%s in %s\n", resourceType, resourceName, namespace)
 	resource := fmt.Sprintf("%s/%s", resourceType, resourceName)
 
@@ -55,6 +66,11 @@ func deleteOpenShiftResourceByName(resourceType string, resourceName string, nam
 
 // deleteHelmRelease deletes a Helm release
 func deleteHelmRelease(releaseName string, namespace string) error {
+	// Check if resources should be kept
+	if os.Getenv("KEEP_RESOURCES") == "true" {
+		fmt.Printf("-- KEEP_RESOURCES=true: Skipping cleanup for Helm release: %s in namespace: %s\n", releaseName, namespace)
+		return nil
+	}
 	fmt.Printf("-- checking for Helm release: %s in %s\n", releaseName, namespace)
 
 	// Check if the release exists
