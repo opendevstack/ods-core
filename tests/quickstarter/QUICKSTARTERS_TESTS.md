@@ -3,6 +3,7 @@
 ## Index
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
+- [Environment Setup](resources/README.md)
 - [How to Run](#how-to-run)
 - [Logging and Output](#logging-and-output)
 - [Templates and Variables](#templates-and-variables)
@@ -56,12 +57,6 @@ A test is a sequence of steps such as:
   ```bash
   cd ods-core/tests
   make test-quickstarter QS=<quickstarter> PROJECT_NAME=<project>
-  ```
-- Go test directly:
-  ```bash
-  cd ods-core/tests/quickstarter
-  go test -v -run TestQuickstarter -timeout 30m \
-    -args -quickstarter=<quickstarter> -project=<project> -testPhase=devtest
   ```
 
 ## Logging and Output
