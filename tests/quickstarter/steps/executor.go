@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,7 +25,7 @@ func NewStepExecutor(testdataPath string, tmplData TemplateData) *StepExecutor {
 	return &StepExecutor{
 		testdataPath: testdataPath,
 		tmplData:     tmplData,
-		diagnostics:  diagnostics.NewDiagnosticsCollector(nil),
+		diagnostics:  diagnostics.NewDiagnosticsCollector(context.TODO()),
 	}
 }
 

@@ -591,32 +591,6 @@ func getBitbucketPR(config map[string]string, project string, repo string, prID 
 	return &pr, nil
 }
 
-// getBitbucketPRLatestCommit retrieves the latest commit SHA of a pull request
-func getBitbucketPRLatestCommit(config map[string]string, project string, repo string, prID string) (string, error) {
-	pr, err := getBitbucketPR(config, project, repo, prID)
-	if err != nil {
-		return "", err
-	}
-	if pr == nil {
-		return "", fmt.Errorf("Pull request %s/%s#%s does not exist", project, repo, prID)
-	}
-
-	if pr.FromRef.LatestCommit == "" {
-		return "", fmt.Errorf("Could not extract latest commit from PR %s/%s#%s response", project, repo, prID)
-	}
-
-	return pr.FromRef.LatestCommit, nil
-}
-
-// checkBitbucketPRExists checks if a pull request exists in a repository
-func checkBitbucketPRExists(config map[string]string, project string, repo string, prID string) (bool, error) {
-	pr, err := getBitbucketPR(config, project, repo, prID)
-	if err != nil {
-		return false, err
-	}
-	return pr != nil, nil
-}
-
 // verifyBitbucketPRContent verifies pull request content using JSON path queries
 func verifyBitbucketPRContent(pr *BitbucketPullRequest, verifications []BitbucketPRVerification) error {
 	if pr == nil {
@@ -749,55 +723,6 @@ func addBitbucketPRReviewer(config map[string]string, project string, repo strin
 	}
 
 	return nil
-}
-
-// listBitbucketRepositories lists all repositories in a Bitbucket project
-func listBitbucketRepositories(config map[string]string, project string) ([]string, error) {
-	password, err := base64.StdEncoding.DecodeString(config["CD_USER_PWD_B64"])
-	if err != nil {
-		return nil, fmt.Errorf("Error decoding cd_user password: %w", err)
-	}
-
-	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos", config["BITBUCKET_URL"], project)
-
-	// Create HTTP client with insecure TLS
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
-	client := &http.Client{Transport: &http.Transport{TLSClientConfig: tlsConfig}}
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create request to list repositories in project %s: %w", project, err)
-	}
-
-	req.SetBasicAuth(config["CD_USER_ID"], string(password))
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to list repositories in project %s: %w", project, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Failed to list repositories in project %s: HTTP %d", project, resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read response body for project %s: %w", project, err)
-	}
-
-	var reposResp BitbucketRepositoriesResponse
-	err = json.Unmarshal(body, &reposResp)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse repositories response for project %s: %w", project, err)
-	}
-
-	var repos []string
-	for _, repo := range reposResp.Values {
-		repos = append(repos, repo.Slug)
-	}
-
-	return repos, nil
 }
 
 // checkBitbucketRepositoryExists checks if a repository exists in a Bitbucket project

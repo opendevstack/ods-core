@@ -44,7 +44,7 @@ func ExecuteInspect(t *testing.T, step TestStep, testdataPath string, tmplData T
 	}
 
 	// Run environment variable checks if specified
-	if params.Checks.Env != nil && len(params.Checks.Env) > 0 {
+	if len(params.Checks.Env) > 0 {
 		if err := checkEnvironmentVariables(t, resource, namespace, params.Checks.Env, tmplData); err != nil {
 			t.Fatalf("Environment variable check failed: %v", err)
 		}
