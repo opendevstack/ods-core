@@ -170,7 +170,8 @@ func (m *PortForwardManager) startPortForwardAttempt(serviceName, namespace, rem
 	if stderrOutput != "" {
 		fmt.Fprintf(os.Stderr, "%s", stderrOutput)
 		if pf.Cmd.Process != nil {
-			_ = pf.Cmd.Process.Kill()
+			// Process already failed, ignore kill error
+			pf.Cmd.Process.Kill() //nolint:errcheck
 		}
 		return nil, fmt.Errorf("port-forward failed: %s", stderrOutput)
 	}
@@ -204,12 +205,12 @@ func (m *PortForwardManager) isHealthy(pf *PortForward) bool {
 func (m *PortForwardManager) cleanup(pf *PortForward) {
 	if pf.Cmd != nil && pf.Cmd.Process != nil {
 		// Try graceful termination first
-		_ = pf.Cmd.Process.Signal(os.Interrupt)
+		pf.Cmd.Process.Signal(os.Interrupt) //nolint:errcheck
 
 		// Wait briefly for graceful shutdown
 		done := make(chan bool, 1)
 		go func() {
-			_ = pf.Cmd.Wait()
+			pf.Cmd.Wait() //nolint:errcheck
 			done <- true
 		}()
 
@@ -218,7 +219,7 @@ func (m *PortForwardManager) cleanup(pf *PortForward) {
 			// Process terminated gracefully
 		case <-time.After(2 * time.Second):
 			// Force kill if not terminated
-			_ = pf.Cmd.Process.Kill()
+			pf.Cmd.Process.Kill() //nolint:errcheck
 		}
 	}
 }

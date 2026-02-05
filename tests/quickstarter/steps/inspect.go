@@ -160,7 +160,10 @@ func checkEnvironmentVariables(t *testing.T, resource string, namespace string, 
 		if !matched {
 			// Try alternative format (just checking if key exists with any value)
 			keyPattern := fmt.Sprintf(`name:%s`, key)
-			keyMatched, _ := regexp.MatchString(keyPattern, envOutput)
+			keyMatched, err := regexp.MatchString(keyPattern, envOutput)
+			if err != nil {
+				return fmt.Errorf("regex error checking env var key %s: %w", key, err)
+			}
 			if !keyMatched {
 				return fmt.Errorf("environment variable %s not found", key)
 			}
@@ -214,7 +217,10 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 	if resourceChecks.Limits != nil {
 		if resourceChecks.Limits.CPU != "" {
 			searchPattern := fmt.Sprintf(`limits:.*?cpu:%s`, regexp.QuoteMeta(resourceChecks.Limits.CPU))
-			matched, _ := regexp.MatchString(searchPattern, resourceOutput)
+			matched, err := regexp.MatchString(searchPattern, resourceOutput)
+			if err != nil {
+				return fmt.Errorf("regex error checking CPU limit: %w", err)
+			}
 			if !matched {
 				return fmt.Errorf("CPU limit does not match expected value: %s", resourceChecks.Limits.CPU)
 			}
@@ -222,7 +228,10 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 		}
 		if resourceChecks.Limits.Memory != "" {
 			searchPattern := fmt.Sprintf(`limits:.*?memory:%s`, regexp.QuoteMeta(resourceChecks.Limits.Memory))
-			matched, _ := regexp.MatchString(searchPattern, resourceOutput)
+			matched, err := regexp.MatchString(searchPattern, resourceOutput)
+			if err != nil {
+				return fmt.Errorf("regex error checking memory limit: %w", err)
+			}
 			if !matched {
 				return fmt.Errorf("Memory limit does not match expected value: %s", resourceChecks.Limits.Memory)
 			}
@@ -234,7 +243,10 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 	if resourceChecks.Requests != nil {
 		if resourceChecks.Requests.CPU != "" {
 			searchPattern := fmt.Sprintf(`requests:.*?cpu:%s`, regexp.QuoteMeta(resourceChecks.Requests.CPU))
-			matched, _ := regexp.MatchString(searchPattern, resourceOutput)
+			matched, err := regexp.MatchString(searchPattern, resourceOutput)
+			if err != nil {
+				return fmt.Errorf("regex error checking CPU request: %w", err)
+			}
 			if !matched {
 				return fmt.Errorf("CPU request does not match expected value: %s", resourceChecks.Requests.CPU)
 			}
@@ -242,7 +254,10 @@ func checkResources(t *testing.T, resource string, namespace string, resourceChe
 		}
 		if resourceChecks.Requests.Memory != "" {
 			searchPattern := fmt.Sprintf(`requests:.*?memory:%s`, regexp.QuoteMeta(resourceChecks.Requests.Memory))
-			matched, _ := regexp.MatchString(searchPattern, resourceOutput)
+			matched, err := regexp.MatchString(searchPattern, resourceOutput)
+			if err != nil {
+				return fmt.Errorf("regex error checking memory request: %w", err)
+			}
 			if !matched {
 				return fmt.Errorf("Memory request does not match expected value: %s", resourceChecks.Requests.Memory)
 			}

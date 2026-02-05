@@ -284,7 +284,7 @@ func renderUploadFile(filePath string, tmplData TemplateData) error {
 	if err != nil {
 		return err
 	}
-	defer outputFile.Close()
+	defer outputFile.Close() //nolint:errcheck
 
 	logger.Waiting("Rendering file")
 	if err := tmpl.Execute(outputFile, tmplData); err != nil {
@@ -439,11 +439,11 @@ func recreateBitbucketRepo(config map[string]string, project string, repo string
 	if err != nil {
 		return fmt.Errorf("Failed to delete repository %s/%s: %w", project, repo, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	// Accept 202 (Accepted - scheduled for deletion), 204 (No Content), or 200 (OK)
 	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck
 		return fmt.Errorf("Failed to delete repository %s/%s: HTTP %d - %s", project, repo, resp.StatusCode, string(body))
 	}
 
@@ -487,10 +487,10 @@ func recreateBitbucketRepo(config map[string]string, project string, repo string
 	if err != nil {
 		return fmt.Errorf("Failed to recreate repository %s/%s: %w", project, repo, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck
 		return fmt.Errorf("Failed to recreate repository %s/%s: HTTP %d - %s", project, repo, resp.StatusCode, string(body))
 	}
 
@@ -525,10 +525,10 @@ func approveBitbucketPR(config map[string]string, project string, repo string, p
 	if err != nil {
 		return fmt.Errorf("Failed to approve PR %s/%s#%s: %w", project, repo, prID, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck
 		return fmt.Errorf("Failed to approve PR %s/%s#%s: HTTP %d - %s", project, repo, prID, resp.StatusCode, string(body))
 	}
 
@@ -559,14 +559,14 @@ func getBitbucketPR(config map[string]string, project string, repo string, prID 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get pull request %s/%s#%s: %w", project, repo, prID, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, nil // PR doesn't exist
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck
 		return nil, fmt.Errorf("Failed to get pull request %s/%s#%s: HTTP %d - %s", project, repo, prID, resp.StatusCode, string(body))
 	}
 
@@ -715,10 +715,10 @@ func addBitbucketPRReviewer(config map[string]string, project string, repo strin
 	if err != nil {
 		return fmt.Errorf("Failed to add reviewer to PR %s/%s#%s: %w", project, repo, prID, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck
 		return fmt.Errorf("Failed to add reviewer to PR %s/%s#%s: HTTP %d - %s", project, repo, prID, resp.StatusCode, string(body))
 	}
 
@@ -748,7 +748,7 @@ func checkBitbucketRepositoryExists(config map[string]string, project string, re
 	if err != nil {
 		return false, fmt.Errorf("Failed to check repository %s/%s: %w", project, repo, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	return resp.StatusCode == http.StatusOK, nil
 }

@@ -18,7 +18,7 @@ func CreateTemplateData(config map[string]string, componentID string, buildName 
 		buildParts := strings.Split(buildName, "-")
 		buildNumber = buildParts[len(buildParts)-1]
 	}
-	aquaEnabled, _ := strconv.ParseBool(config["AQUA_ENABLED"])
+	aquaEnabled, _ := strconv.ParseBool(config["AQUA_ENABLED"]) //nolint:errcheck
 
 	// Initialize template data map with standard fields
 	data := TemplateData{

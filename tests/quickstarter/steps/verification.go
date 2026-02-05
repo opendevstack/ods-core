@@ -229,7 +229,10 @@ func verifyOpenShiftResources(t *testing.T, step TestStep, verify *TestStepVerif
 func retrieveSonarScan(projectKey string, config map[string]string) (string, error) {
 	logger.Running(fmt.Sprintf("Retrieving Sonar scan for: %s", projectKey))
 
-	sonartoken, _ := b64.StdEncoding.DecodeString(config["SONAR_AUTH_TOKEN_B64"])
+	sonartoken, err := b64.StdEncoding.DecodeString(config["SONAR_AUTH_TOKEN_B64"])
+	if err != nil {
+		return "", fmt.Errorf("failed to decode Sonar auth token: %w", err)
+	}
 
 	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/print-sonar-scan-run.sh", []string{
 		string(sonartoken),

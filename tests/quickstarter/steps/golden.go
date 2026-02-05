@@ -34,8 +34,8 @@ func verifyJSONGoldenFile(componentID string, wantFile string, gotFile string, t
 	// Compare the actual objects, not the strings
 	if diff := cmp.Diff(wantObj, gotObj); diff != "" {
 		// Pretty print both for easier comparison
-		wantJSON, _ := json.MarshalIndent(wantObj, "", "  ")
-		gotJSON, _ := json.MarshalIndent(gotObj, "", "  ")
+		wantJSON, _ := json.MarshalIndent(wantObj, "", "  ") //nolint:errcheck
+		gotJSON, _ := json.MarshalIndent(gotObj, "", "  ")   //nolint:errcheck
 
 		return fmt.Errorf("state mismatch for %s\n\n=== EXPECTED ===\n%s\n\n=== ACTUAL ===\n%s\n\n=== DIFF (-want +got) ===\n%s",
 			componentID, string(wantJSON), string(gotJSON), diff)

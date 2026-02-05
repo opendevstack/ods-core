@@ -182,7 +182,7 @@ func queryRoute(serviceName, namespace string) string {
 		"-o", "jsonpath={.spec.tls.termination}",
 		"--ignore-not-found")
 
-	tlsOutput, _ := tlsCmd.CombinedOutput()
+	tlsOutput, _ := tlsCmd.CombinedOutput() //nolint:errcheck
 	tlsTermination := strings.TrimSpace(string(tlsOutput))
 
 	// Determine scheme

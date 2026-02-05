@@ -153,7 +153,7 @@ func executeHTTPRequest(method, url string, params *TestStepHTTPParams, tmplData
 	if err != nil {
 		return nil, nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
