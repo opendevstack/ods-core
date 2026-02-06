@@ -1,37 +1,58 @@
 module github.com/opendevstack/ods-core/tests
 
-go 1.13
+go 1.24.0
 
 require (
 	github.com/charmbracelet/log v0.3.1
 	github.com/ghodss/yaml v1.0.0
+	github.com/google/go-cmp v0.6.0
+	github.com/jstemmer/go-junit-report v0.9.1
+	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
+	github.com/openshift/client-go v3.9.0+incompatible
+	github.com/tidwall/gjson v1.17.0
+	k8s.io/api v0.0.0-20190222213804-5cb15d344471
+	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+	k8s.io/client-go v0.0.0-20190228174230-b40b2a5939e4
+)
+
+require (
+	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/charmbracelet/lipgloss v0.9.1 // indirect
+	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/btree v1.0.0 // indirect
-	github.com/google/go-cmp v0.5.8
+	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
-	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/kr/pretty v0.2.1 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
-	github.com/openshift/client-go v3.9.0+incompatible
+	github.com/muesli/reflow v0.3.0 // indirect
+	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tidwall/gjson v1.17.0
-	golang.org/x/crypto v0.17.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6 // indirect
-	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/term v0.39.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	google.golang.org/appengine v1.4.0 // indirect
+	google.golang.org/protobuf v1.23.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
-	k8s.io/api v0.0.0-20190222213804-5cb15d344471
-	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
-	k8s.io/client-go v0.0.0-20190228174230-b40b2a5939e4
 	k8s.io/klog v1.0.0 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
