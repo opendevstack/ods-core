@@ -138,16 +138,16 @@ func TestQuickstarter(t *testing.T) {
 
 				// Check if step should be skipped
 				if steps.ShouldSkipStep(t, &step, tmplData) {
-				logger.Info("⊘ Skipping step %d: %s (skip=%v, skipIf=%q)", i+1, step.Type, step.Skip, step.SkipIf)
-				continue
-			}
+					logger.Info("⊘ Skipping step %d: %s (skip=%v, skipIf=%q)", i+1, step.Type, step.Skip, step.SkipIf)
+					continue
+				}
 
-			logger.Step(
-				i+1,
-				len(s.Steps),
-				step.Type,
-				step.Description,
-			)
+				logger.Step(
+					i+1,
+					len(s.Steps),
+					step.Type,
+					step.Description,
+				)
 				report.RecordStepStart(i, step.Type, step.Description)
 
 				repoName := fmt.Sprintf("%s-%s", strings.ToLower(utils.PROJECT_NAME), step.ComponentID)
