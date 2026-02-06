@@ -1,6 +1,6 @@
 module github.com/opendevstack/ods-core/tests
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/charmbracelet/log v0.3.1
