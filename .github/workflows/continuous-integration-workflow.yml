@@ -180,10 +180,10 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v4.2.2
       - 
-        name: Setup Go 1.18
+        name: Setup Go 1.24
         uses: actions/setup-go@v5
         with:
-          go-version: 1.18
+          go-version: 1.24
       -
         name: Verify all Go files are formatted with gofmt
         working-directory: tests
@@ -201,7 +201,7 @@ jobs:
         name: Verify all Go tests pass linting
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.49.0
+          version: v1.64.7
           working-directory: tests
           args: --timeout=10m
       -
