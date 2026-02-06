@@ -94,7 +94,7 @@ func (m *PortForwardManager) startPortForward(serviceName, namespace, remotePort
 		if attempt > 1 {
 			// Try next port
 			currentPort = startPort + attempt - 1
-			logger.Warn(fmt.Sprintf("Port %d in use, trying port %d...", currentPort-1, currentPort))
+			logger.Warn("Port %d in use, trying port %d...", currentPort-1, currentPort)
 		}
 
 		pf, err := m.startPortForwardAttempt(serviceName, namespace, remotePort, currentPort)

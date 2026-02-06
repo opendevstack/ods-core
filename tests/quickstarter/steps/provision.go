@@ -52,7 +52,7 @@ func ExecuteProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 			}
 			namespace := fmt.Sprintf("%s-%s", projectName, tmpNamespace)
 			if err := deleteOpenShiftResourceByName(it.ResourceType, it.ResourceName, namespace); err != nil {
-				logger.Warn(fmt.Sprintf("Failed to cleanup resource %s/%s: %v", it.ResourceType, it.ResourceName, err))
+				logger.Warn("Failed to cleanup resource %s/%s: %v", it.ResourceType, it.ResourceName, err)
 			} else {
 				logger.KeyValue(fmt.Sprintf("Cleaned %s", it.ResourceType), it.ResourceName)
 			}
@@ -113,27 +113,27 @@ func ExecuteProvision(t *testing.T, step TestStep, testdataPath string, tmplData
 	t.Cleanup(func() {
 		// Check if resources should be kept
 		if os.Getenv("KEEP_RESOURCES") == "true" {
-			logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping resource cleanup for component %s", step.ComponentID))
+			logger.Warn("KEEP_RESOURCES=true: Skipping resource cleanup for component %s", step.ComponentID)
 			return
 		}
 		logger.Running(fmt.Sprintf("Cleaning up resources for component %s", step.ComponentID))
 		if err := deleteOpenShiftResources(projectName, step.ComponentID, projectNameCD); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup CD resources: %v", err))
+			logger.Warn("Failed to cleanup CD resources: %v", err)
 		}
 		if err := deleteOpenShiftResources(projectName, step.ComponentID, projectNameDev); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup DEV resources: %v", err))
+			logger.Warn("Failed to cleanup DEV resources: %v", err)
 		}
 		if err := deleteOpenShiftResources(projectName, step.ComponentID, projectNameTest); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup TEST resources: %v", err))
+			logger.Warn("Failed to cleanup TEST resources: %v", err)
 		}
 		if err := deleteHelmRelease(step.ComponentID, projectNameCD); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup Helm release in CD namespace: %v", err))
+			logger.Warn("Failed to cleanup Helm release in CD namespace: %v", err)
 		}
 		if err := deleteHelmRelease(step.ComponentID, projectNameDev); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup Helm release in DEV namespace: %v", err))
+			logger.Warn("Failed to cleanup Helm release in DEV namespace: %v", err)
 		}
 		if err := deleteHelmRelease(step.ComponentID, projectNameTest); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to cleanup Helm release in TEST namespace: %v", err))
+			logger.Warn("Failed to cleanup Helm release in TEST namespace: %v", err)
 		}
 		logger.Success("Resource cleanup completed")
 	})

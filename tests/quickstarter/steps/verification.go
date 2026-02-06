@@ -26,7 +26,7 @@ type VerificationContext struct {
 // definition are present.
 func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, testdataPath string, repoName string, buildName string, config map[string]string, projectName string) {
 	if verify == nil {
-		logger.Info(fmt.Sprintf("No verification defined for build: %s", buildName))
+		logger.Info("No verification defined for build: %s", buildName)
 		return
 	}
 
@@ -48,7 +48,7 @@ func verifyPipelineRun(t *testing.T, step TestStep, verify *TestStepVerify, test
 		strategy = VerifyStrategyAggregate
 	}
 	if strategy != VerifyStrategyAggregate && strategy != VerifyStrategyFailFast {
-		logger.Warn(fmt.Sprintf("Unknown verify strategy %q, defaulting to aggregate", strategy))
+		logger.Warn("Unknown verify strategy %q, defaulting to aggregate", strategy)
 		strategy = VerifyStrategyAggregate
 	}
 
@@ -241,7 +241,7 @@ func retrieveSonarScan(projectKey string, config map[string]string) (string, err
 	}, []string{})
 
 	if err != nil {
-		logger.Error(fmt.Sprintf("Execution of print-sonar-scan-run.sh failed: stdout=%s, stderr=%s", stdout, stderr))
+		logger.Error("Execution of print-sonar-scan-run.sh failed: stdout=%s, stderr=%s", stdout, stderr)
 		return "", err
 	}
 	logger.Success("Sonar scan result retrieved")

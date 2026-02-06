@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -23,7 +23,7 @@ type TestSteps struct {
 // It does not allow extra fields to avoid typos, and checks if the given
 // step types are known.
 func readSteps(folder string) (*TestSteps, error) {
-	yamlContent, err := ioutil.ReadFile(folder + "/steps.yml")
+	yamlContent, err := os.ReadFile(folder + "/steps.yml")
 	if err != nil {
 		return nil, fmt.Errorf("Cannot read file: %w", err)
 	}

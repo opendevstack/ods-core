@@ -3,7 +3,7 @@ package reporting
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // JUnitTestSuite represents a JUnit test suite
@@ -75,7 +75,7 @@ func ExportJUnitXML(report *TestReport, outputPath string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(outputPath, data, 0644); err != nil {
+	if err := os.WriteFile(outputPath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write JUnit report: %w", err)
 	}
 
@@ -89,7 +89,7 @@ func ExportJSON(report *TestReport, outputPath string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(outputPath, data, 0644); err != nil {
+	if err := os.WriteFile(outputPath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write JSON report: %w", err)
 	}
 

@@ -109,7 +109,7 @@ func waitForPodReady(t *testing.T, params *TestStepWaitParams, namespace string,
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		// Use oc wait command
-		logger.Debug(fmt.Sprintf("Executing command: oc wait --for=condition=Ready %s -n %s --timeout=%s", resource, namespace, interval.String()))
+		logger.Debug("Executing command: oc wait --for=condition=Ready %s -n %s --timeout=%s", resource, namespace, interval.String())
 		cmd := exec.Command("oc", "wait", "--for=condition=Ready", "pod", resource,
 			"-n", namespace,
 			"--timeout="+interval.String())
@@ -125,7 +125,7 @@ func waitForPodReady(t *testing.T, params *TestStepWaitParams, namespace string,
 
 		// Check if it's a timeout (continue waiting) or a real error
 		if !strings.Contains(stderr.String(), "timed out") {
-			logger.Warn(fmt.Sprintf("oc wait command error: %s (retrying...)", stderr.String()))
+			logger.Warn("oc wait command error: %s (retrying...)", stderr.String())
 		}
 
 		time.Sleep(interval)

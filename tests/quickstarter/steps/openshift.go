@@ -13,12 +13,12 @@ import (
 func deleteOpenShiftResources(projectID string, componentID string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for component: %s in namespace: %s", componentID, namespace))
+		logger.Warn("KEEP_RESOURCES=true: Skipping cleanup for component: %s in namespace: %s", componentID, namespace)
 		return nil
 	}
 	logger.Running(fmt.Sprintf("Cleanup for component: %s in namespace: %s", componentID, namespace))
 	label := fmt.Sprintf("app=%s-%s", projectID, componentID)
-	logger.Debug(fmt.Sprintf("Delete resources labelled with: %s", label))
+	logger.Debug("Delete resources labelled with: %s", label)
 	stdout, stderr, err := runOcCmd([]string{
 		"-n", namespace,
 		"delete", "all", "-l", label,
@@ -41,7 +41,7 @@ func deleteOpenShiftResources(projectID string, componentID string, namespace st
 func deleteOpenShiftResourceByName(resourceType string, resourceName string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for resource: %s/%s in namespace: %s", resourceType, resourceName, namespace))
+		logger.Warn("KEEP_RESOURCES=true: Skipping cleanup for resource: %s/%s in namespace: %s", resourceType, resourceName, namespace)
 		return nil
 	}
 	logger.Running(fmt.Sprintf("Cleanup for resource: %s/%s in %s", resourceType, resourceName, namespace))
@@ -70,7 +70,7 @@ func deleteOpenShiftResourceByName(resourceType string, resourceName string, nam
 func deleteHelmRelease(releaseName string, namespace string) error {
 	// Check if resources should be kept
 	if os.Getenv("KEEP_RESOURCES") == "true" {
-		logger.Warn(fmt.Sprintf("KEEP_RESOURCES=true: Skipping cleanup for Helm release: %s in namespace: %s", releaseName, namespace))
+		logger.Warn("KEEP_RESOURCES=true: Skipping cleanup for Helm release: %s in namespace: %s", releaseName, namespace)
 		return nil
 	}
 	logger.Waiting(fmt.Sprintf("Checking for Helm release: %s in %s", releaseName, namespace))
@@ -95,7 +95,7 @@ func deleteHelmRelease(releaseName string, namespace string) error {
 
 	// If the release doesn't exist, skip cleanup
 	if stdout == "" || len(bytes.TrimSpace([]byte(stdout))) == 0 {
-		logger.Info(fmt.Sprintf("Helm release %s not found, skipping cleanup", releaseName))
+		logger.Info("Helm release %s not found, skipping cleanup", releaseName)
 		return nil
 	}
 

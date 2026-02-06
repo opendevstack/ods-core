@@ -52,7 +52,7 @@ func ResolveServiceURL(t *testing.T, rawURL string, tmplData TemplateData) strin
 	serviceURL, err := parseInternalServiceURL(rendered)
 	if err != nil {
 		// Can't parse, return as-is and let it fail naturally
-		logger.Warn(fmt.Sprintf("Could not parse service URL: %s (error: %v)", rendered, err))
+		logger.Warn("Could not parse service URL: %s (error: %v)", rendered, err)
 		return rendered
 	}
 

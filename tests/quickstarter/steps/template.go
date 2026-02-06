@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -58,7 +57,7 @@ func CreateTemplateData(config map[string]string, componentID string, buildName 
 		if value, ok := os.LookupEnv(tmplVar); ok {
 			key := strings.TrimPrefix(tmplVar, "TMPL_")
 			data[key] = value
-			logger.Debug(fmt.Sprintf("Loading environment variable: %s -> %s = '%s'", tmplVar, key, value))
+			logger.Debug("Loading environment variable: %s -> %s = '%s'", tmplVar, key, value)
 		}
 	}
 
@@ -71,7 +70,7 @@ func CreateTemplateData(config map[string]string, componentID string, buildName 
 				// Only add if not already added above
 				if _, exists := data[key]; !exists {
 					data[key] = pair[1]
-					logger.Debug(fmt.Sprintf("Loading environment variable: %s -> %s = '%s'", pair[0], key, pair[1]))
+					logger.Debug("Loading environment variable: %s -> %s = '%s'", pair[0], key, pair[1])
 				}
 			}
 		}

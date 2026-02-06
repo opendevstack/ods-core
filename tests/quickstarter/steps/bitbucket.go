@@ -172,7 +172,7 @@ func executeBitbucketDeleteFiles(t *testing.T, step TestStep, params *TestStepBi
 	logger.Waiting("Executing Bitbucket delete-files script")
 	stdout, stderr, err := utils.RunScriptFromBaseDir("tests/scripts/delete-files-from-bitbucket-with-git.sh", scriptArgs, []string{})
 	if err != nil {
-		logger.Error(fmt.Sprintf("Bitbucket delete-files script output:\n%s", stdout))
+		logger.Error("Bitbucket delete-files script output:\n%s", stdout)
 		logger.Failure("Delete files from Bitbucket", err)
 		t.Fatalf(
 			"Execution of `delete-files-from-bitbucket-with-git.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
@@ -261,7 +261,7 @@ func uploadFileToBitbucket(t *testing.T, uploadParams *TestStepUploadParams, tmp
 		fmt.Sprintf("--filename=%s", filename),
 	}, []string{})
 	if err != nil {
-		logger.Error(fmt.Sprintf("BitBucket upload script output:\n%s", stdout))
+		logger.Error("BitBucket upload script output:\n%s", stdout)
 		logger.Failure("Upload file to BitBucket", err)
 		t.Fatalf(
 			"Execution of `upload-file-to-bitbucket-with-git.sh` failed: \nStdOut: %s\nStdErr: %s\nErr: %s\n",
@@ -449,7 +449,7 @@ func recreateBitbucketRepo(config map[string]string, project string, repo string
 
 	// If deletion was scheduled (202), wait for it to complete
 	if resp.StatusCode == http.StatusAccepted {
-		logger.Info(fmt.Sprintf("Repository %s/%s scheduled for deletion, waiting...", project, repo))
+		logger.Info("Repository %s/%s scheduled for deletion, waiting...", project, repo)
 		// Wait for repository to be deleted
 		for i := 0; i < 30; i++ {
 			time.Sleep(2 * time.Second)
@@ -464,7 +464,7 @@ func recreateBitbucketRepo(config map[string]string, project string, repo string
 			if i == 29 {
 				return fmt.Errorf("Timeout waiting for repository %s/%s to be deleted", project, repo)
 			}
-			logger.Info(fmt.Sprintf("Waiting for repository deletion (attempt %d/30)...", i+1))
+			logger.Info("Waiting for repository deletion (attempt %d/30)...", i+1)
 		}
 	}
 
