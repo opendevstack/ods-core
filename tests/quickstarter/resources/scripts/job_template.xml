@@ -1,0 +1,78 @@
+<flow-definition plugin="workflow-job">
+    <description />
+    <keepDependencies>false</keepDependencies>
+    <properties>
+        <hudson.plugins.jira.JiraProjectProperty plugin="jira" />
+        <io.fabric8.jenkins.openshiftsync.BuildConfigProjectProperty plugin="openshift-sync">
+            <uid />
+            <namespace />
+            <name />
+            <resourceVersion />
+        </io.fabric8.jenkins.openshiftsync.BuildConfigProjectProperty>
+        <jenkins.model.BuildDiscarderProperty>
+            <strategy class="hudson.tasks.LogRotator">
+                <daysToKeep>-1</daysToKeep>
+                <numToKeep>10</numToKeep>
+                <artifactDaysToKeep>-1</artifactDaysToKeep>
+                <artifactNumToKeep>-1</artifactNumToKeep>
+            </strategy>
+        </jenkins.model.BuildDiscarderProperty>
+        <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+            <abortPrevious>false</abortPrevious>
+        </org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+        <hudson.model.ParametersDefinitionProperty>
+            <parameterDefinitions>
+                <hudson.model.StringParameterDefinition>
+                    <name>quickstarter</name>
+                    <defaultValue>{{QS}}</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>odsRef</name>
+                    <defaultValue>{{ODSREF}}</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>quickstarterRef</name>
+                    <defaultValue>{{BRANCH}}</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>project</name>
+                    <defaultValue>{{PROJECT}}</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition> 
+                <hudson.model.StringParameterDefinition>
+                    <name>quickstartersRepositoryUrl</name>
+                    <defaultValue>{{QUICKSTARTERS_REPOSITORY_URL}}</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition> 
+            </parameterDefinitions>
+        </hudson.model.ParametersDefinitionProperty>
+        
+    </properties>
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition"
+        plugin="workflow-cps">
+        <scm class="hudson.plugins.git.GitSCM" plugin="git">
+            <configVersion>2</configVersion>
+            <userRemoteConfigs>
+                <hudson.plugins.git.UserRemoteConfig>
+                    <url>{{BITBUCKET_URL}}/scm/{{PROJECT}}/ods-core.git</url>
+                    <credentialsId>{{CREDENTIALS_ID}}</credentialsId>
+                </hudson.plugins.git.UserRemoteConfig>
+            </userRemoteConfigs>
+            <branches>
+                <hudson.plugins.git.BranchSpec>
+                    <name>*/{{ODS_QUICKSTARTERS_TESTS_BRANCH}}</name>
+                </hudson.plugins.git.BranchSpec>
+            </branches>
+            <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+            <submoduleCfg class="empty-list" />
+            <extensions />
+        </scm>
+        <scriptPath>tests/quickstarter/resources/Jenkinsfile-qs</scriptPath>
+        <lightweight>true</lightweight>
+    </definition>
+    <triggers />
+    <disabled>false</disabled>
+</flow-definition>

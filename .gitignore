@@ -21,3 +21,4 @@ output-vmware-iso
 prov-app-config.txt
 headers.txt
 response.txt
+.cache/

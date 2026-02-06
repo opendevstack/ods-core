@@ -5,8 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -59,7 +60,7 @@ func RunJenkinsPipeline(jenkinsFile string, req RequestBuild, pipelineComponentP
 	}
 	defer response.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(response.Body)
+	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +68,7 @@ func RunJenkinsPipeline(jenkinsFile string, req RequestBuild, pipelineComponentP
 	fmt.Printf("Pipeline: %s, response: %s\n", pipelineComponentPart, string(bodyBytes))
 
 	if response.StatusCode >= http.StatusAccepted {
-		bodyBytes, err := ioutil.ReadAll(response.Body)
+		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
 			return "", err
 		}
@@ -259,7 +260,7 @@ func VerifyJenkinsRunAttachments(projectName string, buildName string, artifacts
 }
 
 func VerifyJenkinsStages(goldenFile string, gotStages string) error {
-	wantStages, err := ioutil.ReadFile(goldenFile)
+	wantStages, err := os.ReadFile(goldenFile)
 	if err != nil {
 		return fmt.Errorf("Failed to load golden file to verify Jenkins stages: %w", err)
 	}

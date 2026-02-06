@@ -5,7 +5,7 @@
 ### Added
 
 ### Changed
-
+- Improved automatic tests for the quickstarters ([#1362](https://github.com/opendevstack/ods-core/pull/1362))
 ### Fixed
 
 ## [4.11.1] - 2025-12-05
