@@ -18,7 +18,7 @@ USER root
 COPY yum.repos.d/ubi.repo /etc/yum.repos.d/ubi.repo
 
 COPY ./scripts_for_usr-local-bin/* /usr/local/bin/
-RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
+RUN rpm --import https://pkg.jenkins.io/rpm-stable/jenkins.io-2026.key \    
     && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
         /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && ensure_java_jre_is_adequate.sh master \
