@@ -5,8 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"path"
 	"runtime"
 	"strings"
@@ -101,7 +102,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 
 	defer reponse.Body.Close()
 
-	bodyBytes, _ := ioutil.ReadAll(reponse.Body)
+	bodyBytes, _ := io.ReadAll(reponse.Body)
 
 	if reponse.StatusCode >= http.StatusAccepted {
 		t.Fatalf("Could not post request: %s", string(bodyBytes))
@@ -154,7 +155,7 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := ioutil.ReadFile("golden/jenkins-create-project-stages.json")
+	expected, err := os.ReadFile("golden/jenkins-create-project-stages.json")
 	if err != nil {
 		t.Fatal(err)
 	}
