@@ -1,0 +1,67 @@
+{
+    "eventKey": "pr:from_ref_updated",
+    "date": "2025-11-27T14:27:48+0100",
+    "actor": {
+        "name": "external.user",
+        "emailAddress": "external.user@example.com",
+        "id": 621,
+        "displayName": "External User",
+        "active": true,
+        "slug": "external.user",
+        "type": "NORMAL"
+    },
+    "previousFromHash": "16ada7ff7f3762ecb1734fa1c98ab03af1cf4948",
+    "pullRequest": {
+        "id": 163,
+        "version": 5,
+        "title": "Updated external PR",
+        "state": "OPEN",
+        "open": true,
+        "closed": false,
+        "createdDate": 1764197981955,
+        "updatedDate": 1764250068785,
+        "fromRef": {
+            "id": "refs/heads/feature/external-update",
+            "displayId": "feature/external-update",
+            "latestCommit": "abc123425ec8d92a6448ffc0ea60d7ec7f8b741d",
+            "repository": {
+                "slug": "repository",
+                "id": 41421,
+                "name": "repository",
+                "scmId": "git",
+                "state": "AVAILABLE",
+                "statusMessage": "Available",
+                "forkable": true,
+                "project": {
+                    "key": "~EXTERNAL.USER",
+                    "id": 149,
+                    "name": "External User",
+                    "type": "PERSONAL"
+                },
+                "public": false
+            }
+        },
+        "toRef": {
+            "id": "refs/heads/master",
+            "displayId": "master",
+            "latestCommit": "c34f84131e091d1c4691e3cf3fbecdfddf6f26f3",
+            "repository": {
+                "slug": "repository",
+                "id": 32191,
+                "name": "repository",
+                "scmId": "git",
+                "state": "AVAILABLE",
+                "statusMessage": "Available",
+                "forkable": true,
+                "project": {
+                    "key": "PROJ",
+                    "id": 7300,
+                    "name": "project",
+                    "public": false,
+                    "type": "NORMAL"
+                },
+                "public": false
+            }
+        }
+    }
+}
