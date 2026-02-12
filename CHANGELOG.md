@@ -7,6 +7,7 @@
 ### Changed
 - Improved automatic tests for the quickstarters ([#1362](https://github.com/opendevstack/ods-core/pull/1362))
 - Update keystore path in import_certs.sh script ([#1365](https://github.com/opendevstack/ods-core/pull/1365))
+- Added allure plugin and command line installation to jenkins master image ([#1364](https://github.com/opendevstack/ods-core/pull/1364))
 
 ### Fixed
 

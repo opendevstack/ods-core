@@ -2,6 +2,7 @@
 greenballs:1.15.1
 sonar:2.17.2
 ansicolor:1.0.4
+allure-jenkins-plugin:2.34.0
 audit-trail:361.v82cde86c784e
 Office-365-Connector:5.0.0
 mask-passwords:173.v6a_077a_291eb_5
