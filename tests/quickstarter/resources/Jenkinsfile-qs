@@ -1,0 +1,189 @@
+// List of QS that we want to exclude from the execution of the job.
+def excludedQS = params.excludedQuickstarters?:''
+
+// Jenkins DeploymentConfig environment variables
+def dockerRegistry
+def credentialsId
+def sonarQualityProfile
+def sonarQualityGate
+
+// Load configuration from managed config file
+node {
+    stage('Load Configuration') {
+        echo "Loading configuration from managed file: quickstarter-test-config"
+        def configContent
+        def configProps = [:]
+        configFileProvider([configFile(fileId: 'quickstarter-test-config', variable: 'CONFIG_FILE')]) {
+            // Source the .env file to load variables
+            configContent = readProperties(file: env.CONFIG_FILE)
+            echo "✓ Configuration loaded successfully"
+        }
+        
+        // Set variables from config and parameters
+        dockerRegistry = env.DOCKER_REGISTRY
+        project = params.project ?: env.ODS_PROJECT
+        projectId = env.PROJECT_ID
+        odsRef = params.quickstarterRef ?: env.ODS_GIT_REF
+        odsNamespace = env.ODS_NAMESPACE
+        odsGitRef = env.ODS_GIT_REF
+        odsImageTag = env.ODS_IMAGE_TAG ?: '4.x'
+        sharedLibraryRef = env.SHARED_LIBRARY_REF ?: odsImageTag
+        agentImageTag = env.AGENT_IMAGE_TAG ?: odsImageTag
+        odsMainBitbucketProject = env.ODS_BITBUCKET_PROJECT ?: 'ods'
+        
+        // Construct repository URLs from config
+        QUICK_STARTERS_URL = "${params.quickstartersRepositoryUrl}"
+        QUICK_STARTERS_BRANCH = params.quickstarterRef ?: env.ODS_GIT_REF
+        
+        ODS_CONFIGURATION_URL = "${configContent.BITBUCKET_URL}/scm/${project}/ods-configuration.git"
+        ODS_CONFIGURATION_BRANCH = configContent.ODS_CONFIGURATION_BRANCH
+
+        ODS_CORE_URL = "${configContent.BITBUCKET_URL}/scm/${project}/ods-core.git"
+        ODS_QUICKSTARTERS_TESTS_BRANCH = configContent.ODS_QUICKSTARTERS_TESTS_BRANCH ?: 'master'
+                
+        // Credentials ID from pattern
+        credentialsId = configContent.CREDENTIALS_ID_PATTERN
+        
+        // List of QS that we want to exclude from the execution of the job
+        excludedQS = params.excludedQuickstarters ?: ''
+        
+        // Sonar config
+        sonarQualityProfile = configContent.SONAR_QUALITY_PROFILE
+        sonarQualityGate = configContent.SONAR_QUALITY_GATE
+        
+        echo """\
+        ✓ Configuration loaded successfully
+            Project:                   ${project}
+            ODS Namespace:             ${odsNamespace}
+            Bitbucket URL:             ${configContent.BITBUCKET_URL}
+            Quickstarters Repo URL:    ${QUICK_STARTERS_URL}
+            Quickstarters Branch:      ${ODS_QUICKSTARTERS_TESTS_BRANCH}
+            ODS Core URL:              ${ODS_CORE_URL}
+            Docker Registry:           ${dockerRegistry}
+            Credentials ID:            ${credentialsId}
+            Sonar Quality Profile:     ${sonarQualityProfile}
+            Sonar Quality Gate:        ${sonarQualityGate}
+        """.stripIndent()
+    } // End of stage
+} // End of node
+
+def conts = containerTemplate(
+    name: 'jnlp',
+    image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-golang:4.x",
+    workingDir: '/tmp',
+    alwaysPullImage: true,
+    args: ''
+)
+
+
+def podLabel = "qs-tests"
+podTemplate(
+    label: podLabel,
+    cloud: 'openshift',
+    containers: [conts],
+    volumes: [],
+    serviceAccount: 'jenkins'
+) {
+    node(podLabel) {
+
+        stage('Init') {
+            currentBuild.description = "Testing QS"
+            echo "${WORKSPACE}"
+            sh "ls -Al ${WORKSPACE}"
+            sh "pwd"
+            sh "ls -Al"
+
+            // Retrieve the quickstarter repository in the folder that corresponds to its name.
+            def quickstartersDirName = "${QUICK_STARTERS_URL}".substring(QUICK_STARTERS_URL.lastIndexOf('/') + 1).replace('.git', '')
+            dir(quickstartersDirName) {
+                echo "Checking out Quickstarters repository from ${QUICK_STARTERS_URL} with branch ${QUICK_STARTERS_BRANCH}"
+                git branch: "${QUICK_STARTERS_BRANCH}",
+                    credentialsId: "${project}-cd-cd-user-with-password",
+                    url: "${QUICK_STARTERS_URL}"
+            }
+
+            // Retrive the configuration repository in the folder that corresponds to its name.
+            dir('ods-configuration') {
+                echo "Checking out ODS Configuration repository from ${ODS_CONFIGURATION_URL} with branch ${ODS_CONFIGURATION_BRANCH}"
+                git branch: "${ODS_CONFIGURATION_BRANCH}",
+                    credentialsId: "${project}-cd-cd-user-with-password",
+                    url: "${ODS_CONFIGURATION_URL}"
+            }
+
+            dir('ods-core') {
+                echo "Checking out ODS Core repository from ${ODS_CORE_URL} with branch ${ODS_QUICKSTARTERS_TESTS_BRANCH}"
+                git branch: "${ODS_QUICKSTARTERS_TESTS_BRANCH}",
+                    credentialsId: "${project}-cd-cd-user-with-password",
+                    url: "${ODS_CORE_URL}"
+
+                echo "Writing quickstarters exclusion list to ./tests/quickStartersExclusionList.txt"
+                writeFile file: './tests/quickStartersExclusionList.txt', text: excludedQS
+            }
+
+            echo "${WORKSPACE}"
+            sh "ls -Al ${WORKSPACE}"
+            sh "pwd"
+            sh "ls -Al"
+
+        }    
+
+        stage('updatecred') {     
+            withCredentials([
+                usernamePassword(
+                    credentialsId: "${project}-cd-cd-user-with-password", 
+                    passwordVariable: 'PASSWD', 
+                    usernameVariable: 'USER')
+                ]) {
+                    sh (returnStdout: false, script: '''
+                            #!/bin/sh -e
+                            set +x
+                            pushd ods-configuration/
+                            user_id=$(echo -n "$USER" | base64)
+                            user_pwd=$(echo -n "$PASSWD" | base64)
+                            trigger_secret_base64=$(oc get secret webhook-proxy -o json | jq -r '.data."trigger-secret"')
+                            trigger_secret=$(echo $(oc get secret webhook-proxy -o json | jq -r '.data."trigger-secret"') | base64 --decode)
+                            sed -i~ "/^CD_USER_ID=/s/=.*/=$USER/" ods-core.env
+                            sed -i~ "/^CD_USER_ID_B64=/s/=.*/=$user_id/" ods-core.env
+                            sed -i~ "/^CD_USER_PWD_B64=/s/=.*/=$user_pwd/" ods-core.env
+                            sed -i~ "/^PIPELINE_TRIGGER_SECRET_B64=/s/=.*/=$trigger_secret_base64/" ods-core.env
+                            sed -i~ "/^PIPELINE_TRIGGER_SECRET=/s/=.*/=$trigger_secret/" ods-core.env
+                            sed -i~ "/^ODS_BITBUCKET_PROJECT=/s/=.*/=$project/" ods-core.env
+                            popd
+                        ''')
+                } 
+        }
+
+        stage('Test') {
+            echo "${WORKSPACE}"
+            
+            // If we select 'all' no one parameter will be provided, so it will try to test all the Quickstarters
+            // that have a test defined in the testdata folder.
+            def quickstarter_to_test = ""
+            if(params.quickstarter && params.quickstarter != "all") {
+                quickstarter_to_test = "-q ${quickstarter}"
+            }
+
+
+            // In different environments SONAR_QUALITY_PROFILE can be different, with this env variable we provide 
+            // the needed value, in BI this value is 'Sonar way'
+            withEnv([
+                "CGO_ENABLED=0",
+                "GOCACHE=${WORKSPACE}/.cache",
+                "GOMODCACHE=${WORKSPACE}/.cache", 
+                "SONAR_QUALITY_PROFILE=sonar BI way",
+                "TMPL_SonarQualityGate=ODS Default Quality Gate",
+                "ODS_GIT_REF=${odsRef}"]) {
+                sh """
+                    cd ods-core/tests
+                    ./quickstarter-test.sh -p ${project} ${quickstarter_to_test} || true
+                """
+            }
+        }
+
+        stage('Get test results') {
+            archiveArtifacts artifacts: 'ods-core/tests/*.txt', followSymlinks: false
+            archiveArtifacts artifacts: 'ods-core/tests/test-quickstarter-report.xml', followSymlinks: false
+            junit(testResults:"ods-core/tests/*.xml", allowEmptyResults:true)
+        }  
+    } // End of node
+}

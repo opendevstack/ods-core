@@ -1,0 +1,233 @@
+<flow-definition plugin="workflow-job@1385.vb_58b_86ea_fff1">
+<script id="CitrixBcrApi"/>
+<script/>
+<actions>
+<org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition"/>
+<org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition">
+<jobProperties>
+<string>org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty</string>
+</jobProperties>
+<triggers/>
+<parameters>
+<string>SKIP_THIS_JOB</string>
+<string>EXCLUDE</string>
+<string>RECURSIVE</string>
+<string>SKIP_DISABLED</string>
+</parameters>
+<options>
+<string>skipDefaultCheckout</string>
+</options>
+</org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+</actions>
+<description/>
+<keepDependencies>false</keepDependencies>
+<properties>
+<hudson.plugins.jira.JiraProjectProperty plugin="jira"/>
+<io.fabric8.jenkins.openshiftsync.BuildConfigProjectProperty plugin="openshift-sync">
+<uid/>
+<namespace/>
+<name/>
+<resourceVersion/>
+</io.fabric8.jenkins.openshiftsync.BuildConfigProjectProperty>
+<org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+<abortPrevious>false</abortPrevious>
+</org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+<hudson.model.ParametersDefinitionProperty>
+<parameterDefinitions>
+<hudson.model.StringParameterDefinition>
+<name>EXCLUDE</name>
+<description>Comma-separated job names or globs to exclude (e.g., "jobA, team-*-build")</description>
+<trim>false</trim>
+</hudson.model.StringParameterDefinition>
+<hudson.model.BooleanParameterDefinition>
+<name>RECURSIVE</name>
+<description>Include jobs in subfolders under the current folder</description>
+<defaultValue>false</defaultValue>
+</hudson.model.BooleanParameterDefinition>
+<hudson.model.BooleanParameterDefinition>
+<name>SKIP_DISABLED</name>
+<description>Skip disabled/non-buildable jobs</description>
+<defaultValue>true</defaultValue>
+</hudson.model.BooleanParameterDefinition>
+<hudson.model.BooleanParameterDefinition>
+<name>SKIP_THIS_JOB</name>
+<description>Skip the current pipeline job</description>
+<defaultValue>true</defaultValue>
+</hudson.model.BooleanParameterDefinition>
+</parameterDefinitions>
+</hudson.model.ParametersDefinitionProperty>
+</properties>
+<definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps">
+<script><![CDATA[
+// Jenkinsfile
+pipeline {
+	agent any
+	options {
+		skipDefaultCheckout(true)
+		disableConcurrentBuilds()
+		// timestamps()
+		// ❌ Remove this (invalid option type in your instance)
+	}
+	parameters {
+		string(name: 'EXCLUDE', defaultValue: '', description: 'Comma-separated job names or globs to exclude (e.g., "jobA, team-*-build")')
+		booleanParam(name: 'RECURSIVE', defaultValue: false, description: 'Include jobs in subfolders under the current folder')
+		booleanParam(name: 'SKIP_DISABLED', defaultValue: true, description: 'Skip disabled/non-buildable jobs')
+		booleanParam(name: 'SKIP_THIS_JOB', defaultValue: true, description: 'Skip the current pipeline job')
+	}
+	stages {
+		stage('Discover & Run Jobs') {
+			steps {
+				script {
+					// If you have the Timestamper plugin and want timestamps, uncomment:
+					// timestamps {
+					//   runOrchestration()
+					// }
+					runOrchestration()
+				}
+			}
+		}
+	}
+}
+
+// --- Shared function to keep stage clean ---
+def runOrchestration() {
+	// --- Helpers (NonCPS to safely walk Jenkins object graph) ---
+	@NonCPS def globToRegex = { glob ->
+		def s = glob.replace('.', '\\.')
+		s = s.replace('?', '.')
+		s = s.replace('*', '.*')
+		return '^' + s + '$'
+	}
+
+	@NonCPS def compileExclusions = { excludeCsv ->
+		def patterns = (excludeCsv ?: '')
+			.split(/\s*,\s*/)
+			.findAll { it?.trim() }
+		return patterns.collect { java.util.regex.Pattern.compile(globToRegex(it)) }
+	}
+
+	@NonCPS def isExcluded = { fullName, shortName, patterns ->
+		patterns.any { p -> p.matcher(fullName).matches() || p.matcher(shortName).matches() }
+	}
+
+	@NonCPS def listJobFullNamesInContainer = { container, recursive, skipDisabled, skipThisJob, thisJobFullName, exclusions ->
+		def names = []
+		def items = container.getItems()
+		items.each { itm ->
+			// Subfolders
+			if (recursive && itm instanceof com.cloudbees.hudson.plugins.folder.Folder) {
+				names.addAll(
+					listJobFullNamesInContainer(itm, recursive, skipDisabled, skipThisJob, thisJobFullName, exclusions)
+				)
+			}
+
+			// Jobs directly under this container
+			if (itm instanceof hudson.model.Job) {
+				def fullName = itm.getFullName()
+				def shortName = itm.getName()
+				if (skipThisJob && fullName == thisJobFullName) {
+					return
+				}
+				if (skipDisabled && !itm.isBuildable()) {
+					return
+				}
+				if (isExcluded(fullName, shortName, exclusions)) {
+					return
+				}
+				names << fullName
+			}
+		}
+		return names
+	}
+
+	// --- Determine current folder and discover job names ---
+	def thisJobFullName = env.JOB_NAME
+	def parts = thisJobFullName.tokenize('/')
+	def folderPath = parts.size() > 1 ? parts[0..-2].join('/') : '' // parent folder or root
+	def jenkins = jenkins.model.Jenkins.get()
+	def container = folderPath ? jenkins.getItemByFullName(folderPath) : jenkins
+	if (container == null) {
+		error "Cannot resolve folder path: '${folderPath}'."
+	}
+
+	def exclusions = compileExclusions(params.EXCLUDE)
+	def recursive = params.RECURSIVE as boolean
+	def skipDis = params.SKIP_DISABLED as boolean
+	def skipSelf = params.SKIP_THIS_JOB as boolean
+
+	def jobNames = listJobFullNamesInContainer(container, recursive, skipDis, skipSelf, thisJobFullName, exclusions)
+	echo "[Info] Discovered ${jobNames.size()} job(s) to run:"
+	jobNames.each { echo " - ${it}" }
+
+	// --- Run jobs sequentially, wait for completion, do not fail parent if they fail ---
+	def results = []
+	jobNames.each { fullName ->
+		echo "[Run] Triggering '${fullName}' ..."
+		try {
+			def downstream = build job: fullName, wait: true, propagate: false
+			def res = downstream?.getResult() ?: 'UNKNOWN'
+			echo "[Result] ${fullName} => ${res}"
+			results << [job: fullName, result: res]
+		} catch (err) {
+			echo "[Error] ${fullName} => ${err}"
+			results << [job: fullName, result: 'ERROR', error: "${err}"]
+		}
+	}
+
+	// --- Summary (pipeline remains SUCCESS regardless of child failures) ---
+	echo "========= SUMMARY ========="
+	results.each { r -> echo String.format("%-50s : %s", r.job, r.result) }
+	echo "==========================="
+
+	// ---- Generate enhanced JUnit XML report ----
+	def xml = new StringBuffer()
+	xml << '<?xml version="1.0" encoding="UTF-8"?>\n'
+	xml << '<testsuite name="ChildJobExecution" '
+	xml << "tests=\"${results.size()}\" "
+	xml << "failures=\"${results.count { it.result != 'SUCCESS' }}\">\n"
+
+	// Jenkins root for build URLs
+	def root = env.JENKINS_URL?.trim()
+	if (!root) {
+		echo "[WARN] JENKINS_URL not set — build links will not be clickable."
+		root = ""
+	}
+
+	results.each { r ->
+		def jobPath = r.job // e.g. folder/jobA
+		def buildNumber = r.buildNumber ?: "" // number of the triggered build
+		def url = buildNumber ? "${root}job/${jobPath.replace('/', '/job/')}/${buildNumber}/" : ""
+		xml << " <testcase "
+		xml << "classname=\"${jobPath}\" "
+		xml << "name=\"${jobPath}\" "
+		xml << "time=\"${r.duration}\">"
+		if (r.result != 'SUCCESS') {
+			xml << "\n <failure message=\"${r.result}\">"
+			xml << "Build result was ${r.result}"
+			if (url) {
+				xml << "\\nDownstream build: ${url}"
+			}
+			xml << "</failure>\n"
+			xml << " </testcase>\n"
+		} else {
+			xml << "</testcase>\n"
+		}
+	}
+	xml << '</testsuite>'
+
+	// Write XML
+	writeFile file: 'child-job-summary.xml', text: xml.toString()
+
+	// Publish as JUnit result
+	junit testResults: 'child-job-summary.xml', allowEmptyResults: false
+
+	if (results.any { it.result != 'SUCCESS' }) {
+		currentBuild.result = 'UNSTABLE'
+	}
+}
+]]></script>
+<sandbox>true</sandbox>
+</definition>
+<triggers/>
+<disabled>false</disabled>
+</flow-definition>
