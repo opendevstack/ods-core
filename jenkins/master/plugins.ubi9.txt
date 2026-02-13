@@ -4,3 +4,4 @@ ansicolor:1.0.6
 audit-trail:395.vce180b_359a_b_5
 Office-365-Connector:5.1.0
 mask-passwords:196.v7d505d39886e
+allure-jenkins-plugin:2.34.0
