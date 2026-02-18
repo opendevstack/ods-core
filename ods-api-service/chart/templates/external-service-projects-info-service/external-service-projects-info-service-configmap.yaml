@@ -8,34 +8,4 @@ metadata:
     app.kubernetes.io/component: projects-info-service-config
 data:
   PROJECTS_INFO_SERVICE_BASE_URL: {{ .Values.externalServices.projectsInfoService.baseUrl | quote }}
-  PROJECTS_INFO_SERVICE_SSL_VERIFY: {{ .Values.externalServices.projectsInfoService.ssl.verifyCertificates | quote }}
-  {{- if .Values.externalServices.projectsInfoService.ssl.trustStorePath }}
-  PROJECTS_INFO_SERVICE_SSL_TRUSTSTORE_PATH: {{ .Values.externalServices.projectsInfoService.ssl.trustStorePath | quote }}
-  {{- end }}
-  {{- if .Values.externalServices.projectsInfoService.ssl.trustStoreType }}
-  PROJECTS_INFO_SERVICE_SSL_TRUSTSTORE_TYPE: {{ .Values.externalServices.projectsInfoService.ssl.trustStoreType | quote }}
-  {{- end }}
-  PROJECTS_INFO_SERVICE_AZURE_DATA_HUB_GROUP_ID: {{ .Values.externalServices.projectsInfoService.azure.datahub.groupId | quote }}
-  PROJECTS_INFO_SERVICE_AZURE_GROUPS_PAGE_SIZE: {{ .Values.externalServices.projectsInfoService.azure.groups.pageSize | quote }}
-  PROJECTS_INFO_SERVICE_TESTING_HUB_DEFAULT_PROJECTS: {{ .Values.externalServices.projectsInfoService.testingHub.default.projects | quote  }}
-  PROJECTS_INFO_SERVICE_TESTING_HUB_API_URL: {{ .Values.externalServices.projectsInfoService.testingHub.api.url | quote }}
-  PROJECTS_INFO_SERVICE_TESTING_HUB_API_PAGE_SIZE: {{ .Values.externalServices.projectsInfoService.testingHub.api.pageSize | quote }}
-  PROJECTS_INFO_SERVICE_CUSTOM_CACHE_TTL_SECONDS: {{ .Values.externalServices.projectsInfoService.custom.cache.default.ttlSeconds | quote }}
-  PROJECTS_INFO_SERVICE_CUSTOM_CACHE_MAXIMUM_SIZE: {{ .Values.externalServices.projectsInfoService.custom.cache.default.maximumSize | quote }}
-  PROJECTS_INFO_SERVICE_CUSTOM_CACHE_FALLBACK_TTL_SECONDS: {{ .Values.externalServices.projectsInfoService.custom.cache.fallback.ttlSeconds | quote }}
-  PROJECTS_INFO_SERVICE_CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE: {{ .Values.externalServices.projectsInfoService.custom.cache.fallback.maximumSize | quote }}
-  PROJECTS_INFO_SERVICE_MOCK_CLUSTERS: {{ .Values.externalServices.projectsInfoService.mock.clusters | quote }}
-  PROJECTS_INFO_SERVICE_MOCK_DEFAULT_PROJECTS: {{ .Values.externalServices.projectsInfoService.mock.projects.default | quote }}
-  PROJECTS_INFO_SERVICE_MOCK_USER_PROJECTS: {{ .Values.externalServices.projectsInfoService.mock.projects.users | quote }}
-  PROJECTS_INFO_SERVICE_OPENSHIFT_US_TEST_URL: {{ .Values.externalServices.projectsInfoService.openshift.api.clusters.usTest.url | quote }}
-  PROJECTS_INFO_SERVICE_OPENSHIFT_EU_DEV_URL: {{ .Values.externalServices.projectsInfoService.openshift.api.clusters.euDev.url | quote }}
-  PROJECTS_INFO_SERVICE_OPENSHIFT_US_DEV_URL: {{ .Values.externalServices.projectsInfoService.openshift.api.clusters.usDev.url | quote }}
-  PROJECTS_INFO_SERVICE_OPENSHIFT_CN_DEV_URL: {{ .Values.externalServices.projectsInfoService.openshift.api.clusters.cnDev.url | quote }}
-  PROJECTS_INFO_SERVICE_OPENSHIFT_INH_DEV_URL: {{ .Values.externalServices.projectsInfoService.openshift.api.clusters.inhDev.url | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_BASE_PATH: {{ .Values.externalServices.projectsInfoService.platforms.basePath | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_US_TEST_CLUSTER: {{ .Values.externalServices.projectsInfoService.platforms.clusters.usTest | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_EU_CLUSTER: {{ .Values.externalServices.projectsInfoService.platforms.clusters.euDev | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_US_CLUSTER: {{ .Values.externalServices.projectsInfoService.platforms.clusters.usDev | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_CN_CLUSTER: {{ .Values.externalServices.projectsInfoService.platforms.clusters.cnDev | quote }}
-  PROJECTS_INFO_SERVICE_PLATFORMS_INH_CLUSTER: {{ .Values.externalServices.projectsInfoService.platforms.clusters.inhDev | quote }}
 {{- end }}

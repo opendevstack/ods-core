@@ -213,65 +213,6 @@ externalServices:
   projectsInfoService:
     enabled: true
     baseUrl: "$PROJECTS_INFO_SERVICE_BASE_URL"
-    ssl:
-      verifyCertificates: "false"
-      trustStorePath: ""
-      trustStorePassword: ""
-      trustStoreType: "JKS"
-    azure:
-      accessToken: "$AZURE_ACCESS_TOKEN"
-      datahub:
-        groupId: "$AZURE_DATAHUB_GROUP_ID"
-      groups:
-        pageSize: 100
-    testingHub:
-      default:
-        projects: "$TESTING_HUB_DEFAULT_PROJECTS"
-      api:
-        url: "$TESTING_HUB_API_URL"
-        token: "$TESTING_HUB_API_TOKEN"
-        pageSize: 100
-    custom:
-      cache:
-        default:
-          ttlSeconds: 3600 # seconds (1 hour)
-          maximumSize: 1000
-        fallback:
-          ttlSeconds: 7200 # seconds (2 hour)
-          maximumSize: 1000
-    mock:
-      clusters: "1-test, 2-test, 3-test"
-      projects:
-        default: "PROJECT-1:1-test, PROJECT-2-cn, PROJECT-3, SORIAOLI:1-test, VILAXICOIP:1-test, FELST:1-test"
-        users: "{PEPE:[PROJECT-3, PROJECT-4]; PPT:[PROJECT-3, PROJECT-5]}"
-    openshift:
-      api:
-        clusters:
-          usTest:
-            url: "$OPENSHIFT_USTEST_API_URL"
-            token: $OPENSHIFT_USTEST_TOKEN
-          euDev:
-            url: "$OPENSHIFT_EUDEV_API_URL"
-            token: $OPENSHIFT_EUDEV_TOKEN
-          usDev:
-            url: "$OPENSHIFT_USDEV_API_URL"
-            token: $OPENSHIFT_USDEV_TOKEN
-          cnDev:
-            url: "$OPENSHIFT_CNDEV_API_URL"
-            token: $OPENSHIFT_CNDEV_TOKEN
-          inhDev:
-            url: "$OPENSHIFT_INHDEV_API_URL"
-            token: $OPENSHIFT_INHDEV_TOKEN
-    platforms:
-      basePath: "$BITBUCKET_PLATFORMS_BASE_PATH"
-      clusters:
-        usTest: "$BITBUCKET_PLATFORMS_USTEST"
-        euDev: "$BITBUCKET_PLATFORMS_EUDEV"
-        usDev: "$BITBUCKET_PLATFORMS_USDEV"
-        cnDev: "$BITBUCKET_PLATFORMS_CNDEV"
-        inhDev: "$BITBUCKET_PLATFORMS_INHDEV"
-      bearer:
-        token: $BITBUCKET_PLATFORMS_BEARER_TOKEN
   # Add OpenShift instances with tokens as needed
   openshift:
     instances: []
