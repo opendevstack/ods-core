@@ -28,9 +28,9 @@ parameters:
 - name: WEBHOOK_PROXY_CPU_LIMIT
   value: 50m
 - name: WEBHOOK_PROXY_MEMORY_REQUEST
-  value: 30Mi
+  value: 50Mi
 - name: WEBHOOK_PROXY_MEMORY_LIMIT
-  value: 40Mi
+  value: 50Mi
 objects:
 - apiVersion: route.openshift.io/v1
   kind: Route

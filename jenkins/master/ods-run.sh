@@ -42,13 +42,13 @@ else
   echo "ERROR: Neither NEXUS_URL or NEXUS_HOST present."
   exit 1
 fi
-NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g" | sed -e "s|http://||g")
+NEXUS_SHORT=$(echo "${nexusUrl}" | sed -e "s|https://||g;s|http://||g")
 mkdir -p $HOME/.groovy
 cp /opt/openshift/configuration/grapeConfig.xml $HOME/.groovy/
-sed -i.bak -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_HOST|$nexusUrl|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" $HOME/.groovy/grapeConfig.xml
-sed -i.bak -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
+sed -i -e "s|__NEXUS_HOST_NO_URL|$NEXUS_SHORT|g" \
+    -e "s|__NEXUS_HOST|$nexusUrl|g" \
+    -e "s|__NEXUS_USER|$NEXUS_USERNAME|g" \
+    -e "s|__NEXUS_PW|$NEXUS_PASSWORD|g" $HOME/.groovy/grapeConfig.xml
 
 if [ -e "${JENKINS_HOME}/plugins" ]; then
   # RHEL base images install plugins (defined in the yum package jenkins-2-plugins)
@@ -82,19 +82,16 @@ if [ -e "${JENKINS_HOME}/plugins" ]; then
   cp -n /opt/openshift/configuration/audit-trail.xml ${JENKINS_HOME}/audit-trail.xml
 
   echo " "
-  echo "Plugins version already installed in Jenkins: "
-  ls -la "${JENKINS_HOME}/plugins/"
-
-  echo " "
   echo "Enforcing plugin versions defined in the image ..."
-  if [ "$(ls /opt/openshift/plugins/* 2>/dev/null)" ]; then
-    echo "Copying $(ls /opt/openshift/plugins/* | wc -l) files to ${JENKINS_HOME} ..."
-    for FILENAME in /opt/openshift/plugins/* ; do
-      # also need to nuke the metadir; it will get properly populated on jenkins startup
-      basefilename=`basename $FILENAME .jpi`
-      rm -rfv "${JENKINS_HOME}/plugins/${basefilename}"
-      cp -v --remove-destination $FILENAME ${JENKINS_HOME}/plugins
-    done
+  if [ -d /opt/openshift/plugins ] && [ -n "$(find /opt/openshift/plugins -maxdepth 1 -type f 2>/dev/null | head -1)" ]; then
+    echo "Copying plugins to ${JENKINS_HOME} ..."
+    
+    # Remove all old plugin metadata directories at once
+    find "${JENKINS_HOME}/plugins" -maxdepth 1 -type d \( -name "*.jpi" -o -name "*.hpi" \) -exec rm -rf {} + 2>/dev/null || true
+    
+    # Copy all plugins in one operation
+    find /opt/openshift/plugins -maxdepth 1 -type f \( -name "*.jpi" -o -name "*.hpi" \) -exec cp --remove-destination {} "${JENKINS_HOME}/plugins" \;
+    
     rm -rf /opt/openshift/plugins
   fi
 fi
