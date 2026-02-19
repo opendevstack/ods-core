@@ -47,6 +47,8 @@ const (
 	allowedChangeRefTypesDefault   = "BRANCH"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    refspecEnvVar                  = "REFSPEC"
+    refspecDefault                 = "+refs/pull-requests/*/from:refs/remotes/origin/pr/*"
 )
 
 // EnvPair represents an environment variable
@@ -66,6 +68,7 @@ type Event struct {
 	Pipeline  string
 	RequestID string
 	Env       []EnvPair
+	Ref    string
 }
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
@@ -74,6 +77,8 @@ type BuildConfigData struct {
 	TriggerSecret   string
 	GitURI          string
 	Branch          string
+    Ref             string
+    RefSpec         string
 	JenkinsfilePath string
 	Env             string
 	ResourceVersion string
@@ -83,6 +88,7 @@ type BuildConfigData struct {
 // https://docs.openshift.com/container-platform/3.11/rest_api/apis-build.openshift.io/v1.BuildConfig.html#object-schema.
 type buildConfig struct {
 	Metadata struct {
+        RefSpec string `json:"jenkins.openshift.io/refspec"`
 		ResourceVersion string `json:"resourceVersion"`
 	} `json:"metadata"`
 	Spec struct {
@@ -117,7 +123,7 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
-	OpenShiftAppDomain string
+	OpenShiftAppDomain  string
 }
 
 // Server represents this service, and is a global.
@@ -132,6 +138,7 @@ type Server struct {
 	AllowedChangeRefTypes   []string
 	RepoBase                string
 	MaxDeletionChecks       int
+    Refspec                 string
 }
 
 func init() {
@@ -240,6 +247,11 @@ func main() {
 			allowedChangeRefTypes[i] = strings.TrimSpace(allowedChangeRefTypes[i])
 		}
 	}
+    refspec := refspecDefault
+    envRefspec := os.Getenv(refspecEnvVar)
+	if len(envRefspec) != 0 {
+		refspec = envRefspec
+	}
 
 	maxDeletionChecks := maxDeletionChecksDefault
 	envMaxDeletionChecks := os.Getenv(maxDeletionChecksEnvVar)
@@ -275,6 +287,7 @@ func main() {
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
 		RepoBase:                repoBase,
 		MaxDeletionChecks:       maxDeletionChecksInt,
+        Refspec:                 refspec,
 	}
 
 	log.Println("Ready to accept requests")
@@ -291,6 +304,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			Key string `json:"key"`
 		} `json:"project"`
 		Slug string `json:"slug"`
+		Id   int    `json:"id"`
 	}
 	type requestBitbucket struct {
 		EventKey   string     `json:"eventKey"`
@@ -306,7 +320,13 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			FromRef struct {
 				Repository repository `json:"repository"`
 				DisplayID  string     `json:"displayId"`
+                LatestCommit string     `json:"latestCommit"`
 			} `json:"fromRef"`
+			ToRef struct {
+				Repository repository `json:"repository"`
+				DisplayID  string     `json:"displayId"`
+			} `json:"toRef"`
+			Id int `json:"id"`
 		} `json:"pullRequest"`
 	}
 
@@ -370,24 +390,25 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				return
 			}
 
-			component := componentParam
-			if component == "" {
-				component = extractComponent(req.Repository, project)
-			}
-			pipeline := makePipelineName(project, component, req.Branch)
+            component := componentParam
+            if component == "" {
+                component = extractComponent(req.Repository, project)
+            }
+            pipeline := makePipelineName(project, component, req.Branch)
 
-			event = &Event{
-				Kind:      "forward",
-				Namespace: s.Namespace,
-				Repo:      req.Repository,
-				Component: component,
-				Branch:    req.Branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
-				Env:       req.Env,
-			}
+            event = &Event{
+                Kind:      "forward",
+                Namespace: s.Namespace,
+                Repo:      req.Repository,
+                Component: component,
+                Branch:    req.Branch,
+                Ref:       req.Branch,
+                Pipeline:  pipeline,
+                RequestID: requestID,
+                Env:       req.Env,
+		    }
 
-		} else if r.URL.Path == "/" {
+        } else if r.URL.Path == "/" {
 
 			req := &requestBitbucket{}
 			err := json.NewDecoder(r.Body).Decode(req)
@@ -401,6 +422,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			var repo string
 			var kind string
 			var branch string
+            var ref string
 			component := componentParam
 
 			project, err = s.readProjectParam(req.Repository.Project.Key, requestID)
@@ -441,6 +463,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					component = extractComponent(repo, project)
 				}
 				branch = req.Changes[0].Ref.DisplayID
+                ref = branch
 				if req.Changes[0].Type == "DELETE" {
 					kind = "delete"
 				} else {
@@ -454,16 +477,35 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					))
 					return
 				}
-			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
-				repo = req.PullRequest.FromRef.Repository.Slug
-				if component == "" {
-					component = extractComponent(repo, project)
-				}
-				branch = req.PullRequest.FromRef.DisplayID
-				if req.EventKey == "pr:opened" {
-					kind = "forward"
+			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:from_ref_updated" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
+				// Check if PR is from other repo.
+ 				if req.PullRequest.ToRef.Repository.Id != req.PullRequest.FromRef.Repository.Id {
+					log.Println("External forking flow - Build PR from toRef repository")
+					repo = req.PullRequest.ToRef.Repository.Slug
+                    ref = req.PullRequest.FromRef.LatestCommit
+                    branch = req.PullRequest.FromRef.DisplayID
+					if component == "" {
+						component = extractComponent(repo, project)
+					}
+
+					if req.EventKey == "pr:opened" || req.EventKey == "pr:from_ref_updated"  {
+						kind = "forward"
+					} else {
+						kind = "delete"
+					}
 				} else {
-					kind = "delete"
+					repo = req.PullRequest.FromRef.Repository.Slug
+					if component == "" {
+						component = extractComponent(repo, project)
+					}
+                    ref = req.PullRequest.FromRef.DisplayID
+                    branch = ref
+
+					if req.EventKey == "pr:opened" {
+						kind = "forward"
+					} else {
+						kind = "delete"
+					}
 				}
 			}
 
@@ -477,11 +519,13 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				Branch:    branch,
 				Pipeline:  pipeline,
 				RequestID: requestID,
+                Ref:        ref,
 			}
 		} else {
 			http.NotFound(w, r)
 			return
 		}
+
 
 		log.Println(requestID, event)
 
@@ -526,9 +570,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					http.Error(w, msg, http.StatusInternalServerError)
 					return
 				}
-				if bc.Spec.Source.Git.Ref != event.Branch {
+				if bc.Spec.Source.Git.Ref != event.Ref {
 					log.Println(requestID, fmt.Sprintf(
-						"Current branch %s differs from requested branch %s", bc.Spec.Source.Git.Ref, event.Branch,
+						"Current ref %s differs from requested ref %s", bc.Spec.Source.Git.Ref, event.Ref,
 					))
 					updatePipeline = true
 					resourceVersion = bc.Metadata.ResourceVersion
@@ -561,6 +605,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				TriggerSecret:   s.TriggerSecret,
 				GitURI:          gitURI,
 				Branch:          event.Branch,
+                Ref:             event.Ref,
+                RefSpec:         s.Refspec,
 				JenkinsfilePath: jenkinsfilePath,
 				Env:             string(env),
 				ResourceVersion: resourceVersion,
@@ -622,7 +668,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					log.Println(requestID, "No remaining instances found")
 					return
 				}
-				if i == s.MaxDeletionChecks - 1 {
+				if i == s.MaxDeletionChecks-1 {
 					log.Println(requestID, "Reached maximum iterations, stopping checks")
 				}
 			}
@@ -890,12 +936,13 @@ func (e *Event) IsValid() bool {
 
 func (e *Event) String() string {
 	return fmt.Sprintf(
-		"kind=%s, namespace=%s, repo=%s, component=%s, branch=%s, pipeline=%s",
+		"kind=%s, namespace=%s, repo=%s, component=%s, branch=%s, ref=%s, pipeline=%s",
 		e.Kind,
 		e.Namespace,
 		e.Repo,
 		e.Component,
 		e.Branch,
+        e.Ref,
 		e.Pipeline,
 	)
 }
@@ -921,7 +968,7 @@ func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
-		OpenShiftAppDomain: openShiftAppDomain,
+		OpenShiftAppDomain:  openShiftAppDomain,
 	}, nil
 }
 

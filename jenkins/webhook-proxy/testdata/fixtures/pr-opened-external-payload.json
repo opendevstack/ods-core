@@ -1,0 +1,66 @@
+{
+    "eventKey": "pr:opened",
+    "date": "2025-11-27T15:32:10+0100",
+    "actor": {
+        "name": "external.user",
+        "emailAddress": "external.user@example.com",
+        "id": 621,
+        "displayName": "External User",
+        "active": true,
+        "slug": "external.user",
+        "type": "NORMAL"
+    },
+    "pullRequest": {
+        "id": 165,
+        "version": 0,
+        "title": "External PR from forked repository",
+        "state": "OPEN",
+        "open": true,
+        "closed": false,
+        "createdDate": 1764253930635,
+        "updatedDate": 1764253930635,
+        "fromRef": {
+            "id": "refs/heads/feature/external-contribution",
+            "displayId": "feature/external-contribution",
+            "latestCommit": "39e982425ec8d92a6448ffc0ea60d7ec7f8b741d",
+            "repository": {
+                "slug": "repository",
+                "id": 41421,
+                "name": "repository",
+                "scmId": "git",
+                "state": "AVAILABLE",
+                "statusMessage": "Available",
+                "forkable": true,
+                "project": {
+                    "key": "~EXTERNAL.USER",
+                    "id": 149,
+                    "name": "External User",
+                    "type": "PERSONAL"
+                },
+                "public": false
+            }
+        },
+        "toRef": {
+            "id": "refs/heads/master",
+            "displayId": "master",
+            "latestCommit": "c34f84131e091d1c4691e3cf3fbecdfddf6f26f3",
+            "repository": {
+                "slug": "repository",
+                "id": 32191,
+                "name": "repository",
+                "scmId": "git",
+                "state": "AVAILABLE",
+                "statusMessage": "Available",
+                "forkable": true,
+                "project": {
+                    "key": "PROJ",
+                    "id": 7300,
+                    "name": "project",
+                    "public": false,
+                    "type": "NORMAL"
+                },
+                "public": false
+            }
+        }
+    }
+}

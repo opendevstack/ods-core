@@ -213,11 +213,12 @@ func testServer() (*httptest.Server, *mockClient) {
 		Project:                 "bar",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
-		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
+		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
 		AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		Refspec:                 "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
@@ -276,6 +277,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
+				Ref:       "master",
 				Pipeline:  "repository-master",
 			},
 		},
@@ -287,6 +289,7 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "admin/file-1505781548644",
+				Ref:       "admin/file-1505781548644",
 				Pipeline:  "repository-admin-file-1505781548644",
 			},
 		},
@@ -298,7 +301,32 @@ func TestHandleRootReadsRequests(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "decline-me",
+				Ref:       "decline-me",
 				Pipeline:  "repository-decline-me",
+			},
+		},
+		"PR opened from external fork": {
+			payloadFile: "pr-opened-external-payload.json",
+			expectedEvent: &Event{
+				Kind:      "forward",
+				Namespace: "bar-cd",
+				Repo:      "repository",
+				Component: "repository",
+				Branch:    "feature/external-contribution",
+				Ref:       "39e982425ec8d92a6448ffc0ea60d7ec7f8b741d",
+				Pipeline:  "repository-feature-external-contribution",
+			},
+		},
+		"PR from_ref_updated from external fork": {
+			payloadFile: "pr-from-ref-updated-external-payload.json",
+			expectedEvent: &Event{
+				Kind:      "forward",
+				Namespace: "bar-cd",
+				Repo:      "repository",
+				Component: "repository",
+				Branch:    "feature/external-update",
+				Ref:       "abc123425ec8d92a6448ffc0ea60d7ec7f8b741d",
+				Pipeline:  "repository-feature-external-update",
 			},
 		},
 	}
@@ -346,17 +374,17 @@ func TestSkipsPayloads(t *testing.T) {
 		expectedLog    string
 	}{
 		"Tag pushed": {
-			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
+			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
 			payloadFile:    "repo-refs-changed-tag-payload.json",
 			expectedLog:    "Skipping change ref type TAG as ALLOWED_CHANGE_REF_TYPES does not include it",
 		},
 		"Unknown event": {
-			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
+			acceptedEvents: []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
 			payloadFile:    "unknown-event-payload.json",
 			expectedLog:    "Skipping event foo:bar as ACCEPTED_EVENTS does not include it",
 		},
 		"Unaccepted event": {
-			acceptedEvents: []string{"repo:refs_changed", "pr:declined", "pr:merged", "pr:deleted"},
+			acceptedEvents: []string{"repo:refs_changed", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
 			payloadFile:    "unaccepted-event-payload.json",
 			expectedLog:    "Skipping event pr:opened as ACCEPTED_EVENTS does not include it",
 		},
@@ -376,6 +404,7 @@ func TestSkipsPayloads(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				Refspec:                 "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 			}
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
@@ -481,12 +510,13 @@ func TestNamespaceRestriction(t *testing.T) {
 				Namespace:               tc.project + "-cd",
 				Project:                 tc.project,
 				TriggerSecret:           fakeSecret,
-				ProtectedBranches:       []string{"baz"},
-				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
-				AllowedExternalProjects: tc.allowedExternalProjects,
+			ProtectedBranches:       []string{"baz"},
+			AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
+			AllowedExternalProjects: tc.allowedExternalProjects,
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				Refspec:                 "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
@@ -534,6 +564,7 @@ func TestForward(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
+				Ref:       "master",
 				Pipeline:  "repository-master",
 				Env:       []EnvPair{},
 			},
@@ -549,6 +580,7 @@ func TestForward(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
+				Ref:       "master",
 				Pipeline:  "repository-master",
 				Env: []EnvPair{
 					EnvPair{
@@ -573,6 +605,7 @@ func TestForward(t *testing.T) {
 				Repo:      "repository",
 				Component: "repository",
 				Branch:    "master",
+				Ref:       "master",
 				Pipeline:  "repository-master",
 				Env:       []EnvPair{},
 			},
@@ -793,12 +826,13 @@ func TestBuildEndpoint(t *testing.T) {
 				Namespace:               "bar-cd",
 				Project:                 "bar",
 				TriggerSecret:           "s3cr3t",
-				ProtectedBranches:       []string{"baz"},
-				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
-				AllowedExternalProjects: []string{"opendevstack"},
-				AllowedChangeRefTypes:   []string{"BRANCH"},
-				RepoBase:                "https://domain.com",
-				MaxDeletionChecks:       10,
+			ProtectedBranches:       []string{"baz"},
+			AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
+			AllowedExternalProjects: []string{"opendevstack"},
+			AllowedChangeRefTypes:   []string{"BRANCH"},
+			RepoBase:                "https://domain.com",
+			MaxDeletionChecks:       10,
+				Refspec:                 "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
@@ -838,12 +872,13 @@ func TestNotFound(t *testing.T) {
 		Namespace:               "bar-cd",
 		Project:                 "bar",
 		TriggerSecret:           "s3cr3t",
-		ProtectedBranches:       []string{"baz"},
-		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
-		AllowedExternalProjects: []string{"opendevstack"},
+	ProtectedBranches:       []string{"baz"},
+	AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:declined", "pr:merged", "pr:deleted"},
+	AllowedExternalProjects: []string{"opendevstack"},
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		Refspec:                 "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 	}
 	server := httptest.NewServer(s.HandleRoot())
 
@@ -869,6 +904,8 @@ func TestGetBuildConfig(t *testing.T) {
 		TriggerSecret:   "s3cr3t",
 		GitURI:          "https://domain.com/proj/repository.git",
 		Branch:          "master",
+		Ref:             "master",
+		RefSpec:         "+refs/pull-requests/*/from:refs/remotes/origin/pr/*",
 		JenkinsfilePath: "foo/Jenkinsfile",
 		Env:             string(env),
 		ResourceVersion: "0",
