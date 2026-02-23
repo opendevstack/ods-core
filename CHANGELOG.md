@@ -9,6 +9,7 @@
 - Update keystore path in import_certs.sh script ([#1365](https://github.com/opendevstack/ods-core/pull/1365))
 - Added allure plugin and command line installation to jenkins master image ([#1364](https://github.com/opendevstack/ods-core/pull/1364))
 - Remove unnecessary configurations from ods-api-service ([#1366](https://github.com/opendevstack/ods-core/pull/1366))
+- Update Trivy CLI in jenkins agent-base to v0.69.1 ([#1367](https://github.com/opendevstack/ods-core/pull/1367))
 
 ### Fixed
 

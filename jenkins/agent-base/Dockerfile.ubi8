@@ -12,7 +12,7 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     HELM_PLUGIN_SECRETS_VERSION=4.6.1 \
     GIT_LFS_VERSION=3.5.1 \
     IMGPKG_VERSION=0.44.0 \
-    TRIVY_VERSION=0.54.1 \
+    TRIVY_VERSION=0.69.1 \
     YQ_VERSION=4.45.1 \
     JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
 
