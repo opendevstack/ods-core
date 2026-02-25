@@ -6,11 +6,10 @@ PROJECT=$2
 BUILD_NAME=$1
 BUILD_URL=$(oc get -n ${PROJECT} build ${BUILD_NAME} -o jsonpath='{.metadata.annotations.openshift\.io/jenkins-build-uri}')
 echo $BUILD_URL
-if [[ "$3" == *"/"* ]]; then
-	ARTIFACT_URL="${BUILD_URL}/artifact/${3}"
-else
-	ARTIFACT_URL="${BUILD_URL}/artifact/artifacts/${3}"
-fi
+
+# Strip trailing slash to avoid double slashes in URL
+BUILD_URL=${BUILD_URL%/}
+ARTIFACT_URL="${BUILD_URL}/artifact/${3}"
 
 # Extract just the filename from the artifact path for local storage
 ARTIFACT_FILENAME=$(basename "$3")
