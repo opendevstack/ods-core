@@ -11,6 +11,7 @@
 - Remove unnecessary configurations from ods-api-service ([#1366](https://github.com/opendevstack/ods-core/pull/1366))
 
 ### Fixed
+- Fix e2e jenkins artifacts fetch ([#1369](https://github.com/opendevstack/ods-core/pull/1369))
 
 ## [4.11.1] - 2025-12-05
 
