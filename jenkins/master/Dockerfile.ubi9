@@ -15,10 +15,10 @@ ENV JENKINS_JAVA_OVERRIDES="-Dhudson.tasks.MailSender.SEND_TO_UNKNOWN_USERS=true
 USER root
 
 # Add UBI repositories.
-COPY yum.repos.d/ubi8.repo /etc/yum.repos.d/ubi.repo
+COPY yum.repos.d/ubi9.repo /etc/yum.repos.d/ubi.repo
 
 COPY ./scripts_for_usr-local-bin/* /usr/local/bin/
-RUN rpm --import https://pkg.jenkins.io/rpm-stable/jenkins.io-2026.key \    
+RUN rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key \
     && disable_yum_repository.sh /etc/yum.repos.d/ci-rpm-mirrors.repo \
         /etc/yum.repos.d/localdev-* /etc/yum.repos.d/epel.repo \
     && ensure_java_jre_is_adequate.sh master \
@@ -28,7 +28,7 @@ RUN rpm --import https://pkg.jenkins.io/rpm-stable/jenkins.io-2026.key \
     && clean_yum_cache.sh
 
 # Copy configuration and plugins.
-COPY plugins.ubi8.txt /opt/openshift/configuration/plugins.txt
+COPY plugins.ubi9.txt /opt/openshift/configuration/plugins.txt
 RUN /usr/local/bin/install-plugins.sh /opt/openshift/configuration/plugins.txt \
     && rm -r /opt/openshift/configuration/jobs/OpenShift* || true \
     && touch /var/lib/jenkins/configured \
