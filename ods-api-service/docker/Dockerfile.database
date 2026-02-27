@@ -21,5 +21,5 @@ ENV POSTGRES_USER=postgres
 ENV PGUSER=postgres
 ENV USER=postgres
 
-ENTRYPOINT ["fix-openshift.sh"]
-CMD ["postgres"]
+#ENTRYPOINT ["fix-openshift.sh"]
+#CMD ["postgres"]
