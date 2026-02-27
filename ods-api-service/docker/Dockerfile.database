@@ -6,4 +6,10 @@ USER root
 RUN apk add --no-cache curl && \
     curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin;
 
-USER postgres
+# Allow OpenShift's arbitrary non-root user to write to PostgreSQL directories
+RUN chown -R 1000:1000 /var/lib/postgresql && \
+    chmod -R 770 /var/lib/postgresql && \
+    chown -R 1000:1000 /var/run/postgresql && \
+    chmod -R 770 /var/run/postgresql
+
+# Let OpenShift's security context assign the user (do not hardcode USER postgres)
