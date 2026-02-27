@@ -12,14 +12,7 @@ RUN apk add --no-cache curl libc6-compat && \
 RUN chgrp -R 0 /var/lib/postgresql && \
     chmod -R g+rwX /var/lib/postgresql
 
-# Add wrapper to fix Alpine entrypoint UID bug
-#COPY fix-openshift.sh /usr/local/bin/
-#RUN chmod +x /usr/local/bin/fix-openshift.sh
-
 # Environment variables (OpenShift overrides UID but keeps env)
 ENV POSTGRES_USER=postgres
 ENV PGUSER=postgres
 ENV USER=postgres
-
-#ENTRYPOINT ["fix-openshift.sh"]
-#CMD ["postgres"]
