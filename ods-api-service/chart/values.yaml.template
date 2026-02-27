@@ -74,7 +74,7 @@ env:
   OAUTH2_ISSUER: "$OAUTH2_ISSUER"
   OAUTH2_AUDIENCE: "$OAUTH2_AUDIENCE"
   OAUTH2_JWK_SET_URI: "$OAUTH2_JWK_SET_URI"
-  JAVA_OPTS: "$JAVA_OPTS"
+  JAVA_OPTS: $JAVA_OPTS
 # Development-specific configuration
 config:
   debug: true
@@ -186,7 +186,7 @@ externalServices:
     baseUrl: "$AAP_BASE_URL"
     # username and password should be set via environment variables
     username: "$AAP_USERNAME"
-    password: "$AAP_PASSWORD"
+    password: $AAP_PASSWORD
     timeout: 30000
     ssl:
       verifyCertificates: false
@@ -254,7 +254,7 @@ externalServices:
 apis:
   projectUsers:
     enabled: true
-    workflowName: "$PROJECT_USERS_WORKFLOW_NAME"
+    workflowName: $PROJECT_USERS_WORKFLOW_NAME
     token:
       # JWT secret key (minimum 256 bits / 32 characters)
       secret: "$PROJECT_USERS_JWT_SECRET"
@@ -270,12 +270,12 @@ postgresql:
   odsImageTag: $ODS_IMAGE_TAG
   ## Plain-text database details (used in backup scripts and connection strings)
   databaseName: $ODS_API_SERVICE_DB_NAME
-  databaseUser: $ODS_API_SERVICE_DB_USER
+  databaseUser: postgres
   ## Name of the PostgreSQL superuser (default 'postgres' in official image)
   superuserName: $ODS_API_SERVICE_DB_SUPER_NAME
   ## Base64-encoded credentials stored in the Secret
   databaseNameB64: $ODS_API_SERVICE_DB_NAME_B64
-  databaseUserB64: $ODS_API_SERVICE_DB_USER_B64
+  databaseUserB64: cG9zdGdyZXM=
   databasePasswordB64: $ODS_API_SERVICE_DB_PASSWORD_B64
   superuserPasswordB64: $ODS_API_SERVICE_DB_SUPER_PASSWORD_B64
   ## Resource limits/requests for the PostgreSQL container
@@ -292,7 +292,7 @@ postgresql:
     ## The backup job uses the same built image as the DB container (includes psql + oc CLI)
     ## Snapshots are created in the namespace defined by postgresql.odsNamespace
     ## Cron schedule for the backup job (default: daily at 02:00)
-    schedule: "$ODS_API_SERVICE_DB_BACKUP_SCHEDULE"
+    schedule: $ODS_API_SERVICE_DB_BACKUP_SCHEDULE
     ## VolumeSnapshotClass used for storage snapshots
     snapshotStorageClass: $ODS_API_SERVICE_DB_BACKUP_SNAPSHOT_CLASS
     successHistoryLimit: $ODS_API_SERVICE_DB_BACKUP_SUCCESS_HISTORY_LIMIT
