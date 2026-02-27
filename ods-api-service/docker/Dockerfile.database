@@ -1,22 +1,27 @@
 FROM public.ecr.aws/docker/library/postgres:18-alpine
 
-# Install oc client (requires root)
 USER root
 
+# Install oc client
 RUN apk add --no-cache curl && \
     curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz \
       | tar xz -C /usr/local/bin
 
-# Allow arbitrary user to write to PostgreSQL directories
-# OpenShift runs containers with a random UID in the root group (GID 0)
+# Fix permissions for OpenShift arbitrary UID support
 RUN chgrp -R 0 /var/lib/postgresql && \
     chmod -R g+rwX /var/lib/postgresql && \
     chgrp -R 0 /var/run/postgresql && \
     chmod -R g+rwX /var/run/postgresql
 
-# Force PostgreSQL to authenticate as 'postgres'
-# (prevents "role <randomUID> does not exist")
-ENV PGUSER=postgres
-ENV POSTGRES_USER=postgres
+# Add wrapper to fix Alpine entrypoint UID bug
+COPY fix-openshift.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/fix-openshift.sh
 
-USER 999
+# Force correct user in env (OpenShift overrides UID but keeps env)
+ENV POSTGRES_USER=postgres
+ENV PGUSER=postgres
+ENV USER=postgres
+
+# Use wrapper instead of upstream entrypoint
+ENTRYPOINT ["fix-openshift.sh"]
+CMD ["postgres"]
