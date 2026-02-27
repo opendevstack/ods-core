@@ -86,11 +86,6 @@ spec:
           volumeMounts:
             - name: postgresql-data
               mountPath: /var/lib/postgresql/data
-            - name: postgresql-run
-              mountPath: /var/run/postgresq
-      volumes:
-        - name: postgresql-run
-          emptyDir: {}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
