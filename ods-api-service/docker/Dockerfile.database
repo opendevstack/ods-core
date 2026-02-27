@@ -13,6 +13,6 @@ RUN chgrp -R 0 /var/lib/postgresql && \
     chmod -R g+rwX /var/lib/postgresql
 
 # Environment variables (OpenShift overrides UID but keeps env)
-ENV POSTGRES_USER=postgres
-ENV PGUSER=postgres
-ENV USER=postgres
+# ENV POSTGRES_USER=postgres
+# ENV PGUSER=postgres
+# ENV USER=postgres
