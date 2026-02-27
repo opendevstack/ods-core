@@ -79,14 +79,19 @@ echo_info "Configuring PostgreSQL backup privileges for ODS API Service..."
 
 db_super_user="${ODS_API_SERVICE_DB_SUPER_NAME:-}"
 db_name="${ODS_API_SERVICE_DB_NAME:-}"
+db_user="${ODS_API_SERVICE_DB_USER:-}"
+db_password_b64="${ODS_API_SERVICE_DB_PASSWORD_B64:-}"
 db_super_password_b64="${ODS_API_SERVICE_DB_SUPER_PASSWORD_B64:-}"
 
-if [ -z "${db_super_user}" ] || [ -z "${db_name}" ] || [ -z "${db_super_password_b64}" ]; then
+if [ -z "${db_user}" ] || [ -z "${db_password_b64}" ] || [ -z "${db_super_user}" ] || [ -z "${db_super_password_b64}" ]; then
     echo_warn "Skipping PostgreSQL backup privileges configuration - missing environment variables."
-    echo_info "Required in ods-core.ods-api-service.env: ODS_API_SERVICE_DB_SUPER_NAME, ODS_API_SERVICE_DB_NAME, ODS_API_SERVICE_DB_SUPER_PASSWORD_B64"
+    echo_info "Required in ods-core.ods-api-service.env:"
+    echo_info "  ODS_API_SERVICE_DB_USER, ODS_API_SERVICE_DB_PASSWORD_B64"
+    echo_info "  ODS_API_SERVICE_DB_SUPER_NAME, ODS_API_SERVICE_DB_SUPER_PASSWORD_B64"
     exit 1
 fi
 
+db_password=$(echo "${db_password_b64}" | base64 -d)
 db_super_password=$(echo "${db_super_password_b64}" | base64 -d)
 
 # The StatefulSet pod label is: app=ods-api-service-postgresql
@@ -108,15 +113,17 @@ BEGIN
         CREATE USER \"${db_super_user}\" WITH PASSWORD '${db_super_password}' SUPERUSER;
         RAISE NOTICE 'User ${db_super_user} created as SUPERUSER.';
     ELSE
-        ALTER USER \"${db_super_user}\" PASSWORD '${db_super_password}' SUPERUSER;
+        ALTER USER \"${db_super_user}\" WITH PASSWORD '${db_super_password}' SUPERUSER;
         RAISE NOTICE 'User ${db_super_user} updated to SUPERUSER.';
     END IF;
 END
 \$\$;
 "
 
+echo_info "Connecting as '${db_user}' to configure superuser..."
+
 if oc exec -n "${NAMESPACE}" "${db_pod_name}" -- \
-    psql -U postgres -d "${db_name}" -c "${psql_command}"; then
+    env PGPASSWORD="${db_password}" psql -U "${db_user}" -d "${db_name}" -c "${psql_command}"; then
     echo_done "User '${db_super_user}' configured as SUPERUSER for backup operations."
 else
     echo_error "Failed to configure '${db_super_user}' as SUPERUSER."
