@@ -14,4 +14,9 @@ RUN chgrp -R 0 /var/lib/postgresql && \
     chgrp -R 0 /var/run/postgresql && \
     chmod -R g+rwX /var/run/postgresql
 
-USER postgres
+# Force PostgreSQL to authenticate as 'postgres'
+# (prevents "role <randomUID> does not exist")
+ENV PGUSER=postgres
+ENV POSTGRES_USER=postgres
+
+USER 999
