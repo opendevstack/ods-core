@@ -1,0 +1,9 @@
+FROM public.ecr.aws/docker/library/postgres:18-alpine
+
+USER root
+
+# Install oc client tool
+RUN apk add --no-cache curl && \
+    curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin;
+
+USER postgres
