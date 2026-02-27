@@ -5,7 +5,9 @@ USER root
 # Install oc client
 RUN apk add --no-cache curl && \
     curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz \
-      | tar xz -C /usr/local/bin
+      | tar xz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/oc && \
+    oc version
 
 # Fix permissions only for the persistent data directory
 RUN chgrp -R 0 /var/lib/postgresql && \
