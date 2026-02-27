@@ -7,21 +7,18 @@ RUN apk add --no-cache curl && \
     curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz \
       | tar xz -C /usr/local/bin
 
-# Fix permissions for OpenShift arbitrary UID support
+# Fix permissions only for the persistent data directory
 RUN chgrp -R 0 /var/lib/postgresql && \
-    chmod -R g+rwX /var/lib/postgresql && \
-    chgrp -R 0 /var/run/postgresql && \
-    chmod -R g+rwX /var/run/postgresql
+    chmod -R g+rwX /var/lib/postgresql
 
 # Add wrapper to fix Alpine entrypoint UID bug
 COPY fix-openshift.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/fix-openshift.sh
 
-# Force correct user in env (OpenShift overrides UID but keeps env)
+# Environment variables (OpenShift overrides UID but keeps env)
 ENV POSTGRES_USER=postgres
 ENV PGUSER=postgres
 ENV USER=postgres
 
-# Use wrapper instead of upstream entrypoint
 ENTRYPOINT ["fix-openshift.sh"]
 CMD ["postgres"]
