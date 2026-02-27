@@ -30,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "chart.fullname" . }}-postgresql
                   key: database-user
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" . }}-postgresql
+                  key: database-user
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
