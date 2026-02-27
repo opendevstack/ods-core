@@ -11,8 +11,3 @@ RUN apk add --no-cache curl libc6-compat && \
 # Fix permissions only for the persistent data directory
 RUN chgrp -R 0 /var/lib/postgresql && \
     chmod -R g+rwX /var/lib/postgresql
-
-# Environment variables (OpenShift overrides UID but keeps env)
-# ENV POSTGRES_USER=postgres
-# ENV PGUSER=postgres
-# ENV USER=postgres
