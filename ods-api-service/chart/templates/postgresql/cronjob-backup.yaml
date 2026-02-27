@@ -23,7 +23,7 @@ spec:
           containers:
             - name: postgresql-backup
               image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}-postgresql:{{ .Values.postgresql.odsImageTag }}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               resources:
                 limits:
                   cpu: '1'
