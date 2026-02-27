@@ -19,7 +19,7 @@ spec:
       containers:
         - name: postgresql
           image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}-postgresql:{{ .Values.postgresql.odsImageTag }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: postgresql
               containerPort: 5432
