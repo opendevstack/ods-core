@@ -213,6 +213,11 @@ externalServices:
   projectsInfoService:
     enabled: true
     baseUrl: "$PROJECTS_INFO_SERVICE_BASE_URL"
+    ssl:
+      verifyCertificates: false
+      trustStorePath: ""
+      trustStorePassword: ""
+      trustStoreType: "JKS"
   # Add OpenShift instances with tokens as needed
   openshift:
     instances: []
@@ -250,6 +255,17 @@ externalServices:
     # Example:
     # - name: eu-dev
     #   apiToken: ""  # Set in secrets.dev.enc.yaml
+  # Jira Instances
+  jira:
+    defaultInstance: "$JIRA_DEFAULT_INSTANCE"
+    instances: []
+    # Example:
+    # - name: dev
+    #   baseUrl: "$JIRA_DEV_BASE_URL"
+    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #   connectionTimeout: 30000
+    #   readTimeout: 30000
+    #   trustAllCertificates: false
 # API Configuration Secrets
 apis:
   projectUsers:

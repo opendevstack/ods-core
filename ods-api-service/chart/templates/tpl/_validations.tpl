@@ -102,6 +102,23 @@ Validate Bitbucket instances configuration
 {{- end -}}
 
 {{/*
+Validate Jira instances configuration
+*/}}
+{{- define "chart.validate.jira" -}}
+{{- range .Values.externalServices.jira.instances }}
+  {{- if not .name }}
+    {{- fail "name is required for each Jira instance" }}
+  {{- end }}
+  {{- if not .baseUrl }}
+    {{- fail (printf "baseUrl is required for Jira instance '%s'" .name) }}
+  {{- end }}
+  {{- if and (not .bearerToken) (and (not .username) (not .password)) }}
+    {{- fail (printf "either bearerToken or username+password is required for Jira instance '%s'" .name) }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Run all validations
 */}}
 {{- define "chart.validate.all" -}}
@@ -111,4 +128,5 @@ Run all validations
 {{- include "chart.validate.projectsInfoService" . }}
 {{- include "chart.validate.openshift" . }}
 {{- include "chart.validate.bitbucket" . }}
+{{- include "chart.validate.jira" . }}
 {{- end -}}
