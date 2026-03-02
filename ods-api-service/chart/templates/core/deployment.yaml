@@ -102,6 +102,12 @@ spec:
             - secretRef:
                 name: {{ include "chart.fullname" . }}-jenkins-credentials
           {{- end }}
+          {{- if gt (len .Values.externalServices.jira.instances) 0 }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-jira-config
+            - secretRef:
+                name: {{ include "chart.fullname" . }}-jira-credentials
+          {{- end }}
           livenessProbe:
             {{- toYaml .Values.probes.livenessProbe | nindent 12 }}
           readinessProbe:

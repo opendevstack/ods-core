@@ -118,12 +118,12 @@ externalservices:
     instances:
 {{- range .Values.externalServices.openshift.instances }}
       {{ .name }}:
-        api-url: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_API_URL}
+        api-url: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_API_URL:https://api.dev.ocp.example.com:6443}
         token: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_TOKEN}
         namespace: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_NAMESPACE}
-        connection-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT}
-        read-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT}
-        trust-all-certificates: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_TRUST_ALL}
+        connection-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- end }}
 
@@ -139,9 +139,9 @@ externalservices:
         username: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_USERNAME:}
         password: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_PASSWORD:}
 {{- end }}
-        connection-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT}
-        read-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT}
-        trust-all-certificates: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_TRUST_ALL}
+        connection-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- end }}
 
@@ -151,15 +151,34 @@ externalservices:
 {{- range .Values.externalServices.webhookProxy.clusters }}
       {{ .name }}:
         cluster-base: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_CLUSTER_BASE}
-        connection-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT}
-        read-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT}
-        trust-all-certificates: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_TRUST_ALL}
-        default-jenkinsfile-path: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_JENKINSFILE_PATH}
+        connection-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        default-jenkinsfile-path: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_JENKINSFILE_PATH:Jenkinsfile}
 {{- end }}
 {{- end }}
 
 {{- if .Values.externalServices.projectsInfoService.enabled }}
   projects-info-service:
     base-url: ${PROJECTS_INFO_SERVICE_BASE_URL:http://localhost:8081}
+{{- end }}
+
+{{- if gt (len .Values.externalServices.jira.instances) 0 }}
+  jira:
+    default-instance: ${JIRA_DEFAULT_INSTANCE:{{ .Values.externalServices.jira.defaultInstance }}}
+    instances:
+{{- range .Values.externalServices.jira.instances }}
+      {{ .name }}:
+        base-url: ${JIRA_{{ .name | upper | replace "-" "_" }}_BASE_URL}
+{{- if .bearerToken }}
+        bearer-token: ${JIRA_{{ .name | upper | replace "-" "_" }}_BEARER_TOKEN:}
+{{- else }}
+        username: ${JIRA_{{ .name | upper | replace "-" "_" }}_USERNAME:}
+        password: ${JIRA_{{ .name | upper | replace "-" "_" }}_PASSWORD:}
+{{- end }}
+        connection-timeout: ${JIRA_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${JIRA_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${JIRA_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
+{{- end }}
 {{- end }}
 {{- end -}}
