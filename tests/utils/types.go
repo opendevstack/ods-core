@@ -24,10 +24,27 @@ type ImageTag struct {
 }
 
 type Resources struct {
-	Namespace         string
-	ImageTags         []ImageTag
-	BuildConfigs      []string
-	DeploymentConfigs []string
-	Services          []string
-	ImageStreams      []string
+	Namespace                string
+	ImageTags                []ImageTag
+	BuildConfigs             []string
+	DeploymentConfigs        []string
+	Deployments              []string
+	StatefulSets             []string
+	DaemonSets               []string
+	ReplicaSets              []string
+	Services                 []string
+	ImageStreams             []string
+	Routes                   []string
+	Ingresses                []string
+	ConfigMaps               []string
+	Secrets                  []string
+	PersistentVolumeClaims   []string
+	ServiceAccounts          []string
+	Roles                    []string
+	RoleBindings             []string
+	NetworkPolicies          []string
+	Jobs                     []string
+	CronJobs                 []string
+	Pods                     []string
+	HorizontalPodAutoscalers []string
 }

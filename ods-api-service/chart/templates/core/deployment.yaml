@@ -74,8 +74,6 @@ spec:
           {{- if .Values.externalServices.projectsInfoService.enabled }}
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-projects-info-service-config
-            - secretRef:
-                name: {{ include "chart.fullname" . }}-projects-info-service-credentials
           {{- end }}
           {{- if gt (len .Values.externalServices.openshift.instances) 0 }}
             - configMapRef:

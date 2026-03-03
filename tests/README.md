@@ -25,5 +25,42 @@ Run `make test` [in this directory](Makefile), which will execute project creati
 ## Running the quickstarter tests
 Run `make test-quickstarter` [in this directory](Makefile). By default, this will test all quickstarters in `ods-quickstarters` located next to `ods-core`. You can run just one specific quickstarter test with `make test-quickstarter QS=be-golang-plain` or run tests located in a custom directory like this: `make test-quickstarter QS=my-quickstarters/...` or `make test-quickstarter QS=my-quickstarters/foobar`. By default all tests run sequentially. To run some in parallel, use e.g. `make test-quickstarter PARALLEL=3`.
 
+### Keeping resources after tests
+By default, the quickstarter tests clean up all created resources (OpenShift resources, Helm releases, etc.) after each test completes. To keep the resources for debugging or inspection purposes, set the `KEEP_RESOURCES` environment variable:
+
+```bash
+KEEP_RESOURCES=true make test-quickstarter QS=be-python-flask
+```
+
+Or for the shell script:
+```bash
+KEEP_RESOURCES=true ./dev-test.sh be-python-flask e2etsqs
+```
+
+**Note:** Port-forward cleanup is handled separately and will still occur to prevent resource leaks.
+
 ## Authoring quickstarter tests
 Quickstarters must have a `testdata` directory, which needs to contain a `steps.yml` file describing which test steps to execute in YAML format. The allowed fields are defined by https://pkg.go.dev/github.com/opendevstack/ods-core/tests/quickstarter. Typically, the `testdata` directory will also contain a `golden` folder with JSON files describing the expected results. See https://github.com/opendevstack/ods-quickstarters/tree/master/be-golang-plain/testdata as an example.
+
+### Specifying namespace for OpenShift resource verification
+
+When verifying OpenShift resources, you can optionally specify a custom namespace. If not specified, the verification defaults to the `{{.ProjectID}}-dev` namespace.
+
+Example in `testdata/steps.yml`:
+
+```yaml
+- type: provision
+  provisionParams:
+    verify:
+      openShiftResources:
+        namespace: "test"  # Will check in {{.ProjectID}}-test
+        services:
+          - "{{.ComponentID}}"
+        deploymentConfigs:
+          - "{{.ComponentID}}"
+```
+
+You can also specify a full namespace (with project prefix):
+```yaml
+        namespace: "{{.ProjectID}}-cd"  # Explicit full namespace
+```

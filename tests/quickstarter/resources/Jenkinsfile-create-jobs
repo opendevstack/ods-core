@@ -1,0 +1,160 @@
+def dockerRegistry
+def ODS_PROJECT
+def odsNamespace
+def QUICK_STARTERS_URL
+def odsTag
+def JENKINS_URL
+def FOLDER_NAME
+def BITBUCKET_URL
+def CREDENTIALS_ID
+
+properties([
+  parameters([
+    string( name: 'QUICK_STARTERS_URL', 
+            defaultValue: 'https://github.com/opendevstack/ods-quickstarters.git', 
+            description: 'URL of the quickstarters repository'),
+    string(
+        name: 'configFileId',
+        defaultValue: 'quickstarter-test-config',
+        description: 'ID of the managed config file containing environment configuration'
+    )
+  ])
+])
+
+node {
+    dockerRegistry = env.DOCKER_REGISTRY
+
+    stage('Load Configuration') {
+        echo "Loading configuration from managed file: quickstarter-test-config"
+        def configContent
+        configFileProvider([configFile(fileId: 'quickstarter-test-config', variable: 'CONFIG_FILE')]) {
+            // Source the .env file to load variables
+            configContent = readProperties(file: env.CONFIG_FILE)
+            echo "✓ Configuration loaded successfully"
+        }
+        odsTag = '4.x'
+        ODS_PROJECT = configContent.ODS_PROJECT
+        ODS_NAMESPACE = configContent.ODS_NAMESPACE ?: 'ods'
+        BITBUCKET_URL = configContent.BITBUCKET_URL
+        CREDENTIALS_ID = configContent.CREDENTIALS_ID_PATTERN
+        JENKINS_URL = configContent.JENKINS_URL
+        ODS_QUICKSTARTERS_TESTS_BRANCH = configContent.ODS_QUICKSTARTERS_TESTS_BRANCH ?: 'master'
+        QUICK_STARTERS_URL = params.QUICK_STARTERS_URL
+        
+        // Extract repository name from URL
+        def repoName = QUICK_STARTERS_URL.tokenize('/')[-1]
+        FOLDER_NAME = repoName.replaceAll('\\.git$', '')
+
+        echo """\
+        ✓ Configuration loaded successfully
+            Docker Registry:                     ${dockerRegistry}
+            ODS Project:                         ${ODS_PROJECT}
+            ODS Namespace:                       ${ODS_NAMESPACE}
+            Bitbucket URL:                       ${BITBUCKET_URL}
+            Jenkins URL:                         ${JENKINS_URL}
+            Quickstarters Repo URL:              ${QUICK_STARTERS_URL}
+            ODS Core - Quickstarters Branch:     ${ODS_QUICKSTARTERS_TESTS_BRANCH}
+            FOLDER_NAME:                         ${FOLDER_NAME}
+        """.stripIndent()
+    }
+}
+
+def conts = containerTemplate(
+  name: 'jnlp',
+  image: "${dockerRegistry}/${ODS_NAMESPACE}/jenkins-agent-base:${odsTag}",
+  workingDir: '/tmp',
+)
+
+def podLabel = "ods-qs-create-jobs-${UUID.randomUUID().toString()}"
+
+podTemplate(
+  cloud: 'openshift',
+  label: podLabel,
+  containers: [conts],
+  volumes: [],
+  serviceAccount: 'jenkins'
+) {
+  node(podLabel) {
+    stage('Init'){
+
+        git url: "${BITBUCKET_URL}/scm/${ODS_PROJECT}/ods-core.git",
+            branch: "${ODS_QUICKSTARTERS_TESTS_BRANCH}",
+            credentialsId: "${CREDENTIALS_ID}"
+        
+        dir('tests/quickstarter/resources/scripts/repo'){
+          git url: "$QUICK_STARTERS_URL",
+              credentialsId: "${CREDENTIALS_ID}"
+
+        }            
+    }
+
+    stage('Select Branches') {
+        script {
+            def availableBranches = []
+            dir('tests/quickstarter/resources/scripts/repo') {
+                availableBranches = sh(
+                    script: 'git branch -r | grep -v HEAD | sed "s/.*origin\\///" | sort -u',
+                    returnStdout: true
+                ).trim().split('\n').toList()
+                
+                echo "Available branches in ${QUICK_STARTERS_URL}:"
+                availableBranches.each { branch ->
+                    echo "  - ${branch}"
+                }
+            }
+            
+            // Prompt for interactive branch selection
+            // Create boolean parameters for each branch
+                def branchParams = availableBranches.collect { branch ->
+                    booleanParam(
+                        name: branch.replaceAll('[^a-zA-Z0-9_]', '_'),
+                        description: "Process branch: ${branch}",
+                        defaultValue: false
+                    )
+                }
+                
+                def userInput = input(
+                    message: 'Select branches to process',
+                    parameters: branchParams
+                )
+                
+                // Collect selected branches
+                def selectedBranches = []
+                availableBranches.each { branch ->
+                    def paramName = branch.replaceAll('[^a-zA-Z0-9_]', '_')
+                    if (userInput instanceof Boolean) {
+                        // Single branch case
+                        if (userInput) {
+                            selectedBranches.add(branch)
+                        }
+                    } else {
+                        // Multiple branches case
+                        if (userInput[paramName]) {
+                            selectedBranches.add(branch)
+                        }
+                    }
+                }
+                
+                env.BRANCHES_TO_PROCESS = selectedBranches.join(' ')
+                echo "Selected branches: ${env.BRANCHES_TO_PROCESS}"
+        }
+    }
+
+    stage('Create jobs') {   
+        sh(script: """        
+        cd tests/quickstarter/resources/scripts
+        ./create_jobs.sh \\
+            --quickstarters-repository ${QUICK_STARTERS_URL} \\
+            --jenkins-url ${JENKINS_URL} \\
+            --project ${ODS_PROJECT} \\
+            --ods-ref 4.x \\
+            --branches "${BRANCHES_TO_PROCESS}" \\
+            --folder-name "${FOLDER_NAME}" \\
+            --bitbucket-url ${BITBUCKET_URL} \\
+            --credentials-id ${CREDENTIALS_ID} \\
+            --ods-quickstarters-test-branch ${ODS_QUICKSTARTERS_TESTS_BRANCH} \\
+            --no-clone
+        """)
+    }
+  }
+}

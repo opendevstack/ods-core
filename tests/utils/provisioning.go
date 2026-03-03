@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 )
@@ -65,7 +65,7 @@ func (api *ProvisionAPI) CreateProject() ([]byte, error) {
 	fmt.Printf("Provision app raw logs: %s\n", stdout)
 
 	// get the (json) response from the script created file
-	log, err := ioutil.ReadFile("response.txt")
+	log, err := os.ReadFile("response.txt")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read response file?!, %s", err)
 	}
@@ -126,7 +126,7 @@ func (api *ProvisionAPI) CreateComponent() ([]byte, error) {
 	fmt.Printf("Provision app raw logs:%s\n", stages)
 
 	// get the (json) response from the script created file
-	log, err := ioutil.ReadFile("response.txt")
+	log, err := os.ReadFile("response.txt")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read response file?!, %w", err)
 	}
