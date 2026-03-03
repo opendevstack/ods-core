@@ -8,6 +8,10 @@
 
 ### Fixed
 
+## [4.12.1] - 2026-03-03
+### Fixed
+- Fix api service dockerfile ([#1372](https://github.com/opendevstack/ods-core/pull/1372))
+
 ## [4.12.0] - 2026-03-02
 ### Changed
 - Improved automatic tests for the quickstarters ([#1362](https://github.com/opendevstack/ods-core/pull/1362))
