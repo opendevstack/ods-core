@@ -6,7 +6,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 ARG ODS_API_SERVICE_VERSION
 
-RUN curl -fSL --retry 3 https://github.com/opendevstack/ods-api-service/releases/download/v$ODS_API_SERVICE_VERSION/app.jar -o app.jar
+RUN curl -fSL --retry 3 https://github.com/opendevstack/ods-api-service/releases/download/$ODS_API_SERVICE_VERSION/app.jar -o app.jar
 
 # Environment variable for certificate URLs (comma-separated) ENV CERT_URLS="" it is needed to install the certificates
 COPY install-certs.sh /opt/install-certs.sh
