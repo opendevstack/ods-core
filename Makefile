@@ -184,13 +184,13 @@ start-opentelemetry-collector-build:
 
 # ODS API SERVICE
 ## Install or update Ods API Service.
-install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart
+install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart configure-ods-api-service
 .PHONY: ods-api-service
 
 ## Start build of BuildConfig "Ods API Service".
 start-ods-api-service-build:
 	cd ods-api-service/build-config && oc process -f template.yaml -p ODS_NAMESPACE=$(ODS_NAMESPACE) -p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) -p BITBUCKET_URL=$(BITBUCKET_URL) -p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) -p ODS_GIT_REF=$(ODS_GIT_REF) -p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
 .PHONY: start-ods-api-service-build
 
 ## Apply OpenShift resources related to the Ods API Service.
@@ -212,6 +212,11 @@ apply-ods-api-service-chart:
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
 		ods-api-service . && rm values.yaml
 .PHONY: apply-ods-api-service-chart
+
+## Configure ODS API Service (sets up PostgreSQL superuser for backup operations).
+configure-ods-api-service:
+	cd ods-api-service && ./configure.sh --namespace $(ODS_NAMESPACE)
+.PHONY: configure-ods-api-service
 
 
 # BACKUP

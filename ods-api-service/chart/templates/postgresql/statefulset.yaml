@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "chart.fullname" . }}-postgresql
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  serviceName: {{ include "chart.fullname" . }}-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "chart.fullname" . }}-postgresql
+  template:
+    metadata:
+      labels:
+        app: {{ include "chart.fullname" . }}-postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}-postgresql:{{ .Values.postgresql.odsImageTag }}
+          imagePullPolicy: Always
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" . }}-postgresql
+                  key: database-user
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" . }}-postgresql
+                  key: database-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" . }}-postgresql
+                  key: database-password
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" . }}-postgresql
+                  key: database-name
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - 127.0.0.1
+                - -U
+                - $(POSTGRES_USER)
+                - -d
+                - $(POSTGRES_DB)
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - 127.0.0.1
+                - -U
+                - $(POSTGRES_USER)
+                - -d
+                - $(POSTGRES_DB)
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: {{ .Values.postgresql.cpuLimit }}
+              memory: {{ .Values.postgresql.memLimit }}
+            requests:
+              cpu: {{ .Values.postgresql.cpuRequest }}
+              memory: {{ .Values.postgresql.memRequest }}
+          securityContext:
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-data
+        annotations:
+          volume.beta.kubernetes.io/storage-provisioner: {{ .Values.postgresql.storageProvisioner }}
+          helm.sh/resource-policy: keep
+        labels:
+          app: {{ include "chart.fullname" . }}-postgresql
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.pvcDatabaseCapacity }}
+        storageClassName: {{ .Values.postgresql.storageClassName }}
+        volumeMode: Filesystem

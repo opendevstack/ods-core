@@ -14,6 +14,10 @@ logging:
 spring:
   profiles:
     active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
 management:
   endpoints:
