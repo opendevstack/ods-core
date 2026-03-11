@@ -14,10 +14,10 @@ if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.env" ]; then
 fi
 
 # Source the ods-api-service-specific configuration
-if [ -f "${ODS_CONFIGURATION_DIR}/ods-core.ods-api-service.env" ]; then
+if [ -f "${ODS_CONFIGURATION_DIR}/ods-api-service.env" ]; then
     set +u
     # shellcheck source=/dev/null
-    source "${ODS_CONFIGURATION_DIR}/ods-core.ods-api-service.env"
+    source "${ODS_CONFIGURATION_DIR}/ods-api-service.env"
     set -u
 fi
 
@@ -85,7 +85,7 @@ db_super_password_b64="${ODS_API_SERVICE_DB_SUPER_PASSWORD_B64:-}"
 
 if [ -z "${db_user}" ] || [ -z "${db_password_b64}" ] || [ -z "${db_super_user}" ] || [ -z "${db_super_password_b64}" ]; then
     echo_warn "Skipping PostgreSQL backup privileges configuration - missing environment variables."
-    echo_info "Required in ods-core.ods-api-service.env:"
+    echo_info "Required in ods-api-service.env:"
     echo_info "  ODS_API_SERVICE_DB_USER, ODS_API_SERVICE_DB_PASSWORD_B64"
     echo_info "  ODS_API_SERVICE_DB_SUPER_NAME, ODS_API_SERVICE_DB_SUPER_PASSWORD_B64"
     exit 1

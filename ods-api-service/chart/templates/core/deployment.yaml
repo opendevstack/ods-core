@@ -52,14 +52,11 @@ spec:
               value: {{ .Values.env.OAUTH2_JWK_SET_URI | quote }}
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS | quote }}
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "chart.fullname" . }}-postgresql
-                  key: database-password
           envFrom:
             - configMapRef:
-                name: {{ include "chart.fullname" . }}-postgresql-config
+                name: {{ .Release.Name }}-config-db
+            - secretRef:
+                name: {{ .Release.Name }}-config-db-secret
           {{- if .Values.externalServices.aap.enabled }}
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-aap-config

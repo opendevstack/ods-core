@@ -7,10 +7,10 @@ metadata:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: bitbucket-config
 data:
-  {{- range $index, $instance := .Values.externalServices.bitbucket.instances }}
-  BITBUCKET_{{ $instance.name | upper | replace "-" "_" }}_BASE_REST_URL: {{ $instance.baseUrl | quote }}
-  BITBUCKET_{{ $instance.name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
-  BITBUCKET_{{ $instance.name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeout | quote }}
-  BITBUCKET_{{ $instance.name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
+  {{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
+  BITBUCKET_{{ $name | upper | replace "-" "_" }}_BASE_REST_URL: {{ $instance.baseUrl | quote }}
+  BITBUCKET_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
+  BITBUCKET_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeout | quote }}
+  BITBUCKET_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
   {{- end }}
 {{- end }}
