@@ -220,25 +220,25 @@ externalServices:
       trustStoreType: "JKS"
   # Add OpenShift instances with tokens as needed
   openshift:
-    instances: []
+    instances: {}
     # Example:
-    # - name: 1-test
-    #   apiUrl: "https://api.1-test.ocp.com:6443"
-    #   token: ""  # Set in secrets.dev.enc.yaml
-    #   namespace: "devstack-dev"
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   1-test:
+    #     apiUrl: "https://api.1-test.ocp.com:6443"
+    #     token: ""  # Set in secrets.dev.enc.yaml
+    #     namespace: "devstack-dev"
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Add Bitbucket instances with credentials as needed
   bitbucket:
-    instances: []
+    instances: {}
     # Example:
-    # - name: dev
-    #   baseUrl: "https://bitbucket.example.com"
-    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   dev:
+    #     baseUrl: "https://bitbucket.example.com"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Webhook Proxy Clusters for dev
   webhookProxy:
     clusters: []
@@ -258,14 +258,14 @@ externalServices:
   # Jira Instances
   jira:
     defaultInstance: "$JIRA_DEFAULT_INSTANCE"
-    instances: []
+    instances: {}
     # Example:
-    # - name: dev
-    #   baseUrl: "$JIRA_DEV_BASE_URL"
-    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   dev:
+    #     baseUrl: "$JIRA_DEV_BASE_URL"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
 # API Configuration Secrets
 apis:
   projectUsers:

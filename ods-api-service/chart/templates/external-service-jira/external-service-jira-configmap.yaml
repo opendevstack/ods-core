@@ -8,10 +8,10 @@ metadata:
     app.kubernetes.io/component: jira-config
 data:
   JIRA_DEFAULT_INSTANCE: {{ .Values.externalServices.jira.defaultInstance | quote }}
-  {{- range $index, $instance := .Values.externalServices.jira.instances }}
-  JIRA_{{ $instance.name | upper | replace "-" "_" }}_BASE_URL: {{ $instance.baseUrl | quote }}
-  JIRA_{{ $instance.name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
-  JIRA_{{ $instance.name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeout | quote }}
-  JIRA_{{ $instance.name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
+  {{- range $name, $instance := .Values.externalServices.jira.instances }}
+  JIRA_{{ $name | upper | replace "-" "_" }}_BASE_URL: {{ $instance.baseUrl | quote }}
+  JIRA_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
+  JIRA_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeout | quote }}
+  JIRA_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
   {{- end }}
 {{- end }}

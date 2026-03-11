@@ -18,6 +18,14 @@ ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
     INSECURE_FLAG = --insecure
 endif
 
+# ODS API Service configuration files
+env ?= dev
+ENV ?= $(env)
+env := $(ENV)
+ODS_CONFIGURATION_DIR := ../ods-configuration
+ODS_CONFIGURATION_FULL_PATH := $(abspath $(ODS_CONFIGURATION_DIR))
+ODS_API_SERVICE_DATABASE_REPO := $(ODS_API_SERVICE_DIR:-.../ods-api-service)
+
 # REPOSITORIES
 ## Prepare Bitbucket repos (create project and repos).
 prepare-bitbucket-repos:
@@ -195,8 +203,14 @@ start-ods-api-service-build:
 
 ## Apply OpenShift resources related to the Ods API Service.
 apply-ods-api-service-chart:
-	cd ods-api-service/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) \
-		-f values.yaml \
+	cd ods-api-service/chart && \
+	helm upgrade --install --namespace $(ODS_NAMESPACE) \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
 		--set projectId=$(ODS_NAMESPACE) \
 		--set appSelector=app=ods-api-service \
 		--set registry=$(DOCKER_REGISTRY) \
@@ -210,13 +224,136 @@ apply-ods-api-service-chart:
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_IMAGE_TAG) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
-		ods-api-service . && rm values.yaml
+		ods-api-service . 
 .PHONY: apply-ods-api-service-chart
 
 ## Configure ODS API Service (sets up PostgreSQL superuser for backup operations).
 configure-ods-api-service:
 	cd ods-api-service && ./configure.sh --namespace $(ODS_NAMESPACE)
 .PHONY: configure-ods-api-service
+
+##### HELM CHART MANAGEMENT
+.PHONY: helm-encrypt-secrets helm-decrypt-secrets helm-diff helm-render-ods-api-service helm-render-ods-api-service-application-yaml
+## Render ODS API Service Helm chart with all configurations (values and secrets).
+helm-render-ods-api-service:
+	@cd ods-api-service/chart && \
+	helm secrets template ods-api-service . \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN)
+
+## Render the generated application.yaml from Helm templates to a local file.
+helm-render-ods-api-service-application-yaml:
+	@cd ods-api-service/chart && \
+	helm secrets template ods-api-service . \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
+		2>/dev/null | \
+		yq -r 'select(.kind == "ConfigMap") | select(.metadata.name == "ods-api-service-config") | .data["application.yaml"]'
+		
+
+## Render the generated .env file from Helm templates to a local file.
+helm-render-ods-api-service-dot-env:
+	@cd ods-api-service/chart && \
+	 helm secrets template ods-api-service . \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) 2>/dev/null | ../../scripts/extract-config-env-from-template.sh
+
+
+
+
+helm-encrypt-secrets:
+	@echo "Usage: make helm-encrypt-secrets ENV=all|environment. It use ENV=dev by default if ENV is not set. It will encrypt secrets in the root of the configuration directory and in the environment-specific subdirectory (if it exists)."
+	@echo "       make helm-encrypt-secrets ODS_CONFIGURATION_DIR=path/to/config to specify a different configuration directory (default: ../ods-configuration)."
+
+	@echo "Encrypting secrets in $(ODS_CONFIGURATION_DIR)..."
+	./scripts/encrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR) $(ENV)
+	@echo "✓ Secrets encrypted"
+
+## Decrypt secrets files (ENV=<name>|all, omit for root folder only)
+helm-decrypt-secrets:
+	@echo "Usage: make helm-decrypt-secrets ENV=all|environment. It use ENV=dev by default if ENV is not set. It will decrypt secrets in the root of the configuration directory and in the environment-specific subdirectory (if it exists)."
+	@echo "       make helm-decrypt-secrets ODS_CONFIGURATION_DIR=path/to/config to specify a different configuration directory (default: ../ods-configuration)."
+
+	@echo "Decrypting secrets in $(ODS_CONFIGURATION_DIR)..."
+	./scripts/decrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR) $(ENV)
+	@echo "✓ Secrets decrypted"
+
+## Diff Helm chart against cluster using helm secrets diff
+helm-diff:
+	@echo "Running helm secrets diff (dry-run through Makefile)..."
+	@export HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true && helm -n devstack-dev secrets diff upgrade --install --atomic \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
+		--set projectId=devstack \
+		--set appSelector=app=devstack-api-service \
+		--set registry=image-registry.openshift-image-registry.svc:5000 \
+		--set componentId=api-service \
+		--set global.projectId=devstack \
+		--set global.appSelector=app=devstack-api-service \
+		--set global.registry=image-registry.openshift-image-registry.svc:5000 \
+		--set global.componentId=api-service \
+		--set imageNamespace=devstack-dev \
+		--set imageTag=b19c9164 \
+		--set global.imageNamespace=devstack-dev \
+		--set global.imageTag=b19c9164 \
+		--set ODS_OPENSHIFT_APP_DOMAIN=apps.eu-dev.ocp.aws.boehringer.com \
+		--no-color --three-way-merge --normalize-manifests \
+		api-service ./chart
 
 
 # BACKUP
@@ -256,3 +393,4 @@ help:
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 .PHONY: help
+
