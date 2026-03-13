@@ -6,11 +6,22 @@
 
 ### Changed
 - Jenkins master and agent maintenance. Add Rhel9 variant and make it default ([#1361](https://github.com/opendevstack/ods-core/pull/1361))
+
+### Fixed
+
+## [4.12.1] - 2026-03-03
+### Fixed
+- Fix api service dockerfile ([#1372](https://github.com/opendevstack/ods-core/pull/1372))
+
+## [4.12.0] - 2026-03-02
+### Changed
 - Improved automatic tests for the quickstarters ([#1362](https://github.com/opendevstack/ods-core/pull/1362))
 - Update keystore path in import_certs.sh script ([#1365](https://github.com/opendevstack/ods-core/pull/1365))
 - Added allure plugin and command line installation to jenkins master image ([#1364](https://github.com/opendevstack/ods-core/pull/1364))
+- Remove unnecessary configurations from ods-api-service ([#1366](https://github.com/opendevstack/ods-core/pull/1366))
 
 ### Fixed
+- Fix e2e jenkins artifacts fetch ([#1369](https://github.com/opendevstack/ods-core/pull/1369))
 
 ## [4.11.1] - 2025-12-05
 
