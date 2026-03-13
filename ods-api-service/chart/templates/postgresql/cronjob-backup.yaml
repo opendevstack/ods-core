@@ -38,7 +38,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: {{ include "chart.fullname" . }}-postgresql
-                      key: superuser-password
+                      key: ODS_API_SERVICE_DB_SUPERUSER_PASSWORD
               command:
                 - /bin/bash
                 - '-c'

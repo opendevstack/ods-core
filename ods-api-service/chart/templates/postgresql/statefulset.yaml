@@ -29,22 +29,22 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chart.fullname" . }}-postgresql
-                  key: database-user
+                  key: ODS_API_SERVICE_DB_USER
             - name: PGUSER
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chart.fullname" . }}-postgresql
-                  key: database-user
+                  key: ODS_API_SERVICE_DB_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chart.fullname" . }}-postgresql
-                  key: database-password
+                  key: ODS_API_SERVICE_DB_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
                   name: {{ include "chart.fullname" . }}-postgresql
-                  key: database-name
+                  key: ODS_API_SERVICE_DB_NAME
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           livenessProbe:

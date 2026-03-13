@@ -15,9 +15,29 @@ spring:
   profiles:
     active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
+    username: ${ODS_API_SERVICE_DB_USER:opendevstack}
+    password: ${ODS_API_SERVICE_DB_PASSWORD:opendevstack}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # Pool sizing — tune per environment
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      # NEVER auto-create/alter — Liquibase owns the schema
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Log slow queries (> 500 ms) via Hibernate statistics
+        generate_statistics: false
+    # Avoid lazy-loading pitfalls: keep Session scoped to Service, not Request
+    open-in-view: false
+    show-sql: false
 
 management:
   endpoints:
@@ -59,7 +79,7 @@ openapi:
 {{- end }}
 
 {{- if .Values.config.app }}
-# Declarative Security Configuration
+# App configuration
 app:
 {{ toYaml .Values.config.app | nindent 2 }}
 {{- end }}
@@ -69,10 +89,9 @@ otel:
 {{ toYaml .Values.config.otel | nindent 2 }}
 {{- end }}
 
-# External Service Configuration
-{{- if .Values.externalServices.aap.enabled }}
 automation:
   platform:
+{{- if .Values.externalServices.aap.enabled }}
     ansible:
       enabled: true
       base-url: ${ANSIBLE_BASE_URL}
@@ -103,45 +122,48 @@ automation:
         trust-store-type: ${UIPATH_SSL_TRUSTSTORE_TYPE:JKS}
 {{- end }}
 
-{{- if .Values.apis.projectUsers.enabled }}
+# API Configuration
 apis:
   project-users:
+    enabled: {{ .Values.apis.projectUsers.enabled }}
+{{- if .Values.apis.projectUsers.enabled }}
     ansible-workflow-name: ${API_PROJECT_USERS_WORKFLOW_NAME}
     token:
       secret: ${API_PROJECT_USERS_TOKEN_SECRET}
       expiration-hours: ${API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS}
 {{- end }}
 
+# External Service Configuration
 externalservices:
 {{- if gt (len .Values.externalServices.openshift.instances) 0 }}
   openshift:
     instances:
-{{- range .Values.externalServices.openshift.instances }}
-      {{ .name }}:
-        api-url: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_API_URL:https://api.dev.ocp.example.com:6443}
-        token: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_TOKEN}
-        namespace: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_NAMESPACE}
-        connection-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
-        read-timeout: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
-        trust-all-certificates: ${OPENSHIFT_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
+{{- range $name, $instance := .Values.externalServices.openshift.instances }}
+      {{ $name }}:
+        api-url: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_API_URL:https://api.dev.ocp.example.com:6443}
+        token: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_TOKEN}
+        namespace: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_NAMESPACE}
+        connection-timeout: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- end }}
 
 {{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
   bitbucket:
     instances:
-{{- range .Values.externalServices.bitbucket.instances }}
-      {{ .name }}:
-        base-url: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_BASE_REST_URL}
-{{- if .bearerToken }}
-        bearer-token: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_BEARER_TOKEN}
+{{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
+      {{ $name }}:
+        base-url: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_BASE_REST_URL}
+{{- if $instance.bearerToken }}
+        bearer-token: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_BEARER_TOKEN}
 {{- else }}
-        username: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_USERNAME:}
-        password: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_PASSWORD:}
+        username: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_USERNAME:}
+        password: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
 {{- end }}
-        connection-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
-        read-timeout: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
-        trust-all-certificates: ${BITBUCKET_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        connection-timeout: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- end }}
 
@@ -167,18 +189,18 @@ externalservices:
   jira:
     default-instance: ${JIRA_DEFAULT_INSTANCE:{{ .Values.externalServices.jira.defaultInstance }}}
     instances:
-{{- range .Values.externalServices.jira.instances }}
-      {{ .name }}:
-        base-url: ${JIRA_{{ .name | upper | replace "-" "_" }}_BASE_URL}
-{{- if .bearerToken }}
-        bearer-token: ${JIRA_{{ .name | upper | replace "-" "_" }}_BEARER_TOKEN:}
+{{- range $name, $instance := .Values.externalServices.jira.instances }}
+      {{ $name }}:
+        base-url: ${JIRA_{{ $name | upper | replace "-" "_" }}_BASE_URL}
+{{- if $instance.bearerToken }}
+        bearer-token: ${JIRA_{{ $name | upper | replace "-" "_" }}_BEARER_TOKEN:}
 {{- else }}
-        username: ${JIRA_{{ .name | upper | replace "-" "_" }}_USERNAME:}
-        password: ${JIRA_{{ .name | upper | replace "-" "_" }}_PASSWORD:}
+        username: ${JIRA_{{ $name | upper | replace "-" "_" }}_USERNAME:}
+        password: ${JIRA_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
 {{- end }}
-        connection-timeout: ${JIRA_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
-        read-timeout: ${JIRA_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
-        trust-all-certificates: ${JIRA_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        connection-timeout: ${JIRA_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${JIRA_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${JIRA_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- end }}
 {{- end -}}
