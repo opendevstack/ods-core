@@ -41,7 +41,7 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     sh -c 'chmod ugo+s $(which alternatives)' && \
     ls -la /usr/local/bin/use-j*.sh && \
     echo "--- STARTS JDK 21 TESTS ---" && \
-    use-j21.sh && \
+    source use-j21.sh && \
     echo "--- ENDS JDK 21 TESTS ---"
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh

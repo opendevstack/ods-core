@@ -36,3 +36,16 @@ else
   msg_and_exit "Cannot configure JAVA_HOME environment variable to ${JAVA_HOME}"
 fi
 echo "JAVA_HOME: $JAVA_HOME"
+
+# If not sourced, print the export command so parent shell can eval it
+if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
+  echo ""
+  echo "================================================================================="
+  echo "WARNING: Script executed as subprocess - JAVA_HOME will NOT persist!"
+  echo "-----"
+  echo "Usage Options:"
+  echo "  Option 1 (source):   source ${BASH_SOURCE[0]}"
+  echo "  Option 2 (dot):      . ${BASH_SOURCE[0]}"
+  echo "================================================================================="
+  echo ""
+fi
