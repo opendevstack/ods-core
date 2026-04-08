@@ -14,6 +14,15 @@ logging:
 spring:
   profiles:
     active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
+          issuer-uri: ${OAUTH2_ISSUER:}
+          audiences: 
+            - ${OAUTH2_AUDIENCE:}
+            - ${OAUTH2_AUDIENCE2:99999}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
@@ -21,72 +30,33 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       # Pool sizing — tune per environment
-      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
-      minimum-idle: ${DB_POOL_MIN_IDLE:2}
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      maximum-pool-size: ${HIKARI_POOL_MAX_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${HIKARI_IDLE_TIMEOUT:600000}
+      max-lifetime: ${HIKARI_MAX_LIFETIME:1800000}
   jpa:
     hibernate:
-      # NEVER auto-create/alter — Liquibase owns the schema
-      ddl-auto: validate
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:validate}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        # Log slow queries (> 500 ms) via Hibernate statistics
-        generate_statistics: false
-    # Avoid lazy-loading pitfalls: keep Session scoped to Service, not Request
-    open-in-view: false
-    show-sql: false
+        generate_statistics: ${JPA_HIBERNATE_GENERATE_STATISTICS:false}
+    open-in-view: ${JPA_OPEN_IN_VIEW:false}
+    show-sql: ${JPA_SHOW_SQL:false}
 
 management:
   endpoints:
     web:
       exposure:
-        include: {{ .Values.config.management.endpoints.web.exposure.include }}
-{{- if .Values.config.management.endpoint }}
-  endpoint:
-{{ toYaml .Values.config.management.endpoint | nindent 4 }}
-{{- end }}
-{{- if .Values.config.management.info }}
-  info:
-{{ toYaml .Values.config.management.info | nindent 4 }}
-{{- end }}
-{{- if .Values.config.management.httpexchanges }}
-  httpexchanges:
-{{ toYaml .Values.config.management.httpexchanges | nindent 4 }}
-{{- end }}
+        include: ${MANAGEMENT_ENDPOINTS_INCLUDE:health}
 
-{{- if .Values.config.springdoc }}
-springdoc:
-{{ toYaml .Values.config.springdoc | nindent 2 }}
-{{- end }}
-
-openapi:
-  info:
-    title: {{ .Values.config.openapi.info.title | quote }}
-    description: {{ .Values.config.openapi.info.description | quote }}
-    version: {{ .Values.config.openapi.info.version | quote }}
-    contact:
-      name: {{ .Values.config.openapi.info.contact.name | quote }}
-      email: {{ .Values.config.openapi.info.contact.email | quote }}
-{{- if .Values.config.openapi.servers }}
-  servers:
-{{- range .Values.config.openapi.servers }}
-    - url: {{ .url | quote }}
-      description: {{ .description | quote }}
-{{- end }}
-{{- end }}
-
-{{- if .Values.config.app }}
 # App configuration
-app:
-{{ toYaml .Values.config.app | nindent 2 }}
+{{- if .Values.config.app }}
+app: {{ toYaml .Values.config.app | nindent 2 }}
 {{- end }}
 
 {{- if .Values.config.otel }}
-otel:
-{{ toYaml .Values.config.otel | nindent 2 }}
+otel: {{ toYaml .Values.config.otel | nindent 2 }}
 {{- end }}
 
 automation:
@@ -107,6 +77,7 @@ automation:
 
 {{- if .Values.externalServices.uipath.enabled }}
     uipath:
+      enabled: true
       host: ${UIPATH_HOST}
       clientId: ${UIPATH_CLIENT_ID}
       clientSecret: ${UIPATH_CLIENT_SECRET}
@@ -127,11 +98,18 @@ apis:
   project-users:
     enabled: {{ .Values.apis.projectUsers.enabled }}
 {{- if .Values.apis.projectUsers.enabled }}
-    ansible-workflow-name: ${API_PROJECT_USERS_WORKFLOW_NAME}
+    ansible-workflow-name: ${API_PROJECT_USERS_WORKFLOW_NAME:}
     token:
-      secret: ${API_PROJECT_USERS_TOKEN_SECRET}
-      expiration-hours: ${API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS}
+      secret: ${API_PROJECT_USERS_TOKEN_SECRET:}
+      expiration-hours: ${API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS:}
 {{- end }}
+  project:
+    enabled: {{ .Values.apis.projects.enabled }}
+{{- if .Values.apis.projects.enabled }}
+    ansible-workflow-name: ${API_PROJECTS_MINIEDP_PROVISION_WORKFLOW_NAME}
+    locations: ${API_PROJECTS_LOCATIONS}
+{{- end }}
+
 
 # External Service Configuration
 externalservices:
@@ -204,3 +182,9 @@ externalservices:
 {{- end }}
 {{- end }}
 {{- end -}}
+
+services:
+  project:
+    ldap:
+      group:
+        pattern: "${SERVICE_PROJECT_LDAP_GROUP_PATTERN}"

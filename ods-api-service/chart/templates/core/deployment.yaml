@@ -69,6 +69,10 @@ spec:
             - secretRef:
                 name: {{ include "chart.fullname" . }}-project-users-credentials
           {{- end }}
+          {{- if .Values.apis.projects.enabled }}
+            - configMapRef:
+                name: {{ include "chart.fullname" . }}-projects-config
+          {{- end }}
           {{- if .Values.externalServices.uipath.enabled }}
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-uipath-config
