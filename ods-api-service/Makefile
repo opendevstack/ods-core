@@ -101,7 +101,7 @@ ods-api-service-helm-encrypt-secrets:
 	@echo "       make ods-api-service-helm-encrypt-secrets ODS_CONFIGURATION_DIR=path/to/config to specify a different configuration directory (default: ../ods-configuration)."
 
 	@echo "Encrypting secrets in $(ODS_CONFIGURATION_DIR)..."
-	./scripts/encrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR)/ods-api-service $(ENV)
+	../scripts/encrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR)/ods-api-service $(ENV)
 	@echo "✓ Secrets encrypted"
 
 ## Decrypt secrets files (ENV=<name>|all, omit for root folder only)
@@ -110,7 +110,7 @@ ods-api-service-helm-decrypt-secrets:
 	@echo "       make ods-api-service-helm-decrypt-secrets ODS_CONFIGURATION_DIR=path/to/config to specify a different configuration directory (default: ../ods-configuration)."
 
 	@echo "Decrypting secrets in $(ODS_CONFIGURATION_DIR)..."
-	./scripts/decrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR) $(ENV)
+	../scripts/decrypt-helm-secrets.sh $(ODS_CONFIGURATION_DIR) $(ENV)
 	@echo "✓ Secrets decrypted"
 
 ## Diff Helm chart against cluster using helm secrets diff
