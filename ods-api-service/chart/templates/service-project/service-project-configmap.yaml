@@ -1,9 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-service-project
-  labels:
-    {{- include "chart.labels" . | nindent 4 }}
-data:
-  SERVICE_PROJECT_LDAP_GROUP_PATTERN: {{ .Values.services.project.ldap.group.pattern }}

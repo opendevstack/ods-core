@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/schema#",
+  "description": "Helm values for ODS API Service. Runtime configuration consumed by the application pod is grouped into three functional domains: application, services, and externalServices.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -368,6 +369,36 @@
           "type": "string"
         }
       }
+    },
+    "env": {
+      "description": "Direct pod environment variables managed outside the domain-based ConfigMap and Secret split. Use this block for bootstrap variables such as Spring profile activation, OAuth endpoints, JVM options, and certificate installation URLs.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "config": {
+      "description": "Application-level Spring Boot configuration rendered into application.yaml. This belongs to the application domain and should contain non-secret settings such as logging, actuator, OpenTelemetry, and application security defaults.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "services": {
+      "description": "Internal services domain. Use this block for service-owned configuration that is not a third-party integration, such as LDAP patterns and internal service behaviour.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "apis": {
+      "description": "Internal API and workflow configuration. Values from this block are rendered into the services domain ConfigMap and Secret resources.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "externalServices": {
+      "description": "Third-party and platform integration domain. Use this block for external systems such as AAP, UiPath, OpenShift, Bitbucket, Jira, Jenkins, webhook proxy, and projects info service. Non-sensitive values are rendered into the external-services ConfigMap and credentials into the external-services Secret.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "postgresql": {
+      "description": "Database configuration for the embedded PostgreSQL deployment. Connection details are exposed to the application domain runtime resources.",
+      "type": "object",
+      "additionalProperties": true
     },
     "podAnnotations": {
       "description": "Annotations for the pod",
