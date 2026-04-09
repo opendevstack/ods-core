@@ -1,6 +1,4 @@
-{{/*
-Template for generating application.yaml dynamically from values
-*/}}
+{{/* Template for generating application.yaml dynamically from values */}}
 {{- define "chart.application.yaml" -}}
 server:
   port: 8080
@@ -20,9 +18,8 @@ spring:
         jwt:
           jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
           issuer-uri: ${OAUTH2_ISSUER:}
-          audiences: 
+          audiences:
             - ${OAUTH2_AUDIENCE:}
-            - ${OAUTH2_AUDIENCE2:99999}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
@@ -44,11 +41,7 @@ spring:
     open-in-view: ${JPA_OPEN_IN_VIEW:false}
     show-sql: ${JPA_SHOW_SQL:false}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: ${MANAGEMENT_ENDPOINTS_INCLUDE:health}
+management: {{toYaml .Values.config.management | nindent 2 }}
 
 # App configuration
 {{- if .Values.config.app }}
@@ -96,25 +89,21 @@ automation:
 # API Configuration
 apis:
   project-users:
-    enabled: {{ .Values.apis.projectUsers.enabled }}
-{{- if .Values.apis.projectUsers.enabled }}
+    enabled: {{ .Values.apis.projectUsers.enabled | default false }}
     ansible-workflow-name: ${API_PROJECT_USERS_WORKFLOW_NAME:}
     token:
       secret: ${API_PROJECT_USERS_TOKEN_SECRET:}
       expiration-hours: ${API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS:}
-{{- end }}
-  project:
-    enabled: {{ .Values.apis.projects.enabled }}
-{{- if .Values.apis.projects.enabled }}
-    ansible-workflow-name: ${API_PROJECTS_MINIEDP_PROVISION_WORKFLOW_NAME}
-    locations: ${API_PROJECTS_LOCATIONS}
-{{- end }}
+  projects:
+    enabled: {{ .Values.apis.projects.enabled | default false }}
+    ansible-workflow-name: ${API_PROJECTS_MINIEDP_PROVISION_WORKFLOW_NAME:}
+    locations: ${API_PROJECTS_LOCATIONS:}
 
 
 # External Service Configuration
 externalservices:
-{{- if gt (len .Values.externalServices.openshift.instances) 0 }}
   openshift:
+{{- if gt (len .Values.externalServices.openshift.instances) 0 }}
     instances:
 {{- range $name, $instance := .Values.externalServices.openshift.instances }}
       {{ $name }}:
@@ -125,10 +114,12 @@ externalservices:
         read-timeout: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
         trust-all-certificates: ${OPENSHIFT_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
+{{- else }}
+    instances: {}
 {{- end }}
 
-{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
   bitbucket:
+{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
     instances:
 {{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
       {{ $name }}:
@@ -143,19 +134,23 @@ externalservices:
         read-timeout: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
         trust-all-certificates: ${BITBUCKET_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
+{{- else }}
+    instances: {}
 {{- end }}
 
-{{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
   webhook-proxy:
+{{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
     clusters:
-{{- range .Values.externalServices.webhookProxy.clusters }}
-      {{ .name }}:
-        cluster-base: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_CLUSTER_BASE}
-        connection-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
-        read-timeout: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
-        trust-all-certificates: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_TRUST_ALL:false}
-        default-jenkinsfile-path: ${WEBHOOK_PROXY_{{ .name | upper | replace "-" "_" }}_JENKINSFILE_PATH:Jenkinsfile}
+{{- range $name, $cluster := .Values.externalServices.webhookProxy.clusters }}
+      {{ $name }}:
+        cluster-base: ${WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_CLUSTER_BASE}
+        connection-timeout: ${WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT:30000}
+        read-timeout: ${WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
+        trust-all-certificates: ${WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        default-jenkinsfile-path: ${WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_JENKINSFILE_PATH:Jenkinsfile}
 {{- end }}
+{{- else }}
+    clusters: {}
 {{- end }}
 
 {{- if .Values.externalServices.projectsInfoService.enabled }}
@@ -163,8 +158,8 @@ externalservices:
     base-url: ${PROJECTS_INFO_SERVICE_BASE_URL:http://localhost:8081}
 {{- end }}
 
-{{- if gt (len .Values.externalServices.jira.instances) 0 }}
   jira:
+{{- if gt (len .Values.externalServices.jira.instances) 0 }}
     default-instance: ${JIRA_DEFAULT_INSTANCE:{{ .Values.externalServices.jira.defaultInstance }}}
     instances:
 {{- range $name, $instance := .Values.externalServices.jira.instances }}
@@ -180,11 +175,14 @@ externalservices:
         read-timeout: ${JIRA_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT:30000}
         trust-all-certificates: ${JIRA_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
+{{- else }}
+    instances: {}
 {{- end }}
-{{- end -}}
 
 services:
   project:
     ldap:
       group:
         pattern: "${SERVICE_PROJECT_LDAP_GROUP_PATTERN}"
+
+{{- end -}}

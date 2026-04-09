@@ -1,4 +1,3 @@
-{{- if gt (len .Values.externalServices.jira.instances) 0 }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,6 +6,7 @@ metadata:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: jira-config
 data:
+{{- if gt (len .Values.externalServices.jira.instances) 0 }}
   JIRA_DEFAULT_INSTANCE: {{ .Values.externalServices.jira.defaultInstance | quote }}
   {{- range $name, $instance := .Values.externalServices.jira.instances }}
   JIRA_{{ $name | upper | replace "-" "_" }}_BASE_URL: {{ $instance.baseUrl | quote }}

@@ -233,9 +233,9 @@ configure-ods-api-service:
 .PHONY: configure-ods-api-service
 
 ##### HELM CHART MANAGEMENT
-.PHONY: helm-encrypt-secrets helm-decrypt-secrets helm-diff helm-render-ods-api-service helm-render-ods-api-service-application-yaml
+.PHONY: helm-encrypt-secrets helm-decrypt-secrets helm-diff ods-api-service-render-helm-chart helm-render-ods-api-service-application-yaml
 ## Render ODS API Service Helm chart with all configurations (values and secrets).
-helm-render-ods-api-service:
+ods-api-service-render-helm-chart:
 	@cd ods-api-service/chart && \
 	helm secrets template ods-api-service . \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
@@ -258,8 +258,31 @@ helm-render-ods-api-service:
 		--set global.imageTag=$(ODS_IMAGE_TAG) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN)
 
+ods-api-service-render-application-yaml-debug:
+	@cd ods-api-service/chart && \
+	helm secrets lint ods-api-service . \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/$(env)/ods-api-service.secrets.$(env).enc.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN)
+
 ## Render the generated application.yaml from Helm templates to a local file.
-helm-render-ods-api-service-application-yaml:
+ods-api-service-render-application-yaml:
 	@cd ods-api-service/chart && \
 	helm secrets template ods-api-service . \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
@@ -286,7 +309,7 @@ helm-render-ods-api-service-application-yaml:
 		
 
 ## Render the generated .env file from Helm templates to a local file.
-helm-render-ods-api-service-dot-env:
+ods-api-service-renderdot-env:
 	@cd ods-api-service/chart && \
 	 helm secrets template ods-api-service . \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
@@ -308,9 +331,6 @@ helm-render-ods-api-service-dot-env:
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_IMAGE_TAG) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) 2>/dev/null | ../../scripts/extract-config-env-from-template.sh
-
-
-
 
 helm-encrypt-secrets:
 	@echo "Usage: make helm-encrypt-secrets ENV=all|environment. It use ENV=dev by default if ENV is not set. It will encrypt secrets in the root of the configuration directory and in the environment-specific subdirectory (if it exists)."

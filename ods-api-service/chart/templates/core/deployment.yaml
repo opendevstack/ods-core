@@ -30,7 +30,6 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          # Priority is on Values from CICD jenkins injected Helm values, if not then use values from values.yaml
           image: {{ include "image.fullname" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -52,69 +51,67 @@ spec:
               value: {{ .Values.env.OAUTH2_JWK_SET_URI | quote }}
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS | quote }}
+
+          # Injecting all configmaps and secrets as environment variables
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-config-db
             - secretRef:
                 name: {{ .Release.Name }}-config-db-secret
-          {{- if .Values.externalServices.aap.enabled }}
+            - configMapRef:
+                name: {{ .Release.Name }}-service-project
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-aap-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-aap-credentials
-          {{- end }}
-          {{- if .Values.apis.projectUsers.enabled }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-project-users-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-project-users-credentials
-          {{- end }}
-          {{- if .Values.apis.projects.enabled }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-projects-config
-          {{- end }}
-          {{- if .Values.externalServices.uipath.enabled }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-uipath-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-uipath-credentials
-          {{- end }}
-          {{- if .Values.externalServices.projectsInfoService.enabled }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-projects-info-service-config
-          {{- end }}
-          {{- if gt (len .Values.externalServices.openshift.instances) 0 }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-openshift-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-openshift-credentials
-          {{- end }}
-          {{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-bitbucket-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-bitbucket-credentials
-          {{- end }}
-          {{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-webhook-proxy-config
-          {{- end }}
-          {{- if gt (len .Values.externalServices.jenkins.environments) 0 }}
+
             - secretRef:
                 name: {{ include "chart.fullname" . }}-jenkins-credentials
-          {{- end }}
-          {{- if gt (len .Values.externalServices.jira.instances) 0 }}
+
             - configMapRef:
                 name: {{ include "chart.fullname" . }}-jira-config
             - secretRef:
                 name: {{ include "chart.fullname" . }}-jira-credentials
-          {{- end }}
+
           livenessProbe:
             {{- toYaml .Values.probes.livenessProbe | nindent 12 }}
+
           readinessProbe:
             {{- toYaml .Values.probes.readinessProbe | nindent 12 }}
+
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
           volumeMounts:
             - name: spring-config
               mountPath: /home/default/config/
