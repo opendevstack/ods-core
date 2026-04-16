@@ -1,4 +1,4 @@
-FROM quay.io/openshift/origin-jenkins-agent-base
+FROM registry.redhat.io/ocp-tools-4/jenkins-agent-base-rhel9:v4.19.0-1758206850
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
