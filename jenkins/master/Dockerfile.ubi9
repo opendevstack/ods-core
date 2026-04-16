@@ -1,6 +1,6 @@
-FROM quay.io/openshift/origin-jenkins
+FROM registry.redhat.io/ocp-tools-4/jenkins-rhel9:v4.19.0-1758208739
 
-ENV JAVA_HOME /usr/lib/jvm/jre-17
+ENV JAVA_HOME /usr/lib/jvm/jre-21
 
 # ODS defaults, available to use within pipelines.
 ARG ODS_NAMESPACE

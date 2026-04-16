@@ -14,12 +14,19 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v4.2.2
       -
-        name: Build UBI8 docker image
+        name: Login to Red Hat Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.redhat.io
+          username: ${{ secrets.REDHAT_REGISTRY_USERNAME }}
+          password: ${{ secrets.REDHAT_REGISTRY_PASSWORD }}
+      -
+        name: Build UBI9 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-master-ubi8 \
+          --imagename ods-jenkins-master-ubi9 \
           --dockerdir jenkins/master \
-          --dockerfile Dockerfile.ubi8
+          --dockerfile Dockerfile.ubi9
 
   jenkins-agent-base:
     name: Jenkins agent base tests
@@ -28,24 +35,21 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v4.2.2
-      - name: Build UBI8 docker image
+      -
+        name: Login to Red Hat Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.redhat.io
+          username: ${{ secrets.REDHAT_REGISTRY_USERNAME }}
+          password: ${{ secrets.REDHAT_REGISTRY_PASSWORD }}
+      - name: Build UBI9 docker image
         run: |
           ./.github/workflows/build-docker-image.sh \
-          --imagename ods-jenkins-agent-base-ubi8 \
+          --imagename ods-jenkins-agent-base-ubi9 \
           --dockerdir jenkins/agent-base \
-          --dockerfile Dockerfile.ubi8 \
+          --dockerfile Dockerfile.ubi9 \
           --build-arg SNYK_DISTRIBUTION_URL="https://github.com/snyk/snyk/releases/download/v1.1097.0/snyk-linux"
-      - name: Push UBI8 docker image
-        if: success() && github.repository == 'opendevstack/ods-core' && github.event_name == 'push'
-        shell: bash
-        env:
-          DOCKER_USER: ${{ secrets.DockerHubUser }}
-          DOCKER_PASS: ${{ secrets.DockerHubPass }}
-        run: |
-          ./.github/workflows/push-docker-image.sh \
-          --user "$DOCKER_USER" \
-          --password "$DOCKER_PASS" \
-          --imagename ods-jenkins-agent-base-ubi8
+
   sonarqube:
     name: SonarQube tests
     runs-on: ubuntu-22.04

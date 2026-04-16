@@ -1,7 +1,7 @@
 #!/bin/bash
 
-JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-17-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
-JAVA_VERSION="17"
+JAVA_VERSION="21"
+JAVA_HOME_FOLDER=$(ls -lah /usr/lib/jvm | grep "java-${JAVA_VERSION}-openjdk-.*\.x86_64" | awk '{print $NF}' | head -1)
 
 function msg_and_exit() {
   echo "ERROR: ${1}"
@@ -36,3 +36,16 @@ else
   msg_and_exit "Cannot configure JAVA_HOME environment variable to ${JAVA_HOME}"
 fi
 echo "JAVA_HOME: $JAVA_HOME"
+
+# If not sourced, print the export command so parent shell can eval it
+if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
+  echo ""
+  echo "================================================================================="
+  echo "WARNING: Script executed as subprocess - JAVA_HOME will NOT persist!"
+  echo "-----"
+  echo "Usage Options:"
+  echo "  Option 1 (source):   source ${BASH_SOURCE[0]}"
+  echo "  Option 2 (dot):      . ${BASH_SOURCE[0]}"
+  echo "================================================================================="
+  echo ""
+fi

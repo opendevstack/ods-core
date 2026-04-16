@@ -1,4 +1,4 @@
-FROM quay.io/openshift/origin-jenkins-agent-base
+FROM registry.redhat.io/ocp-tools-4/jenkins-agent-base-rhel9:v4.19.0-1758206850
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -40,9 +40,9 @@ RUN chmod +x /usr/local/bin/use-j*.sh && \
     chmod ugo+s /usr/local/bin/use-j*.sh && \
     sh -c 'chmod ugo+s $(which alternatives)' && \
     ls -la /usr/local/bin/use-j*.sh && \
-    echo "--- STARTS JDK 17 TESTS ---" && \
-    use-j17.sh && \
-    echo "--- ENDS JDK 17 TESTS ---"
+    echo "--- STARTS JDK 21 TESTS ---" && \
+    source use-j21.sh && \
+    echo "--- ENDS JDK 21 TESTS ---"
 
 COPY ./import_certs.sh /usr/local/bin/import_certs.sh
 COPY ./fix_java_certs_permissions.sh /usr/local/bin/fix_java_certs_permissions.sh
