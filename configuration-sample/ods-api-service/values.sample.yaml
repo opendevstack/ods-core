@@ -1,0 +1,226 @@
+## The number of replicas to deploy.
+replicaCount: 1
+
+imagePullSecrets: []
+nameOverride: ""
+
+image:
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: 'openshift-default'
+  annotations:
+    haproxy.router.openshift.io/timeout: 300s
+    haproxy.router.openshift.io/timeout-tunnel: 300s
+
+  hosts: [] # When defining a host you must define also a path
+  tls: [] # If `tls` is left empty then the default OpenShift TLS config will be loaded (i.e.: TLS edge termination with HTTP redirect to HTTPS)
+
+service:
+  enabled: true
+  port: 8080
+  type: ClusterIP
+
+# There are two types of strategy: `Recreate` and `RollingUpdate`
+# Please refer to https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0%
+    maxSurge: 50%
+
+probes:
+  livenessProbe:
+    failureThreshold: 10
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 5
+
+  readinessProbe:
+    failureThreshold: 5
+    httpGet:
+      path: "/actuator/health"
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 5
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 2Gi
+  requests:
+    cpu: 250m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+podAntiAffinity: soft
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+# Environment variables
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  # Certificate URLs to be installed at container startup
+  CERT_URLS: "https://pki.example.com/pki/root-ca.crt,https://pki.example.com/pki/issuing-ca-01.crt,https://pki.example.com/pki/issuing-ca-01-copy.crt"
+  OAUTH2_ISSUER: "https://sts.windows.net/00000000-0000-0000-0000-000000000000/"
+  OAUTH2_AUDIENCE: "example-environment-audience"
+  OAUTH2_JWK_SET_URI: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/discovery/keys"
+  JAVA_OPTS: ""
+
+######################################################################################################
+## Application-specific configuration
+######################################################################################################
+config:
+  debug: false
+  logging:
+    level:
+      org.springframework: INFO
+      org.opendevstack.apiservice: INFO
+  
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-components: always
+        show-details: always    
+  spring: {}
+  
+  otel:
+    exporter:
+      otlp:
+        endpoint: http://opentelemetry-collector-ods.apps.example.com/v1/traces
+    metrics:
+      exporter: none
+    resource:
+      attributes: service.name=ods-api-service,service.version=0.0.3-SNAPSHOT,deployment.environment=development
+    service:
+      name: ods-api-service-dev
+      version: 0.0.3-SNAPSHOT
+    traces:
+      exporter: logging,otlp
+      sampler: parentbased_traceidratio
+      sampler_arg: 1
+
+  custom: {}
+
+  environment: dev
+
+  # Declarative Security Configuration
+  app:
+    security:
+      public-endpoints:
+        - /actuator/health
+        - /actuator/info
+
+
+# External Services Configuration
+externalServices:
+  # AAP/Ansible Automation Platform
+  aap:
+    enabled: false
+    baseUrl: ""
+    username: ""
+    timeout: 30000
+    ssl:
+      verifyCertificates: true
+      trustStorePath: ""
+      trustStoreType: "JKS"
+  
+  # UIPath Orchestrator
+  uipath:
+    enabled: false
+  
+  # Projects Info Service
+  projectsInfoService:
+    enabled: false
+
+  # OpenShift Instances
+  openshift:
+    instances: {}
+  
+  # Bitbucket Instances
+  bitbucket:
+    instances: {}
+  
+  # Webhook Proxy Clusters
+  webhookProxy:
+    clusters: []
+  
+  # Jenkins Environments
+  jenkins:
+    environments: []
+
+  # Jira Instances
+  jira:
+    defaultInstance: "jira-default"
+    instances: {}
+
+# API Configuration
+apis:
+  projectUsers:
+    enabled: true
+    workflowName: ""
+    token:
+      expirationHours: 24
+  projects:
+    enabled: true
+    workflowName: ""
+    locations: []
+
+# Environment-specific configuration (loaded based on active profile)
+envConfig: {}
+
+
+
+##############################################################################################
+## PostgreSQL database configuration
+##############################################################################################
+postgresql:
+  ## Internal OpenShift registry and namespace where the built image is stored.
+  ## The image is built via the BuildConfig using Dockerfile.database (base: public.ecr.aws/docker/library/postgres:18-alpine)
+  internalRegistry: image-registry.openshift-image-registry.svc:5000
+  odsNamespace: example-cd
+  odsImageTag: 4.x
+  ## Plain-text database details (used in backup scripts and connection strings)
+  databaseName: ods_api_service
+  databaseUser: ods_api_service
+  ## Name of the PostgreSQL superuser (default 'postgres' in official image)
+  superuserName: postgres
+  ## Base64-encoded credentials stored in the Secret
+  databaseNameB64: "<BASE64_REDACTED>"
+  databaseUserB64: "<BASE64_REDACTED>"
+  ## Resource limits/requests for the PostgreSQL container
+  cpuLimit: 1
+  cpuRequest: 200m
+  memLimit: 512Mi
+  memRequest: 256Mi
+  ## PVC storage for database data
+  pvcDatabaseCapacity: 2Gi
+  storageClassName: gp3-csi
+  storageProvisioner: ebs.csi.aws.com
+  ## Backup configuration
+  backup:
+    ## The backup job uses the same built image as the DB container (includes psql + oc CLI)
+    ## Snapshots are created in the namespace defined by postgresql.odsNamespace
+    ## Cron schedule for the backup job (default: daily at 02:00)
+    schedule: "0 2 * * *"
+    ## VolumeSnapshotClass used for storage snapshots
+    snapshotStorageClass: csi-aws-vsc
+    successHistoryLimit: 30
+    failedHistoryLimit: 30
