@@ -84,3 +84,58 @@ objects:
         sourceSecret:
           name: cd-user-token
       runPolicy: Serial
+
+  # ImageStream for the ODS API Service PostgreSQL database
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ods-api-service-postgresql
+      namespace: ${ODS_NAMESPACE}
+      labels:
+        app: ods-api-service
+        component: postgresql
+    spec:
+      lookupPolicy:
+        local: false
+
+  # BuildConfig for ODS API Service PostgreSQL database
+  # Uses Dockerfile.database (base: public.ecr.aws/docker/library/postgres:18-alpine + oc CLI)
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: ods-api-service-postgresql
+      namespace: ${ODS_NAMESPACE}
+      labels:
+        app: ods-api-service
+        component: postgresql
+    spec:
+      nodeSelector: null
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ods-api-service-postgresql:${ODS_IMAGE_TAG}
+      resources:
+        limits:
+          cpu: '1'
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+      successfulBuildsHistoryLimit: 5
+      failedBuildsHistoryLimit: 5
+      strategy:
+        type: Docker
+        dockerStrategy:
+          dockerfilePath: Dockerfile.database
+          forcePull: true
+          noCache: true
+      postCommit: {}
+      source:
+        type: Git
+        git:
+          uri: ${BITBUCKET_URL}/scm/${ODS_BITBUCKET_PROJECT}/ods-core.git
+          ref: ${ODS_GIT_REF}
+        contextDir: ods-api-service/docker
+        sourceSecret:
+          name: cd-user-token
+      runPolicy: Serial

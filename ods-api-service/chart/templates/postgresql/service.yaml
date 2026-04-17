@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+  name: {{ include "chart.fullname" . }}-postgresql
+spec:
+  ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    app: {{ include "chart.fullname" . }}-postgresql
+  sessionAffinity: None
+  type: ClusterIP

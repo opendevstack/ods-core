@@ -1,0 +1,17 @@
+---
+# Third-party and platform integration non-sensitive runtime settings
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-external-services-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: external-services-config
+    ods.opendevstack.io/runtime-domain: external-services
+{{- $externalServicesConfig := include "chart.externalServicesConfigData" . | trim }}
+data:
+{{- if $externalServicesConfig }}
+{{ $externalServicesConfig | nindent 2 }}
+{{- else }}
+  {}
+{{- end }}

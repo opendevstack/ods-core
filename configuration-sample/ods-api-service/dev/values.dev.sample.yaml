@@ -1,0 +1,141 @@
+config:
+  logging:
+    level:
+      org.springframework: INFO
+      org.springframework.security: TRACE
+      org.opendevstack.apiservice.externalservice: DEBUG
+      org.opendevstack.apiservice: DEBUG
+      org.hibernate.SQL: DEBUG
+      org.hibernate.too.schema.internal: DEBUG
+  app:
+    security:
+      public-endpoints:
+        - /actuator/health
+        - /actuator/info
+        - /api/v1/projects/*/platforms
+
+services:
+  project:
+    ldap:
+      group:
+        pattern: 'CN=EXAMPLE-ATLASSIAN-P-{{projectKey}}-{{role}},OU=EXAMPLE-managed,DC=example,DC=com'
+
+externalServices:
+  aap:
+    enabled: true
+    baseUrl: "https://aap.example.internal/api/v2/"
+    username: "service-account"
+    timeout: 30000
+    ssl:
+      verifyCertificates: true
+      trustStorePath: "custom-truststore.jks"
+      trustStoreType: "JKS"
+
+  uipath:
+    enabled: true
+    host: "https://uipath.example.internal"
+    clientId: "EXAMPLE_CLIENT_ID"
+    tenancyName: "default"
+    organizationUnitId: "000"
+    loginEndpoint: "/api/Account/Authenticate"
+    queueItemsEndpoint: "/odata/QueueItems"
+    timeout: 30000
+    ssl:
+      verifyCertificates: true
+      trustStorePath: "custom-truststore.jks"
+      trustStoreType: "JKS"
+
+  projectsInfoService:
+    enabled: true
+    baseUrl: "https://projects-info-service.example.com/v1"
+    ssl:
+      verifyCertificates: true
+      trustStorePath: "custom-truststore.jks"
+      trustStoreType: "JKS"
+
+  openshift:
+    instances:
+      US_TEST:
+        apiUrl: "https://api.us-test.example.com:6443"
+        namespace: "example-cd"
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+      EU_DEV:
+        apiUrl: "https://api.eu-dev.example.com:6443"
+        namespace: "example-dev"
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+
+  bitbucket:
+    enabled: true
+    instances:
+      bitbucket-romip:
+        baseUrl: https://bitbucket.example.com
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+      bitbucket-dev:
+        baseUrl: http://bitbucket-dev.example.com
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+      bitbucket:
+        baseUrl: http://bitbucket.example.com
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+
+  jira:
+    instances:
+      jira-romip:
+        baseUrl: https://jira.example.com
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+      jira-dev:
+        baseUrl: http://jira-dev.example.com
+        connectionTimeout: 30000
+        readTimeout: 30000
+        trustAllCertificates: true
+
+  webhookProxy:
+    clusters:
+      us-test:
+        clusterBase: "apps.us-test.example.com"
+        connectionTimeout: "30000"
+        readTimeout: "30000"
+
+apis:
+  projectUsers:
+    enabled: true
+    workflowName: "example-api-service - add-user-to-project-workflow++EXAMPLE"
+  projects:
+    enabled: true
+    workflowName: "example - Project Provision Workflow++Sandbox"
+    locations:
+      - "eu-dev"
+      - "us-test"
+
+postgresql:
+  internalRegistry: image-registry.openshift-image-registry.svc:5000
+  odsNamespace: example-cd
+  odsImageTag: 4.x
+  databaseName: ods_api_service
+  databaseUser: ods_api_service
+  superuserName: postgres
+  databaseNameB64: "<BASE64_REDACTED>"
+  databaseUserB64: "<BASE64_REDACTED>"
+  cpuLimit: 1
+  cpuRequest: 200m
+  memLimit: 512Mi
+  memRequest: 256Mi
+  pvcDatabaseCapacity: 2Gi
+  storageClassName: gp3-csi
+  storageProvisioner: ebs.csi.aws.com
+  backup:
+    schedule: "0 2 * * *"
+    snapshotStorageClass: csi-aws-vsc
+    successHistoryLimit: 30
+    failedHistoryLimit: 30

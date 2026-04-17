@@ -3,7 +3,7 @@ name: ods-api-service
 description: A Helm chart for deploying ODS API Service on OpenShift
 type: application
 version: 0.1.0
-appVersion: "0.0.1-SNAPSHOT"
+appVersion: "0.0.3"
 maintainers:
   - name: ODS Team
 keywords:
