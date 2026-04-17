@@ -8,6 +8,7 @@
 - Jenkins master and agent maintenance. Add Rhel9 variant and make it default ([#1361](https://github.com/opendevstack/ods-core/pull/1361))
 - Update tailor to 1.4.0 ([#1373](https://github.com/opendevstack/ods-core/pull/1373))
 - Update Jenkins java version to jdk 21 ([#1374](https://github.com/opendevstack/ods-core/pull/1374))
+- Add new configuration for the ODS API Service ([1375](https://github.com/opendevstack/ods-core/pull/1375))
 
 ### Fixed
 

@@ -18,6 +18,14 @@ ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
     INSECURE_FLAG = --insecure
 endif
 
+# ODS API Service configuration files
+env ?= dev
+ENV ?= $(env)
+env := $(ENV)
+ODS_CONFIGURATION_DIR := ../ods-configuration
+ODS_CONFIGURATION_FULL_PATH := $(abspath $(ODS_CONFIGURATION_DIR))
+ODS_API_SERVICE_DATABASE_REPO := $(ODS_API_SERVICE_DIR:-.../ods-api-service)
+
 # REPOSITORIES
 ## Prepare Bitbucket repos (create project and repos).
 prepare-bitbucket-repos:
@@ -184,19 +192,25 @@ start-opentelemetry-collector-build:
 
 # ODS API SERVICE
 ## Install or update Ods API Service.
-install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart
+install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart configure-ods-api-service
 .PHONY: ods-api-service
 
 ## Start build of BuildConfig "Ods API Service".
 start-ods-api-service-build:
 	cd ods-api-service/build-config && oc process -f template.yaml -p ODS_NAMESPACE=$(ODS_NAMESPACE) -p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) -p BITBUCKET_URL=$(BITBUCKET_URL) -p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) -p ODS_GIT_REF=$(ODS_GIT_REF) -p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
 .PHONY: start-ods-api-service-build
 
 ## Apply OpenShift resources related to the Ods API Service.
 apply-ods-api-service-chart:
-	cd ods-api-service/chart && envsubst < values.yaml.template > values.yaml && helm upgrade --install --namespace $(ODS_NAMESPACE) \
-		-f values.yaml \
+	cd ods-api-service/chart && \
+	helm secrets upgrade --install --namespace $(ODS_NAMESPACE) \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml \
 		--set projectId=$(ODS_NAMESPACE) \
 		--set appSelector=app=ods-api-service \
 		--set registry=$(DOCKER_REGISTRY) \
@@ -210,9 +224,13 @@ apply-ods-api-service-chart:
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_IMAGE_TAG) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
-		ods-api-service . && rm values.yaml
+		ods-api-service . 
 .PHONY: apply-ods-api-service-chart
 
+## Configure ODS API Service (sets up PostgreSQL superuser for backup operations).
+configure-ods-api-service:
+	cd ods-api-service && ./configure.sh --namespace $(ODS_NAMESPACE)
+.PHONY: configure-ods-api-service
 
 # BACKUP
 ## Create a backup of the current state.
@@ -251,3 +269,4 @@ help:
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 .PHONY: help
+

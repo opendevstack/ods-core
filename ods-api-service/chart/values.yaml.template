@@ -74,7 +74,7 @@ env:
   OAUTH2_ISSUER: "$OAUTH2_ISSUER"
   OAUTH2_AUDIENCE: "$OAUTH2_AUDIENCE"
   OAUTH2_JWK_SET_URI: "$OAUTH2_JWK_SET_URI"
-  JAVA_OPTS: "$JAVA_OPTS"
+  JAVA_OPTS: $JAVA_OPTS
 # Development-specific configuration
 config:
   debug: true
@@ -186,7 +186,7 @@ externalServices:
     baseUrl: "$AAP_BASE_URL"
     # username and password should be set via environment variables
     username: "$AAP_USERNAME"
-    password: "$AAP_PASSWORD"
+    password: $AAP_PASSWORD
     timeout: 30000
     ssl:
       verifyCertificates: false
@@ -213,27 +213,32 @@ externalServices:
   projectsInfoService:
     enabled: true
     baseUrl: "$PROJECTS_INFO_SERVICE_BASE_URL"
+    ssl:
+      verifyCertificates: false
+      trustStorePath: ""
+      trustStorePassword: ""
+      trustStoreType: "JKS"
   # Add OpenShift instances with tokens as needed
   openshift:
-    instances: []
+    instances: {}
     # Example:
-    # - name: 1-test
-    #   apiUrl: "https://api.1-test.ocp.com:6443"
-    #   token: ""  # Set in secrets.dev.enc.yaml
-    #   namespace: "devstack-dev"
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   1-test:
+    #     apiUrl: "https://api.1-test.ocp.com:6443"
+    #     token: ""  # Set in secrets.dev.enc.yaml
+    #     namespace: "devstack-dev"
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Add Bitbucket instances with credentials as needed
   bitbucket:
-    instances: []
+    instances: {}
     # Example:
-    # - name: dev
-    #   baseUrl: "https://bitbucket.example.com"
-    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   dev:
+    #     baseUrl: "https://bitbucket.example.com"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Webhook Proxy Clusters for dev
   webhookProxy:
     clusters: []
@@ -250,17 +255,64 @@ externalServices:
     # Example:
     # - name: eu-dev
     #   apiToken: ""  # Set in secrets.dev.enc.yaml
+  # Jira Instances
+  jira:
+    defaultInstance: "$JIRA_DEFAULT_INSTANCE"
+    instances: {}
+    # Example:
+    #   dev:
+    #     baseUrl: "$JIRA_DEV_BASE_URL"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
 # API Configuration Secrets
 apis:
   projectUsers:
     enabled: true
-    workflowName: "$PROJECT_USERS_WORKFLOW_NAME"
+    workflowName: $PROJECT_USERS_WORKFLOW_NAME
     token:
       # JWT secret key (minimum 256 bits / 32 characters)
       secret: "$PROJECT_USERS_JWT_SECRET"
       expirationHours: $PROJECT_USERS_JWT_EXPIRATION_HOURS
 # Environment-specific configuration (loaded based on active profile)
 envConfig: {}
+## PostgreSQL database configuration
+postgresql:
+  ## Internal OpenShift registry and namespace where the built image is stored.
+  ## The image is built via the BuildConfig using Dockerfile.database (base: public.ecr.aws/docker/library/postgres:18-alpine)
+  internalRegistry: $ODS_API_SERVICE_DB_INTERNAL_REGISTRY
+  odsNamespace: $ODS_NAMESPACE
+  odsImageTag: $ODS_IMAGE_TAG
+  ## Plain-text database details (used in backup scripts and connection strings)
+  databaseName: $ODS_API_SERVICE_DB_NAME
+  databaseUser: $ODS_API_SERVICE_DB_USER
+  ## Name of the PostgreSQL superuser (default 'postgres' in official image)
+  superuserName: $ODS_API_SERVICE_DB_SUPER_NAME
+  ## Base64-encoded credentials stored in the Secret
+  databaseNameB64: $ODS_API_SERVICE_DB_NAME_B64
+  databaseUserB64: $ODS_API_SERVICE_DB_USER_B64
+  databasePasswordB64: $ODS_API_SERVICE_DB_PASSWORD_B64
+  superuserPasswordB64: $ODS_API_SERVICE_DB_SUPER_PASSWORD_B64
+  ## Resource limits/requests for the PostgreSQL container
+  cpuLimit: $ODS_API_SERVICE_DB_CPU_LIMIT
+  cpuRequest: $ODS_API_SERVICE_DB_CPU_REQUEST
+  memLimit: $ODS_API_SERVICE_DB_MEMORY_LIMIT
+  memRequest: $ODS_API_SERVICE_DB_MEMORY_REQUEST
+  ## PVC storage for database data
+  pvcDatabaseCapacity: $ODS_API_SERVICE_DB_CAPACITY
+  storageClassName: $ODS_API_SERVICE_DB_STORAGE_CLASS
+  storageProvisioner: $ODS_API_SERVICE_DB_STORAGE_PROVISIONER
+  ## Backup configuration
+  backup:
+    ## The backup job uses the same built image as the DB container (includes psql + oc CLI)
+    ## Snapshots are created in the namespace defined by postgresql.odsNamespace
+    ## Cron schedule for the backup job (default: daily at 02:00)
+    schedule: $ODS_API_SERVICE_DB_BACKUP_SCHEDULE
+    ## VolumeSnapshotClass used for storage snapshots
+    snapshotStorageClass: $ODS_API_SERVICE_DB_BACKUP_SNAPSHOT_CLASS
+    successHistoryLimit: $ODS_API_SERVICE_DB_BACKUP_SUCCESS_HISTORY_LIMIT
+    failedHistoryLimit: $ODS_API_SERVICE_DB_BACKUP_FAILED_HISTORY_LIMIT
 resources:
   limits:
     cpu: 500m

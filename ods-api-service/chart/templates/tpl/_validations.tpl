@@ -68,18 +68,15 @@ Validate Projects Info Service configuration when enabled
 Validate OpenShift instances configuration
 */}}
 {{- define "chart.validate.openshift" -}}
-{{- range .Values.externalServices.openshift.instances }}
-  {{- if not .name }}
-    {{- fail "name is required for each OpenShift instance" }}
+{{- range $name, $instance := .Values.externalServices.openshift.instances }}
+  {{- if not $instance.apiUrl }}
+    {{- fail (printf "apiUrl is required for OpenShift instance '%s'" $name) }}
   {{- end }}
-  {{- if not .apiUrl }}
-    {{- fail (printf "apiUrl is required for OpenShift instance '%s'" .name) }}
+  {{- if not $instance.token }}
+    {{- fail (printf "token is required for OpenShift instance '%s'" $name) }}
   {{- end }}
-  {{- if not .token }}
-    {{- fail (printf "token is required for OpenShift instance '%s'" .name) }}
-  {{- end }}
-  {{- if not .namespace }}
-    {{- fail (printf "namespace is required for OpenShift instance '%s'" .name) }}
+  {{- if not $instance.namespace }}
+    {{- fail (printf "namespace is required for OpenShift instance '%s'" $name) }}
   {{- end }}
 {{- end }}
 {{- end -}}
@@ -88,15 +85,26 @@ Validate OpenShift instances configuration
 Validate Bitbucket instances configuration
 */}}
 {{- define "chart.validate.bitbucket" -}}
-{{- range .Values.externalServices.bitbucket.instances }}
-  {{- if not .name }}
-    {{- fail "name is required for each Bitbucket instance" }}
+{{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
+  {{- if not $instance.baseUrl }}
+    {{- fail (printf "baseUrl is required for Bitbucket instance '%s'" $name) }}
   {{- end }}
-  {{- if not .baseUrl }}
-    {{- fail (printf "baseUrl is required for Bitbucket instance '%s'" .name) }}
+  {{- if and (not $instance.bearerToken) (and (not $instance.username) (not $instance.password)) }}
+    {{- fail (printf "either bearerToken or username+password is required for Bitbucket instance '%s'" $name) }}
   {{- end }}
-  {{- if and (not .bearerToken) (and (not .username) (not .password)) }}
-    {{- fail (printf "either bearerToken or username+password is required for Bitbucket instance '%s'" .name) }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Validate Jira instances configuration
+*/}}
+{{- define "chart.validate.jira" -}}
+{{- range $name, $instance := .Values.externalServices.jira.instances }}
+  {{- if not $instance.baseUrl }}
+    {{- fail (printf "baseUrl is required for Jira instance '%s'" $name) }}
+  {{- end }}
+  {{- if and (not $instance.bearerToken) (and (not $instance.username) (not $instance.password)) }}
+    {{- fail (printf "either bearerToken or username+password is required for Jira instance '%s'" $name) }}
   {{- end }}
 {{- end }}
 {{- end -}}
@@ -111,4 +119,5 @@ Run all validations
 {{- include "chart.validate.projectsInfoService" . }}
 {{- include "chart.validate.openshift" . }}
 {{- include "chart.validate.bitbucket" . }}
+{{- include "chart.validate.jira" . }}
 {{- end -}}
