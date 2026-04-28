@@ -8,6 +8,10 @@
 
 ### Fixed
 
+## [4.12.2] - 2026-04-28
+### Changed
+- Update TRIVY_VERSION to 0.69.3 ([#1376](https://github.com/opendevstack/ods-core/pull/1376))
+
 ## [4.12.1] - 2026-03-03
 ### Fixed
 - Fix api service dockerfile ([#1372](https://github.com/opendevstack/ods-core/pull/1372))
