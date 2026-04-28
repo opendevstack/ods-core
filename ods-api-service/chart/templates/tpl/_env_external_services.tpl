@@ -69,6 +69,13 @@ WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false 
 WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_JENKINSFILE_PATH: {{ $cluster.defaultJenkinsfilePath | quote }}
 {{- end }}
 {{- end }}
+
+## Mkt configuration
+MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultInstance | quote }}
+{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: {{ $instance.provisionerActionsBaseUrl | quote }}
+{{- end }}
 {{- end }}
 
 {{- define "chart.externalServicesSecretData" }}

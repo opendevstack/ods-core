@@ -20,6 +20,10 @@ spring:
           issuer-uri: ${OAUTH2_ISSUER:}
           audiences:
             - ${OAUTH2_AUDIENCE:}
+    obo:
+      token-url: ${OBO_TOKEN_URL:https://login.microsoftonline.com/${AZURE_TENANT_ID:}/oauth2/v2.0/token}
+      client-id: ${OBO_CLIENT_ID}
+      client-secret: ${OBO_CLIENT_SECRET}            
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
@@ -178,6 +182,20 @@ externalservices:
 {{- else }}
     instances: {}
 {{- end }}
+
+  marketplace:
+{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
+    default-instance: ${MARKETPLACE_DEFAULT_INSTANCE:{{ .Values.externalServices.marketplace.defaultInstance }}}
+    instances:
+{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
+      {{ $name }}:
+        projectComponentsBaseUrl: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL:}
+        provisionerActionsBaseUrl: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL:}
+        oboScope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
+{{- end }}
+{{- else }}
+    instances: {}
+{{- end }}    
 
 services:
   project:

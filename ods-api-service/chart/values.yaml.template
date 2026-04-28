@@ -266,6 +266,15 @@ externalServices:
     #     connectionTimeout: 30000
     #     readTimeout: 30000
     #     trustAllCertificates: false
+  # Marketplace configuration
+  marketplace:
+    # Name of the default marketplace instance key (must match a key under instances)
+    defaultInstance: ""
+    instances: {}
+    # Example:
+    #   dev:
+    #     projectComponentsBaseUrl: "https://component-catalog.example.com/v1"
+    #     provisionerActionsBaseUrl: "https://component-provisioner.example.com/v1"
 # API Configuration Secrets
 apis:
   projectUsers:

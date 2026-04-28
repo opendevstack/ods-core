@@ -113,7 +113,7 @@ encrypt_secrets_in_folder() {
                 echo "    (Use -y flag to auto-remove)"
             fi
         fi
-    done < <(find "$folder" -maxdepth 1 -type f \( -name "*secrets*.dec.yaml" -o -name "*secrets*.yaml" \) ! -name "*.enc.yaml" 2>/dev/null)
+    done < <(find "$folder" -maxdepth 2 -type f \( -name "*secrets*.dec.yaml" -o -name "*secrets*.yaml" \) ! -name "*.enc.yaml" 2>/dev/null)
     
     if [ $encrypted_count -eq 0 ]; then
         echo "  ⚠ No secrets files found"
@@ -133,7 +133,7 @@ if [ "$ENV" = "all" ]; then
     while IFS= read -r -d '' env_folder; do
         env_name=$(basename "$env_folder")
         encrypt_secrets_in_folder "$env_folder" "environment: $env_name"
-    done < <(find "$FOLDER" -maxdepth 1 -type d ! -name ".*" -print0 | grep -zv "^$FOLDER$")
+    done < <(find "$FOLDER" -maxdepth 2 -type d ! -name ".*" -print0 | grep -zv "^$FOLDER$")
     
 elif [ -n "$ENV" ]; then
     # Encrypt specific environment folder
@@ -142,7 +142,7 @@ elif [ -n "$ENV" ]; then
         echo "❌ Environment folder not found: $env_folder"
         echo ""
         echo "Available environments:"
-        find "$FOLDER" -maxdepth 1 -type d ! -name ".*" ! -path "$FOLDER" -exec basename {} \;
+        find "$FOLDER" -maxdepth 2 -type d ! -name ".*" ! -path "$FOLDER" -exec basename {} \;
         exit 1
     fi
     encrypt_secrets_in_folder "$env_folder" "environment: $ENV"
