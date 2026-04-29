@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "chart.fullname" . }}-postgresql
+  name: {{ include "chart.fullname" . }}
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql
 spec:
-  serviceName: {{ include "chart.fullname" . }}-postgresql
+  serviceName: {{ include "chart.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
-      app: {{ include "chart.fullname" . }}-postgresql
+      app: {{ include "chart.fullname" . }}
   template:
     metadata:
       labels:
-        app: {{ include "chart.fullname" . }}-postgresql
+        app: {{ include "chart.fullname" . }}
     spec:
       containers:
         - name: postgresql
-          image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}-postgresql:{{ .Values.postgresql.odsImageTag }}
+          image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/ods-api-service-postgresql:{{ .Values.postgresql.odsImageTag }}
           imagePullPolicy: Always
           ports:
             - name: postgresql
@@ -28,22 +28,22 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "chart.fullname" . }}-postgresql
+                  name: {{ include "chart.fullname" . }}
                   key: ODS_API_SERVICE_DB_USER
             - name: PGUSER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "chart.fullname" . }}-postgresql
+                  name: {{ include "chart.fullname" . }}
                   key: ODS_API_SERVICE_DB_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "chart.fullname" . }}-postgresql
+                  name: {{ include "chart.fullname" . }}
                   key: ODS_API_SERVICE_DB_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "chart.fullname" . }}-postgresql
+                  name: {{ include "chart.fullname" . }}
                   key: ODS_API_SERVICE_DB_NAME
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -103,7 +103,7 @@ spec:
           volume.beta.kubernetes.io/storage-provisioner: {{ .Values.postgresql.storageProvisioner }}
           helm.sh/resource-policy: keep
         labels:
-          app: {{ include "chart.fullname" . }}-postgresql
+          app: {{ include "chart.fullname" . }}
       spec:
         accessModes:
           - ReadWriteOnce
