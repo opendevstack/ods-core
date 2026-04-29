@@ -190,14 +190,16 @@ start-opentelemetry-collector-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config opentelemetry-collector
 .PHONY: start-opentelemetry-collector-build
 
+####################
 # ODS API SERVICE
+####################
 ## Install or update Ods API Service.
-install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart configure-ods-api-service
+install-ods-api-service: start-ods-api-service-build start-ods-api-service-database-build apply-ods-api-service-chart configure-ods-api-service
 .PHONY: ods-api-service
 
 ## Start build of BuildConfig "Ods API Service".
 start-ods-api-service-build:
-	cd ods-api-service/build-config && oc process -f template.yaml \
+	cd ods-api-service/build-config && oc process -f template-ods-api-service.yaml \
 		-p ODS_NAMESPACE=$(ODS_NAMESPACE) \
 		-p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) \
 		-p BITBUCKET_URL=$(BITBUCKET_URL) \
@@ -205,8 +207,17 @@ start-ods-api-service-build:
 		-p ODS_GIT_REF=$(ODS_GIT_REF) \
 		-p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
 .PHONY: start-ods-api-service-build
+
+start-ods-api-service-database-build:
+	cd ods-api-service-database/build-config && oc process -f template-postgresql.yaml \
+		-p ODS_NAMESPACE=$(ODS_NAMESPACE) \
+		-p BITBUCKET_URL=$(BITBUCKET_URL) \
+		-p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) \
+		-p ODS_GIT_REF=$(ODS_GIT_REF) \
+		-p ODS_DATABASE_VERSION=$(ODS_DATABASE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
+.PHONY: start-ods-api-service-database-build
 
 ## Apply OpenShift resources related to the Ods API Service.
 apply-ods-api-service-chart:
