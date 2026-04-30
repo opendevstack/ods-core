@@ -75,6 +75,7 @@ MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultIns
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: {{ $instance.provisionerActionsBaseUrl | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE: {{ $instance.oboScope | quote }}
 {{- end }}
 {{- end }}
 
