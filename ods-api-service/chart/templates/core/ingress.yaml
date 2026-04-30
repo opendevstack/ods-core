@@ -51,7 +51,7 @@ spec:
     {{- end }}
   {{- else }}
   rules:
-    - host: {{ .Values.componentId }}-{{ .Values.imageNamespace }}{{ .Values.ODS_OPENSHIFT_APP_DOMAIN }}
+    - host: {{ .Values.componentId }}-{{ .Values.imageNamespace }}{{ or .Values.global.ODS_OPENSHIFT_APP_DOMAIN .Values.ODS_OPENSHIFT_APP_DOMAIN }}
       http:
         paths:
           - path: /
