@@ -16,6 +16,13 @@ spec:
       {{- include "chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/configmap-application: {{ include (print $.Template.BasePath "/core/configmaps-application.yaml") . | sha256sum }}
+        checksum/configmap-services: {{ include (print $.Template.BasePath "/core/configmaps-services.yaml") . | sha256sum }}
+        checksum/configmap-external-services: {{ include (print $.Template.BasePath "/core/configmaps-external-services.yaml") . | sha256sum }}
+        checksum/secret-application: {{ include (print $.Template.BasePath "/core/secrets-application.yaml") . | sha256sum }}
+        checksum/secret-services: {{ include (print $.Template.BasePath "/core/secrets-services.yaml") . | sha256sum }}
+        checksum/secret-external-services: {{ include (print $.Template.BasePath "/core/secrets-external-services.yaml") . | sha256sum }}
       labels:
         {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
