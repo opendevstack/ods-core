@@ -318,16 +318,21 @@ apply-ods-api-service-database-chart: check-configuration-defined
 
 ## Run database migration for ODS API Service. This will port-forward the PostgreSQL service to localhost and run the migration command, then stop the port-forwarding.
 ods-api-service-db-migration:
-	@cd ../ods-api-service && make db-port-forward NAMESPACE=$(ODS_NAMESPACE) &
-	@cd ../ods-api-service && \
-	export ODS_API_SERVICE_DB_HOST=localhost && \
-	export ODS_API_SERVICE_DB_PORT=5432 && \
-	export ODS_API_SERVICE_DB_NAME=$(ODS_API_SERVICE_DB_NAME) && \
-	export ODS_API_SERVICE_DB_USER=$(ODS_API_SERVICE_DB_USER) && \
-	export ODS_API_SERVICE_DB_PASSWORD=$(ODS_API_SERVICE_DB_PASSWORD) && \
-	make db-migrate
-	@echo "Database migration completed. Stopping port-forwarding..."
-	@pkill -f "kubectl port-forward.*5432" || true
+	@cd ../ods-api-service && { \
+		make db-port-forward NAMESPACE=$(ODS_NAMESPACE) & \
+		PF_PID=$$!; \
+		export ODS_API_SERVICE_DB_HOST=localhost \
+		       ODS_API_SERVICE_DB_PORT=5432 \
+		       ODS_API_SERVICE_DB_NAME=$(ODS_API_SERVICE_DB_NAME) \
+		       ODS_API_SERVICE_DB_USER=$(ODS_API_SERVICE_DB_USER) \
+		       ODS_API_SERVICE_DB_PASSWORD=$(ODS_API_SERVICE_DB_PASSWORD); \
+		make db-migrate; \
+		MIGRATE_RC=$$?; \
+		echo "Database migration completed. Stopping port-forwarding..."; \
+		kill $$PF_PID 2>/dev/null || true; \
+		wait $$PF_PID 2>/dev/null || true; \
+		exit $$MIGRATE_RC; \
+	}
 .PHONY: ods-api-service-db-migration
 
 ## Configure ODS API Service (sets up PostgreSQL superuser for backup operations).
