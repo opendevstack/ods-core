@@ -1,0 +1,79 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ods-api-service-database
+  annotations:
+    description: "Template for ODS API Service Database BuildConfig and ImageStream"
+parameters:
+  - name: ODS_NAMESPACE
+    description: "ODS namespace"
+    required: true
+  - name: BITBUCKET_URL
+    description: "Bitbucket URL"
+    required: true
+  - name: ODS_BITBUCKET_PROJECT
+    description: "ODS Bitbucket project key"
+    required: true
+  - name: ODS_GIT_REF
+    description: "Git reference (branch or tag)"
+    required: true
+  - name: ODS_DATABASE_VERSION
+    description: "Database image tag"
+    required: true
+objects:
+  # ImageStream for the ODS API Service PostgreSQL database
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ods-api-service-postgresql
+      namespace: ${ODS_NAMESPACE}
+      labels:
+        app: ods-api-service
+        component: postgresql
+    spec:
+      lookupPolicy:
+        local: false
+
+  # BuildConfig for ODS API Service PostgreSQL database
+  # Uses Dockerfile.database (base: public.ecr.aws/docker/library/postgres:18-alpine + oc CLI)
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: ods-api-service-postgresql
+      namespace: ${ODS_NAMESPACE}
+      labels:
+        app: ods-api-service
+        component: postgresql
+    spec:
+      nodeSelector: null
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ods-api-service-postgresql:${ODS_DATABASE_VERSION}
+      resources:
+        limits:
+          cpu: '1'
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+      successfulBuildsHistoryLimit: 5
+      failedBuildsHistoryLimit: 5
+      strategy:
+        type: Docker
+        dockerStrategy:
+          dockerfilePath: Dockerfile.database
+          forcePull: true
+          noCache: true
+      postCommit: {}
+      source:
+        type: Git
+        binary: null
+        git:
+          uri: ${BITBUCKET_URL}/scm/${ODS_BITBUCKET_PROJECT}/ods-core.git
+          ref: ${ODS_GIT_REF}
+        contextDir: ods-api-service-database/docker
+        sourceSecret:
+          name: cd-user-token
+      runPolicy: Serial

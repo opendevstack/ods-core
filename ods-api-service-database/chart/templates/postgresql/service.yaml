@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql
-  name: {{ include "chart.fullname" . }}-postgresql
+  name: {{ include "chart.fullname" . }}
 spec:
   ports:
     - name: postgresql
@@ -14,6 +14,6 @@ spec:
       protocol: TCP
       targetPort: 5432
   selector:
-    app: {{ include "chart.fullname" . }}-postgresql
+    app: {{ include "chart.fullname" . }}
   sessionAffinity: None
   type: ClusterIP
