@@ -19,9 +19,6 @@ ifeq ($(INSECURE), $(filter $(INSECURE), true yes))
 endif
 
 # ODS API Service configuration files
-env ?= dev
-ENV ?= $(env)
-env := $(ENV)
 ODS_CONFIGURATION_DIR := ../ods-configuration
 ODS_CONFIGURATION_FULL_PATH := $(abspath $(ODS_CONFIGURATION_DIR))
 ODS_API_SERVICE_DATABASE_REPO := $(ODS_API_SERVICE_DIR:-.../ods-api-service)
@@ -190,19 +187,85 @@ start-opentelemetry-collector-build:
 	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config opentelemetry-collector
 .PHONY: start-opentelemetry-collector-build
 
+####################
 # ODS API SERVICE
+####################
 ## Install or update Ods API Service.
-install-ods-api-service: start-ods-api-service-build apply-ods-api-service-chart configure-ods-api-service
+check-configuration-defined:
+ifndef env
+	$(error "Environment variable 'env' is not defined. Please set it to the desired environment (e.g., dev, staging, prod) before running this target.")
+endif
+
+	@if [ ! -d "../ods-api-service" ]; then \
+		echo "Error: ods-api-service directory not found at ../ods-api-service"; \
+		exit 1; \
+	fi
+	@if [ ! -d "$(ODS_CONFIGURATION_FULL_PATH)" ]; then \
+		echo "Error: ods-configuration directory not found at $(ODS_CONFIGURATION_FULL_PATH)"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/values.yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/values.yaml"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml" ]; then \
+		echo "Error: File not found: $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml"; \
+		exit 1; \
+	fi
+	@echo "All validation checks passed!"
+
+.PHONY: check-configuration-defined
+
+install-ods-api-service: \
+	check-configuration-defined \
+	start-ods-api-service-build \
+	start-ods-api-service-database-build \
+	apply-ods-api-service-database-chart \
+	configure-ods-api-service-database-backup \
+	ods-api-service-db-migration \
+	apply-ods-api-service-chart
 .PHONY: ods-api-service
 
 ## Start build of BuildConfig "Ods API Service".
 start-ods-api-service-build:
-	cd ods-api-service/build-config && oc process -f template.yaml -p ODS_NAMESPACE=$(ODS_NAMESPACE) -p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) -p BITBUCKET_URL=$(BITBUCKET_URL) -p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) -p ODS_GIT_REF=$(ODS_GIT_REF) -p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
-	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service && ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
+	cd ods-api-service/build-config && oc process -f template-ods-api-service.yaml \
+		-p ODS_NAMESPACE=$(ODS_NAMESPACE) \
+		-p ODS_IMAGE_TAG=$(ODS_IMAGE_TAG) \
+		-p BITBUCKET_URL=$(BITBUCKET_URL) \
+		-p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) \
+		-p ODS_GIT_REF=$(ODS_GIT_REF) \
+		-p ODS_API_SERVICE_VERSION=$(ODS_API_SERVICE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service
 .PHONY: start-ods-api-service-build
+## Start build of BuildConfig "Ods API Service Database".
+start-ods-api-service-database-build:
+	cd ods-api-service-database/build-config && oc process -f template-postgresql.yaml \
+		-p ODS_NAMESPACE=$(ODS_NAMESPACE) \
+		-p BITBUCKET_URL=$(BITBUCKET_URL) \
+		-p ODS_BITBUCKET_PROJECT=$(ODS_BITBUCKET_PROJECT) \
+		-p ODS_GIT_REF=$(ODS_GIT_REF) \
+		-p ODS_DATABASE_VERSION=$(ODS_DATABASE_VERSION) | oc apply --namespace $(ODS_NAMESPACE) -f -
+	ocp-scripts/start-and-follow-build.sh --namespace $(ODS_NAMESPACE) --build-config ods-api-service-postgresql
+.PHONY: start-ods-api-service-database-build
 
 ## Apply OpenShift resources related to the Ods API Service.
-apply-ods-api-service-chart:
+apply-ods-api-service-chart: check-configuration-defined
 	cd ods-api-service/chart && \
 	helm secrets upgrade --install --namespace $(ODS_NAMESPACE) \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
@@ -220,17 +283,62 @@ apply-ods-api-service-chart:
 		--set global.registry=$(DOCKER_REGISTRY) \
 		--set global.componentId=ods-api-service \
 		--set imageNamespace=$(ODS_NAMESPACE) \
-		--set imageTag=$(ODS_IMAGE_TAG) \
+		--set imageTag=$(ODS_API_SERVICE_VERSION) \
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
-		--set global.imageTag=$(ODS_IMAGE_TAG) \
+		--set global.imageTag=$(ODS_API_SERVICE_VERSION) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
 		ods-api-service . 
 .PHONY: apply-ods-api-service-chart
 
+## Apply OpenShift resources related to the Ods API Service Database.
+apply-ods-api-service-database-chart: check-configuration-defined
+	cd ods-api-service-database/chart && \
+	helm secrets upgrade --install --namespace $(ODS_NAMESPACE) \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml \
+		--set projectId=$(ODS_NAMESPACE) \
+		--set appSelector=app=ods-api-service \
+		--set registry=$(DOCKER_REGISTRY) \
+		--set componentId=ods-api-service \
+		--set global.projectId=$(ODS_NAMESPACE) \
+		--set global.appSelector=app=ods-api-service \
+		--set global.registry=$(DOCKER_REGISTRY) \
+		--set global.componentId=ods-api-service \
+		--set imageNamespace=$(ODS_NAMESPACE) \
+		--set imageTag=$(ODS_DATABASE_VERSION) \
+		--set global.imageNamespace=$(ODS_NAMESPACE) \
+		--set global.imageTag=$(ODS_DATABASE_VERSION) \
+		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
+		ods-api-service-postgresql . 
+.PHONY: apply-ods-api-service-database-chart
+
+## Run database migration for ODS API Service. This will port-forward the PostgreSQL service to localhost and run the migration command, then stop the port-forwarding.
+ods-api-service-db-migration:
+	@cd ../ods-api-service && { \
+		make db-port-forward NAMESPACE=$(ODS_NAMESPACE) & \
+		PF_PID=$$!; \
+		export ODS_API_SERVICE_DB_HOST=localhost \
+		       ODS_API_SERVICE_DB_PORT=5432 \
+		       ODS_API_SERVICE_DB_NAME=$(ODS_API_SERVICE_DB_NAME) \
+		       ODS_API_SERVICE_DB_USER=$(ODS_API_SERVICE_DB_USER) \
+		       ODS_API_SERVICE_DB_PASSWORD=$(ODS_API_SERVICE_DB_PASSWORD); \
+		make db-migrate; \
+		MIGRATE_RC=$$?; \
+		echo "Database migration completed. Stopping port-forwarding..."; \
+		kill $$PF_PID 2>/dev/null || true; \
+		wait $$PF_PID 2>/dev/null || true; \
+		exit $$MIGRATE_RC; \
+	}
+.PHONY: ods-api-service-db-migration
+
 ## Configure ODS API Service (sets up PostgreSQL superuser for backup operations).
-configure-ods-api-service:
-	cd ods-api-service && ./configure.sh --namespace $(ODS_NAMESPACE)
-.PHONY: configure-ods-api-service
+configure-ods-api-service-database-backup:
+	cd ods-api-service-database && ./configure.sh --namespace $(ODS_NAMESPACE)
+.PHONY: configure-ods-api-service-database-backup
 
 # BACKUP
 ## Create a backup of the current state.

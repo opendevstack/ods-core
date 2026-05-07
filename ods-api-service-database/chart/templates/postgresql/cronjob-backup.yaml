@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "chart.fullname" . }}-postgresql-backup
+  name: {{ include "chart.fullname" . }}-backup
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql-backup
@@ -22,7 +22,7 @@ spec:
           serviceAccountName: ods-edit
           containers:
             - name: postgresql-backup
-              image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}-postgresql:{{ .Values.postgresql.odsImageTag }}
+              image: {{ .Values.postgresql.internalRegistry }}/{{ .Values.postgresql.odsNamespace }}/{{ include "chart.fullname" . }}:{{ .Values.postgresql.odsImageTag }}
               imagePullPolicy: Always
               resources:
                 limits:
@@ -37,7 +37,7 @@ spec:
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "chart.fullname" . }}-postgresql
+                      name: {{ include "chart.fullname" . }}
                       key: ODS_API_SERVICE_DB_SUPERUSER_PASSWORD
               command:
                 - /bin/bash
@@ -47,14 +47,14 @@ spec:
                   set -e
 
                   # Compute snapshot name
-                  SNAP_NAME="{{ include "chart.fullname" . }}-postgresql-snapshot-$(date +%Y-%m-%d-%H-%M-%S)"
-                  DB_HOST="{{ include "chart.fullname" . }}-postgresql"
+                  SNAP_NAME="{{ include "chart.fullname" . }}-snapshot-$(date +%Y-%m-%d-%H-%M-%S)"
+                  DB_HOST="{{ include "chart.fullname" . }}"
                   DB_USER="{{ .Values.postgresql.superuserName }}"
                   DB_NAME="{{ .Values.postgresql.databaseName }}"
                   ODS_NAMESPACE="{{ .Values.postgresql.odsNamespace }}"
                   STORAGE_CLASS="{{ .Values.postgresql.backup.snapshotStorageClass }}"
                   APP_NAME="{{ include "chart.fullname" . }}"
-                  PVC_NAME="postgresql-data-{{ include "chart.fullname" . }}-postgresql-0"
+                  PVC_NAME="postgresql-data-{{ include "chart.fullname" . }}-0"
 
                   echo "Starting PostgreSQL backup process..."
 

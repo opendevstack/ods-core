@@ -1,0 +1,42 @@
+## Default values for chart.
+## This is a YAML-formatted file. Intendation matters!
+## Comments are prefixed with two hashes (##), examples are commented with one hash (#)
+## Declare variables to be passed into your templates.
+
+## PostgreSQL database configuration
+postgresql:
+  ## Internal OpenShift registry and namespace where the built image is stored.
+  ## The image is built via the BuildConfig using Dockerfile.database (base: public.ecr.aws/docker/library/postgres:18-alpine)
+  internalRegistry: $ODS_API_SERVICE_DB_INTERNAL_REGISTRY
+  odsNamespace: $ODS_NAMESPACE
+  odsImageTag: $ODS_IMAGE_TAG
+  ## Plain-text database details (used in backup scripts and connection strings)
+  databaseName: $ODS_API_SERVICE_DB_NAME
+  databaseUser: $ODS_API_SERVICE_DB_USER
+  ## Name of the PostgreSQL superuser (default 'postgres' in official image)
+  superuserName: $ODS_API_SERVICE_DB_SUPER_NAME
+  ## Base64-encoded credentials stored in the Secret
+  databaseNameB64: $ODS_API_SERVICE_DB_NAME_B64
+  databaseUserB64: $ODS_API_SERVICE_DB_USER_B64
+  databasePasswordB64: $ODS_API_SERVICE_DB_PASSWORD_B64
+  superuserPasswordB64: $ODS_API_SERVICE_DB_SUPER_PASSWORD_B64
+  ## Resource limits/requests for the PostgreSQL container
+  cpuLimit: $ODS_API_SERVICE_DB_CPU_LIMIT
+  cpuRequest: $ODS_API_SERVICE_DB_CPU_REQUEST
+  memLimit: $ODS_API_SERVICE_DB_MEMORY_LIMIT
+  memRequest: $ODS_API_SERVICE_DB_MEMORY_REQUEST
+  ## PVC storage for database data
+  pvcDatabaseCapacity: $ODS_API_SERVICE_DB_CAPACITY
+  storageClassName: $ODS_API_SERVICE_DB_STORAGE_CLASS
+  storageProvisioner: $ODS_API_SERVICE_DB_STORAGE_PROVISIONER
+  ## Backup configuration
+  backup:
+    ## The backup job uses the same built image as the DB container (includes psql + oc CLI)
+    ## Snapshots are created in the namespace defined by postgresql.odsNamespace
+    ## Cron schedule for the backup job (default: daily at 02:00)
+    schedule: $ODS_API_SERVICE_DB_BACKUP_SCHEDULE
+    ## VolumeSnapshotClass used for storage snapshots
+    snapshotStorageClass: $ODS_API_SERVICE_DB_BACKUP_SNAPSHOT_CLASS
+    successHistoryLimit: $ODS_API_SERVICE_DB_BACKUP_SUCCESS_HISTORY_LIMIT
+    failedHistoryLimit: $ODS_API_SERVICE_DB_BACKUP_FAILED_HISTORY_LIMIT
+
