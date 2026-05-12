@@ -59,13 +59,14 @@ JIRA_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeou
 JIRA_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
+{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
 ## Marketplace configuration
 {{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
 MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultInstance | quote }}
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENTS_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: {{ $instance.provisionerActionsBaseUrl | quote }}
-MARKETPLACE__{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
 {{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
