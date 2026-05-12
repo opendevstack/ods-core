@@ -252,7 +252,6 @@ externalServices:
         projectComponentsBaseUrl: "https://catalog.example.com/v1"
         provisionerActionsBaseUrl: "https://provisioner.example.com/v1"
         trustAllCertificates: true
-        oboScope: the-obo-scope
         username: marketplace-user
         password: marketplace-password        
 ```
