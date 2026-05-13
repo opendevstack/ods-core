@@ -1,6 +1,9 @@
 {{/* External services domain: third-party and platform integrations */}}
+
+## Config maps
 {{- define "chart.externalServicesConfigData" }}
 {{- if .Values.externalServices.aap.enabled }}
+
 ## Ansible Automation Platform configuration
 ANSIBLE_BASE_URL: {{ .Values.externalServices.aap.baseUrl | quote }}
 ANSIBLE_TIMEOUT: {{ .Values.externalServices.aap.timeout | quote }}
@@ -13,6 +16,7 @@ ANSIBLE_SSL_TRUSTSTORE_TYPE: {{ .Values.externalServices.aap.ssl.trustStoreType 
 {{- end }}
 {{- end }}
 {{- if .Values.externalServices.uipath.enabled }}
+
 ## UiPath configuration
 UIPATH_HOST: {{ .Values.externalServices.uipath.host | quote }}
 UIPATH_TENANCY_NAME: {{ .Values.externalServices.uipath.tenancyName | quote }}
@@ -30,8 +34,9 @@ UIPATH_SSL_TRUSTSTORE_TYPE: {{ .Values.externalServices.uipath.ssl.trustStoreTyp
 ## Projects Info Service configuration
 PROJECTS_INFO_SERVICE_BASE_URL: {{ .Values.externalServices.projectsInfoService.baseUrl | quote }}
 {{- end }}
-{{- if gt (len .Values.externalServices.openshift.instances) 0 }}
+
 ## OpenShift configuration
+{{- if gt (len .Values.externalServices.openshift.instances) 0 }}
 {{- range $name, $instance := .Values.externalServices.openshift.instances }}
 OPENSHIFT_{{ $name | upper | replace "-" "_" }}_API_URL: {{ $instance.apiUrl | quote }}
 OPENSHIFT_{{ $name | upper | replace "-" "_" }}_NAMESPACE: {{ $instance.namespace | quote }}
@@ -40,8 +45,9 @@ OPENSHIFT_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readT
 OPENSHIFT_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
+
 ## Bitbucket configuration
+{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
 {{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
 BITBUCKET_{{ $name | upper | replace "-" "_" }}_BASE_REST_URL: {{ $instance.baseUrl | quote }}
 BITBUCKET_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $instance.connectionTimeout | quote }}
@@ -49,8 +55,9 @@ BITBUCKET_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readT
 BITBUCKET_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.jira.instances) 0 }}
+
 ## Jira configuration
+{{- if gt (len .Values.externalServices.jira.instances) 0 }}
 JIRA_DEFAULT_INSTANCE: {{ .Values.externalServices.jira.defaultInstance | quote }}
 {{- range $name, $instance := .Values.externalServices.jira.instances }}
 JIRA_{{ $name | upper | replace "-" "_" }}_BASE_URL: {{ $instance.baseUrl | quote }}
@@ -59,18 +66,9 @@ JIRA_{{ $name | upper | replace "-" "_" }}_READ_TIMEOUT: {{ $instance.readTimeou
 JIRA_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
-## Marketplace configuration
-{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
-MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultInstance | quote }}
-{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
-MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENTS_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
-MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: {{ $instance.provisionerActionsBaseUrl | quote }}
-MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ default false $instance.trustAllCertificates | quote }}
-{{- end }}
-{{- end }}
-{{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
+
 ## Webhook proxy configuration
+{{- if gt (len .Values.externalServices.webhookProxy.clusters) 0 }}
 {{- range $name, $cluster := .Values.externalServices.webhookProxy.clusters }}
 WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_CLUSTER_BASE: {{ $cluster.clusterBase | quote }}
 WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_CONNECTION_TIMEOUT: {{ $cluster.connectionTimeout | quote }}
@@ -81,6 +79,7 @@ WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_JENKINSFILE_PATH: {{ $cluste
 {{- end }}
 
 ## Mkt configuration
+{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
 MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultInstance | quote }}
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
@@ -89,10 +88,13 @@ MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE: {{ $instance.oboSco
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
 {{- end }}
 {{- end }}
+{{- end }}
 
+
+#### Secrets
 {{- define "chart.externalServicesSecretData" }}
-{{- if .Values.externalServices.aap.enabled }}
 ## Ansible Automation Platform secrets
+{{- if .Values.externalServices.aap.enabled }}
 ANSIBLE_USERNAME: {{ .Values.externalServices.aap.username | b64enc | quote }}
 ANSIBLE_PASSWORD: {{ .Values.externalServices.aap.password | b64enc | quote }}
 {{- if .Values.externalServices.aap.ssl.trustStorePassword }}
@@ -100,6 +102,7 @@ ANSIBLE_SSL_TRUSTSTORE_PASSWORD: {{ .Values.externalServices.aap.ssl.trustStoreP
 {{- end }}
 {{- end }}
 {{- if .Values.externalServices.uipath.enabled }}
+
 ## UiPath secrets
 UIPATH_CLIENT_ID: {{ .Values.externalServices.uipath.clientId | b64enc | quote }}
 UIPATH_CLIENT_SECRET: {{ .Values.externalServices.uipath.clientSecret | b64enc | quote }}
@@ -108,13 +111,15 @@ UIPATH_SSL_TRUSTSTORE_PASSWORD: {{ .Values.externalServices.uipath.ssl.trustStor
 {{- end }}
 {{- end }}
 {{- if gt (len .Values.externalServices.openshift.instances) 0 }}
+
 ## OpenShift secrets
 {{- range $name, $instance := .Values.externalServices.openshift.instances }}
 OPENSHIFT_{{ $name | upper | replace "-" "_" }}_TOKEN: {{ $instance.token | b64enc | quote }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
+
 ## Bitbucket secrets
+{{- if gt (len .Values.externalServices.bitbucket.instances) 0 }}
 {{- range $name, $instance := .Values.externalServices.bitbucket.instances }}
 {{- if $instance.bearerToken }}
 BITBUCKET_{{ $name | upper | replace "-" "_" }}_BEARER_TOKEN: {{ $instance.bearerToken | b64enc | quote }}
@@ -127,8 +132,9 @@ BITBUCKET_{{ $name | upper | replace "-" "_" }}_PASSWORD: {{ $instance.password 
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.jira.instances) 0 }}
+
 ## Jira secrets
+{{- if gt (len .Values.externalServices.jira.instances) 0 }}
 {{- range $name, $instance := .Values.externalServices.jira.instances }}
 {{- if $instance.bearerToken }}
 JIRA_{{ $name | upper | replace "-" "_" }}_BEARER_TOKEN: {{ $instance.bearerToken | b64enc | quote }}
@@ -141,8 +147,9 @@ JIRA_{{ $name | upper | replace "-" "_" }}_PASSWORD: {{ $instance.password | b64
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
+
 ## Marketplace secrets
+{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
 {{- if $instance.username }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_USERNAME: {{ $instance.username | b64enc | quote }}
@@ -152,8 +159,9 @@ MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD: {{ $instance.passwor
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if gt (len .Values.externalServices.jenkins.environments) 0 }}
+
 ## Jenkins secrets
+{{- if gt (len .Values.externalServices.jenkins.environments) 0 }}
 {{- range $index, $env := .Values.externalServices.jenkins.environments }}
 JENKINS_{{ $env.name | upper | replace "-" "_" }}_API_TOKEN: {{ $env.apiToken | b64enc | quote }}
 {{- end }}
