@@ -391,7 +391,7 @@
       "additionalProperties": true
     },
     "externalServices": {
-      "description": "Third-party and platform integration domain. Use this block for external systems such as AAP, UiPath, OpenShift, Bitbucket, Jira, Jenkins, webhook proxy, and projects info service. Non-sensitive values are rendered into the external-services ConfigMap and credentials into the external-services Secret.",
+      "description": "Third-party and platform integration domain. Use this block for external systems such as AAP, UiPath, OpenShift, Bitbucket, Jira, Jenkins, Marketplace, webhook proxy, and projects info service. Non-sensitive values are rendered into the external-services ConfigMap and credentials into the external-services Secret.",
       "type": "object",
       "additionalProperties": true
     },
