@@ -103,8 +103,25 @@ Validate Jira instances configuration
   {{- if not $instance.baseUrl }}
     {{- fail (printf "baseUrl is required for Jira instance '%s'" $name) }}
   {{- end }}
-  {{- if and (not $instance.bearerToken) (and (not $instance.username) (not $instance.password)) }}
+  {{- if and (not $instance.bearerToken) (or (not $instance.username) (not $instance.password)) }}
     {{- fail (printf "either bearerToken or username+password is required for Jira instance '%s'" $name) }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Validate Marketplace instances configuration
+*/}}
+{{- define "chart.validate.marketplace" -}}
+{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
+  {{- if not $instance.projectComponentsBaseUrl }}
+    {{- fail (printf "projectComponentsBaseUrl is required for Marketplace instance '%s'" $name) }}
+  {{- end }}
+  {{- if not $instance.provisionerActionsBaseUrl }}
+      {{- fail (printf "provisionerActionsBaseUrl is required for Marketplace instance '%s'" $name) }}
+    {{- end }}
+  {{- if or (not $instance.username) (not $instance.password) }}
+    {{- fail (printf "username+password settings are required for Marketplace instance '%s'" $name) }}
   {{- end }}
 {{- end }}
 {{- end -}}
@@ -120,4 +137,5 @@ Run all validations
 {{- include "chart.validate.openshift" . }}
 {{- include "chart.validate.bitbucket" . }}
 {{- include "chart.validate.jira" . }}
+{{- include "chart.validate.marketplace" . }}
 {{- end -}}

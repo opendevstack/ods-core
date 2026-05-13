@@ -178,22 +178,21 @@ externalservices:
 {{- else }}
     instances: {}
 {{- end }}
-
   marketplace:
 {{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
     default-instance: ${MARKETPLACE_DEFAULT_INSTANCE:{{ .Values.externalServices.marketplace.defaultInstance }}}
     instances:
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
       {{ $name }}:
-        projectComponentsBaseUrl: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL:}
-        provisionerActionsBaseUrl: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL:}
-        oboScope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
+        project-components-base-url: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENTS_BASE_URL}
+        provisioner-actions-base-url: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL}
+        username: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_USERNAME:}
+        password: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
         trust-all-certificates: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
 {{- end }}
 {{- else }}
     instances: {}
-{{- end }}    
-
+{{- end }}
 services:
   project:
     ldap:

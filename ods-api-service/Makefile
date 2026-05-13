@@ -45,14 +45,14 @@ ods-api-service-render-helm-chart:
 
 ## Render the generated application.yaml from Helm templates to a local file.
 ods-api-service-render-application-yaml:
-	@cd ods-api-service/chart && \
+	@cd chart && \
 	helm secrets template ods-api-service . \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service.values.yaml \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml \
-			-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/values.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/secrets.enc.yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/values.$(env).yaml \
+		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-api-service/$(env)/secrets.$(env).enc.yaml \
 		--set projectId=$(ODS_NAMESPACE) \
 		--set appSelector=app=ods-api-service \
 		--set registry=$(DOCKER_REGISTRY) \
@@ -66,13 +66,13 @@ ods-api-service-render-application-yaml:
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_IMAGE_TAG) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
-		2>/dev/null | \
-		yq -r 'select(.kind == "ConfigMap") | select(.metadata.name == "ods-api-service-config") | .data["application.yaml"]'
+		 2>/dev/null | \
+		 yq -r 'select(.kind == "ConfigMap") | select(.metadata.name == "ods-api-service-config") | .data["application.yaml"]'
 
 
 ## Render the generated .env file from Helm templates to a local file.
 ods-api-service-renderdot-env:
-	@cd ods-api-service/chart && \
+	@cd chart && \
 	 helm secrets template ods-api-service . \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.values.yaml \
 		-f $(ODS_CONFIGURATION_FULL_PATH)/ods-core.secrets.enc.yaml \
