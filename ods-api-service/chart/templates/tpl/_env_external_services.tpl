@@ -82,7 +82,7 @@ WEBHOOK_PROXY_{{ $name | upper | replace "-" "_" }}_JENKINSFILE_PATH: {{ $cluste
 {{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
 MARKETPLACE_DEFAULT_INSTANCE: {{ .Values.externalServices.marketplace.defaultInstance | quote }}
 {{- range $name, $instance := .Values.externalServices.marketplace.instances }}
-MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENT_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENTS_BASE_URL: {{ $instance.projectComponentsBaseUrl | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: {{ $instance.provisionerActionsBaseUrl | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE: {{ $instance.oboScope | quote }}
