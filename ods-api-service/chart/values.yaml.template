@@ -274,6 +274,7 @@ externalServices:
     #   dev:
     #     projectComponentsBaseUrl: "$MARKETPLACE_DEV_PROJECT_COMPONENTS_BASE_URL"
     #     provisionerActionsBaseUrl: "$MARKETPLACE_DEV_PROVISIONER_ACTIONS_BASE_URL"
+    #     oboScope: "$MARKETPLACE_DEV_OBO_SCOPE" 
     #     trustAllCertificates: false
     #     username: ""  # Set in secrets.dev.enc.yaml
     #     password: ""  # Set in secrets.dev.enc.yaml
