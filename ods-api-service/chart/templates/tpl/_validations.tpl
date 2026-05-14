@@ -123,6 +123,9 @@ Validate Marketplace instances configuration
   {{- if or (not $instance.username) (not $instance.password) }}
     {{- fail (printf "username+password settings are required for Marketplace instance '%s'" $name) }}
   {{- end }}
+  {{- if not $instance.oboScope }}
+    {{- fail (printf "oboScope settings are required for Marketplace instance '%s'" $name) }}
+  {{- end }}
 {{- end }}
 {{- end -}}
 
