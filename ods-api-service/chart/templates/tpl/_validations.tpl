@@ -120,6 +120,9 @@ Validate Marketplace instances configuration
   {{- if not $instance.provisionerActionsBaseUrl }}
       {{- fail (printf "provisionerActionsBaseUrl is required for Marketplace instance '%s'" $name) }}
     {{- end }}
+  {{- if not $instance.bitbucketBaseUrl }}
+    {{- fail (printf "bitbucketBaseUrl is required for Marketplace instance '%s'" $name) }}
+  {{- end }}
   {{- if or (not $instance.username) (not $instance.password) }}
     {{- fail (printf "username+password settings are required for Marketplace instance '%s'" $name) }}
   {{- end }}

@@ -186,6 +186,7 @@ externalservices:
       {{ $name }}:
         project-components-base-url: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROJECT_COMPONENTS_BASE_URL}
         provisioner-actions-base-url: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL}
+        bitbucket-base-url: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BITBUCKET_BASE_URL:}
         username: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_USERNAME:}
         password: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
         obo-scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
