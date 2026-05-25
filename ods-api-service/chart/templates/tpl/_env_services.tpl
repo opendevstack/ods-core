@@ -9,6 +9,9 @@ API_PROJECT_USERS_TOKEN_EXPIRATION_HOURS: {{ .Values.apis.projectUsers.token.exp
 API_PROJECTS_MINIEDP_PROVISION_WORKFLOW_NAME: {{ .Values.apis.projects.workflowName | quote }}
 API_PROJECTS_LOCATIONS: {{ .Values.apis.projects.locations | quote }}
 {{ end }}
+{{ if .Values.apis.projectComponents.enabled }}
+API_PROJECT_COMPONENTS_RESERVED_PARAMS: {{ .Values.apis.projectComponents.create.reservedParams | quote }}
+{{ end }}
 {{- end }}
 
 {{- define "chart.servicesSecretData" }}
