@@ -19,7 +19,7 @@ spring:
           jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
           issuer-uri: ${OAUTH2_ISSUER:}
           audiences:
-            - ${OAUTH2_AUDIENCE:}       
+            - ${OAUTH2_AUDIENCE:}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
@@ -98,7 +98,10 @@ apis:
     enabled: {{ .Values.apis.projects.enabled | default false }}
     ansible-workflow-name: ${API_PROJECTS_MINIEDP_PROVISION_WORKFLOW_NAME:}
     locations: ${API_PROJECTS_LOCATIONS:}
-
+  project-components:
+   enabled: {{ .Values.apis.projectComponents.enabled | default false }}
+   create:
+      reserved-params: ${API_PROJECT_COMPONENTS_RESERVED_PARAMS:}
 
 # External Service Configuration
 externalservices:

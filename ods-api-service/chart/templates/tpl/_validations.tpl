@@ -65,6 +65,19 @@ Validate Projects Info Service configuration when enabled
 {{- end -}}
 
 {{/*
+Validate Project Components Service configuration when enabled
+*/}}
+{{- define "chart.validate.projectComponents" -}}
+{{- if .Values.externalServices.projectComponents.enabled }}
+  {{- if not .Values.externalServices.projectComponents.create.reservedParams }}
+    {{- fail "externalServices.projectComponents.create.reservedParams is required when projectComponents is enabled" }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+
+
+{{/*
 Validate OpenShift instances configuration
 */}}
 {{- define "chart.validate.openshift" -}}
