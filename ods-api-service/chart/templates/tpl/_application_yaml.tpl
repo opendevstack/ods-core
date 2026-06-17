@@ -194,6 +194,9 @@ externalservices:
         password: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
         obo-scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
         trust-all-certificates: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        bypass:
+          audience: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
+          scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE:}
 {{- end }}
 {{- else }}
     instances: {}

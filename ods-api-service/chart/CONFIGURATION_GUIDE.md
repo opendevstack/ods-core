@@ -254,6 +254,9 @@ externalServices:
         trustAllCertificates: true
         username: marketplace-user
         password: marketplace-password        
+        bypass:
+          audience: ${MARKETPLACE_BYPASS_AUDIENCE:}
+          scope: ${MARKETPLACE_BYPASS_SCOPE:}
 ```
 
 Generated env vars (all ConfigMap): `MARKETPLACE_DEFAULT_INSTANCE`, `MARKETPLACE_MY_MKT_PROJECT_COMPONENT_BASE_URL`, `MARKETPLACE_MY_MKT_PROVISIONER_ACTIONS_BASE_URL`,
