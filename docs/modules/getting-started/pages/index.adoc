@@ -75,7 +75,7 @@ Each version is tracked as a https://github.com/orgs/opendevstack/projects[GitHu
 === https://github.com/orgs/opendevstack/projects/10[4] (November 2021)
 
 - OpenShift 4 support (keeping 3.11 compatibility)
-- Support for Kubernetes-native Deployment resources and Helm 3 within component pipeline
+- Support for Kubernetes-native Deployment resources and Helm 4 within component pipeline
 - dropped machine learning quickstarter
 - Integration with Aqua Security
 - Implement health checks for quickstarters
