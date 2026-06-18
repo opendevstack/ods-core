@@ -20,7 +20,7 @@ spring:
           issuer-uri: ${OAUTH2_ISSUER:}
           audiences:
             - ${OAUTH2_AUDIENCE:}
-            - ${MARKETPLACE_BYPASS_AUDIENCE:}
+            - ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
