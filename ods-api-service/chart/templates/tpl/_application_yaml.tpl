@@ -21,10 +21,10 @@ spring:
           audiences:
             - ${OAUTH2_AUDIENCE:}
 {{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
-  {{- range $name, $instance := .Values.externalServices.openshift.instances }}
-      {{ $name }}:
+{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
             - ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
-{{- end }}            
+{{- end }}
+{{- end }}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
