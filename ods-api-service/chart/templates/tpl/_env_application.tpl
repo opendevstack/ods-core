@@ -11,4 +11,7 @@ AZURE_TENANT_ID: {{ .Values.spring.security.obo.azureTenant | b64enc | quote }}
 OBO_TOKEN_URL: {{ .Values.spring.security.obo.tokenUrl | b64enc | quote }}
 OBO_CLIENT_ID: {{ .Values.spring.security.obo.clientId | b64enc | quote }}
 OBO_CLIENT_SECRET: {{ .Values.spring.security.obo.clientSecret | b64enc | quote }}
+CLIENT_CREDENTIALS_TOKEN_URL: {{ .Values.spring.security.clientCredentials.tokenUrl | b64enc | quote }}
+CLIENT_CREDENTIALS_CLIENT_ID: {{ .Values.spring.security.clientCredentials.clientId | b64enc | quote }}
+CLIENT_CREDENTIALS_CLIENT_SECRET: {{ .Values.spring.security.clientCredentials.clientSecret | b64enc | quote }}
 {{- end }}
