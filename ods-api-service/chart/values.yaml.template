@@ -73,7 +73,13 @@ env:
   CERT_URLS: "$CERT_URLS"
   OAUTH2_ISSUER: "$OAUTH2_ISSUER"
   OAUTH2_AUDIENCE: "$OAUTH2_AUDIENCE"
+  OAUTH2_AUDIENCE2: "$OAUTH2_AUDIENCE2"
   OAUTH2_JWK_SET_URI: "$OAUTH2_JWK_SET_URI"
+  # Trusted JWT issuers (multi-issuer / multi-audience support)
+  OAUTH2_ISSUER_V1: "$OAUTH2_ISSUER_V1"
+  OAUTH2_JWK_SET_URI_V1: "$OAUTH2_JWK_SET_URI_V1"
+  OAUTH2_ISSUER_V2: "$OAUTH2_ISSUER_V2"
+  OAUTH2_JWK_SET_URI_V2: "$OAUTH2_JWK_SET_URI_V2"
   JAVA_OPTS: $JAVA_OPTS
 # Development-specific configuration
 config:
@@ -148,35 +154,32 @@ config:
   app:
     security:
       enabled: true
-      jwt-validation-enabled: false
-      issuer: ${OAUTH2_ISSUER:}
-      audience: ${OAUTH2_AUDIENCE:}
-      jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
       public-endpoints:
         - "/actuator/health"
         - "/actuator/info"
+        - "/actuator/health/liveness"
+        - "/actuator/health/readiness"
         - "/swagger-ui/**"
         - "/swagger-ui.html"
         - "/v3/api-docs/**"
         - "/v3/api-docs.yaml/**"
         - "/swagger-resources/**"
         - "/webjars/**"
-      flows:
-        global:
-          enabled-flows:
-            - "authorization-code"
-            - "client-credentials"
-            - "on-behalf-of"
-          default-flow: "client-credentials"
-        apis:
-          project:
-            default-flow: "client-credentials"
-            endpoints:
-              - pattern: "/api/v1/projects/*/users/**"
-                flows: ["client-credentials"]
-                require-authentication: true
-              - pattern: "/api/v1/projects/*/platforms/**"
-                permit-all: true
+      # On-Behalf-Of (OBO) token exchange against the identity provider
+      obo:
+        token-url: ${OBO_TOKEN_URL:https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token}
+        client-id: ${OBO_CLIENT_ID}
+        client-secret: ${OBO_CLIENT_SECRET}
+      # Audience values accepted by this API. A valid token must carry at least one of these.
+      audiences:
+        - ${OAUTH2_AUDIENCE:}
+        - ${OAUTH2_AUDIENCE2:}
+      # Trusted JWT issuers. Each entry pairs an issuer URI (iss claim) with its JWK set URI.
+      issuers:
+        - issuer-uri: ${OAUTH2_ISSUER_V1:}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI_V1:}
+        - issuer-uri: ${OAUTH2_ISSUER_V2:}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI_V2:}
   environment: dev
 # External Services Secrets
 externalServices:
@@ -274,7 +277,7 @@ externalServices:
     #   dev:
     #     projectComponentsBaseUrl: "$MARKETPLACE_DEV_PROJECT_COMPONENTS_BASE_URL"
     #     provisionerActionsBaseUrl: "$MARKETPLACE_DEV_PROVISIONER_ACTIONS_BASE_URL"
-    #     oboScope: "$MARKETPLACE_DEV_OBO_SCOPE" 
+    #     oboScope: "$MARKETPLACE_DEV_OBO_SCOPE"
     #     bypass:
     #       audience: "$MARKETPLACE_DEV_BYPASS_AUDIENCE"
     #       scope: "$MARKETPLACE_DEV_BYPASS_SCOPE"
