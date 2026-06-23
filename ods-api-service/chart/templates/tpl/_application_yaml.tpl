@@ -12,19 +12,6 @@ logging:
 spring:
   profiles:
     active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
-          issuer-uri: ${OAUTH2_ISSUER:}
-          audiences:
-            - ${OAUTH2_AUDIENCE:}
-{{- if gt (len .Values.externalServices.marketplace.instances) 0 }}
-{{- range $name, $instance := .Values.externalServices.marketplace.instances }}
-            - ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
-{{- end }}
-{{- end }}
   datasource:
     url: ${ODS_API_SERVICE_DB_DATASOURCE_URL}
     username: ${ODS_API_SERVICE_DB_USER:opendevstack}
@@ -42,6 +29,7 @@ spring:
       ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:validate}
     properties:
       hibernate:
+        dialect: ${JPA_HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
         generate_statistics: ${JPA_HIBERNATE_GENERATE_STATISTICS:false}
     open-in-view: ${JPA_OPEN_IN_VIEW:false}
     show-sql: ${JPA_SHOW_SQL:false}
@@ -199,6 +187,10 @@ externalservices:
         password: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
         obo-scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
         trust-all-certificates: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
+        workflow: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_WORKFLOW:}
+        ods-namespace: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_ODS_NAMESPACE:}
+        quickstarter-repository: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_QUICKSTARTER_REPO:}
+        catalog-item-id: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_CATALOG_ITEM_ID:}
         bypass:
           audience: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
           scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE:}

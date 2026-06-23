@@ -56,6 +56,26 @@ spec:
               value: {{ .Values.env.OAUTH2_AUDIENCE | quote }}
             - name: OAUTH2_JWK_SET_URI
               value: {{ .Values.env.OAUTH2_JWK_SET_URI | quote }}
+            {{- if .Values.env.OAUTH2_AUDIENCE2 }}
+            - name: OAUTH2_AUDIENCE2
+              value: {{ .Values.env.OAUTH2_AUDIENCE2 | quote }}
+            {{- end }}
+            {{- if .Values.env.OAUTH2_ISSUER_V1 }}
+            - name: OAUTH2_ISSUER_V1
+              value: {{ .Values.env.OAUTH2_ISSUER_V1 | quote }}
+            {{- end }}
+            {{- if .Values.env.OAUTH2_JWK_SET_URI_V1 }}
+            - name: OAUTH2_JWK_SET_URI_V1
+              value: {{ .Values.env.OAUTH2_JWK_SET_URI_V1 | quote }}
+            {{- end }}
+            {{- if .Values.env.OAUTH2_ISSUER_V2 }}
+            - name: OAUTH2_ISSUER_V2
+              value: {{ .Values.env.OAUTH2_ISSUER_V2 | quote }}
+            {{- end }}
+            {{- if .Values.env.OAUTH2_JWK_SET_URI_V2 }}
+            - name: OAUTH2_JWK_SET_URI_V2
+              value: {{ .Values.env.OAUTH2_JWK_SET_URI_V2 | quote }}
+            {{- end }}
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS | quote }}
 
