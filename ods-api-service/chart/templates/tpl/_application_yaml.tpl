@@ -187,10 +187,6 @@ externalservices:
         password: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD:}
         obo-scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE:}
         trust-all-certificates: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL:false}
-        workflow: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_WORKFLOW:}
-        ods-namespace: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_ODS_NAMESPACE:}
-        quickstarter-repository: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_QUICKSTARTER_REPO:}
-        catalog-item-id: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_CATALOG_ITEM_ID:}
         bypass:
           audience: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
           scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE:}
