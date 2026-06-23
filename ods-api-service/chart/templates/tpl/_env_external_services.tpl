@@ -87,6 +87,8 @@ MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PROVISIONER_ACTIONS_BASE_URL: 
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BITBUCKET_BASE_URL: {{ $instance.bitbucketBaseUrl | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustAllCertificates | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE: {{ $instance.oboScope | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE: {{ $instance.bypass.audience | default "" | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE: {{ $instance.bypass.scope | default "" | quote }}
 
 {{- end }}
 {{- end }}
