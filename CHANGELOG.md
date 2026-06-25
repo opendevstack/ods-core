@@ -4,6 +4,7 @@
 
 ### Added
 - Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
+- Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
 ### Changed
 
