@@ -1,0 +1,17 @@
+---
+# Internal services and API-specific non-sensitive runtime settings
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fullname" . }}-services-config
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: services-config
+    ods.opendevstack.io/runtime-domain: services
+{{- $servicesConfig := include "chart.servicesConfigData" . | trim }}
+data:
+{{- if $servicesConfig }}
+{{ $servicesConfig | nindent 2 }}
+{{- else }}
+  {}
+{{- end }}

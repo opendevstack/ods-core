@@ -19,10 +19,12 @@ fi
 CERT_DIR=$(mktemp -d)
 echo "Created temporary directory: $CERT_DIR"
 
-echo "Creating new custom truststore from scratch at: $CUSTOM_TRUSTSTORE"
+echo "Creating custom truststore based on Java cacerts at: $CUSTOM_TRUSTSTORE"
 
-# Remove existing truststore if it exists
+# Copy Java cacerts as the base truststore
 rm -f "$CUSTOM_TRUSTSTORE"
+cp "$JAVA_HOME/lib/security/cacerts" "$CUSTOM_TRUSTSTORE"
+chmod 600 "$CUSTOM_TRUSTSTORE"
 
 # Split CERT_URLS by comma and process each URL
 IFS=',' read -ra URLS <<< "$CERT_URLS"

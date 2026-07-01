@@ -1,0 +1,253 @@
+# OpenDevStack Helm Configuration Values
+# These values are anonymized for safe sharing
+
+# Global Configuration
+global:
+  namespace: example-cd
+  imageTag: "4.x"
+  gitRef: feature/example-branch
+  bitbucketProject: example
+
+# Nexus Configuration
+nexus:
+  image:
+    tag: 3.70.4-java11-ubi
+  host: nexus-ods.apps.example.com
+  url: https://nexus-ods.apps.example.com
+  username: example-user
+  resources:
+    cpu:
+      request: 200m
+      limit: "1"
+    memory:
+      request: 4Gi
+      limit: 5Gi
+    jvmParams: "-Xms2703m -Xmx2703m -XX:MaxDirectMemorySize=2703m -Djava.util.prefs.userRoot=/nexus-data/javaprefs"
+  storage:
+    name: "nexus-storage"
+    capacity: 100Gi
+    provisioner: "ebs.csi.aws.com"
+    class: "gp3-csi"
+    backupClass: "csi-aws-vsc"
+  backup:
+    schedule: "0 2 * * *"
+  snapshot:
+    schedule: "0 2 * * *"
+    cleanupSchedule: "0 3 * * *"
+    ttlSeconds: 2592000
+    checkTimeoutSeconds: 600
+
+# SonarQube Configuration
+sonarqube:
+  version: 2025.5.0
+  edition: enterprise
+  host: sonarqube-ods.apps.example.com
+  url: https://sonarqube-ods.apps.example.com
+  adminUsername: admin
+  webAuthCodeRequired: true
+  auth:
+    samlEnabled: "true"
+    samlApplicationId: https://sonarqube-ods.apps.example.com/sonar/saml
+  resources:
+    cpu:
+      request: 200m
+      limit: "1"
+    memory:
+      request: 5Gi
+      limit: 5Gi
+  storage:
+    data:
+      name: "sonarqube-data-storage"
+      capacity: 5Gi
+      provisioner: "csi.trident.netapp.io"
+      class: "standard-nas"
+      fastClass: "gp3-csi"
+    extensions:
+      capacity: 1Gi
+    backup:
+      class: "csi-aws-vsc"
+  database:
+    image: registry.redhat.io/rhel10/postgresql-16
+    name: sonarqube
+    username: sonarqube
+    superUsername: super_sonarqube
+    jdbcUrl: jdbc:postgresql://sonarqube-postgresql:5432/sonarqube
+    resources:
+      cpu:
+        request: 100m
+        limit: "1"
+      memory:
+        request: 512Mi
+        limit: 1Gi
+    storage:
+      capacity: 5Gi
+      backupCapacity: 1Gi
+  backup:
+    schedule: "0 2 * * *"
+    dbBackupTtlDays: 30
+  scanning:
+    enabled: "true"
+    nexusRepository: example-repository
+    alertEmails: alerts@example.com
+    projectsPrivate: "false"
+    account: service-user
+    exclusions: ".json,.xml,**/.git/**,**/.svn/**,**/.hg/**,**/.idea/**,**/.vscode/**,**/__pycache__/**,**/*.pyc,/venv/,/.venv/,/site-packages/,**/node_modules/**,/dist/,/.next/,/.parcel-cache/,**/target/**,**/*.class,**/*.jar,**/*.war,**/*.ear,/build/libs/,/build/,/out/,/coverage/,/reports/,/cache/,/.cache/,**/build/reports/tests**,**/build/test-results**,/.gradle/,/.mvn/,/vendor/,/pkg/,/Cargo.lock,/android/,/ios/,/www/,/.terraform/,**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/*.so,**/*.dylib,**/*.a,**/*.zip,**/*.tar,**/*.gz,**/*.tgz,**/*.xz,**/*.deb,**/*.rpm,**/*.whl,**/*.jpg,**/*.jpeg,**/*.png,**/*.gif,**/*.bmp,**/*.svg,**/*.webp,**/*.mp3,**/*.wav,**/*.ogg,**/*.flac,**/*.mp4,**/*.avi,**/*.mov,**/*.mkv,**/*.ttf,**/*.woff,**/*.woff2,**/*.eot,**/*.psd,**/*.ai,**/*.pdf,**/*.doc,**/*.docx,**/*.xls,**/*.xlsx,**/*.ppt,**/*.pptx,**/testsuite/lib/**,**/.npm/**,**/.yarn/**,**/.pnpm-store/**,**/.tox/**,**/.pytest_cache/**,**/.cargo/**,**/.bundle/**,**/.nuget/**,**/.docker/**,**/.yarn-cache/**,**/.npm-cache/**"
+
+# Jira Configuration
+jira:
+  url: https://jira-example-cd.apps.example.com
+  projectTemplates:
+    keys: "default,kanban,CustomTemplate"
+  additionalTemplateProperties:
+    - key: "jira.project.template.key.CustomTemplate"
+      value: "org.example.jira.plugins.projecttemplate:example-platform-project-template"
+    - key: "jira.project.template.type.CustomTemplate"
+      value: "software"
+    - key: "jira.project.template.add-webhook-proxy-url-as-project-property.CustomTemplate"
+      value: "true"
+    - key: "jira.project.template.webhook-proxy-url-endpoint-template.CustomTemplate"
+      value: "/rest/platform/1.0/projectproperties/update"
+    - key: "jira.project.template.webhook-proxy-url-payload-template.CustomTemplate"
+      value: "{\"projectKey\":\"%PROJECT_KEY%\", \"propertyKey\":\"WEBHOOK_PROXY.URL\", \"propertyValue\":\"%PROPERTY_VALUE%\"}"
+    - key: "jira.project-templates.CustomTemplate.name"
+      value: "CustomTemplate"
+    - key: "jira.project-templates.CustomTemplate.permission-scheme-id"
+      value: "10000"
+    - key: "jira.project-templates.CustomTemplate.role-mapping.project-role-for-admin-group"
+      value: "10002"
+    - key: "jira.project-templates.CustomTemplate.role-mapping.project-role-for-user-group"
+      value: "10001"
+    - key: "jira.project-templates.CustomTemplate.role-mapping.project-role-for-readonly-group"
+      value: "10003"
+
+# Crowd Configuration
+crowd:
+  url: https://crowd-example-cd.apps.example.com/crowd
+
+# Confluence Configuration
+confluence:
+  url: https://confluence.example.com
+
+# Bitbucket / Git Configuration
+bitbucket:
+  host: bitbucket-example-cd.apps.example.com
+  url: https://bitbucket-example-cd.apps.example.com
+git:
+  repositoryBase: https://bitbucket-example-cd.apps.example.com/scm
+  readableOpenstackRepos: "example-shared-library,example-quickstarters"
+
+# Jenkins Configuration
+jenkins:
+  master:
+    baseFromImage: registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1723454631
+    dockerfilePath: Dockerfile.ubi8
+  agent:
+    baseFromImage: registry.redhat.io/ocp-tools-4/jenkins-agent-base-rhel8:v4.14.0-1723453106
+    dockerfilePath: Dockerfile.ubi8
+    snykDistributionUrl: https://github.com/snyk/snyk/releases/download/v1.1292.4/snyk-linux
+    aquasecScannerCliUrl: https://USERNAME:PASSWORD@download.example.com/scanner/2022.4.829/scannercli
+  sharedLibraryRepository: https://bitbucket-example-cd.apps.example.com/scm/EXAMPLE/example-jenkins-shared-library.git
+
+# OpenShift Configuration
+openshift:
+  api:
+    url: https://api.example.com:6443
+  console:
+    host: https://console-openshift-console.apps.example.com
+  appsDomain: .apps.example.com
+  docker:
+    registry: image-registry.openshift-image-registry.svc:5000
+  dnsServers: "docker-registry-default.apps.example.com"
+
+# Storage Configuration
+storage:
+  provisioner: "csi.trident.netapp.io"
+  dataClass: "standard-nas-eco"
+  backupClass: "standard-nas-eco"
+
+# Documentation Service Configuration
+documentationService:
+  fromImage: opendevstackorg/ods-document-generation-svc:4.x
+
+# Provisioning App Configuration
+provisioningApp:
+  fromImage: opendevstackorg/ods-provisioning-app:4.x
+  image: ods-provisioning-app:4.x
+  imagePullPolicy: Always
+  crowd:
+    userGroup: EXAMPLE-BITBUCKET-USERS
+    adminGroup: EXAMPLE-PLATFORM-ADMINS
+    domain: apps.example.com
+  packagePrefix: com.example
+  mail:
+    host: mail.example.com
+    username: provision
+  logging:
+    levelAtlassianCrowd: INFO
+    levelOpendevstack: INFO
+    filePath: /opt/provision/history/logs
+  confluence:
+    adapterEnabled: "true"
+  auth:
+    basicAuthEnabled: "true"
+  cleanup:
+    incompleteProjectsEnabled: "true"
+  frontend:
+    spaEnabled: "false"
+  openshift:
+    serviceEnabled: "true"
+  defaultOpenShiftPermissions:
+    adminGroups:
+      - EXAMPLE-PA-ADMINS
+      - EXAMPLE-PA-SUPPORT
+  webhookProxy:
+    host: webhook-proxy-ods
+    events: "repo:refs_changed,pr:merged,pr:declined,pr:deleted"
+
+# Aqua Configuration
+aqua:
+  enabled: "true"
+  url: https://aqua-aqua.apps.example.com
+  registry: example-registry
+  secretName: aqua-user-with-password
+  alertEmails: alerts@example.com
+  nexusRepository: example-repository
+
+# Tosca Configuration
+tosca:
+  orchestrator:
+    host: http://tosca-agent-provisioner-example
+  server: tosca-server.example.internal
+
+# Ansible Automation Platform Configuration
+aap:
+  url: https://aap.example.internal/
+
+# OpenTelemetry Collector Configuration
+opentelemetry:
+  collector:
+    image: docker-group-ods.apps.example.com/otel/opentelemetry-collector-k8s
+    imageTag: 0.123.0-amd64
+    ingressHost: opentelemetry-collector-ods.apps.example.com
+    goMemLimit: 128MiB
+    otlpApi:
+      endpoint: https://tenant.example.com/api/v2/otlp
+    resources:
+      cpu:
+        request: 200m
+        limit: "1"
+      memory:
+        request: 128Mi
+        limit: 256Mi
+
+# Post-Creation Scripts Configuration
+postCreationScripts:
+  enabled: "true"
+  configRepo:
+    url: https://bitbucket.example.com/scm/example/configuration.git
+    branch: main
+    configFile: post-project-creation-scripts.env
+  scriptsRepo:
+    url: https://bitbucket.example.com/scm/example/scripts.git
+    branch: feature/example-provisioning
+    order: "01-release-manager-provisioning.sh,02-register-release-manager-in-marketplace.sh,03-provision-project-credentials.sh"

@@ -73,8 +73,14 @@ env:
   CERT_URLS: "$CERT_URLS"
   OAUTH2_ISSUER: "$OAUTH2_ISSUER"
   OAUTH2_AUDIENCE: "$OAUTH2_AUDIENCE"
+  OAUTH2_AUDIENCE2: "$OAUTH2_AUDIENCE2"
   OAUTH2_JWK_SET_URI: "$OAUTH2_JWK_SET_URI"
-  JAVA_OPTS: "$JAVA_OPTS"
+  # Trusted JWT issuers (multi-issuer / multi-audience support)
+  OAUTH2_ISSUER_V1: "$OAUTH2_ISSUER_V1"
+  OAUTH2_JWK_SET_URI_V1: "$OAUTH2_JWK_SET_URI_V1"
+  OAUTH2_ISSUER_V2: "$OAUTH2_ISSUER_V2"
+  OAUTH2_JWK_SET_URI_V2: "$OAUTH2_JWK_SET_URI_V2"
+  JAVA_OPTS: $JAVA_OPTS
 # Development-specific configuration
 config:
   debug: true
@@ -148,35 +154,32 @@ config:
   app:
     security:
       enabled: true
-      jwt-validation-enabled: false
-      issuer: ${OAUTH2_ISSUER:}
-      audience: ${OAUTH2_AUDIENCE:}
-      jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
       public-endpoints:
         - "/actuator/health"
         - "/actuator/info"
+        - "/actuator/health/liveness"
+        - "/actuator/health/readiness"
         - "/swagger-ui/**"
         - "/swagger-ui.html"
         - "/v3/api-docs/**"
         - "/v3/api-docs.yaml/**"
         - "/swagger-resources/**"
         - "/webjars/**"
-      flows:
-        global:
-          enabled-flows:
-            - "authorization-code"
-            - "client-credentials"
-            - "on-behalf-of"
-          default-flow: "client-credentials"
-        apis:
-          project:
-            default-flow: "client-credentials"
-            endpoints:
-              - pattern: "/api/v1/projects/*/users/**"
-                flows: ["client-credentials"]
-                require-authentication: true
-              - pattern: "/api/v1/projects/*/platforms/**"
-                permit-all: true
+      # On-Behalf-Of (OBO) token exchange against the identity provider
+      obo:
+        token-url: ${OBO_TOKEN_URL:https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token}
+        client-id: ${OBO_CLIENT_ID}
+        client-secret: ${OBO_CLIENT_SECRET}
+      # Audience values accepted by this API. A valid token must carry at least one of these.
+      audiences:
+        - ${OAUTH2_AUDIENCE:}
+        - ${OAUTH2_AUDIENCE2:}
+      # Trusted JWT issuers. Each entry pairs an issuer URI (iss claim) with its JWK set URI.
+      issuers:
+        - issuer-uri: ${OAUTH2_ISSUER_V1:}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI_V1:}
+        - issuer-uri: ${OAUTH2_ISSUER_V2:}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI_V2:}
   environment: dev
 # External Services Secrets
 externalServices:
@@ -186,7 +189,7 @@ externalServices:
     baseUrl: "$AAP_BASE_URL"
     # username and password should be set via environment variables
     username: "$AAP_USERNAME"
-    password: "$AAP_PASSWORD"
+    password: $AAP_PASSWORD
     timeout: 30000
     ssl:
       verifyCertificates: false
@@ -213,27 +216,32 @@ externalServices:
   projectsInfoService:
     enabled: true
     baseUrl: "$PROJECTS_INFO_SERVICE_BASE_URL"
+    ssl:
+      verifyCertificates: false
+      trustStorePath: ""
+      trustStorePassword: ""
+      trustStoreType: "JKS"
   # Add OpenShift instances with tokens as needed
   openshift:
-    instances: []
+    instances: {}
     # Example:
-    # - name: 1-test
-    #   apiUrl: "https://api.1-test.ocp.com:6443"
-    #   token: ""  # Set in secrets.dev.enc.yaml
-    #   namespace: "devstack-dev"
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   1-test:
+    #     apiUrl: "https://api.1-test.ocp.com:6443"
+    #     token: ""  # Set in secrets.dev.enc.yaml
+    #     namespace: "devstack-dev"
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Add Bitbucket instances with credentials as needed
   bitbucket:
-    instances: []
+    instances: {}
     # Example:
-    # - name: dev
-    #   baseUrl: "https://bitbucket.example.com"
-    #   bearerToken: ""  # Set in secrets.dev.enc.yaml
-    #   connectionTimeout: 30000
-    #   readTimeout: 30000
-    #   trustAllCertificates: false
+    #   dev:
+    #     baseUrl: "https://bitbucket.example.com"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
   # Webhook Proxy Clusters for dev
   webhookProxy:
     clusters: []
@@ -250,17 +258,45 @@ externalServices:
     # Example:
     # - name: eu-dev
     #   apiToken: ""  # Set in secrets.dev.enc.yaml
+  # Jira Instances
+  jira:
+    defaultInstance: "$JIRA_DEFAULT_INSTANCE"
+    instances: {}
+    # Example:
+    #   dev:
+    #     baseUrl: "$JIRA_DEV_BASE_URL"
+    #     bearerToken: ""  # Set in secrets.dev.enc.yaml
+    #     connectionTimeout: 30000
+    #     readTimeout: 30000
+    #     trustAllCertificates: false
+  # Marketplace Instances
+  marketplace:
+    defaultInstance: "$MARKETPLACE_DEFAULT_INSTANCE"
+    instances: {}
+    # Example:
+    #   dev:
+    #     projectComponentsBaseUrl: "$MARKETPLACE_DEV_PROJECT_COMPONENTS_BASE_URL"
+    #     provisionerActionsBaseUrl: "$MARKETPLACE_DEV_PROVISIONER_ACTIONS_BASE_URL"
+    #     oboScope: "$MARKETPLACE_DEV_OBO_SCOPE"
+    #     bypass:
+    #       audience: "$MARKETPLACE_DEV_BYPASS_AUDIENCE"
+    #       scope: "$MARKETPLACE_DEV_BYPASS_SCOPE"
+    #     bitbucketBaseUrl: "$_BITBUCKET_BASE_URL"
+    #     trustAllCertificates: false
+    #     username: ""  # Set in secrets.dev.enc.yaml
+    #     password: ""  # Set in secrets.dev.enc.yaml
 # API Configuration Secrets
 apis:
   projectUsers:
     enabled: true
-    workflowName: "$PROJECT_USERS_WORKFLOW_NAME"
+    workflowName: $PROJECT_USERS_WORKFLOW_NAME
     token:
       # JWT secret key (minimum 256 bits / 32 characters)
       secret: "$PROJECT_USERS_JWT_SECRET"
       expirationHours: $PROJECT_USERS_JWT_EXPIRATION_HOURS
 # Environment-specific configuration (loaded based on active profile)
 envConfig: {}
+
 resources:
   limits:
     cpu: 500m
