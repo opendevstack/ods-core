@@ -5,18 +5,17 @@
 ### Added
 
 ### Changed
+
+### Fixed
+
+## [4.13.0] - 2026-07-01
+### Changed
 - Jenkins master and agent maintenance. Add Rhel9 variant and make it default ([#1361](https://github.com/opendevstack/ods-core/pull/1361))
 - Update tailor to 1.4.0 ([#1373](https://github.com/opendevstack/ods-core/pull/1373))
 - Update Jenkins java version to jdk 21 ([#1374](https://github.com/opendevstack/ods-core/pull/1374))
 - Add new configuration for the ODS API Service ([1375](https://github.com/opendevstack/ods-core/pull/1375)) ([1377](https://github.com/opendevstack/ods-core/pull/1377))([1378](https://github.com/opendevstack/ods-core/pull/1378))([1379](https://github.com/opendevstack/ods-core/pull/1379))([1380](https://github.com/opendevstack/ods-core/pull/1380))([1382](https://github.com/opendevstack/ods-core/pull/1382))([1383](https://github.com/opendevstack/ods-core/pull/1383)) ([1386](https://github.com/opendevstack/ods-core/pull/1386))
 - Change the way the certificates are installed in the container of ods-api-service to update the cacert ([1381](https://github.com/opendevstack/ods-core/pull/1381))
 - Add OpenID Connect Provider plugin to jenkins master image ([1390](https://github.com/opendevstack/ods-core/pull/1390)) 
-
-### Fixed
-
-## [4.12.2] - 2026-04-28
-### Changed
-- Update TRIVY_VERSION to 0.69.3 ([#1376](https://github.com/opendevstack/ods-core/pull/1376))
 
 ## [4.12.1] - 2026-03-03
 ### Fixed
