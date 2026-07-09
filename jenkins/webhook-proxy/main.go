@@ -300,6 +300,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				Repository repository `json:"repository"`
 				DisplayID  string     `json:"displayId"`
 			} `json:"fromRef"`
+			ToRef struct {
+				Repository repository `json:"repository"`
+			} `json:"toRef"`
 		} `json:"pullRequest"`
 	}
 
@@ -448,6 +451,16 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
+				if req.PullRequest.FromRef.Repository.Project.Key != req.PullRequest.ToRef.Repository.Project.Key {
+					msg := fmt.Sprintf(
+						"Cross-project PR rejected: source project %q does not match target project %q",
+						req.PullRequest.FromRef.Repository.Project.Key,
+						req.PullRequest.ToRef.Repository.Project.Key,
+					)
+					log.Println(requestID, msg)
+					http.Error(w, msg, http.StatusBadRequest)
+					return
+				}
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
 					component = extractComponent(repo, project)
