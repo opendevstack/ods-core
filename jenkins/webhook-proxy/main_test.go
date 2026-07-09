@@ -338,6 +338,55 @@ func TestHandleRootReadsRequests(t *testing.T) {
 	}
 }
 
+func TestRejectsCrossProjectPR(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		payloadFile        string
+		expectedStatusCode int
+		wantCrossProject   bool
+	}{
+		"same-project PR merged is allowed": {
+			payloadFile:        "pr-merged-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"same-project PR declined is allowed": {
+			payloadFile:        "pr-declined-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"cross-project PR is rejected": {
+			payloadFile:        "pr-cross-project-payload.json",
+			expectedStatusCode: http.StatusBadRequest,
+			wantCrossProject:   true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			body, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != tc.expectedStatusCode {
+				t.Fatalf("Got status %d, want %d (body: %s)", res.StatusCode, tc.expectedStatusCode, body)
+			}
+			if tc.wantCrossProject && !strings.Contains(string(body), "Cross-project PR rejected") {
+				t.Fatalf("Expected cross-project rejection message in body, got: %s", body)
+			}
+		})
+	}
+}
+
 func TestSkipsPayloads(t *testing.T) {
 	// The expected events depend on the values in the payload files.
 	tests := map[string]struct {
