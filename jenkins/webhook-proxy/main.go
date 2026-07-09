@@ -29,7 +29,6 @@ const (
 	pipelineConfigFilename         = "pipeline.json.tmpl"
 	repoBaseEnvVar                 = "REPO_BASE"
 	triggerSecretEnvVar            = "TRIGGER_SECRET"
-	triggerSecretDefault           = "secret101"
 	jenkinsfilePathDefault         = "Jenkinsfile"
 	protectedBranchesEnvVar        = "PROTECTED_BRANCHES"
 	protectedBranchesDefault       = "master,develop,production,staging,release/"
@@ -176,13 +175,7 @@ func main() {
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
 	if len(triggerSecret) == 0 {
-		triggerSecret = triggerSecretDefault
-		log.Println(
-			"WARN:",
-			triggerSecretEnvVar,
-			"not set, using default value:",
-			triggerSecretDefault,
-		)
+		log.Fatalln("Exiting due to missing trigger secret.")
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
