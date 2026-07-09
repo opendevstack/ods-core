@@ -116,7 +116,7 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
-	OpenShiftAppDomain string
+	OpenShiftAppDomain  string
 }
 
 // Server represents this service, and is a global.
@@ -628,7 +628,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					log.Println(requestID, "No remaining instances found")
 					return
 				}
-				if i == s.MaxDeletionChecks - 1 {
+				if i == s.MaxDeletionChecks-1 {
 					log.Println(requestID, "Reached maximum iterations, stopping checks")
 				}
 			}
@@ -661,11 +661,17 @@ func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) 
 		e.Pipeline,
 		triggerSecret,
 	)
+	redactedURL := fmt.Sprintf(
+		"%s/namespaces/%s/buildconfigs/%s/webhooks/[REDACTED]/generic",
+		c.OpenShiftAPIBaseURL,
+		e.Namespace,
+		e.Pipeline,
+	)
 
 	c.CheckJenkinsAvailability(e)
 	c.CheckDocGenAvailability(e)
 
-	log.Println(e.RequestID, "Forwarding to", url)
+	log.Println(e.RequestID, "Forwarding to", redactedURL)
 
 	p := struct {
 		Env []EnvPair `json:"env"`
@@ -927,7 +933,7 @@ func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
-		OpenShiftAppDomain: openShiftAppDomain,
+		OpenShiftAppDomain:  openShiftAppDomain,
 	}, nil
 }
 
