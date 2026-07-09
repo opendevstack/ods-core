@@ -123,7 +123,9 @@ objects:
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
-        securityContext: {}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
         serviceAccount: '${JENKINS_SERVICE_NAME}'
         serviceAccountName: '${JENKINS_SERVICE_NAME}'
         terminationGracePeriodSeconds: 30
