@@ -3,11 +3,11 @@
 ## Unreleased
 
 ### Added
-- Fix VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
 
 ### Changed
 
 ### Fixed
+- Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
 
 ## [4.13.0] - 2026-07-01
 ### Changed
