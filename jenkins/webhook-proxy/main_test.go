@@ -907,7 +907,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestGetBuildConfig(t *testing.T) {
-	tmpl, err := template.ParseFiles(pipelineConfigFilename)
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
 	if err != nil {
 		t.Error(err)
 	}
@@ -934,6 +934,248 @@ func TestGetBuildConfig(t *testing.T) {
 	expected := string(configBytes)
 	if actual != expected {
 		t.Errorf("Not the same, have: %s, want: %s", actual, expected)
+	}
+}
+
+func TestIsValid(t *testing.T) {
+	tests := map[string]struct {
+		event Event
+		want  bool
+	}{
+		"valid forward event": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "main", Pipeline: "my-repo-main"},
+			want:  true,
+		},
+		"valid delete event": {
+			event: Event{Kind: "delete", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "feature/ABC-123", Pipeline: "my-repo-123"},
+			want:  true,
+		},
+		"branch with dots and plus": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "release/v1.2.3+hotfix", Pipeline: "repo-v123"},
+			want:  true,
+		},
+		"unknown kind": {
+			event: Event{Kind: "unknown", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"pipeline too short": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "ab"},
+			want:  false,
+		},
+		"empty namespace": {
+			event: Event{Kind: "forward", Namespace: "", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty repo": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty component": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty branch": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Repo
+		"repo with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil"repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil\repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with opening brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil{repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with newline": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil\nrepo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Component
+		"component with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: `evil"comp`, Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"component with closing brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "evil}comp", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Branch
+		"branch with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main"injected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main\ninjected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with null byte": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main\x00injected", Pipeline: "repo-main"},
+			want:  false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.event.IsValid()
+			if got != tc.want {
+				t.Fatalf("IsValid() = %v, want %v (event: %+v)", got, tc.want, tc.event)
+			}
+		})
+	}
+}
+
+func TestParsePipelineTemplateJsonStrEscaping(t *testing.T) {
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// renderAndParse renders the template and returns the fully-parsed JSON map.
+	// It fails the test if rendering or JSON parsing fails, which catches cases
+	// where an unescaped injection string broke the JSON structure.
+	renderAndParse := func(t *testing.T, data BuildConfigData) map[string]interface{} {
+		t.Helper()
+		b, err := getBuildConfig(tmpl, data)
+		if err != nil {
+			t.Fatalf("getBuildConfig error: %v", err)
+		}
+		var out map[string]interface{}
+		if err := json.Unmarshal(b.Bytes(), &out); err != nil {
+			t.Fatalf("rendered template is not valid JSON: %v\noutput:\n%s", err, b.String())
+		}
+		return out
+	}
+
+	t.Run("double-quote in GitURI is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped " in the URI breaks out of the JSON string and makes the
+		// document invalid — json.Unmarshal would fail inside renderAndParse.
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI: `https://domain.com/proj/repo"injected.git`,
+			Branch: "main", JenkinsfilePath: "Jenkinsfile",
+			Env: "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Verify the URI value round-trips with the literal " character preserved.
+		uri := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["uri"].(string)
+		if !strings.Contains(uri, `"injected`) {
+			t.Fatalf("expected escaped quote preserved in URI value, got: %s", uri)
+		}
+	})
+
+	t.Run("double-quote in Branch cannot break out of JSON string", func(t *testing.T) {
+		// Without escaping, branch value `main","secret":"leaked` would inject a
+		// new JSON key.  After escaping it becomes a single string value.
+		injectedBranch := `main","secret":"leaked`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          injectedBranch,
+			JenkinsfilePath: "Jenkinsfile",
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not surface as a top-level or spec-level field.
+		if _, ok := out["secret"]; ok {
+			t.Fatal("injection succeeded: 'secret' key found at top level")
+		}
+		// The ref value must equal the full injection string as data.
+		ref := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["ref"].(string)
+		if ref != injectedBranch {
+			t.Fatalf("branch value not preserved: got %q, want %q", ref, injectedBranch)
+		}
+	})
+
+	t.Run("backslash in JenkinsfilePath is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped backslash followed by " would produce an invalid JSON escape.
+		injectedPath := `Jenkinsfile\","injected":true,"x":"`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          "main",
+			JenkinsfilePath: injectedPath,
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not appear.
+		strategy := out["spec"].(map[string]interface{})["strategy"].(map[string]interface{})["jenkinsPipelineStrategy"].(map[string]interface{})
+		if _, ok := strategy["injected"]; ok {
+			t.Fatal("injection succeeded: 'injected' key found in jenkinsPipelineStrategy")
+		}
+		// The jenkinsfilePath value must equal the full injection string as data.
+		jfp := strategy["jenkinsfilePath"].(string)
+		if jfp != injectedPath {
+			t.Fatalf("jenkinsfilePath value not preserved: got %q, want %q", jfp, injectedPath)
+		}
+	})
+}
+
+func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
+	ts, mc := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		slug      string // repository.slug in the Bitbucket payload
+		displayID string // changes[0].ref.displayId
+	}{
+		"double-quote in repo slug": {
+			slug:      `repo"evil`,
+			displayID: "main",
+		},
+		"JSON metachar in branch displayId": {
+			slug:      "repository",
+			displayID: `main","kind":"delete`,
+		},
+		"backslash in branch displayId": {
+			slug:      "repository",
+			displayID: `main\ninjected`,
+		},
+		"null byte in branch displayId": {
+			slug:      "repository",
+			displayID: "main\x00injected",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			payload := map[string]interface{}{
+				"eventKey": "repo:refs_changed",
+				"repository": map[string]interface{}{
+					"slug": tc.slug,
+					"project": map[string]interface{}{
+						"key": "BAR",
+					},
+				},
+				"changes": []map[string]interface{}{
+					{
+						"type": "UPDATE",
+						"ref": map[string]interface{}{
+							"displayId": tc.displayID,
+							"type":      "BRANCH",
+						},
+					},
+				},
+			}
+			body, err := json.Marshal(payload)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", bytes.NewReader(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != http.StatusBadRequest {
+				t.Fatalf("Got status %d, want %d; mock event: %v", res.StatusCode, http.StatusBadRequest, mc.Event)
+			}
+		})
 	}
 }
 

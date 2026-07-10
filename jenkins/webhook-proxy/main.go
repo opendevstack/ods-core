@@ -21,6 +21,13 @@ import (
 	"time"
 )
 
+var (
+	// safeNameRegex permits characters that are valid in repository / component names.
+	safeNameRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+	// safeBranchRegex permits characters that are valid in git branch / ref names.
+	safeBranchRegex = regexp.MustCompile(`^[a-zA-Z0-9._/\-+@]+$`)
+)
+
 const (
 	namespaceFile                  = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -323,7 +330,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		log.Println(requestID, "-----")
 
 		init.Do(func() {
-			tmpl, err = template.ParseFiles(pipelineConfigFilename)
+			tmpl, err = parsePipelineTemplate(pipelineConfigFilename)
 		})
 		if err != nil {
 			log.Println(requestID, err.Error())
@@ -887,7 +894,7 @@ func (c *ocClient) do(req *http.Request) (*http.Response, error) {
 	return c.HTTPClient.Do(req)
 }
 
-// IsValid performs basic snaity checks for event values.
+// IsValid performs basic sanity checks for event values.
 func (e *Event) IsValid() bool {
 	// Only forward and delete are recognized right now.
 	if e.Kind != "forward" && e.Kind != "delete" {
@@ -897,7 +904,21 @@ func (e *Event) IsValid() bool {
 	if len(e.Pipeline) < 3 {
 		return false
 	}
-	return len(e.Namespace) > 0 && len(e.Repo) > 0 && len(e.Component) > 0 && len(e.Branch) > 0
+	if len(e.Namespace) == 0 || len(e.Repo) == 0 || len(e.Component) == 0 || len(e.Branch) == 0 {
+		return false
+	}
+	// Reject JSON metacharacters and other unsafe characters in fields that are
+	// interpolated into the BuildConfig template to prevent JSON injection.
+	if !safeNameRegex.MatchString(e.Repo) {
+		return false
+	}
+	if !safeNameRegex.MatchString(e.Component) {
+		return false
+	}
+	if !safeBranchRegex.MatchString(e.Branch) {
+		return false
+	}
+	return true
 }
 
 func (e *Event) String() string {
@@ -944,6 +965,22 @@ func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffe
 		return nil, fmt.Errorf("Could not fill template %s", pipelineConfigFilename)
 	}
 	return b, nil
+}
+
+// parsePipelineTemplate parses the pipeline BuildConfig template and registers
+// the jsonStr function used to safely encode user-controlled string values.
+func parsePipelineTemplate(filename string) (*template.Template, error) {
+	return template.New(filename).Funcs(template.FuncMap{
+		// jsonStr JSON-encodes s and strips the surrounding quotes so it can
+		// be safely interpolated inside an existing JSON string literal.
+		"jsonStr": func(s string) (string, error) {
+			b, err := json.Marshal(s)
+			if err != nil {
+				return "", err
+			}
+			return string(b[1 : len(b)-1]), nil
+		},
+	}).ParseFiles(filename)
 }
 
 func getSecureClient() (*http.Client, error) {
