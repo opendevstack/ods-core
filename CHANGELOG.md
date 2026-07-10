@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Fixed VIT008953 ([#1394](https://github.com/opendevstack/ods-core/pull/1394))
 
 ## [4.13.0] - 2026-07-01
 ### Changed
