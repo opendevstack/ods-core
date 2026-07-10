@@ -468,6 +468,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
+				// Validate the target (toRef) project against the server's allowed
+				// projects.  This is the authoritative check; the root-level
+				// repository field is absent in PR payloads so it cannot be used.
+				_, prProjectErr := s.readProjectParam(req.PullRequest.ToRef.Repository.Project.Key, requestID)
+				if prProjectErr != nil {
+					http.Error(w, prProjectErr.Error(), http.StatusBadRequest)
+					return
+				}
 				if req.PullRequest.FromRef.Repository.Project.Key != req.PullRequest.ToRef.Repository.Project.Key {
 					msg := fmt.Sprintf(
 						"Cross-project PR rejected: source project %q does not match target project %q",
