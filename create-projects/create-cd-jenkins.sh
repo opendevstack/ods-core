@@ -79,8 +79,6 @@ fi
 if [ -z "${PIPELINE_TRIGGER_SECRET_B64}" ]; then
   echo "--pipeline-trigger-secret-b64 is missing, but required"; usage
   exit 1
-else
-  echo "--pipeline-trigger-secret-b64=${PIPELINE_TRIGGER_SECRET_B64}"
 fi
 
 if [ -z "${CD_USER_TYPE}" ]; then
