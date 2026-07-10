@@ -2,6 +2,9 @@
 def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 def projectId = env.PROJECT_ID
+if (!projectId ==~ /^[A-Za-z\d]+$/) {
+    throw new IllegalArgumentException("Invalid projectId: ${projectId}")
+}
 
 // Jenkins DeploymentConfig environment variables
 def dockerRegistry
