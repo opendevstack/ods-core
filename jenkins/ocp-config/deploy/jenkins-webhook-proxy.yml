@@ -125,7 +125,6 @@ objects:
         schedulerName: default-scheduler
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1001
         serviceAccount: '${JENKINS_SERVICE_NAME}'
         serviceAccountName: '${JENKINS_SERVICE_NAME}'
         terminationGracePeriodSeconds: 30
