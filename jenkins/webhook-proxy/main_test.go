@@ -1179,6 +1179,58 @@ func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
 	}
 }
 
+func TestJenkinsfilePathValidation(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	validPayload := func() io.Reader {
+		b, _ := os.ReadFile("testdata/fixtures/repo-refs-changed-payload.json")
+		return bytes.NewReader(b)
+	}
+
+	tests := map[string]struct {
+		path       string
+		wantStatus int
+	}{
+		// Valid paths
+		"default (no param)":          {"", http.StatusOK},
+		"simple filename":             {"Jenkinsfile", http.StatusOK},
+		"one directory deep":          {"ci/Jenkinsfile", http.StatusOK},
+		"multiple segments":           {"a/b/c/Jenkinsfile", http.StatusOK},
+		"filename with dots and dash": {"ci/My-Jenkinsfile.groovy", http.StatusOK},
+		// Invalid – path traversal
+		"double-dot traversal": {"../evil/Jenkinsfile", http.StatusBadRequest},
+		"traversal in middle":  {"ci/../../../etc/passwd", http.StatusBadRequest},
+		// Invalid – absolute path
+		"absolute path": {"/etc/passwd", http.StatusBadRequest},
+		// Invalid – hidden file / dot-start segment
+		"hidden file": {".hidden/Jenkinsfile", http.StatusBadRequest},
+		// Invalid – JSON metacharacters
+		"double-quote in path": {`ci/"injected`, http.StatusBadRequest},
+		"backslash in path":    {`ci\Jenkinsfile`, http.StatusBadRequest},
+		// Invalid – space
+		"space in path": {"ci/My Jenkinsfile", http.StatusBadRequest},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			url := ts.URL + "/?trigger_secret=s3cr3t"
+			if tc.path != "" {
+				url += "&jenkinsfile_path=" + tc.path
+			}
+			res, err := http.Post(url, "application/json", validPayload())
+			if err != nil {
+				t.Fatal(err)
+			}
+			io.ReadAll(res.Body)
+			res.Body.Close()
+			if res.StatusCode != tc.wantStatus {
+				t.Fatalf("jenkinsfile_path=%q: got status %d, want %d", tc.path, res.StatusCode, tc.wantStatus)
+			}
+		})
+	}
+}
+
 func TestExtractComponent(t *testing.T) {
 	tests := map[string]struct {
 		repository    string

@@ -26,6 +26,11 @@ var (
 	safeNameRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 	// safeBranchRegex permits characters that are valid in git branch / ref names.
 	safeBranchRegex = regexp.MustCompile(`^[a-zA-Z0-9._/\-+@]+$`)
+	// safeJenkinsfilePathRegex permits only relative path segments composed of
+	// safe characters. Each segment must begin with an alphanumeric character,
+	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
+	// and hidden-file tricks (".").
+	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
 )
 
 const (
@@ -349,6 +354,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		jenkinsfilePath := jenkinsfilePathDefault
 		jenkinsfilePathParam := queryValues.Get("jenkinsfile_path")
 		if jenkinsfilePathParam != "" {
+			if !safeJenkinsfilePathRegex.MatchString(jenkinsfilePathParam) {
+				log.Println(requestID, "jenkinsfile_path param rejected:", jenkinsfilePathParam)
+				http.Error(w, "Invalid jenkinsfile_path", http.StatusBadRequest)
+				return
+			}
 			jenkinsfilePath = jenkinsfilePathParam
 		}
 
