@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha1"
+	"crypto/subtle"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -345,7 +346,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		queryValues := r.URL.Query()
 		triggerSecretParam := queryValues.Get("trigger_secret")
-		if triggerSecretParam != s.TriggerSecret {
+		if subtle.ConstantTimeCompare([]byte(triggerSecretParam), []byte(s.TriggerSecret)) != 1 {
 			log.Println(requestID, "trigger_secret param not given / not matching")
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
