@@ -1191,7 +1191,7 @@ func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			io.ReadAll(res.Body)
+			_, _ = io.ReadAll(res.Body)
 			res.Body.Close()
 
 			if res.StatusCode != http.StatusBadRequest {
@@ -1244,7 +1244,7 @@ func TestJenkinsfilePathValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			io.ReadAll(res.Body)
+			_, _ = io.ReadAll(res.Body)
 			res.Body.Close()
 			if res.StatusCode != tc.wantStatus {
 				t.Fatalf("jenkinsfile_path=%q: got status %d, want %d", tc.path, res.StatusCode, tc.wantStatus)
