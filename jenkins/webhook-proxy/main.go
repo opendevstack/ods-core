@@ -1021,7 +1021,15 @@ func getSecureClient() (*http.Client, error) {
 	// left as nil. https://go.dev/pkg/crypto/tls/
 	// tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	return &http.Client{Transport: transport, Timeout: 10 * time.Second}, nil
+	return &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+		// Never follow redirects: the SA Bearer token must not be forwarded
+		// to a redirected host (SSRF / token-leakage mitigation).
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}, nil
 }
 
 func getFileContent(filename string) (string, error) {

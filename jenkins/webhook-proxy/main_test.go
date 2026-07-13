@@ -1263,3 +1263,64 @@ func TestExtractComponent(t *testing.T) {
 		})
 	}
 }
+
+// TestOcClientDoesNotFollowRedirects verifies the SSRF / SA-token-leakage
+// mitigation: the ocClient must never follow HTTP redirects so that the
+// Authorization: Bearer header is not forwarded to an attacker-controlled host.
+//
+// The test wires up two servers:
+//   - redirectSrv  returns a 302 pointing at capturesSrv
+//   - captureSrv   records whether it received an Authorization header
+//
+// If the client followed the redirect, captureSrv would receive the Bearer
+// token. With CheckRedirect returning http.ErrUseLastResponse the client
+// stops at the 302 and captureSrv is never reached.
+func TestOcClientDoesNotFollowRedirects(t *testing.T) {
+	bearerToken := "super-secret-sa-token"
+
+	// captureSrv records any Authorization header it receives.
+	capturedAuth := ""
+	captureSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedAuth = r.Header.Get("Authorization")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer captureSrv.Close()
+
+	// redirectSrv issues a 302 redirect to captureSrv.
+	redirectSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, captureSrv.URL, http.StatusFound)
+	}))
+	defer redirectSrv.Close()
+
+	// Build an ocClient with the same CheckRedirect policy as getSecureClient.
+	c := &ocClient{
+		HTTPClient: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		OpenShiftAPIBaseURL: redirectSrv.URL,
+		Token:               bearerToken,
+	}
+
+	req, err := http.NewRequest("GET", redirectSrv.URL+"/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := c.do(req)
+	if err != nil {
+		t.Fatalf("do() returned unexpected error: %v", err)
+	}
+	defer res.Body.Close()
+
+	// The client must stop at the redirect response, not follow it.
+	if res.StatusCode != http.StatusFound {
+		t.Fatalf("expected status %d (redirect not followed), got %d", http.StatusFound, res.StatusCode)
+	}
+
+	// captureSrv must never have been called, so the Bearer token was not leaked.
+	if capturedAuth != "" {
+		t.Fatalf("SA Bearer token was leaked to redirect target: Authorization=%q", capturedAuth)
+	}
+}
