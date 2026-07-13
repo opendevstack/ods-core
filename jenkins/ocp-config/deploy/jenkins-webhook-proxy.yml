@@ -23,6 +23,13 @@ parameters:
 - name: MAX_DELETION_CHECKS
   value: '10'
   required: true
+- name: ALLOWED_WEBHOOK_IP_RANGES
+  description: >-
+    Comma-separated list of allowed source IP addresses or CIDR ranges for
+    incoming webhook requests (e.g. "185.166.140.0/22,10.0.0.1").
+    Leave empty to allow all source IPs.
+  value: ''
+  required: true
 - name: WEBHOOK_PROXY_CPU_REQUEST
   value: 25m
 - name: WEBHOOK_PROXY_CPU_LIMIT
@@ -103,6 +110,8 @@ objects:
             value: ${OPENSHIFT_APPS_BASEDOMAIN}
           - name: MAX_DELETION_CHECKS
             value: ${MAX_DELETION_CHECKS}
+          - name: ALLOWED_WEBHOOK_IP_RANGES
+            value: ${ALLOWED_WEBHOOK_IP_RANGES}
           - name: TRIGGER_SECRET
             valueFrom:
               secretKeyRef:

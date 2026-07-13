@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -1344,5 +1345,118 @@ func TestOcClientDoesNotFollowRedirects(t *testing.T) {
 	// captureSrv must never have been called, so the Bearer token was not leaked.
 	if capturedAuth != "" {
 		t.Fatalf("SA Bearer token was leaked to redirect target: Authorization=%q", capturedAuth)
+	}
+}
+
+func TestParseIPRanges(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantLen int
+		wantErr bool
+	}{
+		{"single IPv4 CIDR", "192.168.1.0/24", 1, false},
+		{"bare IPv4 address", "10.0.0.1", 1, false},
+		{"bare IPv6 address", "::1", 1, false},
+		{"multiple entries", "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16", 3, false},
+		{"entries with spaces", " 10.0.0.1 , 10.0.0.2 ", 2, false},
+		{"empty string", "", 0, false},
+		{"invalid CIDR", "not-an-ip", 0, true},
+		{"invalid prefix length", "10.0.0.0/33", 0, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := parseIPRanges(tc.input)
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if len(got) != tc.wantLen {
+				t.Fatalf("got %d networks, want %d", len(got), tc.wantLen)
+			}
+		})
+	}
+}
+
+func TestIsIPAllowed(t *testing.T) {
+	ranges, err := parseIPRanges("192.168.1.0/24,10.0.0.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		ip   string
+		want bool
+	}{
+		{"192.168.1.100", true},
+		{"192.168.1.1", true},
+		{"10.0.0.1", true},
+		{"10.0.0.2", false},
+		{"172.16.0.1", false},
+		{"8.8.8.8", false},
+	}
+	for _, tc := range tests {
+		ip := net.ParseIP(tc.ip)
+		if got := isIPAllowed(ranges, ip); got != tc.want {
+			t.Errorf("isIPAllowed(%s) = %v, want %v", tc.ip, got, tc.want)
+		}
+	}
+}
+
+func TestAllowedWebhookIPRanges(t *testing.T) {
+	mc := &mockClient{}
+	ranges, _ := parseIPRanges("192.168.1.0/24")
+	server := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: ranges,
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts := httptest.NewServer(server.HandleRoot())
+	defer ts.Close()
+
+	body := `{"eventKey":"repo:refs_changed","repository":{"slug":"my-repo","project":{"key":"bar"}},"changes":[{"type":"UPDATE","ref":{"displayId":"main","type":"BRANCH"}}]}`
+
+	// httptest server binds to 127.0.0.1 and r.RemoteAddr will be 127.0.0.1:PORT,
+	// which is NOT in 192.168.1.0/24 → expect 403.
+	res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != http.StatusForbidden {
+		t.Fatalf("expected 403 Forbidden from disallowed IP, got %d", res.StatusCode)
+	}
+
+	// With no IP restriction configured → same request must not be 403.
+	server2 := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: nil,
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts2 := httptest.NewServer(server2.HandleRoot())
+	defer ts2.Close()
+
+	res2, err := http.Post(ts2.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.ReadAll(res2.Body)
+	res2.Body.Close()
+	if res2.StatusCode == http.StatusForbidden {
+		t.Fatalf("expected non-403 when no IP restriction configured, got %d", res2.StatusCode)
 	}
 }

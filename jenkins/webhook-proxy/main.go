@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -57,6 +58,7 @@ const (
 	maxDeletionChecksDefault       = "10"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
+	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
@@ -142,6 +144,7 @@ type Server struct {
 	AcceptedEvents          []string
 	AllowedExternalProjects []string
 	AllowedChangeRefTypes   []string
+	AllowedWebhookIPRanges  []*net.IPNet
 	RepoBase                string
 	MaxDeletionChecks       int
 }
@@ -253,6 +256,16 @@ func main() {
 		maxDeletionChecks = envMaxDeletionChecks
 	}
 
+	envAllowedWebhookIPRanges := os.Getenv(allowedWebhookIPRangesEnvVar)
+	if len(envAllowedWebhookIPRanges) == 0 {
+		log.Fatalln(allowedWebhookIPRangesEnvVar, "is required but not set")
+	}
+	allowedWebhookIPRanges, parseErr := parseIPRanges(envAllowedWebhookIPRanges)
+	if parseErr != nil {
+		log.Fatalln("Invalid", allowedWebhookIPRangesEnvVar, ":", parseErr)
+	}
+	log.Println("INFO:", allowedWebhookIPRangesEnvVar, "set to", envAllowedWebhookIPRanges)
+
 	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
 	if err != nil {
 		log.Fatalln(err)
@@ -279,6 +292,7 @@ func main() {
 		AcceptedEvents:          acceptedEvents,
 		AllowedExternalProjects: allowedExternalProjects,
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
+		AllowedWebhookIPRanges:  allowedWebhookIPRanges,
 		RepoBase:                repoBase,
 		MaxDeletionChecks:       maxDeletionChecksInt,
 	}
@@ -335,6 +349,13 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		requestID := randStringBytes(6)
 		log.Println(requestID, "-----")
 
+		// TODO(debug): remove before merging
+		log.Println(requestID, "DEBUG remote-addr="+r.RemoteAddr,
+			"X-Forwarded-For="+r.Header.Get("X-Forwarded-For"),
+			"X-Real-IP="+r.Header.Get("X-Real-IP"),
+			"resolved-ip="+fmt.Sprintf("%s", requestIP(r)),
+		)
+
 		init.Do(func() {
 			tmpl, err = parsePipelineTemplate(pipelineConfigFilename)
 		})
@@ -342,6 +363,15 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			log.Println(requestID, err.Error())
 			http.Error(w, "Could not parse pipeline config template", http.StatusInternalServerError)
 			return
+		}
+
+		if len(s.AllowedWebhookIPRanges) > 0 {
+			ip := requestIP(r)
+			if ip == nil || !isIPAllowed(s.AllowedWebhookIPRanges, ip) {
+				log.Println(requestID, "request from disallowed IP:", ip, "(remote-addr="+r.RemoteAddr+")")
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
 		}
 
 		queryValues := r.URL.Query()
@@ -1101,6 +1131,68 @@ func isProtectedBranch(protectedBranches []string, branch string) bool {
 			return true
 		}
 		if b == lowerBranch {
+			return true
+		}
+	}
+	return false
+}
+
+// parseIPRanges parses a comma-separated list of CIDRs and bare IPs into
+// []*net.IPNet. Bare IPs are automatically expanded to /32 (IPv4) or /128
+// (IPv6) host routes.
+func parseIPRanges(raw string) ([]*net.IPNet, error) {
+	var networks []*net.IPNet
+	for _, entry := range strings.Split(raw, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if !strings.Contains(entry, "/") {
+			ip := net.ParseIP(entry)
+			if ip == nil {
+				return nil, fmt.Errorf("invalid IP address: %q", entry)
+			}
+			if ip.To4() != nil {
+				entry = entry + "/32"
+			} else {
+				entry = entry + "/128"
+			}
+		}
+		_, network, err := net.ParseCIDR(entry)
+		if err != nil {
+			return nil, fmt.Errorf("invalid CIDR %q: %s", entry, err)
+		}
+		networks = append(networks, network)
+	}
+	return networks, nil
+}
+
+// requestIP extracts the client IP from the request. It trusts the
+// X-Forwarded-For header (first entry, set by the OpenShift router/ingress)
+// when present, then X-Real-IP, and finally falls back to RemoteAddr.
+func requestIP(r *http.Request) net.IP {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		parts := strings.SplitN(xff, ",", 2)
+		if ip := net.ParseIP(strings.TrimSpace(parts[0])); ip != nil {
+			return ip
+		}
+	}
+	if xri := r.Header.Get("X-Real-IP"); xri != "" {
+		if ip := net.ParseIP(strings.TrimSpace(xri)); ip != nil {
+			return ip
+		}
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return net.ParseIP(r.RemoteAddr)
+	}
+	return net.ParseIP(host)
+}
+
+// isIPAllowed reports whether ip is contained in any of the allowed networks.
+func isIPAllowed(allowedRanges []*net.IPNet, ip net.IP) bool {
+	for _, network := range allowedRanges {
+		if network.Contains(ip) {
 			return true
 		}
 	}
