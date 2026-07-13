@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 )
 
 // SETUP
@@ -161,6 +162,27 @@ func TestIsProtectedBranch(t *testing.T) {
 			[]string{"hotfix/"},
 			"feature/v2",
 			false,
+		},
+		// Case-insensitive protection: "Master" must match configured "master" (F-11)
+		{
+			[]string{"master"},
+			"Master",
+			true,
+		},
+		{
+			[]string{"master"},
+			"MASTER",
+			true,
+		},
+		{
+			[]string{"develop"},
+			"DEVELOP",
+			true,
+		},
+		{
+			[]string{"master", "release/"},
+			"Release/v1",
+			true,
 		},
 	}
 

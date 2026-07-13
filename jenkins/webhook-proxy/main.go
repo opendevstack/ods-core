@@ -1091,14 +1091,15 @@ func makePipelineName(project string, component string, branch string) string {
 }
 
 func isProtectedBranch(protectedBranches []string, branch string) bool {
+	lowerBranch := strings.ToLower(branch)
 	for _, b := range protectedBranches {
 		if b == "*" {
 			return true
 		}
-		if strings.HasSuffix(b, "/") && strings.HasPrefix(branch, b) {
+		if strings.HasSuffix(b, "/") && strings.HasPrefix(lowerBranch, b) {
 			return true
 		}
-		if b == branch {
+		if b == lowerBranch {
 			return true
 		}
 	}
