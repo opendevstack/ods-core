@@ -14,7 +14,25 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     IMGPKG_VERSION=0.47.0 \
     TRIVY_VERSION=0.69.3 \
     YQ_VERSION=4.49.2 \
-    JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
+    JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90" \
+    SONAR_SCANNER_FILE=sonar-scanner-cli-7.3.0.5189.zip \
+    SONAR_SCANNER_HASH=a251d0793cb6bd889e4fd30299bb5dc4e07433e57133b16fc227aca98f8d2c2d \
+    SONAR_REPORT_FILE=sonar-report-v1.2.jar \
+    SONAR_REPORT_HASH=09a1871983e4e1b489a5c8b58c322f9d44695d086a3e499875f3e5e1fdd61064 \
+    COSIGN_FILE=cosign-linux-amd64 \
+    COSIGN_HASH=064954c5d8c7e3b28188eee5b1727b31c411550bc5fefd41aa672d3c761d103a \
+    TAILOR_FILE=tailor-linux-amd64 \
+    TAILOR_HASH=f496b18cb2ff984a199a614f2990473f9a16a9a5600c4fae348b57e29680d37d \
+    SOPS_FILE=sops-3.11.0-1.x86_64.rpm \
+    SOPS_HASH=2a4530acbd889c6b34c40a815d870e2116f8aaf1bb342ebaa2de11c2ea3655cf \
+    HELM_FILE=helm-v3.19.4-linux-amd64.tar.gz \
+    HELM_HASH=759c656fbd9c11e6a47784ecbeac6ad1eb16a9e76d202e51163ab78504848862 \
+    IMGPKG_FILE=imgpkg-linux-amd64 \
+    IMGPKG_HASH=7602b6af24a818265dcb2cc0dc7f6117a3591f26e2c266f294800f99ae433da1 \
+    YQ_FILE=yq_linux_amd64 \
+    YQ_HASH=be2c0ddcf426b6a231648610ec5d1666ae50e9f6473e82f6486f9f4cb6e3e2f7 \
+    GIT_LFS_FILE=git-lfs-linux-amd64-v3.7.1.tar.gz \
+    GIT_LFS_HASH=1c0b6ee5200ca708c5cebebb18fdeb0e1c98f1af5c1a9cba205a4c0ab5a5ec08
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -51,6 +69,7 @@ RUN import_certs.sh && fix_java_certs_permissions.sh
 # Install Sonar Scanner.
 RUN cd /tmp \
     && curl -sSLO https://repo1.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/${SONAR_SCANNER_VERSION}/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
+    && echo "${SONAR_SCANNER_HASH} *${SONAR_SCANNER_FILE}" | sha256sum -c - \
     && unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
     && mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/local/sonar-scanner-cli \
     && rm -rf sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
@@ -60,6 +79,7 @@ ENV PATH=/usr/local/sonar-scanner-cli/bin:$PATH
 # Add sq report jar.
 RUN cd /tmp \
     && curl -sSL https://github.com/opendevstack/sonar-report/releases/download/v${SONAR_REPORT_VERSION}/sonar-report-v${SONAR_REPORT_VERSION}.jar -o sonar-report.jar \
+    && echo "${SONAR_REPORT_HASH} *${SONAR_REPORT_FILE}" | sha256sum -c - \
     && mkdir /usr/local/sonar \
     && mv sonar-report.jar /usr/local/sonar/sonar-report.jar \
     && chmod 777 /usr/local/sonar/sonar-report.jar
@@ -67,6 +87,7 @@ RUN cd /tmp \
 # Install sigstore/cosign
 RUN cd /tmp \
     && curl -sSLO https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-amd64 \
+    && echo "${COSIGN_HASH} *${COSIGN_FILE}" | sha256sum -c - \
     && mv /tmp/cosign-linux-amd64 /usr/local/bin/cosign \
     && chmod 755 /usr/local/bin/cosign \
     && cosign version
@@ -74,15 +95,19 @@ RUN cd /tmp \
 # Install Tailor.
 RUN cd /tmp \
     && curl -sSLO https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
+    && echo "${TAILOR_HASH} *${TAILOR_FILE}" | sha256sum -c - \
     && mv tailor-linux-amd64 /usr/local/bin/tailor \
     && chmod a+x /usr/local/bin/tailor \
     && tailor version
 
 # Install Helm.
 RUN cd /tmp \
-    && dnf install -y https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-${SOPS_VERSION}-1.x86_64.rpm \
+    && curl -sSLO https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-${SOPS_VERSION}-1.x86_64.rpm \
+    && echo "${SOPS_HASH} *${SOPS_FILE}" | sha256sum -c - \
+    && dnf install -y sops-${SOPS_VERSION}-1.x86_64.rpm \
     && mkdir -p /tmp/helm \
     && curl -sSLO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz \
+    && echo "${HELM_HASH} *${HELM_FILE}" | sha256sum -c - \
     && tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm \
     && mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm \
     && chmod a+x /usr/local/bin/helm \
@@ -96,6 +121,7 @@ RUN cd /tmp \
 # Install imgpkg.
 RUN cd /tmp \
     && curl -sSLO https://github.com/carvel-dev/imgpkg/releases/download/v${IMGPKG_VERSION}/imgpkg-linux-amd64 \
+    && echo "${IMGPKG_HASH} *${IMGPKG_FILE}" | sha256sum -c - \
     && mv imgpkg-linux-amd64 /usr/local/bin/imgpkg \
     && chmod a+x /usr/local/bin/imgpkg \
     && imgpkg --version
@@ -103,6 +129,7 @@ RUN cd /tmp \
 # Install yq.
 RUN cd /tmp \
     && curl -sSLO https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 \
+    && echo "${YQ_HASH} *${YQ_FILE}" | sha256sum -c - \
     && mv yq_linux_amd64 /usr/local/bin/yq \
     && chmod a+x /usr/local/bin/yq \
     && yq --version
@@ -111,6 +138,7 @@ RUN cd /tmp \
 RUN cd /tmp \
     && mkdir -p /tmp/git-lfs \
     && curl -sSLO https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/git-lfs-linux-amd64-v${GIT_LFS_VERSION}.tar.gz \
+    && echo "${GIT_LFS_HASH} *${GIT_LFS_FILE}" | sha256sum -c - \
     && tar -zxvf git-lfs-linux-amd64-v${GIT_LFS_VERSION}.tar.gz -C /tmp/git-lfs \
     && bash /tmp/git-lfs/git-lfs-${GIT_LFS_VERSION}/install.sh \
     && git lfs version \
