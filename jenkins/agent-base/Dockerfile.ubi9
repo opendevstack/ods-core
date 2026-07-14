@@ -17,7 +17,7 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90" \
     SONAR_SCANNER_FILE=sonar-scanner-cli-7.3.0.5189.zip \
     SONAR_SCANNER_HASH=a251d0793cb6bd889e4fd30299bb5dc4e07433e57133b16fc227aca98f8d2c2d \
-    SONAR_REPORT_FILE=sonar-report-v1.2.jar \
+    SONAR_REPORT_FILE=sonar-report.jar \
     SONAR_REPORT_HASH=09a1871983e4e1b489a5c8b58c322f9d44695d086a3e499875f3e5e1fdd61064 \
     COSIGN_FILE=cosign-linux-amd64 \
     COSIGN_HASH=064954c5d8c7e3b28188eee5b1727b31c411550bc5fefd41aa672d3c761d103a \

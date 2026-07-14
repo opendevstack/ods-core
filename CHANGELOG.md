@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+Fixed VIT0089533
 
 ## [4.13.0] - 2026-07-01
 ### Changed
