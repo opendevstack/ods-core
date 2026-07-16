@@ -39,7 +39,9 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     AQUASEC_FILE=aquasec \
     AQUASEC_HASH=da6deb0fdc5d505077fd3838357258892cf7b90ecef41e8a0b688e8806e3b195 \
     TRIVY_INSTALL_FILE=install.sh \
-    TRIVY_INSTALL_HASH=e00df553be558995b994758bc8995956554a16937f456dc6615b0cc411bfec7a
+    TRIVY_INSTALL_HASH=e00df553be558995b994758bc8995956554a16937f456dc6615b0cc411bfec7a \
+    TRIVY_FILE=/usr/local/bin/trivy \
+    TRIVY_HASH=8266084a71d2e6a2333bc2c69b91c93c26dee9ef39ac2587ace2df54cc9b746b
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -179,6 +181,7 @@ RUN if [ -z $AQUASEC_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation
 RUN curl -sSfLO https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
     && echo "${TRIVY_INSTALL_HASH} *${TRIVY_INSTALL_FILE}" | sha256sum -c - \
     && sh install.sh -b /usr/local/bin v$TRIVY_VERSION \
+    && echo "${TRIVY_HASH} *${TRIVY_FILE}" | sha256sum -c - \
     && echo 'Trivy CLI version:' \
     && trivy version \
     && rm -f /tmp/install.sh
