@@ -8,6 +8,8 @@
 
 ### Fixed
 - Fixed VIT0089531 ([#1393](https://github.com/opendevstack/ods-core/pull/1393))
+- Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
+- Harden post-creation scripts against RCE and credential exfiltration: remove `CD_PASSWORD` from the scripts environment and restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
 
 ## [4.13.0] - 2026-07-01
 ### Changed
