@@ -12,6 +12,7 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     HELM_PLUGIN_SECRETS_VERSION=4.7.4 \
     GIT_LFS_VERSION=3.7.1 \
     IMGPKG_VERSION=0.47.0 \
+    SNYK_VERSION=1.1301.2 \
     TRIVY_VERSION=0.69.3 \
     YQ_VERSION=4.49.2 \
     JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90" \
@@ -32,7 +33,13 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     YQ_FILE=yq_linux_amd64 \
     YQ_HASH=be2c0ddcf426b6a231648610ec5d1666ae50e9f6473e82f6486f9f4cb6e3e2f7 \
     GIT_LFS_FILE=git-lfs-linux-amd64-v3.7.1.tar.gz \
-    GIT_LFS_HASH=1c0b6ee5200ca708c5cebebb18fdeb0e1c98f1af5c1a9cba205a4c0ab5a5ec08
+    GIT_LFS_HASH=1c0b6ee5200ca708c5cebebb18fdeb0e1c98f1af5c1a9cba205a4c0ab5a5ec08 \
+    SNYK_FILE=snyk \
+    SNYK_HASH=1b6a0cb853020c6ed57bb1d5fc5b4c08dd748b823068db300f3b399eed7c614e \
+    AQUASEC_FILE=aquasec \
+    AQUASEC_HASH=da6deb0fdc5d505077fd3838357258892cf7b90ecef41e8a0b688e8806e3b195 \
+    TRIVY_INSTALL_FILE=install.sh \
+    TRIVY_INSTALL_HASH=e00df553be558995b994758bc8995956554a16937f456dc6615b0cc411bfec7a
 
 ARG APP_DNS
 ARG SNYK_DISTRIBUTION_URL
@@ -116,6 +123,7 @@ RUN cd /tmp \
     && helm plugin install https://github.com/databus23/helm-diff --version v${HELM_PLUGIN_DIFF_VERSION} \
     && helm plugin install https://github.com/jkroepke/helm-secrets --version v${HELM_PLUGIN_SECRETS_VERSION} \
     && sops --version \
+    && rm -f /tmp/sops-${SOPS_VERSION}-1.x86_64.rpm \
     && rm -rf /tmp/helm /tmp/helm-v${HELM_VERSION}-linux-amd64.tar.gz
 
 # Install imgpkg.
@@ -145,20 +153,21 @@ RUN cd /tmp \
     && rm -rf /tmp/git-lfs*
 
 # Optionally install snyk.
-RUN if [ -z $SNYK_DISTRIBUTION_URL ] ; then echo 'Skipping snyk installation!' ; else echo 'Installing snyk... getting binary from' $SNYK_DISTRIBUTION_URL \
-    && curl -sSL $SNYK_DISTRIBUTION_URL --output snyk \
+RUN cd /tmp \
+    && curl -sSL https://github.com/snyk/snyk/releases/download/v${SNYK_VERSION}/snyk-linux --output snyk \
+    && echo "${SNYK_HASH} *${SNYK_FILE}" | sha256sum -c - \
     && mv snyk /usr/local/bin \
     && chmod +rwx /usr/local/bin/snyk \
     && mkdir -p $HOME/.config/configstore/ \
     && chmod -R g+rw $HOME/.config/configstore/ \
     && echo 'Snyk CLI version:' \
     && snyk --version \
-    && echo 'Snyk installation completed!'; \
-    fi
+    && echo 'Snyk installation completed!'
 
 # Optionally install Aquasec.
 RUN if [ -z $AQUASEC_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation!' ; else echo 'Installing AquaSec... getting binary from' $AQUASEC_SCANNERCLI_URL \
     && curl -sSL $AQUASEC_SCANNERCLI_URL --output aquasec \
+    && echo "${AQUASEC_HASH} *${AQUASEC_FILE}" | sha256sum -c - \
     && mv aquasec /usr/local/bin \
     && chmod +rwx /usr/local/bin/aquasec \
     && echo 'AquaSec CLI version:' \
@@ -167,9 +176,12 @@ RUN if [ -z $AQUASEC_SCANNERCLI_URL ] ; then echo 'Skipping AquaSec installation
     fi
 
 # Install Trivy.
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$TRIVY_VERSION \
+RUN curl -sSfLO https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+    && echo "${TRIVY_INSTALL_HASH} *${TRIVY_INSTALL_FILE}" | sha256sum -c - \
+    && sh -s install.sh -b /usr/local/bin v$TRIVY_VERSION \
     && echo 'Trivy CLI version:' \
-    && trivy version
+    && trivy version \
+    && rm -f /tmp/install.sh
 
 # Set java proxy var.
 COPY set_java_proxy.sh /tmp/set_java_proxy.sh
