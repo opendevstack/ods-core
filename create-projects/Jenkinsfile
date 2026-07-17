@@ -136,6 +136,11 @@ podTemplate(
         def configRepoUrl    = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_URL', 'ods-configuration/ods-core.env')
         def configRepoBranch = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_BRANCH', 'ods-configuration/ods-core.env', 'master')
 
+        // Explicit allowlist of repositories that post-creation scripts/config may be cloned from.
+        // This prevents a malicious 'ods-configuration' commit from pointing the checkout at an
+        // attacker-controlled repository and achieving cluster-wide RCE (finding F-05).
+        def repoAllowlist = getConfigValue('POST_CREATION_SCRIPTS_REPO_ALLOWLIST', 'ods-configuration/ods-core.env')
+
         // Check if required configuration is missing
         if (!scriptsRepoUrl || scriptsRepoUrl.trim().isEmpty()) {
             echo("POST_CREATION_SCRIPTS_REPO_URL is not configured. Skipping setup.")
@@ -149,6 +154,31 @@ podTemplate(
             return
         }
 
+        if (!configRepoUrl || configRepoUrl.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_CONFIG_REPO_URL is not configured. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        if (!repoAllowlist || repoAllowlist.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_REPO_ALLOWLIST is not configured. Refusing to run post-creation scripts.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        def allowedRepos = repoAllowlist.split(',').collect { it.trim() }.findAll { it }
+        if (!allowedRepos.contains(scriptsRepoUrl.trim())) {
+            echo("POST_CREATION_SCRIPTS_REPO_URL '${scriptsRepoUrl}' is not in POST_CREATION_SCRIPTS_REPO_ALLOWLIST. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        if (!allowedRepos.contains(configRepoUrl.trim())) {
+            echo("POST_CREATION_SCRIPTS_CONFIG_REPO_URL '${configRepoUrl}' is not in POST_CREATION_SCRIPTS_REPO_ALLOWLIST. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+        
         echo("Scripts repository: ${scriptsRepoUrl}")
         echo("Scripts branch: ${scriptsBranch}")
         echo("Scripts order: ${scriptsOrder}")
@@ -221,7 +251,6 @@ podTemplate(
             "BITBUCKET_URL=${bitbucketUrl}",
             "DOCKER_REGISTRY=${dockerRegistry}",
             "CD_USERNAME=${username}",
-            "CD_PASSWORD=${password}",
             "CD_USER_CREDENTIALS_ID=${credentialsId}"
           ]) {
               echo("Environment variables for scripts:")
