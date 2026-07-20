@@ -22,6 +22,14 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func localhostIPRanges() []*net.IPNet {
+	ranges, err := parseIPRanges("127.0.0.0/8,::1/128")
+	if err != nil {
+		panic(err)
+	}
+	return ranges
+}
+
 func TestMakePipelineName(t *testing.T) {
 	tests := map[string]struct {
 		project   string
@@ -205,7 +213,7 @@ type mockClient struct {
 	Event *Event
 }
 
-func (c *mockClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
+func (c *mockClient) Forward(e *Event) (int, []byte, error) {
 	c.Event = e
 	return 200, nil, nil
 }
@@ -241,6 +249,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
@@ -448,6 +457,7 @@ func TestSkipsPayloads(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
@@ -559,6 +569,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
@@ -683,10 +694,11 @@ func TestForward(t *testing.T) {
 				HTTPClient:          &http.Client{},
 				OpenShiftAPIBaseURL: apiStub.URL,
 				Token:               "foo",
+				TriggerSecret:       "s3cr3t",
 			}
 
 			// Ensure the response from OpenShift is forwarded as-is to the client
-			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
+			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -871,6 +883,7 @@ func TestBuildEndpoint(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
@@ -916,6 +929,7 @@ func TestNotFound(t *testing.T) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	server := httptest.NewServer(s.HandleRoot())
 
@@ -1443,7 +1457,7 @@ func TestAllowedWebhookIPRanges(t *testing.T) {
 		TriggerSecret:          "s3cr3t",
 		AcceptedEvents:         []string{"repo:refs_changed"},
 		AllowedChangeRefTypes:  []string{"BRANCH"},
-		AllowedWebhookIPRanges: nil,
+		AllowedWebhookIPRanges: localhostIPRanges(),
 		RepoBase:               "https://domain.com",
 		MaxDeletionChecks:      1,
 	}

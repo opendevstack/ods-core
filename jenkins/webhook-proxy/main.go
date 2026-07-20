@@ -33,6 +33,9 @@ var (
 	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
 	// and hidden-file tricks (".").
 	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
+	// safeTriggerSecretRegex matches a UUID as produced by Java's
+	// UUID.randomUUID().toString(): 8-4-4-4-12 lowercase hex digits.
+	safeTriggerSecretRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 )
 
 const (
@@ -119,7 +122,7 @@ type buildConfig struct {
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
-	Forward(e *Event, triggerSecret string) (int, []byte, error)
+	Forward(e *Event) (int, []byte, error)
 	GetPipeline(e *Event) (bool, []byte, error)
 	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
@@ -132,6 +135,7 @@ type ocClient struct {
 	OpenShiftAPIBaseURL string
 	Token               string
 	OpenShiftAppDomain  string
+	TriggerSecret       string
 }
 
 // Server represents this service, and is a global.
@@ -190,8 +194,8 @@ func main() {
 	}
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
-	if len(triggerSecret) == 0 {
-		log.Fatalln("Exiting due to missing trigger secret.")
+	if !safeTriggerSecretRegex.MatchString(triggerSecret) {
+		log.Fatalln("Trigger secret must be a valid UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).")
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
@@ -264,6 +268,10 @@ func main() {
 	if parseErr != nil {
 		log.Fatalln("Invalid", allowedWebhookIPRangesEnvVar, ":", parseErr)
 	}
+	if len(allowedWebhookIPRanges) == 0 {
+		log.Fatalln("No valid IP ranges found in", allowedWebhookIPRangesEnvVar)
+	}
+
 	log.Println("INFO:", allowedWebhookIPRangesEnvVar, "set to", envAllowedWebhookIPRanges)
 
 	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
@@ -349,13 +357,6 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		requestID := randStringBytes(6)
 		log.Println(requestID, "-----")
 
-		// TODO(debug): remove before merging
-		log.Println(requestID, "DEBUG remote-addr="+r.RemoteAddr,
-			"X-Forwarded-For="+r.Header.Get("X-Forwarded-For"),
-			"X-Real-IP="+r.Header.Get("X-Real-IP"),
-			"resolved-ip="+fmt.Sprintf("%s", requestIP(r)),
-		)
-
 		init.Do(func() {
 			tmpl, err = parsePipelineTemplate(pipelineConfigFilename)
 		})
@@ -365,13 +366,11 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			return
 		}
 
-		if len(s.AllowedWebhookIPRanges) > 0 {
-			ip := requestIP(r)
-			if ip == nil || !isIPAllowed(s.AllowedWebhookIPRanges, ip) {
-				log.Println(requestID, "request from disallowed IP:", ip, "(remote-addr="+r.RemoteAddr+")")
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
-			}
+		ip := requestIP(r)
+		if ip == nil || !isIPAllowed(s.AllowedWebhookIPRanges, ip) {
+			log.Println(requestID, "request from disallowed IP:", ip, "(remote-addr="+r.RemoteAddr+")")
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
 		}
 
 		queryValues := r.URL.Query()
@@ -638,7 +637,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 			}
-			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event, s.TriggerSecret)
+			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event)
 			if forwardErr != nil {
 				log.Println(requestID, forwardErr)
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -709,13 +708,13 @@ func (s *Server) readProjectParam(projectParam string, requestID string) (string
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
+func (c *ocClient) Forward(e *Event) (int, []byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
-		triggerSecret,
+		c.TriggerSecret,
 	)
 	redactedURL := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/[REDACTED]/generic",
@@ -1004,6 +1003,7 @@ func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
 		OpenShiftAppDomain:  openShiftAppDomain,
+		TriggerSecret:       triggerSecret,
 	}, nil
 }
 
@@ -1122,15 +1122,14 @@ func makePipelineName(project string, component string, branch string) string {
 }
 
 func isProtectedBranch(protectedBranches []string, branch string) bool {
-	lowerBranch := strings.ToLower(branch)
 	for _, b := range protectedBranches {
 		if b == "*" {
 			return true
 		}
-		if strings.HasSuffix(b, "/") && strings.HasPrefix(lowerBranch, b) {
+		if strings.HasSuffix(b, "/") && strings.HasPrefix(strings.ToLower(branch), strings.ToLower(b)) {
 			return true
 		}
-		if b == lowerBranch {
+		if strings.EqualFold(b, branch) {
 			return true
 		}
 	}
