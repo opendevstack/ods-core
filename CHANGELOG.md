@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Fixed VIT0089535 ([#1394](https://github.com/opendevstack/ods-core/pull/1394))
 - Fixed VIT0089533 ([#1397](https://github.com/opendevstack/ods-core/pull/1397))
 - Fixed VIT0089531 ([#1393](https://github.com/opendevstack/ods-core/pull/1393))
 - Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
