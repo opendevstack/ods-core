@@ -64,8 +64,6 @@ RUN cd /etc/yum.repos.d && rm -f localdev-* ci-rpm-mirrors.repo \
 # Copy use java scripts.
 COPY use-j*.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/use-j*.sh && \
-    chmod ugo+s /usr/local/bin/use-j*.sh && \
-    sh -c 'chmod ugo+s $(which alternatives)' && \
     ls -la /usr/local/bin/use-j*.sh && \
     echo "--- STARTS JDK 21 TESTS ---" && \
     source use-j21.sh && \
