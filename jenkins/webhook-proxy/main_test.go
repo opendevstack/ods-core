@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
@@ -28,6 +31,38 @@ func localhostIPRanges() []*net.IPNet {
 		panic(err)
 	}
 	return ranges
+}
+
+func bitbucketSignature(secret string, body []byte) string {
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, _ = mac.Write(body)
+	return "sha256=" + hex.EncodeToString(mac.Sum(nil))
+}
+
+func postBitbucketRequest(t *testing.T, url string, body []byte, signature string) *http.Response {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if signature != "" {
+		req.Header.Set(bitbucketSignatureHeader, signature)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return res
+}
+
+func readFixture(t *testing.T, name string) []byte {
+	t.Helper()
+	body, err := os.ReadFile("testdata/fixtures/" + name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return body
 }
 
 func TestMakePipelineName(t *testing.T) {
@@ -242,6 +277,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		Client:                  mc,
 		Namespace:               "bar-cd",
 		Project:                 "bar",
+		WebhookHMACSecret:       "webhook-secret",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -254,41 +290,86 @@ func testServer() (*httptest.Server, *mockClient) {
 	return httptest.NewServer(server.HandleRoot()), mc
 }
 
-func TestHandleRootRequiresTriggerSecret(t *testing.T) {
+func TestHandleRootDoesNotRequireTriggerSecret(t *testing.T) {
 	ts, mc := testServer()
 	defer ts.Close()
+	body := readFixture(t, "repo-refs-changed-payload.json")
 
 	tests := map[string]struct {
 		URL string
 	}{
-		"without trigger_secret param:":   {ts.URL},
+		"without trigger_secret param":   {ts.URL},
 		"with empty trigger_secret param": {ts.URL + "?trigger_secret="},
 		"with wrong trigger_secret param": {ts.URL + "?trigger_secret=abc"},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("testdata/fixtures/repo-refs-changed-payload.json")
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			res, err := http.Post(tc.URL, "application/json", f)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			expected := http.StatusUnauthorized
+			mc.Event = nil
+			res := postBitbucketRequest(t, tc.URL, body, bitbucketSignature("webhook-secret", body))
+			expected := http.StatusOK
 			actual := res.StatusCode
 			if expected != actual {
 				t.Fatalf("Got status %v, want %v", actual, expected)
+			}
+			if mc.Event == nil {
+				t.Fatal("Event was nil, want processed request")
+			}
+		})
+	}
+
+}
+
+func TestAllPathsRequireBitbucketSignature(t *testing.T) {
+	ts, mc := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		path      string
+		body      []byte
+		signature string
+	}{
+		"root without signature header": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: "",
+		},
+		"build without signature header": {
+			path:      "/build",
+			body:      readFixture(t, "build-payload.json"),
+			signature: "",
+		},
+		"unknown path without signature header": {
+			path:      "/foo",
+			body:      []byte(`{}`),
+			signature: "",
+		},
+		"root with wrong signature": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: bitbucketSignature("wrong-secret", readFixture(t, "repo-refs-changed-payload.json")),
+		},
+		"root with malformed signature": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: "sha256",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := postBitbucketRequest(t, ts.URL+tc.path, tc.body, tc.signature)
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("Got status %v, want %v", res.StatusCode, http.StatusUnauthorized)
 			}
 			if mc.Event != nil {
 				t.Fatalf("Event was %v, want nil", mc.Event)
 			}
 		})
 	}
-
 }
 
 func TestHandleRootReadsRequests(t *testing.T) {
@@ -337,15 +418,9 @@ func TestHandleRootReadsRequests(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// Use secret defined in fake server.
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			var err error
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -398,22 +473,16 @@ func TestRejectsCrossProjectPR(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
-			body, _ := io.ReadAll(res.Body)
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			responseBody, _ := io.ReadAll(res.Body)
 			res.Body.Close()
 
 			if res.StatusCode != tc.expectedStatusCode {
-				t.Fatalf("Got status %d, want %d (body: %s)", res.StatusCode, tc.expectedStatusCode, body)
+				t.Fatalf("Got status %d, want %d (body: %s)", res.StatusCode, tc.expectedStatusCode, responseBody)
 			}
-			if tc.wantCrossProject && !strings.Contains(string(body), "Cross-project PR rejected") {
-				t.Fatalf("Expected cross-project rejection message in body, got: %s", body)
+			if tc.wantCrossProject && !strings.Contains(string(responseBody), "Cross-project PR rejected") {
+				t.Fatalf("Expected cross-project rejection message in body, got: %s", responseBody)
 			}
 		})
 	}
@@ -450,6 +519,7 @@ func TestSkipsPayloads(t *testing.T) {
 				Client:                  mc,
 				Namespace:               "bar-cd",
 				Project:                 "bar",
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          tc.acceptedEvents,
@@ -462,20 +532,14 @@ func TestSkipsPayloads(t *testing.T) {
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
 			var buf bytes.Buffer
 			log.SetOutput(&buf)
 			defer func() {
 				log.SetOutput(os.Stderr)
 			}()
-			// Use secret defined in fake server.
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			var err error
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -562,6 +626,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				Client:                  c,
 				Namespace:               tc.project + "-cd",
 				Project:                 tc.project,
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           fakeSecret,
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -574,14 +639,8 @@ func TestNamespaceRestriction(t *testing.T) {
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			res, err := http.Post(ts.URL+"?trigger_secret="+fakeSecret, "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -728,7 +787,7 @@ func TestBuildEndpoint(t *testing.T) {
 		bcUpsertResponseBody      string // response when pipeline is created/updated
 		bcUpsertResponseStatus    int    // code when pipeline is created/updated
 	}{
-		"request without trigger secret": {
+		"request without signature": {
 			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 401,
@@ -739,7 +798,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    0,
 		},
 		"valid payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -749,7 +808,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"valid payload with param": {
-			whpPath:                   "/build?component=baz&trigger_secret=s3cr3t",
+			whpPath:                   "/build?component=baz",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -759,7 +818,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"broken payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-broken-payload.txt",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Cannot parse JSON: invalid character '\"' after object key:value pair\n",
@@ -769,7 +828,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    0,
 		},
 		"invalid payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-invalid-payload.json",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Invalid input\n",
@@ -779,7 +838,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    0,
 		},
 		"accepted payload rejected by OpenShift": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-rejected-payload.json",
 			whpExpectedResponseStatus: 422,
 			whpExpectedResponseBody:   "Could not create/update pipeline\n",
@@ -789,7 +848,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    422,
 		},
 		"existing pipeline with different jenkinsfile path": {
-			whpPath:                   "/build?trigger_secret=s3cr3t&jenkinsfile_path=bar/Jenkinsfile",
+			whpPath:                   "/build?jenkinsfile_path=bar/Jenkinsfile",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -799,7 +858,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"existing pipeline with different branch": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -876,6 +935,7 @@ func TestBuildEndpoint(t *testing.T) {
 				Client:                  c,
 				Namespace:               "bar-cd",
 				Project:                 "bar",
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -886,16 +946,18 @@ func TestBuildEndpoint(t *testing.T) {
 				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			server := httptest.NewServer(s.HandleRoot())
+			defer server.Close()
 
 			// Make request to /build with payload
-			f, err := os.Open(tc.whpPayload)
+			body, err := os.ReadFile(tc.whpPayload)
 			if err != nil {
 				t.Fatal(err)
 			}
-			res, err := http.Post(server.URL+tc.whpPath, "application/json", f)
-			if err != nil {
-				t.Fatal(err)
+			signature := bitbucketSignature("webhook-secret", body)
+			if name == "request without signature" {
+				signature = ""
 			}
+			res := postBitbucketRequest(t, server.URL+tc.whpPath, body, signature)
 
 			if res.StatusCode != tc.whpExpectedResponseStatus {
 				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.whpExpectedResponseStatus)
@@ -922,6 +984,7 @@ func TestNotFound(t *testing.T) {
 		Client:                  &mockClient{},
 		Namespace:               "bar-cd",
 		Project:                 "bar",
+		WebhookHMACSecret:       "webhook-secret",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -932,11 +995,10 @@ func TestNotFound(t *testing.T) {
 		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	server := httptest.NewServer(s.HandleRoot())
+	defer server.Close()
 
-	res, err := http.Post(server.URL+"/foo?trigger_secret=s3cr3t", "application/json", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	body := []byte(`{}`)
+	res := postBitbucketRequest(t, server.URL+"/foo", body, bitbucketSignature("webhook-secret", body))
 
 	if res.StatusCode != http.StatusNotFound {
 		t.Fatalf("Got status %d, want: %d", res.StatusCode, http.StatusNotFound)
@@ -1202,10 +1264,7 @@ func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", bytes.NewReader(body))
-			if err != nil {
-				t.Fatal(err)
-			}
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
 			_, _ = io.ReadAll(res.Body)
 			res.Body.Close()
 
@@ -1220,9 +1279,9 @@ func TestJenkinsfilePathValidation(t *testing.T) {
 	ts, _ := testServer()
 	defer ts.Close()
 
-	validPayload := func() io.Reader {
-		b, _ := os.ReadFile("testdata/fixtures/repo-refs-changed-payload.json")
-		return bytes.NewReader(b)
+	validPayload := func(t *testing.T) []byte {
+		t.Helper()
+		return readFixture(t, "repo-refs-changed-payload.json")
 	}
 
 	tests := map[string]struct {
@@ -1251,14 +1310,15 @@ func TestJenkinsfilePathValidation(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			url := ts.URL + "/?trigger_secret=s3cr3t"
+			body := validPayload(t)
+			url := ts.URL + "/"
 			if tc.path != "" {
 				url += "&jenkinsfile_path=" + tc.path
 			}
-			res, err := http.Post(url, "application/json", validPayload())
-			if err != nil {
-				t.Fatal(err)
+			if tc.path != "" {
+				url = ts.URL + "/?jenkinsfile_path=" + tc.path
 			}
+			res := postBitbucketRequest(t, url, body, bitbucketSignature("webhook-secret", body))
 			_, _ = io.ReadAll(res.Body)
 			res.Body.Close()
 			if res.StatusCode != tc.wantStatus {
@@ -1425,6 +1485,7 @@ func TestAllowedWebhookIPRanges(t *testing.T) {
 		Client:                 mc,
 		Namespace:              "bar-cd",
 		Project:                "bar",
+		WebhookHMACSecret:      "webhook-secret",
 		TriggerSecret:          "s3cr3t",
 		AcceptedEvents:         []string{"repo:refs_changed"},
 		AllowedChangeRefTypes:  []string{"BRANCH"},
@@ -1439,10 +1500,7 @@ func TestAllowedWebhookIPRanges(t *testing.T) {
 
 	// httptest server binds to 127.0.0.1 and r.RemoteAddr will be 127.0.0.1:PORT,
 	// which is NOT in 192.168.1.0/24 → expect 403.
-	res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	res := postBitbucketRequest(t, ts.URL, []byte(body), bitbucketSignature("webhook-secret", []byte(body)))
 	_, _ = io.ReadAll(res.Body)
 	res.Body.Close()
 	if res.StatusCode != http.StatusForbidden {
@@ -1454,6 +1512,7 @@ func TestAllowedWebhookIPRanges(t *testing.T) {
 		Client:                 mc,
 		Namespace:              "bar-cd",
 		Project:                "bar",
+		WebhookHMACSecret:      "webhook-secret",
 		TriggerSecret:          "s3cr3t",
 		AcceptedEvents:         []string{"repo:refs_changed"},
 		AllowedChangeRefTypes:  []string{"BRANCH"},
@@ -1464,10 +1523,7 @@ func TestAllowedWebhookIPRanges(t *testing.T) {
 	ts2 := httptest.NewServer(server2.HandleRoot())
 	defer ts2.Close()
 
-	res2, err := http.Post(ts2.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	res2 := postBitbucketRequest(t, ts2.URL, []byte(body), bitbucketSignature("webhook-secret", []byte(body)))
 	_, _ = io.ReadAll(res2.Body)
 	res2.Body.Close()
 	if res2.StatusCode == http.StatusForbidden {
