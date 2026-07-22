@@ -18,6 +18,8 @@ parameters:
   required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
+- name: WEBHOOK_HMAC_SECRET_B64
+  required: true
 - name: ODS_BITBUCKET_PROJECT
   required: true
 - name: MAX_DELETION_CHECKS
@@ -117,6 +119,11 @@ objects:
               secretKeyRef:
                 key: trigger-secret
                 name: webhook-proxy
+          - name: WEBHOOK_HMAC_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: webhook-hmac-secret
+                name: webhook-proxy
           image: '${DOCKER_REGISTRY}/${ODS_NAMESPACE}/jenkins-webhook-proxy:${ODS_IMAGE_TAG}'
           imagePullPolicy: Always
           name: webhook-proxy
@@ -150,3 +157,4 @@ objects:
   type: opaque
   data:
     trigger-secret: ${PIPELINE_TRIGGER_SECRET_B64}
+    webhook-hmac-secret: ${WEBHOOK_HMAC_SECRET_B64}
