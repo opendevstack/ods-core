@@ -2,7 +2,10 @@ package create_projects
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -87,14 +90,22 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	reponse, err := http.Post(
-		fmt.Sprintf("https://%s%s/build?trigger_secret=%s&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
-			values["PROV_APP_WEBHOOKPROXY_HOST"],
-			values["OPENSHIFT_APPS_BASEDOMAIN"],
-			values["PIPELINE_TRIGGER_SECRET"],
-			projectName),
-		"application/json",
-		bytes.NewBuffer(body))
+	buildURL := fmt.Sprintf("https://%s%s/build?jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
+		values["PROV_APP_WEBHOOKPROXY_HOST"],
+		values["OPENSHIFT_APPS_BASEDOMAIN"],
+		projectName)
+
+	mac := hmac.New(sha256.New, []byte(values["WEBHOOK_HMAC_SECRET"]))
+	mac.Write(body)
+	signature := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+
+	buildReq, err := http.NewRequest(http.MethodPost, buildURL, bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Could not create request: %s", err)
+	}
+	buildReq.Header.Set("Content-Type", "application/json")
+	buildReq.Header.Set("X-Hub-Signature", signature)
+	reponse, err := http.DefaultClient.Do(buildReq)
 
 	if err != nil {
 		t.Fatalf("Could not post request: %s", err)
