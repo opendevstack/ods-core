@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,12 +13,21 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 )
 
 // SETUP
 func TestMain(m *testing.M) {
 	log.SetOutput(io.Discard)
 	os.Exit(m.Run())
+}
+
+func localhostIPRanges() []*net.IPNet {
+	ranges, err := parseIPRanges("127.0.0.0/8,::1/128")
+	if err != nil {
+		panic(err)
+	}
+	return ranges
 }
 
 func TestMakePipelineName(t *testing.T) {
@@ -162,6 +172,27 @@ func TestIsProtectedBranch(t *testing.T) {
 			"feature/v2",
 			false,
 		},
+		// Case-insensitive protection: "Master" must match configured "master" (F-11)
+		{
+			[]string{"master"},
+			"Master",
+			true,
+		},
+		{
+			[]string{"master"},
+			"MASTER",
+			true,
+		},
+		{
+			[]string{"develop"},
+			"DEVELOP",
+			true,
+		},
+		{
+			[]string{"master", "release/"},
+			"Release/v1",
+			true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -182,7 +213,7 @@ type mockClient struct {
 	Event *Event
 }
 
-func (c *mockClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
+func (c *mockClient) Forward(e *Event) (int, []byte, error) {
 	c.Event = e
 	return 200, nil, nil
 }
@@ -218,6 +249,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
@@ -338,6 +370,55 @@ func TestHandleRootReadsRequests(t *testing.T) {
 	}
 }
 
+func TestRejectsCrossProjectPR(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		payloadFile        string
+		expectedStatusCode int
+		wantCrossProject   bool
+	}{
+		"same-project PR merged is allowed": {
+			payloadFile:        "pr-merged-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"same-project PR declined is allowed": {
+			payloadFile:        "pr-declined-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"cross-project PR is rejected": {
+			payloadFile:        "pr-cross-project-payload.json",
+			expectedStatusCode: http.StatusBadRequest,
+			wantCrossProject:   true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			body, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != tc.expectedStatusCode {
+				t.Fatalf("Got status %d, want %d (body: %s)", res.StatusCode, tc.expectedStatusCode, body)
+			}
+			if tc.wantCrossProject && !strings.Contains(string(body), "Cross-project PR rejected") {
+				t.Fatalf("Expected cross-project rejection message in body, got: %s", body)
+			}
+		})
+	}
+}
+
 func TestSkipsPayloads(t *testing.T) {
 	// The expected events depend on the values in the payload files.
 	tests := map[string]struct {
@@ -376,6 +457,7 @@ func TestSkipsPayloads(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
@@ -487,6 +569,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
@@ -611,10 +694,11 @@ func TestForward(t *testing.T) {
 				HTTPClient:          &http.Client{},
 				OpenShiftAPIBaseURL: apiStub.URL,
 				Token:               "foo",
+				TriggerSecret:       "s3cr3t",
 			}
 
 			// Ensure the response from OpenShift is forwarded as-is to the client
-			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
+			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -799,6 +883,7 @@ func TestBuildEndpoint(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			server := httptest.NewServer(s.HandleRoot())
 
@@ -844,6 +929,7 @@ func TestNotFound(t *testing.T) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	server := httptest.NewServer(s.HandleRoot())
 
@@ -858,7 +944,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestGetBuildConfig(t *testing.T) {
-	tmpl, err := template.ParseFiles(pipelineConfigFilename)
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
 	if err != nil {
 		t.Error(err)
 	}
@@ -885,6 +971,300 @@ func TestGetBuildConfig(t *testing.T) {
 	expected := string(configBytes)
 	if actual != expected {
 		t.Errorf("Not the same, have: %s, want: %s", actual, expected)
+	}
+}
+
+func TestIsValid(t *testing.T) {
+	tests := map[string]struct {
+		event Event
+		want  bool
+	}{
+		"valid forward event": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "main", Pipeline: "my-repo-main"},
+			want:  true,
+		},
+		"valid delete event": {
+			event: Event{Kind: "delete", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "feature/ABC-123", Pipeline: "my-repo-123"},
+			want:  true,
+		},
+		"branch with dots and plus": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "release/v1.2.3+hotfix", Pipeline: "repo-v123"},
+			want:  true,
+		},
+		"unknown kind": {
+			event: Event{Kind: "unknown", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"pipeline too short": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "ab"},
+			want:  false,
+		},
+		"empty namespace": {
+			event: Event{Kind: "forward", Namespace: "", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty repo": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty component": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty branch": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Repo
+		"repo with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil"repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil\repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with opening brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil{repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with newline": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil\nrepo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Component
+		"component with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: `evil"comp`, Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"component with closing brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "evil}comp", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Branch
+		"branch with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main"injected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main\ninjected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with null byte": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main\x00injected", Pipeline: "repo-main"},
+			want:  false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.event.IsValid()
+			if got != tc.want {
+				t.Fatalf("IsValid() = %v, want %v (event: %+v)", got, tc.want, tc.event)
+			}
+		})
+	}
+}
+
+func TestParsePipelineTemplateJsonStrEscaping(t *testing.T) {
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// renderAndParse renders the template and returns the fully-parsed JSON map.
+	// It fails the test if rendering or JSON parsing fails, which catches cases
+	// where an unescaped injection string broke the JSON structure.
+	renderAndParse := func(t *testing.T, data BuildConfigData) map[string]interface{} {
+		t.Helper()
+		b, err := getBuildConfig(tmpl, data)
+		if err != nil {
+			t.Fatalf("getBuildConfig error: %v", err)
+		}
+		var out map[string]interface{}
+		if err := json.Unmarshal(b.Bytes(), &out); err != nil {
+			t.Fatalf("rendered template is not valid JSON: %v\noutput:\n%s", err, b.String())
+		}
+		return out
+	}
+
+	t.Run("double-quote in GitURI is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped " in the URI breaks out of the JSON string and makes the
+		// document invalid — json.Unmarshal would fail inside renderAndParse.
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI: `https://domain.com/proj/repo"injected.git`,
+			Branch: "main", JenkinsfilePath: "Jenkinsfile",
+			Env: "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Verify the URI value round-trips with the literal " character preserved.
+		uri := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["uri"].(string)
+		if !strings.Contains(uri, `"injected`) {
+			t.Fatalf("expected escaped quote preserved in URI value, got: %s", uri)
+		}
+	})
+
+	t.Run("double-quote in Branch cannot break out of JSON string", func(t *testing.T) {
+		// Without escaping, branch value `main","secret":"leaked` would inject a
+		// new JSON key.  After escaping it becomes a single string value.
+		injectedBranch := `main","secret":"leaked`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          injectedBranch,
+			JenkinsfilePath: "Jenkinsfile",
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not surface as a top-level or spec-level field.
+		if _, ok := out["secret"]; ok {
+			t.Fatal("injection succeeded: 'secret' key found at top level")
+		}
+		// The ref value must equal the full injection string as data.
+		ref := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["ref"].(string)
+		if ref != injectedBranch {
+			t.Fatalf("branch value not preserved: got %q, want %q", ref, injectedBranch)
+		}
+	})
+
+	t.Run("backslash in JenkinsfilePath is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped backslash followed by " would produce an invalid JSON escape.
+		injectedPath := `Jenkinsfile\","injected":true,"x":"`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          "main",
+			JenkinsfilePath: injectedPath,
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not appear.
+		strategy := out["spec"].(map[string]interface{})["strategy"].(map[string]interface{})["jenkinsPipelineStrategy"].(map[string]interface{})
+		if _, ok := strategy["injected"]; ok {
+			t.Fatal("injection succeeded: 'injected' key found in jenkinsPipelineStrategy")
+		}
+		// The jenkinsfilePath value must equal the full injection string as data.
+		jfp := strategy["jenkinsfilePath"].(string)
+		if jfp != injectedPath {
+			t.Fatalf("jenkinsfilePath value not preserved: got %q, want %q", jfp, injectedPath)
+		}
+	})
+}
+
+func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
+	ts, mc := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		slug      string // repository.slug in the Bitbucket payload
+		displayID string // changes[0].ref.displayId
+	}{
+		"double-quote in repo slug": {
+			slug:      `repo"evil`,
+			displayID: "main",
+		},
+		"JSON metachar in branch displayId": {
+			slug:      "repository",
+			displayID: `main","kind":"delete`,
+		},
+		"backslash in branch displayId": {
+			slug:      "repository",
+			displayID: `main\ninjected`,
+		},
+		"null byte in branch displayId": {
+			slug:      "repository",
+			displayID: "main\x00injected",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			payload := map[string]interface{}{
+				"eventKey": "repo:refs_changed",
+				"repository": map[string]interface{}{
+					"slug": tc.slug,
+					"project": map[string]interface{}{
+						"key": "BAR",
+					},
+				},
+				"changes": []map[string]interface{}{
+					{
+						"type": "UPDATE",
+						"ref": map[string]interface{}{
+							"displayId": tc.displayID,
+							"type":      "BRANCH",
+						},
+					},
+				},
+			}
+			body, err := json.Marshal(payload)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", bytes.NewReader(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != http.StatusBadRequest {
+				t.Fatalf("Got status %d, want %d; mock event: %v", res.StatusCode, http.StatusBadRequest, mc.Event)
+			}
+		})
+	}
+}
+
+func TestJenkinsfilePathValidation(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	validPayload := func() io.Reader {
+		b, _ := os.ReadFile("testdata/fixtures/repo-refs-changed-payload.json")
+		return bytes.NewReader(b)
+	}
+
+	tests := map[string]struct {
+		path       string
+		wantStatus int
+	}{
+		// Valid paths
+		"default (no param)":          {"", http.StatusOK},
+		"simple filename":             {"Jenkinsfile", http.StatusOK},
+		"one directory deep":          {"ci/Jenkinsfile", http.StatusOK},
+		"multiple segments":           {"a/b/c/Jenkinsfile", http.StatusOK},
+		"filename with dots and dash": {"ci/My-Jenkinsfile.groovy", http.StatusOK},
+		// Invalid – path traversal
+		"double-dot traversal": {"../evil/Jenkinsfile", http.StatusBadRequest},
+		"traversal in middle":  {"ci/../../../etc/passwd", http.StatusBadRequest},
+		// Invalid – absolute path
+		"absolute path": {"/etc/passwd", http.StatusBadRequest},
+		// Invalid – hidden file / dot-start segment
+		"hidden file": {".hidden/Jenkinsfile", http.StatusBadRequest},
+		// Invalid – JSON metacharacters
+		"double-quote in path": {`ci/"injected`, http.StatusBadRequest},
+		"backslash in path":    {`ci\Jenkinsfile`, http.StatusBadRequest},
+		// Invalid – space
+		"space in path": {"ci/My Jenkinsfile", http.StatusBadRequest},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			url := ts.URL + "/?trigger_secret=s3cr3t"
+			if tc.path != "" {
+				url += "&jenkinsfile_path=" + tc.path
+			}
+			res, err := http.Post(url, "application/json", validPayload())
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+			if res.StatusCode != tc.wantStatus {
+				t.Fatalf("jenkinsfile_path=%q: got status %d, want %d", tc.path, res.StatusCode, tc.wantStatus)
+			}
+		})
 	}
 }
 
@@ -918,5 +1298,179 @@ func TestExtractComponent(t *testing.T) {
 				t.Fatalf("Got: %s, want: %s", got, tc.wantComponent)
 			}
 		})
+	}
+}
+
+// TestOcClientDoesNotFollowRedirects verifies the SSRF / SA-token-leakage
+// mitigation: the ocClient must never follow HTTP redirects so that the
+// Authorization: Bearer header is not forwarded to an attacker-controlled host.
+//
+// The test wires up two servers:
+//   - redirectSrv  returns a 302 pointing at capturesSrv
+//   - captureSrv   records whether it received an Authorization header
+//
+// If the client followed the redirect, captureSrv would receive the Bearer
+// token. With CheckRedirect returning http.ErrUseLastResponse the client
+// stops at the 302 and captureSrv is never reached.
+func TestOcClientDoesNotFollowRedirects(t *testing.T) {
+	bearerToken := "super-secret-sa-token"
+
+	// captureSrv records any Authorization header it receives.
+	capturedAuth := ""
+	captureSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedAuth = r.Header.Get("Authorization")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer captureSrv.Close()
+
+	// redirectSrv issues a 302 redirect to captureSrv.
+	redirectSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, captureSrv.URL, http.StatusFound)
+	}))
+	defer redirectSrv.Close()
+
+	// Build an ocClient with the same CheckRedirect policy as getSecureClient.
+	c := &ocClient{
+		HTTPClient: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		OpenShiftAPIBaseURL: redirectSrv.URL,
+		Token:               bearerToken,
+	}
+
+	req, err := http.NewRequest("GET", redirectSrv.URL+"/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := c.do(req)
+	if err != nil {
+		t.Fatalf("do() returned unexpected error: %v", err)
+	}
+	defer res.Body.Close()
+
+	// The client must stop at the redirect response, not follow it.
+	if res.StatusCode != http.StatusFound {
+		t.Fatalf("expected status %d (redirect not followed), got %d", http.StatusFound, res.StatusCode)
+	}
+
+	// captureSrv must never have been called, so the Bearer token was not leaked.
+	if capturedAuth != "" {
+		t.Fatalf("SA Bearer token was leaked to redirect target: Authorization=%q", capturedAuth)
+	}
+}
+
+func TestParseIPRanges(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantLen int
+		wantErr bool
+	}{
+		{"single IPv4 CIDR", "192.168.1.0/24", 1, false},
+		{"bare IPv4 address", "10.0.0.1", 1, false},
+		{"bare IPv6 address", "::1", 1, false},
+		{"multiple entries", "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16", 3, false},
+		{"entries with spaces", " 10.0.0.1 , 10.0.0.2 ", 2, false},
+		{"empty string", "", 0, false},
+		{"invalid CIDR", "not-an-ip", 0, true},
+		{"invalid prefix length", "10.0.0.0/33", 0, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := parseIPRanges(tc.input)
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if len(got) != tc.wantLen {
+				t.Fatalf("got %d networks, want %d", len(got), tc.wantLen)
+			}
+		})
+	}
+}
+
+func TestIsIPAllowed(t *testing.T) {
+	ranges, err := parseIPRanges("192.168.1.0/24,10.0.0.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		ip   string
+		want bool
+	}{
+		{"192.168.1.100", true},
+		{"192.168.1.1", true},
+		{"10.0.0.1", true},
+		{"10.0.0.2", false},
+		{"172.16.0.1", false},
+		{"8.8.8.8", false},
+	}
+	for _, tc := range tests {
+		ip := net.ParseIP(tc.ip)
+		if got := isIPAllowed(ranges, ip); got != tc.want {
+			t.Errorf("isIPAllowed(%s) = %v, want %v", tc.ip, got, tc.want)
+		}
+	}
+}
+
+func TestAllowedWebhookIPRanges(t *testing.T) {
+	mc := &mockClient{}
+	ranges, _ := parseIPRanges("192.168.1.0/24")
+	server := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: ranges,
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts := httptest.NewServer(server.HandleRoot())
+	defer ts.Close()
+
+	body := `{"eventKey":"repo:refs_changed","repository":{"slug":"my-repo","project":{"key":"bar"}},"changes":[{"type":"UPDATE","ref":{"displayId":"main","type":"BRANCH"}}]}`
+
+	// httptest server binds to 127.0.0.1 and r.RemoteAddr will be 127.0.0.1:PORT,
+	// which is NOT in 192.168.1.0/24 → expect 403.
+	res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != http.StatusForbidden {
+		t.Fatalf("expected 403 Forbidden from disallowed IP, got %d", res.StatusCode)
+	}
+
+	// With no IP restriction configured → same request must not be 403.
+	server2 := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: localhostIPRanges(),
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts2 := httptest.NewServer(server2.HandleRoot())
+	defer ts2.Close()
+
+	res2, err := http.Post(ts2.URL+"?trigger_secret=s3cr3t", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.ReadAll(res2.Body)
+	res2.Body.Close()
+	if res2.StatusCode == http.StatusForbidden {
+		t.Fatalf("expected non-403 when no IP restriction configured, got %d", res2.StatusCode)
 	}
 }
