@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
 
 ### Changed
 

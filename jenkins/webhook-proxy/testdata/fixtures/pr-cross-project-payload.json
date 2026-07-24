@@ -1,29 +1,29 @@
 {
-    "eventKey": "pr:declined",
-    "date": "2017-09-19T11:14:43+1000",
+    "eventKey": "pr:merged",
+    "date": "2017-09-19T10:39:36+1000",
     "actor": {
-        "name": "admin",
-        "emailAddress": "admin@example.com",
-        "id": 1,
-        "displayName": "Administrator",
+        "name": "user",
+        "emailAddress": "user@example.com",
+        "id": 2,
+        "displayName": "User",
         "active": true,
-        "slug": "admin",
+        "slug": "user",
         "type": "NORMAL"
     },
     "pullRequest": {
-        "id": 10,
+        "id": 9,
         "version": 2,
-        "title": "Commit message",
-        "state": "DECLINED",
+        "title": "file edited online with Bitbucket",
+        "state": "MERGED",
         "open": false,
         "closed": true,
-        "createdDate": 1505783668760,
-        "updatedDate": 1505783683969,
-        "closedDate": 1505783683969,
+        "createdDate": 1505781560908,
+        "updatedDate": 1505781576361,
+        "closedDate": 1505781576361,
         "fromRef": {
-            "id": "refs/heads/decline-me",
-            "displayId": "decline-me",
-            "latestCommit": "2d9fb6b9a46eafb1dcef7b008d1a429d45ca742c",
+            "id": "refs/heads/admin/file-1505781548644",
+            "displayId": "admin/file-1505781548644",
+            "latestCommit": "45f9690c928915a5e1c4366d5ee1985eea03f05d",
             "repository": {
                 "slug": "repository",
                 "id": 84,
@@ -33,7 +33,7 @@
                 "statusMessage": "Available",
                 "forkable": true,
                 "project": {
-                    "key": "BAR",
+                    "key": "ATTACKER",
                     "id": 84,
                     "name": "project",
                     "public": false,
@@ -45,7 +45,7 @@
         "toRef": {
             "id": "refs/heads/master",
             "displayId": "master",
-            "latestCommit": "7e48f426f0a6e47c5b5e862c31be6ca965f82c9c",
+            "latestCommit": "8d2ad38c918fa6943859fca2176c89ea98b92a21",
             "repository": {
                 "slug": "repository",
                 "id": 84,
@@ -79,7 +79,8 @@
             "approved": false,
             "status": "UNAPPROVED"
         },
-        "reviewers":[
+        "reviewers": [],
+        "participants": [
             {
                 "user": {
                     "name": "user",
@@ -90,11 +91,16 @@
                     "slug": "user",
                     "type": "NORMAL"
                 },
-                "role": "REVIEWER",
+                "role": "PARTICIPANT",
                 "approved": false,
                 "status": "UNAPPROVED"
             }
         ],
-        "participants":[]
+        "properties": {
+            "mergeCommit": {
+                "displayId": "7e48f426f0a",
+                "id": "7e48f426f0a6e47c5b5e862c31be6ca965f82c9c"
+            }
+        }
     }
 }

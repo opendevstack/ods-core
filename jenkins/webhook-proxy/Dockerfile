@@ -14,7 +14,7 @@ WORKDIR /home/webhook-proxy
 RUN CGO_ENABLED=0 go build -o webhook-proxy
 
 # Final stage
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+FROM registry.access.redhat.com/ubi9/ubi-micro@sha256:35de56a9413112f1474e392ebc35e0cf6f0fb484c8e8877bbae59b513694b41f
 
 # Set default ALLOWED_EXTERNAL_PROJECTS env var
 ARG allowedExternalProjects=opendevstack
@@ -28,6 +28,8 @@ COPY --from=builder /home/webhook-proxy/webhook-proxy /home/webhook-proxy/webhoo
 COPY pipeline.json.tmpl /home/webhook-proxy/pipeline.json.tmpl
 
 WORKDIR /home/webhook-proxy
+
+USER 1001
 
 EXPOSE 8080
 

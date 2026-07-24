@@ -33,7 +33,7 @@
                 "statusMessage": "Available",
                 "forkable": true,
                 "project": {
-                    "key": "PROJ",
+                    "key": "BAR",
                     "id": 84,
                     "name": "project",
                     "public": false,
@@ -55,7 +55,7 @@
                 "statusMessage": "Available",
                 "forkable": true,
                 "project": {
-                    "key": "PROJ",
+                    "key": "BAR",
                     "id": 84,
                     "name": "project",
                     "public": false,
