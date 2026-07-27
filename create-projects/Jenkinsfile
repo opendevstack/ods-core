@@ -7,6 +7,7 @@ def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN ?: ''
 def projectGroups = env.PROJECT_GROUPS ?: ''
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
+def webhookHmacSecret = env.WEBHOOK_HMAC_SECRET
 def cdUserIdB64 = env.CD_USER_ID_B64
 def cdUserType = env.CD_USER_TYPE
 
@@ -96,6 +97,7 @@ podTemplate(
             --ods-image-tag=${odsImageTag} \
             --ods-bitbucket-project ${odsBitbucketProject} \
             --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
+            --webhook-hmac-secret=${webhookHmacSecret} \
             --cd-user-type=${cdUserType} \
             --cd-user-id-b64=${cdUserIdB64}""",
           label: 'Setup Jenkins in CD project'
