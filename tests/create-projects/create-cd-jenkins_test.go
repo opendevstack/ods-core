@@ -1,6 +1,7 @@
 package create_projects
 
 import (
+	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -28,6 +29,7 @@ func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
+	hmacSecretB64 := base64.StdEncoding.EncodeToString([]byte(values["WEBHOOK_HMAC_SECRET"]))
 
 	stdout, stderr, err = utils.RunScriptFromBaseDir("create-projects/create-cd-jenkins.sh", []string{
 		"--verbose",
@@ -39,6 +41,7 @@ func TestCreateODSJenkinsThruShellScripts(t *testing.T) {
 		fmt.Sprintf("--cd-user-type=%s", "general"),
 		fmt.Sprintf("--cd-user-id-b64=%s", user),
 		fmt.Sprintf("--pipeline-trigger-secret-b64=%s", secret),
+		fmt.Sprintf("--webhook-hmac-secret-b64=%s", hmacSecretB64),
 	},
 		[]string{},
 	)

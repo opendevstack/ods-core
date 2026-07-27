@@ -2,6 +2,7 @@ package create_projects
 
 import (
 	"bytes"
+	"encoding/base64"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/tls"
@@ -64,6 +65,10 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 			{
 				Name:  "PIPELINE_TRIGGER_SECRET",
 				Value: values["PIPELINE_TRIGGER_SECRET_B64"],
+			},
+			{
+				Name:  "WEBHOOK_HMAC_SECRET",
+				Value: base64.StdEncoding.EncodeToString([]byte(values["WEBHOOK_HMAC_SECRET"])),
 			},
 			{
 				Name:  "ODS_GIT_REF",
@@ -204,6 +209,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
+	hmacSecret := values["WEBHOOK_HMAC_SECRET"]
 
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
 		"diff",
@@ -213,7 +219,8 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
-		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
+		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret)),
+		fmt.Sprintf("--param=WEBHOOK_HMAC_SECRET=%s", hmacSecret)}, dir, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
