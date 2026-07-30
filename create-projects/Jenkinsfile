@@ -103,7 +103,7 @@ podTemplate(
             --ods-image-tag=${odsImageTag} \
             --ods-bitbucket-project ${odsBitbucketProject} \
             --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
-            --webhook-hmac-key=${webhookHmacKey}
+            --webhook-hmac-key-b64=${webhookHmacKey}
             --cd-user-type=${cdUserType} \
             --cd-user-id-b64=${cdUserIdB64}""",
           label: 'Setup Jenkins in CD project'

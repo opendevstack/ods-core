@@ -18,7 +18,7 @@ PROJECT_ID=""
 CD_USER_TYPE=""
 CD_USER_ID_B64=""
 PIPELINE_TRIGGER_SECRET_B64=""
-WEBHOOK_HMAC_KEY=""
+WEBHOOK_HMAC_KEY_B64=""
 TAILOR_VERBOSE=""
 TAILOR_NON_INTERACTIVE=""
 
@@ -61,8 +61,8 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   --pipeline-trigger-secret-b64=*) PIPELINE_TRIGGER_SECRET_B64="${1#*=}";;
   --pipeline-trigger-secret-b64)   PIPELINE_TRIGGER_SECRET_B64="$2"; shift;;
 
-  --webhook-hmac-key=*) WEBHOOK_HMAC_KEY="${1#*=}";;
-  --webhook-hmac-key)   WEBHOOK_HMAC_KEY="$2"; shift;;
+  --webhook-hmac-key-b64=*) WEBHOOK_HMAC_KEY_B64="${1#*=}";;
+  --webhook-hmac-key-b64)   WEBHOOK_HMAC_KEY_B64="$2"; shift;;
 
   --cd-user-type=*) CD_USER_TYPE="${1#*=}";;
   --cd-user-type)   CD_USER_TYPE="$2"; shift;;
@@ -85,8 +85,8 @@ if [ -z "${PIPELINE_TRIGGER_SECRET_B64}" ]; then
   exit 1
 fi
 
-if [ -z "${WEBHOOK_HMAC_KEY}" ]; then
-  echo "--webhook-hmac-key is missing, but required"; usage
+if [ -z "${WEBHOOK_HMAC_KEY_B64}" ]; then
+  echo "--webhook-hmac-key-b64 is missing, but required"; usage
   exit 1
 fi
 
@@ -120,7 +120,7 @@ cd "${ODS_CORE_DIR}/jenkins/ocp-config/deploy"
 ${TAILOR} ${TAILOR_VERBOSE} ${TAILOR_NON_INTERACTIVE} apply \
   "--namespace=${PROJECT_ID}-cd" \
   "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET_B64}" \
-  "--param=WEBHOOK_HMAC_KEY=${WEBHOOK_HMAC_KEY}" \
+  "--param=WEBHOOK_HMAC_SECRET=${WEBHOOK_HMAC_KEY_B64}" \
   "--param=PROJECT=${PROJECT_ID}" \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   "--param=ODS_NAMESPACE=${ODS_NAMESPACE}" \
