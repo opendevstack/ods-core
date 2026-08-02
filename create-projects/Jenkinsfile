@@ -7,9 +7,16 @@ def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN ?: ''
 def projectGroups = env.PROJECT_GROUPS ?: ''
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
-def webhookHmacSecret = env.WEBHOOK_HMAC_SECRET
+def webhookHmacKey = env.WEBHOOK_HMAC_KEY
+def webhookAllowedIpRanges = env.WEBHOOK_ALLOWED_IP_RANGES
 def cdUserIdB64 = env.CD_USER_ID_B64
 def cdUserType = env.CD_USER_TYPE
+if (!(projectId ==~ /^[A-Za-z\d]+$/)) {
+    throw new IllegalArgumentException("Invalid projectId: ${projectId}")
+}
+if (!(projectGroups ==~ /^[A-Za-z\d-=,]+$/)) {
+    throw new IllegalArgumentException("Invalid projectGroups: ${projectGroups}")
+}
 
 // Jenkins DeploymentConfig environment variables
 def bitbucketUrl
@@ -97,7 +104,8 @@ podTemplate(
             --ods-image-tag=${odsImageTag} \
             --ods-bitbucket-project ${odsBitbucketProject} \
             --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
-            --webhook-hmac-secret=${webhookHmacSecret} \
+            --webhook-hmac-key-b64=${webhookHmacKey} \
+            --webhook-allowed-ip-ranges=${webhookAllowedIpRanges} \
             --cd-user-type=${cdUserType} \
             --cd-user-id-b64=${cdUserIdB64}""",
           label: 'Setup Jenkins in CD project'
@@ -123,7 +131,7 @@ podTemplate(
         }
 
         echo("Post-creation scripts are enabled. Retrieving configuration...")
-        
+
         // Get scripts repository configuration
         def scriptsRepoUrl    = getConfigValue('POST_CREATION_SCRIPTS_REPO_URL', 'ods-configuration/ods-core.env')
         def scriptsBranch     = getConfigValue('POST_CREATION_SCRIPTS_BRANCH', 'ods-configuration/ods-core.env', 'master')
@@ -131,7 +139,12 @@ podTemplate(
 
         def configRepoUrl    = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_URL', 'ods-configuration/ods-core.env')
         def configRepoBranch = getConfigValue('POST_CREATION_SCRIPTS_CONFIG_REPO_BRANCH', 'ods-configuration/ods-core.env', 'master')
-                
+
+        // Explicit allowlist of repositories that post-creation scripts/config may be cloned from.
+        // This prevents a malicious 'ods-configuration' commit from pointing the checkout at an
+        // attacker-controlled repository and achieving cluster-wide RCE (finding F-05).
+        def repoAllowlist = getConfigValue('POST_CREATION_SCRIPTS_REPO_ALLOWLIST', 'ods-configuration/ods-core.env')
+
         // Check if required configuration is missing
         if (!scriptsRepoUrl || scriptsRepoUrl.trim().isEmpty()) {
             echo("POST_CREATION_SCRIPTS_REPO_URL is not configured. Skipping setup.")
@@ -144,7 +157,32 @@ podTemplate(
             env.POST_SCRIPTS_ENABLED = 'false'
             return
         }
-        
+
+        if (!configRepoUrl || configRepoUrl.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_CONFIG_REPO_URL is not configured. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        if (!repoAllowlist || repoAllowlist.trim().isEmpty()) {
+            echo("POST_CREATION_SCRIPTS_REPO_ALLOWLIST is not configured. Refusing to run post-creation scripts.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        def allowedRepos = repoAllowlist.split(',').collect { it.trim() }.findAll { it }
+        if (!allowedRepos.contains(scriptsRepoUrl.trim())) {
+            echo("POST_CREATION_SCRIPTS_REPO_URL '${scriptsRepoUrl}' is not in POST_CREATION_SCRIPTS_REPO_ALLOWLIST. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
+        if (!allowedRepos.contains(configRepoUrl.trim())) {
+            echo("POST_CREATION_SCRIPTS_CONFIG_REPO_URL '${configRepoUrl}' is not in POST_CREATION_SCRIPTS_REPO_ALLOWLIST. Skipping setup.")
+            env.POST_SCRIPTS_ENABLED = 'false'
+            return
+        }
+
         echo("Scripts repository: ${scriptsRepoUrl}")
         echo("Scripts branch: ${scriptsBranch}")
         echo("Scripts order: ${scriptsOrder}")
@@ -153,7 +191,7 @@ podTemplate(
         echo("Config repo branch: ${configRepoBranch}")
 
         def credentialsId = "${pipelineOpenShiftProject}-cd-user-with-password"
-        
+
         // Clone the scripts repository
         checkout([
           $class: 'GitSCM',
@@ -169,7 +207,7 @@ podTemplate(
             url: "${scriptsRepoUrl}"
           ]]
         ])
-        
+
         checkout([
           $class: 'GitSCM',
           branches: [[name: "*/${configRepoBranch}"]],
@@ -184,7 +222,7 @@ podTemplate(
             url: "${configRepoUrl}"
           ]]
         ])
-        
+
         // Store configuration for next stage
         env.POST_SCRIPTS_ENABLED = 'true'
         env.POST_SCRIPTS_ORDER = scriptsOrder
@@ -200,11 +238,11 @@ podTemplate(
         }
 
         def credentialsId = "${odsNamespace}-cd-user-with-password"
-        
+
         def scripts = env.POST_SCRIPTS_ORDER.split(',')
         def odsConfigPath = "${env.WORKSPACE}/ods-configuration/ods-core.env"
         def scriptsConfigPath = "${env.WORKSPACE}/post-creation-config/${env.POST_SCRIPTS_CONFIG_FILE}"
-        
+
         withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
           withEnv([
             "PROJECT_ID=${projectId}",
@@ -217,7 +255,6 @@ podTemplate(
             "BITBUCKET_URL=${bitbucketUrl}",
             "DOCKER_REGISTRY=${dockerRegistry}",
             "CD_USERNAME=${username}",
-            "CD_PASSWORD=${password}",
             "CD_USER_CREDENTIALS_ID=${credentialsId}"
           ]) {
               echo("Environment variables for scripts:")
@@ -227,7 +264,7 @@ podTemplate(
                   def scriptPath = "post-project-creation/${scriptName}"
 
                   echo("Executing script: ${scriptName}")
-                  
+
                   sh(
                       script: """
                       "${scriptPath}" "${odsConfigPath}" "${scriptsConfigPath}"
