@@ -18,14 +18,14 @@ parameters:
   required: true
 - name: PIPELINE_TRIGGER_SECRET_B64
   required: true
-- name: WEBHOOK_HMAC_SECRET
+- name: WEBHOOK_HMAC_KEY_B64
   required: true
 - name: ODS_BITBUCKET_PROJECT
   required: true
 - name: MAX_DELETION_CHECKS
   value: '10'
   required: true
-- name: ALLOWED_WEBHOOK_IP_RANGES
+- name: WEBHOOK_ALLOWED_IP_RANGES
   description: >-
     Comma-separated list of allowed source IP addresses or CIDR ranges for
     incoming webhook requests (e.g. "185.166.140.0/22,10.0.0.1").
@@ -113,7 +113,7 @@ objects:
           - name: MAX_DELETION_CHECKS
             value: ${MAX_DELETION_CHECKS}
           - name: ALLOWED_WEBHOOK_IP_RANGES
-            value: ${ALLOWED_WEBHOOK_IP_RANGES}
+            value: ${WEBHOOK_ALLOWED_IP_RANGES}
           - name: TRIGGER_SECRET
             valueFrom:
               secretKeyRef:
@@ -157,4 +157,4 @@ objects:
   type: opaque
   data:
     trigger-secret: ${PIPELINE_TRIGGER_SECRET_B64}
-    webhook-hmac-secret: ${WEBHOOK_HMAC_SECRET}
+    webhook-hmac-secret: ${WEBHOOK_HMAC_KEY_B64}
