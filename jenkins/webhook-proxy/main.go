@@ -36,9 +36,6 @@ var (
 	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
 	// and hidden-file tricks (".").
 	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
-	// safeTriggerSecretRegex matches a UUID as produced by Java's
-	// UUID.randomUUID().toString(): 8-4-4-4-12 lowercase hex digits.
-	safeTriggerSecretRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 )
 
 const (
@@ -200,8 +197,8 @@ func main() {
 	}
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
-	if !safeTriggerSecretRegex.MatchString(triggerSecret) {
-		log.Fatalln("Trigger secret must be a valid UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).")
+	if len(triggerSecret) == 0 {
+		log.Fatalln(triggerSecretEnvVar, "must be set")
 	}
 
 	webhookHMACSecret := os.Getenv(webhookHMACSecretEnvVar)
