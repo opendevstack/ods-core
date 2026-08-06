@@ -255,6 +255,7 @@ podTemplate(
             "BITBUCKET_URL=${bitbucketUrl}",
             "DOCKER_REGISTRY=${dockerRegistry}",
             "CD_USERNAME=${username}",
+            "CD_PASSWORD=${password}",
             "CD_USER_CREDENTIALS_ID=${credentialsId}"
           ]) {
               echo("Environment variables for scripts:")
