@@ -9,3 +9,10 @@ oidc-provider:89.v3dfb_6d89b_618
 
 # plugins modified to fix incompatibilities
 git-client:6.3.3
+ssh-credentials:361.vb_f6760818e8c
+configuration-as-code:1985.vdda_32d0c4ea_b_
+credentials:1419.v2337d1ceceef
+structs:353.v261ea_40a_80fb_
+commons-lang3-api:3.18.0-98.v3a_674c06072d
+gson-api:2.13.1-153.vb_3d0c48a_a_b_4a_
+script-security:1378.vf25626395f49
