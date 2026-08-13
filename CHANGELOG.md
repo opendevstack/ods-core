@@ -17,6 +17,10 @@
 - Harden post-creation scripts against RCE and credential exfiltration: remove `CD_PASSWORD` from the scripts environment and restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
 - Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
 
+## [4.13.2] - 2026-08-13
+### Fixed
+- Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
+
 ## [4.13.1] - 2026-07-30
 ### Fixed
 - Fix jenkins plugins ([#1399](https://github.com/opendevstack/ods-core/pull/1399))
