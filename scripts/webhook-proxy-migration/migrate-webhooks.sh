@@ -16,6 +16,7 @@ JIRA_TOKEN=""
 PROXY_SCRIPT="$(dirname "$0")/migrate-openshift-webhook-secret.sh"
 BITBUCKET_SCRIPT="$(dirname "$0")/migrate-bitbucket-webhook-hmac.sh"
 JIRA_SCRIPT="$(dirname "$0")/migrate-jira-webhook-properties.sh"
+ALLOWED_IP_RANGES=""
 
 usage() {
   cat <<'EOF'
@@ -34,6 +35,7 @@ Required:
   --base-url <url>                Bitbucket base URL
   --jira-instance <url>           Jira instance URL (e.g., https://jira.example.com)
   --jira-token <token>            Jira API token for authentication
+  --allowed-ip-ranges <ip-ranges> A comma-separated list of allowed IP ranges
 
 Authentication for Bitbucket (choose one):
   --token <token>                 Personal access token for Bitbucket
@@ -57,14 +59,14 @@ EOF
 
 run_jira_migration() {
   local project="$1"
-  local hmac_hex="$2"
+  local hmac_secret="$2"
 
   jira_cmd=(
     "$JIRA_SCRIPT"
     --jira-instance "$JIRA_INSTANCE"
     --jira-token "$JIRA_TOKEN"
     --project-key "$project"
-    --hmac-secret-hex "$hmac_hex"
+    --hmac-secret "$hmac_secret"
   )
   if [[ "$APPLY" == true ]]; then
     jira_cmd+=(--apply)
@@ -136,6 +138,11 @@ while [[ $# -gt 0 ]]; do
       JIRA_TOKEN="$2"
       shift
       ;;
+    --allowed-ip-ranges)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --allowed-ip-ranges"
+      ALLOWED_IP_RANGES="$2"
+      shift
+      ;;
     --apply)
       APPLY=true
       ;;
@@ -154,6 +161,7 @@ done
 [[ -n "$BASE_URL" ]] || usage_error "--base-url is required"
 [[ -n "$JIRA_INSTANCE" ]] || usage_error "--jira-instance is required"
 [[ -n "$JIRA_TOKEN" ]] || usage_error "--jira-token is required"
+[[ -n "$ALLOWED_IP_RANGES" ]] || usage_error "--allowed-ip-ranges is required"
 
 if [[ -n "$TOKEN" && ( -n "$USERNAME" || -n "$PASSWORD" ) ]]; then
   usage_error "Use either --token or --username/--password, not both"
@@ -182,7 +190,7 @@ log "Mode: $( [[ "$APPLY" == true ]] && echo apply || echo dry-run )"
 for project in "${PROJECTS[@]}"; do
   log "Processing project: ${project}"
 
-  hmac_secret="$(openssl rand -hex 32)"
+  hmac_secret="$(openssl rand -base64 32)"
   log "Generated HMAC secret for project ${project}"
 
   proxy_cmd=(
@@ -190,6 +198,7 @@ for project in "${PROJECTS[@]}"; do
     --oc-bin "$OC_BIN"
     --project "$project"
     --hmac-secret "$hmac_secret"
+    --allowed-ip-ranges "$ALLOWED_IP_RANGES"
   )
   if [[ "$APPLY" == true ]]; then
     proxy_cmd+=(--apply)

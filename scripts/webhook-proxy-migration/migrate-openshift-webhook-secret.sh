@@ -13,6 +13,7 @@ OC_BIN="oc"
 PROJECT=""
 HMAC_SECRET_B64=""
 HMAC_SECRET_RAW=""
+ALLOWED_IP_RANGES=""
 
 usage() {
   cat <<'EOF'
@@ -22,6 +23,7 @@ Usage:
 Description:
   Migrates secret/webhook-proxy in one ODS project namespace by setting
   data.webhook-hmac-secret.
+  Adds the allowed IP range list to the dc/webhook-proxy environment.
   Default mode is dry-run (no changes). Use --apply to execute changes.
 
 Options:
@@ -30,6 +32,7 @@ Options:
   --project <project-id>          Single ODS project ID (without -cd suffix).
   --hmac-secret <raw-secret>      Raw HMAC secret value.
   --hmac-secret-b64 <base64>      Base64 encoded HMAC secret value.
+  --allowed-ip-ranges <ip-ranges> Comma-separated list of allowed IP ranges.
   -h, --help                      Show this help.
 
 Selection:
@@ -40,14 +43,15 @@ Required:
       --hmac-secret <raw-secret>
       --hmac-secret-b64 <base64>
   - --project <project-id>
+  - --allowed-ip-ranges <ip-ranges>
 
 Behavior:
   - Target namespace is always: <project-id>-cd
   - If secret/webhook-proxy does not exist, the namespace is skipped.
 
 Examples:
-  scripts/migrate-openshift-webhook-secret.sh --project foo --hmac-secret "$(openssl rand -hex 32)"
-  scripts/migrate-openshift-webhook-secret.sh --apply --project foo --hmac-secret-b64 ABCDEF==
+  scripts/migrate-openshift-webhook-secret.sh --project foo --hmac-secret "$(openssl rand -hex 32)" --allowed-ip-ranges 10.0.0.0/8
+  scripts/migrate-openshift-webhook-secret.sh --apply --project foo --hmac-secret-b64 ABCDEF== --allowed-ip-ranges 10.0.0.0/8,192.168.0.0/16
 EOF
 }
 
@@ -73,6 +77,11 @@ while [[ $# -gt 0 ]]; do
     --hmac-secret-b64)
       [[ $# -ge 2 ]] || usage_error "Missing value for --hmac-secret-b64"
       HMAC_SECRET_B64="$2"
+      shift
+      ;;
+    --allowed-ip-ranges)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --allowed-ip-ranges"
+      ALLOWED_IP_RANGES="$2"
       shift
       ;;
     -h|--help) usage; exit 0 ;;
@@ -119,14 +128,13 @@ patch_payload="$(jq -cn --arg value "$HMAC_SECRET_B64" '{data:{"webhook-hmac-sec
 if [[ "$APPLY" == true ]]; then
   "$OC_BIN" -n "$NAMESPACE" patch secret webhook-proxy --type merge -p "$patch_payload" >/dev/null
   log "Patched secret/webhook-proxy in ${NAMESPACE}"
-  
-  # Delete webhook-proxy pods so they are restarted with the new secret
-  log "Deleting webhook-proxy pods in ${NAMESPACE}..."
-  "$OC_BIN" -n "$NAMESPACE" delete pod -l app=jenkins-webhook-proxy --ignore-not-found=true
-  log "Pods deleted and will be restarted automatically"
+
+  "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy ALLOWED_WEBHOOK_IP_RANGES="${ALLOWED_IP_RANGES}"
+  log "Added environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
+
 else
-  log "DRY-RUN patch secret in ${NAMESPACE}: ${patch_payload}"
-  log "DRY-RUN would delete pods with label app=webhook-proxy"
+  log "DRY-RUN would patch secret in ${NAMESPACE}"
+  log "DRY-RUN would add the environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
 fi
 
 log "Completed"

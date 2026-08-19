@@ -20,7 +20,7 @@ APPLY=false
 JIRA_INSTANCE=""
 JIRA_TOKEN=""
 PROJECT_KEY=""
-HMAC_SECRET_HEX=""
+HMAC_SECRET=""
 JIRA_SCRIPT="$(dirname "$0")/jira-property-client.sh"
 
 usage() {
@@ -30,7 +30,7 @@ Usage:
 
 Description:
   Updates Jira project properties for the webhook proxy migration:
-    - WEBHOOK_PROXY.SECRET: set to the HMAC secret, base64-encoded.
+    - WEBHOOK_PROXY.SECRET: set to the HMAC secret.
     - WEBHOOK_PROXY.URL: existing Jira value with trigger_secret query
       parameter removed. The URL is read from Jira, not from Bitbucket.
   Default mode is dry-run (no changes). Use --apply to execute changes.
@@ -39,7 +39,7 @@ Required:
   --jira-instance <url>            Jira instance URL (e.g., https://jira.example.com)
   --jira-token <token>             Jira API token for authentication
   --project-key <key>              Jira project key
-  --hmac-secret-hex <hex>          HMAC secret in hex format (as used for Bitbucket/OpenShift)
+  --hmac-secret <hex>              HMAC secret (as used for Bitbucket/OpenShift)
 
 Optional:
   --jira-script <path>             Override jira-property-client.sh script path
@@ -49,11 +49,11 @@ Optional:
 Examples:
   scripts/migrate-jira-webhook-properties.sh \
     --jira-instance https://jira.example.com --jira-token abc123 \
-    --project-key FOO --hmac-secret-hex "$(openssl rand -hex 32)"
+    --project-key FOO --hmac-secret "$(openssl rand -base64 32)"
 
   scripts/migrate-jira-webhook-properties.sh --apply \
     --jira-instance https://jira.example.com --jira-token abc123 \
-    --project-key FOO --hmac-secret-hex 0123456789abcdef...
+    --project-key FOO --hmac-secret SecretValue7230457...
 EOF
 }
 
@@ -74,9 +74,9 @@ while [[ $# -gt 0 ]]; do
       PROJECT_KEY="$2"
       shift
       ;;
-    --hmac-secret-hex)
-      [[ $# -ge 2 ]] || usage_error "Missing value for --hmac-secret-hex"
-      HMAC_SECRET_HEX="$2"
+    --hmac-secret)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --hmac-secret"
+      HMAC_SECRET="$2"
       shift
       ;;
     --jira-script)
@@ -100,7 +100,7 @@ require_file "$JIRA_SCRIPT"
 [[ -n "$JIRA_INSTANCE" ]] || usage_error "--jira-instance is required"
 [[ -n "$JIRA_TOKEN" ]] || usage_error "--jira-token is required"
 [[ -n "$PROJECT_KEY" ]] || usage_error "--project-key is required"
-[[ -n "$HMAC_SECRET_HEX" ]] || usage_error "--hmac-secret-hex is required"
+[[ -n "$HMAC_SECRET" ]] || usage_error "--hmac-secret is required"
 
 PROJECT_KEY="${PROJECT_KEY^^}"
 
@@ -145,11 +145,6 @@ else
   "${jira_url_cmd[@]}"
 fi
 
-# Jira stores the secret as base64; HMAC is generated/used as hex elsewhere
-# (Bitbucket/OpenShift), so convert it here.
-hmac_b64="$(hex_to_base64 "$HMAC_SECRET_HEX")"
-log "Converted HMAC to base64 for Jira storage"
-
 jira_secret_cmd=(
   "$JIRA_SCRIPT"
   --set
@@ -157,7 +152,7 @@ jira_secret_cmd=(
   --jira-token "$JIRA_TOKEN"
   --project-key "$PROJECT_KEY"
   --property-key "WEBHOOK_PROXY.SECRET"
-  --property-value "$hmac_b64"
+  --property-value "$HMAC_SECRET"
 )
 if [[ "$APPLY" == true ]]; then
   jira_secret_cmd+=(--apply)
