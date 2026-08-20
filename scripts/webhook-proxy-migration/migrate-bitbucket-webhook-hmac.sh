@@ -245,6 +245,7 @@ processed_repos=0
 updated_hooks=0
 
 while IFS= read -r repo_slug; do
+  repo_slug=${repo_slug%$'\r'}
   [[ -z "$repo_slug" ]] && continue
   processed_repos=$((processed_repos + 1))
   log "Scanning repo: ${repo_slug}"

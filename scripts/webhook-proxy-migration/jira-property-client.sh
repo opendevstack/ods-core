@@ -121,16 +121,16 @@ fi
 # Handle GET mode
 if [[ "$MODE" == "get" ]]; then
   log "Fetching property ${PROPERTY_KEY} from project ${PROJECT_KEY}..."
-  
+
   response=$(curl -s \
     -H "Authorization: Bearer ${JIRA_TOKEN}" \
     -H "Accept: application/json" \
     -X GET \
     "${JIRA_INSTANCE}/rest/platform/1.0/projectproperties/list/${PROJECT_KEY}" \
     --insecure)
-  
+
   property=$(echo "$response" | jq --arg key "$PROPERTY_KEY" '.[] | select(.propertyKey == $key) | .propertyValue' 2>/dev/null || echo "null")
-  
+
   if [[ "$property" != "null" && -n "$property" ]]; then
     printf '%s\n' "$property" | sed 's/^"//;s/"$//'
     exit 0
@@ -207,7 +207,7 @@ fi
 
 if [[ "$APPLY" == true ]]; then
   log "Applying ${endpoint} for property ${PROPERTY_KEY}..."
-  
+
   response=$(curl -s -w "\n%{http_code}" \
     -H "Authorization: Bearer ${JIRA_TOKEN}" \
     -H "Accept: application/json" \
@@ -216,15 +216,15 @@ if [[ "$APPLY" == true ]]; then
     "${JIRA_INSTANCE}/rest/platform/1.0/projectproperties/${endpoint}" \
     -d "$payload" \
     --insecure)
-  
+
   http_code=$(echo "$response" | tail -n1)
   response_body=$(echo "$response" | head -n-1)
-  
+
   if [[ "$http_code" == "200" || "$http_code" == "201" ]]; then
     if [[ "$endpoint" == "update" ]]; then
-      log "Successfully updated property ${PROPERTY_KEY} with value: ${PROPERTY_VALUE}"
+      log "Successfully updated property ${PROPERTY_KEY}"
     else
-      log "Successfully added property ${PROPERTY_KEY} with value: ${PROPERTY_VALUE}"
+      log "Successfully added property ${PROPERTY_KEY}"
     fi
   else
     log "Error: HTTP ${http_code}"
@@ -232,7 +232,7 @@ if [[ "$APPLY" == true ]]; then
     exit 1
   fi
 else
-  log "DRY-RUN: Would ${endpoint} property ${PROPERTY_KEY} with value: ${PROPERTY_VALUE}"
+  log "DRY-RUN: Would ${endpoint} property ${PROPERTY_KEY}"
   log "DRY-RUN payload:"
   echo "$payload" | jq . >&2
 fi
