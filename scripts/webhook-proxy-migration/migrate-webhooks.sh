@@ -17,6 +17,9 @@ PROXY_SCRIPT="$(dirname "$0")/migrate-openshift-webhook-secret.sh"
 BITBUCKET_SCRIPT="$(dirname "$0")/migrate-bitbucket-webhook-hmac.sh"
 JIRA_SCRIPT="$(dirname "$0")/migrate-jira-webhook-properties.sh"
 ALLOWED_IP_RANGES=""
+PROVAPP_BASE_URL=""
+PROVAPP_USER=""
+PROVAPP_PASSWORD=""
 
 usage() {
   cat <<'EOF'
@@ -29,12 +32,17 @@ Description:
     2) Runs webhook proxy secret migration
     3) Runs Bitbucket webhook migration
     4) Updates Jira project properties with webhook secret and URL
+    5) Sets the list of allowed IP ranges to the webhook proxy configuration
+    6) Updates ProvApp stored project configuration with the HMAC secret
 
 Required:
   --projects-file <path>          File with project keys, one per line
   --base-url <url>                Bitbucket base URL
   --jira-instance <url>           Jira instance URL (e.g., https://jira.example.com)
   --jira-token <token>            Jira API token for authentication
+  --provapp-base-url              Base URL of the ProvApp instance
+  --provapp-username              Username for the ProvApp
+  --provapp-password              Password for the ProvApp
   --allowed-ip-ranges <ip-ranges> A comma-separated list of allowed IP ranges
 
 Authentication for Bitbucket (choose one):
@@ -138,6 +146,21 @@ while [[ $# -gt 0 ]]; do
       JIRA_TOKEN="$2"
       shift
       ;;
+    --provapp-base-url)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --provapp-base-url"
+      PROVAPP_BASE_URL="$2"
+      shift
+      ;;
+    --provapp-username)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --provapp-username"
+      PROVAPP_USER="$2"
+      shift
+      ;;
+    --provapp-password)
+      [[ $# -ge 2 ]] || usage_error "Missing value for --provapp-password"
+      PROVAPP_PASSWORD="$2"
+      shift
+      ;;
     --allowed-ip-ranges)
       [[ $# -ge 2 ]] || usage_error "Missing value for --allowed-ip-ranges"
       ALLOWED_IP_RANGES="$2"
@@ -161,6 +184,9 @@ done
 [[ -n "$BASE_URL" ]] || usage_error "--base-url is required"
 [[ -n "$JIRA_INSTANCE" ]] || usage_error "--jira-instance is required"
 [[ -n "$JIRA_TOKEN" ]] || usage_error "--jira-token is required"
+[[ -n "$PROVAPP_BASE_URL" ]] || usage_error "--provapp-base-url is required"
+[[ -n "$PROVAPP_USER" ]] || usage_error "--provapp-username is required"
+[[ -n "$PROVAPP_PASSWORD" ]] || usage_error "--provapp-password is required"
 [[ -n "$ALLOWED_IP_RANGES" ]] || usage_error "--allowed-ip-ranges is required"
 
 if [[ -n "$TOKEN" && ( -n "$USERNAME" || -n "$PASSWORD" ) ]]; then
@@ -227,6 +253,18 @@ for project in "${PROJECTS[@]}"; do
   "${bitbucket_cmd[@]}"
 
   run_jira_migration "$project" "$hmac_secret"
+
+  log "Running ProvApp project migration for ${project}"
+  if [[ "$APPLY" == true ]]; then
+    log "Updating HMAC key for project ${project}"
+    curl -fsS -X PUT "${PROVAPP_BASE_URL}/api/v2/project/${project}/webhookProxyHmacKey" -d "$hmac_secret" \
+         -H "Accept: application/json" \
+         -H "Content-Type: text/plain" \
+         -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}"
+    log "HMAC key for project ${project} has been successfully updated"
+  else
+    log "DRY-RUN Would update HMAC key for project ${project}"
+  fi
 done
 
 log "All projects processed"
