@@ -260,7 +260,7 @@ for project in "${PROJECTS[@]}"; do
     curl -fsS -X PUT "${PROVAPP_BASE_URL}/api/v2/project/${project}/webhookProxyHmacKey" -d "$hmac_secret" \
          -H "Accept: application/json" \
          -H "Content-Type: text/plain" \
-         -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}"
+         -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}" > /dev/null
     log "HMAC key for project ${project} has been successfully updated"
   else
     log "DRY-RUN Would update HMAC key for project ${project}"
