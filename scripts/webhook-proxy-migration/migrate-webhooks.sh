@@ -262,8 +262,11 @@ for project in "${PROJECTS[@]}"; do
          -H "Content-Type: text/plain" \
          -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}" > /dev/null
     log "HMAC key for project ${project} has been successfully updated"
+    log "Restarting ods-provisioning-app"
+    oc -n "$NAMESPACE" rollout latest dc/ods-provisioning-app
   else
     log "DRY-RUN Would update HMAC key for project ${project}"
+    log "DRY-RUN Would restart the Provisioning App"
   fi
 done
 

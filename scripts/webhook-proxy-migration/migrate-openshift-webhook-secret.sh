@@ -131,10 +131,12 @@ if [[ "$APPLY" == true ]]; then
 
   "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy ALLOWED_WEBHOOK_IP_RANGES="${ALLOWED_IP_RANGES}"
   log "Added environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
-
+  log "Restarting webhook-proxy in ${NAMESPACE}"
+  "$OC_BIN" -n "$NAMESPACE" rollout latest dc/webhook-proxy
 else
   log "DRY-RUN would patch secret in ${NAMESPACE}"
   log "DRY-RUN would add the environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
+  log "DRY-RUN Would restart the Webhook Proxy"
 fi
 
 log "Completed"
