@@ -109,6 +109,10 @@ if [[ -n "$HMAC_SECRET_RAW" ]]; then
   HMAC_SECRET_B64="$(printf '%s' "$HMAC_SECRET_RAW" | base64 | tr -d '\n')"
 fi
 
+if [[ -z "$HMAC_SECRET_RAW" ]]; then
+  HMAC_SECRET_RAW="$(printf '%s' "$HMAC_SECRET_B64" | base64 -d)"
+fi
+
 if [[ -z "$PROJECT" ]]; then
   usage_error "--project is required"
 fi
@@ -123,19 +127,27 @@ if ! "$OC_BIN" -n "$NAMESPACE" get secret webhook-proxy >/dev/null 2>&1; then
   exit 0
 fi
 
-patch_payload="$(jq -cn --arg value "$HMAC_SECRET_B64" '{data:{"webhook-hmac-secret":$value}}')"
-
 if [[ "$APPLY" == true ]]; then
+  patch_payload="$(jq -cn --arg value "$HMAC_SECRET_B64" '{data:{"webhook-hmac-secret":$value}}')"
   "$OC_BIN" -n "$NAMESPACE" patch secret webhook-proxy --type merge -p "$patch_payload" >/dev/null
   log "Patched secret/webhook-proxy in ${NAMESPACE}"
 
+  "$OC_BIN" -n "$NAMESPACE" rollout pause dc/webhook-proxy
+
   "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy ALLOWED_WEBHOOK_IP_RANGES="${ALLOWED_IP_RANGES}"
   log "Added environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
-  log "Restarting webhook-proxy in ${NAMESPACE}"
-  "$OC_BIN" -n "$NAMESPACE" rollout latest dc/webhook-proxy || true
+
+  "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy WEBHOOK_HMAC_SECRET- || true
+  patch_payload='[{ "op": "add", "path": "/spec/template/spec/containers/0/env/-", "value": { "name": "WEBHOOK_HMAC_SECRET", "valueFrom": { "secretKeyRef": { "name": "webhook-proxy", "key": "webhook-hmac-secret" }}}}]'
+  "$OC_BIN" -n "$NAMESPACE" patch dc/webhook-proxy --type json -p "$patch_payload"
+  log "Added environment variable WEBHOOK_HMAC_SECRET to dc/webhook-proxy in ${NAMESPACE}"
+
+  log "Restarting webhook-proxy in ${NAMESPACE}..."
+  "$OC_BIN" -n "$NAMESPACE" rollout resume dc/webhook-proxy
 else
   log "DRY-RUN would patch secret in ${NAMESPACE}"
   log "DRY-RUN would add the environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
+  log "DRY-RUN would add the environment variable WEBHOOK_HMAC_SECRET to deployment config webhook-proxy in ${NAMESPACE}"
   log "DRY-RUN Would restart the Webhook Proxy"
 fi
 
