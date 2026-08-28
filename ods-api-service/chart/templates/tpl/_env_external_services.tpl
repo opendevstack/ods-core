@@ -89,6 +89,7 @@ MARKETPLACE_{{ $name | upper | replace "-" "_" }}_TRUST_ALL: {{ $instance.trustA
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_OBO_SCOPE: {{ $instance.oboScope | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE: {{ $instance.bypass.audience | default "" | quote }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE: {{ $instance.bypass.scope | default "" | quote }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_CLIENT_CREDENTIALS_SCOPE: {{ $instance.clientCredentials | quote }}
 
 {{- end }}
 {{- end }}
@@ -160,6 +161,9 @@ MARKETPLACE_{{ $name | upper | replace "-" "_" }}_USERNAME: {{ $instance.usernam
 {{- end }}
 {{- if $instance.password }}
 MARKETPLACE_{{ $name | upper | replace "-" "_" }}_PASSWORD: {{ $instance.password | b64enc | quote }}
+{{- end }}
+{{- if $instance.clientCredentialsScope }}
+MARKETPLACE_{{ $name | upper | replace "-" "_" }}_CLIENT_CREDENTIALS_SCOPE: {{ $instance.clientCredentialsScope | b64enc | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

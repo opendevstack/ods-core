@@ -4,6 +4,7 @@
 
 ### Added
 - Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
+- Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
 ### Changed
 - Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))
@@ -14,7 +15,16 @@
 - Fixed VIT0089533 ([#1397](https://github.com/opendevstack/ods-core/pull/1397))
 - Fixed VIT0089531 ([#1393](https://github.com/opendevstack/ods-core/pull/1393))
 - Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
-- Harden post-creation scripts against RCE and credential exfiltration: restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
+- Harden post-creation scripts against RCE and credential exfiltration: remove `CD_PASSWORD` from the scripts environment and restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
+- Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
+
+## [4.13.2] - 2026-08-13
+### Fixed
+- Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
+
+## [4.13.1] - 2026-07-30
+### Fixed
+- Fix jenkins plugins ([#1399](https://github.com/opendevstack/ods-core/pull/1399))
 
 ## [4.13.0] - 2026-07-01
 ### Changed

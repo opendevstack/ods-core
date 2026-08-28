@@ -190,6 +190,8 @@ externalservices:
         bypass:
           audience: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_AUDIENCE:}
           scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_BYPASS_SCOPE:}
+        tenant-id: ${AZURE_{{ $name | upper | replace "-" "_" }}_TENANT_ID:}
+        client-credentials-scope: ${MARKETPLACE_{{ $name | upper | replace "-" "_" }}_CLIENT_CREDENTIALS_SCOPE:}
 {{- end }}
 {{- else }}
     instances: {}
