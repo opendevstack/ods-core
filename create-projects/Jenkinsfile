@@ -7,6 +7,8 @@ def projectId = env.PROJECT_ID
 def projectAdmins = env.PROJECT_ADMIN ?: ''
 def projectGroups = env.PROJECT_GROUPS ?: ''
 def pipelineTriggerSecret = env.PIPELINE_TRIGGER_SECRET
+def webhookHmacKey = env.WEBHOOK_HMAC_KEY
+def webhookAllowedIpRanges = env.WEBHOOK_ALLOWED_IP_RANGES
 def cdUserIdB64 = env.CD_USER_ID_B64
 def cdUserType = env.CD_USER_TYPE
 if (!(projectId ==~ /^[A-Za-z\d]+$/)) {
@@ -102,6 +104,8 @@ podTemplate(
             --ods-image-tag=${odsImageTag} \
             --ods-bitbucket-project ${odsBitbucketProject} \
             --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
+            --webhook-hmac-key-b64=${webhookHmacKey} \
+            --webhook-allowed-ip-ranges=${webhookAllowedIpRanges} \
             --cd-user-type=${cdUserType} \
             --cd-user-id-b64=${cdUserIdB64}""",
           label: 'Setup Jenkins in CD project'
@@ -178,7 +182,7 @@ podTemplate(
             env.POST_SCRIPTS_ENABLED = 'false'
             return
         }
-        
+
         echo("Scripts repository: ${scriptsRepoUrl}")
         echo("Scripts branch: ${scriptsBranch}")
         echo("Scripts order: ${scriptsOrder}")
@@ -251,6 +255,7 @@ podTemplate(
             "BITBUCKET_URL=${bitbucketUrl}",
             "DOCKER_REGISTRY=${dockerRegistry}",
             "CD_USERNAME=${username}",
+            "CD_PASSWORD=${password}",
             "CD_USER_CREDENTIALS_ID=${credentialsId}"
           ]) {
               echo("Environment variables for scripts:")

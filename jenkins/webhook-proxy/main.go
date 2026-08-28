@@ -2,13 +2,16 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/subtle"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"log"
 	"math/rand"
@@ -33,9 +36,6 @@ var (
 	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
 	// and hidden-file tricks (".").
 	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
-	// safeTriggerSecretRegex matches a UUID as produced by Java's
-	// UUID.randomUUID().toString(): 8-4-4-4-12 lowercase hex digits.
-	safeTriggerSecretRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 )
 
 const (
@@ -46,6 +46,7 @@ const (
 	pipelineConfigFilename         = "pipeline.json.tmpl"
 	repoBaseEnvVar                 = "REPO_BASE"
 	triggerSecretEnvVar            = "TRIGGER_SECRET"
+	webhookHMACSecretEnvVar        = "WEBHOOK_HMAC_SECRET"
 	jenkinsfilePathDefault         = "Jenkinsfile"
 	protectedBranchesEnvVar        = "PROTECTED_BRANCHES"
 	protectedBranchesDefault       = "master,develop,production,staging,release/"
@@ -62,6 +63,7 @@ const (
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
+	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
@@ -143,6 +145,7 @@ type Server struct {
 	Client                  Client
 	Namespace               string
 	Project                 string
+	WebhookHMACSecret       string
 	TriggerSecret           string
 	ProtectedBranches       []string
 	AcceptedEvents          []string
@@ -194,8 +197,13 @@ func main() {
 	}
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
-	if !safeTriggerSecretRegex.MatchString(triggerSecret) {
-		log.Fatalln("Trigger secret must be a valid UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).")
+	if len(triggerSecret) == 0 {
+		log.Fatalln(triggerSecretEnvVar, "must be set")
+	}
+
+	webhookHMACSecret := os.Getenv(webhookHMACSecretEnvVar)
+	if len(webhookHMACSecret) == 0 {
+		log.Fatalln(webhookHMACSecretEnvVar, "must be set")
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
@@ -295,6 +303,7 @@ func main() {
 		Client:                  client,
 		Namespace:               namespace,
 		Project:                 project,
+		WebhookHMACSecret:       webhookHMACSecret,
 		TriggerSecret:           triggerSecret,
 		ProtectedBranches:       protectedBranches,
 		AcceptedEvents:          acceptedEvents,
@@ -373,13 +382,21 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			return
 		}
 
-		queryValues := r.URL.Query()
-		triggerSecretParam := queryValues.Get("trigger_secret")
-		if subtle.ConstantTimeCompare([]byte(triggerSecretParam), []byte(s.TriggerSecret)) != 1 {
-			log.Println(requestID, "trigger_secret param not given / not matching")
+		body, readErr := io.ReadAll(r.Body)
+		if readErr != nil {
+			log.Println(requestID, "Cannot read request body:", readErr)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		signatureErr := verifyBitbucketPayloadSignature(s.WebhookHMACSecret, body, r.Header.Get(bitbucketSignatureHeader))
+		if signatureErr != nil {
+			log.Println(requestID, "Bitbucket payload signature rejected:", signatureErr)
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
 		}
+
+		queryValues := r.URL.Query()
 
 		jenkinsfilePath := jenkinsfilePathDefault
 		jenkinsfilePathParam := queryValues.Get("jenkinsfile_path")
@@ -399,7 +416,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
 			req := &requestBuild{}
-			err := json.NewDecoder(r.Body).Decode(req)
+			err := json.Unmarshal(body, req)
 			if err != nil {
 				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
 				log.Println(requestID, msg)
@@ -431,9 +448,8 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			}
 
 		} else if r.URL.Path == "/" {
-
 			req := &requestBitbucket{}
-			err := json.NewDecoder(r.Body).Decode(req)
+			err := json.Unmarshal(body, req)
 			if err != nil {
 				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
 				log.Println(requestID, msg)
@@ -1119,6 +1135,50 @@ func makePipelineName(project string, component string, branch string) string {
 		pipeline = fmt.Sprintf("%s-%s", shortenedPipeline, s[0:7])
 	}
 	return pipeline
+}
+
+func verifyBitbucketPayloadSignature(secret string, payload []byte, signatureHeader string) error {
+	if signatureHeader == "" {
+		return errors.New("missing signature header")
+	}
+
+	parts := strings.SplitN(signatureHeader, "=", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return errors.New("invalid signature header format")
+	}
+
+	algorithm := strings.ToLower(parts[0])
+	expectedDigest, err := computeHMACDigest(algorithm, secret, payload)
+	if err != nil {
+		return err
+	}
+
+	providedDigest := strings.ToLower(parts[1])
+	if subtle.ConstantTimeCompare([]byte(providedDigest), []byte(expectedDigest)) != 1 {
+		return errors.New("signature mismatch")
+	}
+
+	return nil
+}
+
+func computeHMACDigest(algorithm string, secret string, payload []byte) (string, error) {
+	var mac hash.Hash
+
+	switch algorithm {
+	case "sha256":
+		mac = hmac.New(sha256.New, []byte(secret))
+	case "sha1":
+		mac = hmac.New(sha1.New, []byte(secret))
+	default:
+		return "", fmt.Errorf("unsupported signature algorithm: %s", algorithm)
+	}
+
+	_, err := mac.Write(payload)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", mac.Sum(nil)), nil
 }
 
 func isProtectedBranch(protectedBranches []string, branch string) bool {
