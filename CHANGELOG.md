@@ -6,6 +6,7 @@
 - Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
 
 ### Changed
+- Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))
 
 ### Fixed
 - Fixes VIT0089540 ([#1395](https://github.com/opendevstack/ods-core/pull/1395))
