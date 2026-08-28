@@ -106,7 +106,7 @@ tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELI
     --ods-image-tag=3.x \
     --ods-bitbucket-project=opendevstack \
     --pipeline-trigger-secret-b64=$(echo -n "s3cr3t" | base64) \
-    --webhook-hmac-secret=webhook-secret \
+    --webhook-hmac-secret-b64=$(echo -n "webhook-secret" | base64) \
     --cd-user-type=general \
     --cd-user-id-b64=$(echo -n "cd_user" | base64) \
 
@@ -126,7 +126,7 @@ tailor mock --receive='--non-interactive apply --namespace=foo-cd --param=PIPELI
     --ods-image-tag=3.x \
     --ods-bitbucket-project=opendevstack \
     --pipeline-trigger-secret-b64=$(echo -n "s3cr3t" | base64) \
-    --webhook-hmac-secret=webhook-secret \
+    --webhook-hmac-secret-b64=$(echo -n "webhook-secret" | base64) \
     --cd-user-type=specific \
     --cd-user-id-b64=$(echo -n "foo" | base64) \
 
