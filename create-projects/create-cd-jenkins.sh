@@ -18,6 +18,8 @@ PROJECT_ID=""
 CD_USER_TYPE=""
 CD_USER_ID_B64=""
 PIPELINE_TRIGGER_SECRET_B64=""
+WEBHOOK_HMAC_KEY_B64=""
+WEBHOOK_ALLOWED_IP_RANGES=""
 TAILOR_VERBOSE=""
 TAILOR_NON_INTERACTIVE=""
 
@@ -31,6 +33,8 @@ function usage {
   printf "\t--ods-image-tag\t\t\tThe image tag to use. Default: %s\n" "${ODS_IMAGE_TAG}"
   printf "\t--ods-bitbucket-project\t\t\tThe Bitbucket project to use. Default: %s\n" "${ODS_BITBUCKET_PROJECT}"
   printf "\t--pipeline-trigger-secret-b64\tTrigger secret for pipelines (base64 encoded)\n"
+  printf "\t--webhook-hmac-key-b64\tHMAC key for the webhook proxy (base64 encoded)\n"
+  printf "\t--webhook-allowed-ip-ranges\tAllowed IP ranges for the webhook proxy\n"
   printf "\t--cd-user-type\t\t\tWhether CD user is general or project specific\n"
   printf "\t--cd-user-id-b64\t\tName of CD user (base64 encoded)\n"
 }
@@ -60,6 +64,12 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   --pipeline-trigger-secret-b64=*) PIPELINE_TRIGGER_SECRET_B64="${1#*=}";;
   --pipeline-trigger-secret-b64)   PIPELINE_TRIGGER_SECRET_B64="$2"; shift;;
 
+  --webhook-hmac-key-b64=*) WEBHOOK_HMAC_KEY_B64="${1#*=}";;
+  --webhook-hmac-key-b64)   WEBHOOK_HMAC_KEY_B64="$2"; shift;;
+
+  --webhook-allowed-ip-ranges=*) WEBHOOK_ALLOWED_IP_RANGES="${1#*=}";;
+  --webhook-allowed-ip-ranges)   WEBHOOK_ALLOWED_IP_RANGES="$2"; shift;;
+
   --cd-user-type=*) CD_USER_TYPE="${1#*=}";;
   --cd-user-type)   CD_USER_TYPE="$2"; shift;;
 
@@ -78,6 +88,16 @@ fi
 
 if [ -z "${PIPELINE_TRIGGER_SECRET_B64}" ]; then
   echo "--pipeline-trigger-secret-b64 is missing, but required"; usage
+  exit 1
+fi
+
+if [ -z "${WEBHOOK_HMAC_KEY_B64}" ]; then
+  echo "--webhook-hmac-key-b64 is missing, but required"; usage
+  exit 1
+fi
+
+if [ -z "${WEBHOOK_ALLOWED_IP_RANGES}" ]; then
+  echo "--webhook-allowed-ip-ranges is missing, but required"; usage
   exit 1
 fi
 
@@ -111,6 +131,8 @@ cd "${ODS_CORE_DIR}/jenkins/ocp-config/deploy"
 ${TAILOR} ${TAILOR_VERBOSE} ${TAILOR_NON_INTERACTIVE} apply \
   "--namespace=${PROJECT_ID}-cd" \
   "--param=PIPELINE_TRIGGER_SECRET_B64=${PIPELINE_TRIGGER_SECRET_B64}" \
+  "--param=WEBHOOK_HMAC_KEY_B64=${WEBHOOK_HMAC_KEY_B64}" \
+  "--param=WEBHOOK_ALLOWED_IP_RANGES=${WEBHOOK_ALLOWED_IP_RANGES}" \
   "--param=PROJECT=${PROJECT_ID}" \
   "--param=CD_USER_ID_B64=${CD_USER_ID_B64}" \
   "--param=ODS_NAMESPACE=${ODS_NAMESPACE}" \

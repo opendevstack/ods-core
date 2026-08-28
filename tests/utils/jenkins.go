@@ -2,7 +2,10 @@ package utils
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -45,16 +48,23 @@ func RunJenkinsPipeline(jenkinsFile string, req RequestBuild, pipelineComponentP
 	fmt.Printf("Starting pipeline %s\n", pipelineComponentPart)
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	url := fmt.Sprintf("https://webhook-proxy-%s%s/build?trigger_secret=%s&jenkinsfile_path=%s&component=%s",
+	url := fmt.Sprintf("https://webhook-proxy-%s%s/build?jenkinsfile_path=%s&component=%s",
 		PROJECT_NAME_CD,
 		config["OPENSHIFT_APPS_BASEDOMAIN"],
-		config["PIPELINE_TRIGGER_SECRET"],
 		jenkinsFile,
 		pipelineComponentPart)
-	response, err := http.Post(
-		url,
-		"application/json",
-		bytes.NewBuffer(body))
+
+	mac := hmac.New(sha256.New, []byte(config["WEBHOOK_HMAC_SECRET"]))
+	mac.Write(body)
+	signature := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+
+	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return "", err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("X-Hub-Signature", signature)
+	response, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
 		return "", err
 	}
