@@ -4,6 +4,7 @@ set -euo pipefail
 
 CONFIGMAP_NAME="application.properties"
 SECRET_NAME="ods-provisioning-app"
+DEPLOYMENT_CONFIG="ods-provisioning-app"
 
 usage() {
     echo "Usage: $0 -n <namespace>"
@@ -118,6 +119,46 @@ if [[ "${MODIFIED}" == "true" ]]; then
     echo "ConfigMap updated"
 else
     echo "No changes required"
+fi
+
+echo "Ensuring DeploymentConfig ${DEPLOYMENT_CONFIG} exposes secret values as environment variables..."
+
+if oc get dc "${DEPLOYMENT_CONFIG}" -n "${NAMESPACE}" >/dev/null 2>&1; then
+
+    if oc get dc "${DEPLOYMENT_CONFIG}" \
+        -n "${NAMESPACE}" \
+        -o jsonpath='{.spec.template.spec.containers[0].envFrom[*].secretRef.name}' \
+        | grep -qw "${SECRET_NAME}"; then
+
+        echo "Secret ${SECRET_NAME} already referenced in DeploymentConfig"
+
+    else
+
+        oc patch dc "${DEPLOYMENT_CONFIG}" \
+          -n "${NAMESPACE}" \
+          --type=json \
+          -p="$(cat <<EOF
+[
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/envFrom",
+    "value": [
+      {
+        "secretRef": {
+          "name": "${SECRET_NAME}"
+        }
+      }
+    ]
+  }
+]
+EOF
+)"
+
+        echo "DeploymentConfig updated"
+    fi
+
+else
+    echo "DeploymentConfig ${DEPLOYMENT_CONFIG} not found"
 fi
 
 echo "Done"
