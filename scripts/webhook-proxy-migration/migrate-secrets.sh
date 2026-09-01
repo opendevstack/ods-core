@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-CONFIGMAP_NAME="ods-provisioning-app"
+CONFIGMAP_NAME="application.properties"
 SECRET_NAME="ods-provisioning-app"
 
 usage() {
@@ -55,7 +55,7 @@ echo "Reading application.properties from ConfigMap ${CONFIGMAP_NAME}..."
 
 oc get configmap "${CONFIGMAP_NAME}" \
   -n "${NAMESPACE}" \
-  -o jsonpath='{.data.application\.properties}' > "${TMP_FILE}"
+  -o jsonpath='{.data.properties}' > "${TMP_FILE}"
 
 # Create secret if it does not exist
 if ! oc get secret "${SECRET_NAME}" -n "${NAMESPACE}" >/dev/null 2>&1; then
@@ -111,7 +111,7 @@ if [[ "${MODIFIED}" == "true" ]]; then
     echo "Updating ConfigMap ${CONFIGMAP_NAME}..."
 
     oc create configmap "${CONFIGMAP_NAME}" \
-      --from-file=application.properties="${TMP_FILE}" \
+      --from-file=properties="${TMP_FILE}" \
       -n "${NAMESPACE}" \
       --dry-run=client -o yaml | oc apply -f -
 
