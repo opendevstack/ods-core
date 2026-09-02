@@ -140,14 +140,12 @@ podTemplate(
                             pushd ods-configuration/
                             user_id=$(echo -n "$USER" | base64)
                             user_pwd=$(echo -n "$PASSWD" | base64)
-                            trigger_secret_base64=$(oc get secret webhook-proxy -o json | jq -r '.data."trigger-secret"')
-                            trigger_secret=$(echo $(oc get secret webhook-proxy -o json | jq -r '.data."trigger-secret"') | base64 --decode)
-                            sed -i~ "/^CD_USER_ID=/s/=.*/=$USER/" ods-core.env
-                            sed -i~ "/^CD_USER_ID_B64=/s/=.*/=$user_id/" ods-core.env
-                            sed -i~ "/^CD_USER_PWD_B64=/s/=.*/=$user_pwd/" ods-core.env
-                            sed -i~ "/^PIPELINE_TRIGGER_SECRET_B64=/s/=.*/=$trigger_secret_base64/" ods-core.env
-                            sed -i~ "/^PIPELINE_TRIGGER_SECRET=/s/=.*/=$trigger_secret/" ods-core.env
-                            sed -i~ "/^ODS_BITBUCKET_PROJECT=/s/=.*/=$project/" ods-core.env
+                            webhook_hmac_secret=$(oc get secret webhook-proxy -o json | jq -r '.data."webhook-hmac-secret"' | base64 --decode)
+                            sed -i~ "/^CD_USER_ID=/s#=.*#=$USER#" ods-core.env
+                            sed -i~ "/^CD_USER_ID_B64=/s#=.*#=$user_id#" ods-core.env
+                            sed -i~ "/^CD_USER_PWD_B64=/s#=.*#=$user_pwd#" ods-core.env
+                            sed -i~ "/^WEBHOOK_HMAC_SECRET=/s#=.*#=$webhook_hmac_secret#" ods-core.env
+                            sed -i~ "/^ODS_BITBUCKET_PROJECT=/s#=.*#=$project#" ods-core.env
                             popd
                         ''')
                 } 
