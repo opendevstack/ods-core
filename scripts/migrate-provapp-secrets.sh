@@ -41,6 +41,7 @@ PROPERTIES=(
   "confluence.admin_password"
   "bitbucket.admin_user"
   "bitbucket.admin_password"
+  "spring.mail.username"
   "spring.mail.password"
   "jasypt.encryptor.password"
 )
