@@ -95,10 +95,15 @@ for PROPERTY in "${PROPERTIES[@]}"; do
     else
         echo "Adding ${ENV_VAR} to secret"
 
+        PATCH=$(jq -n \
+            --arg key "$ENV_VAR" \
+            --arg value "$VALUE" \
+            '{stringData:{($key):$value}}')
+
         oc patch secret "${SECRET_NAME}" \
-          -n "${NAMESPACE}" \
-          --type merge \
-          -p "$(printf '{"stringData":{"%s":"%s"}}' "${ENV_VAR}" "${VALUE}")"
+            -n "${NAMESPACE}" \
+            --type merge \
+            -p "$PATCH"
     fi
 
     # Remove property from application.properties
