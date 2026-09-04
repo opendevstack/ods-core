@@ -8,4 +8,4 @@ preserve pvc:/metadata/annotations/volume.beta.kubernetes.io/storage-class
 preserve-immutable-fields true
 ignore-unknown-parameters true
 
-cm,dc,pvc,route,secret,svc,is
+pvc,is,cm,secret,dc,svc,route
