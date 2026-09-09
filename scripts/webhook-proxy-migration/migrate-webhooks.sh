@@ -86,11 +86,24 @@ run_jira_migration() {
 
 failed_projects=()
 successful_projects=()
+skipped_projects=()
 
 process_project() {
   local project="$1"
 
   log "Processing project: ${project}"
+
+  # Skip projects that do not have a webhook-proxy deployment config
+  if ! "$OC_BIN" -n "${project}-cd" get dc webhook-proxy >/dev/null 2>&1; then
+    log "Skipping project ${project}: deployment config 'webhook-proxy' not found"
+    return 2
+  fi
+
+  # Skip projects that do not have a webhook-proxy deployment config
+  if "$OC_BIN" -n "${project}-cd" get dc jira >/dev/null 2>&1; then
+    log "Skipping project ${project}: it has its own Jira instance"
+    return 2
+  fi
 
   hmac_secret="$(openssl rand -base64 32)"
   log "Generated HMAC secret for project ${project}"
@@ -137,8 +150,6 @@ process_project() {
          -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}" > /dev/null
 
     log "HMAC key for project ${project} has been successfully updated"
-
-    oc -n "${project}-cd" rollout latest dc/ods-provisioning-app || true
   else
     log "DRY-RUN Would update HMAC key for project ${project}"
     log "DRY-RUN Would restart the Provisioning App"
@@ -281,8 +292,15 @@ for project in "${PROJECTS[@]}"; do
     successful_projects+=("$project")
     log "Project ${project} completed successfully"
   else
-    log "ERROR: Project ${project} failed"
-    failed_projects+=("$project")
+    rc=$?
+
+    if [[ $rc -eq 2 ]]; then
+      skipped_projects+=("$project")
+      log "Project ${project} skipped"
+    else
+      log "ERROR: Project ${project} failed"
+      failed_projects+=("$project")
+    fi
   fi
 done
 
@@ -290,6 +308,9 @@ log "All projects processed"
 
 log "Successful projects: ${#successful_projects[@]}"
 printf '%s\n' "${successful_projects[@]}"
+
+log "Skipped projects: ${#skipped_projects[@]}"
+printf '%s\n' "${skipped_projects[@]}"
 
 if [[ ${#failed_projects[@]} -gt 0 ]]; then
   log "Failed projects: ${#failed_projects[@]}"

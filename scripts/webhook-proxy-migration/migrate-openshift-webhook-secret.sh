@@ -123,7 +123,8 @@ log "Processing namespace: ${NAMESPACE}"
 
 ROLLOUT_PAUSED_BY_SCRIPT=false
 
-resume_rollouts() {
+rollout() {
+  "$OC_BIN" -n "$NAMESPACE" rollout latest dc/webhook-proxy >/dev/null 2>&1 || true
   if [[ "$ROLLOUT_PAUSED_BY_SCRIPT" == true ]]; then
     log "Restarting webhook-proxy in ${NAMESPACE}..."
     "$OC_BIN" -n "$NAMESPACE" rollout resume dc/webhook-proxy >/dev/null 2>&1 || true
@@ -131,7 +132,7 @@ resume_rollouts() {
   fi
 }
 
-trap resume_rollouts EXIT
+trap rollout EXIT
 
 SECRET_EXISTS=true
 
@@ -169,7 +170,7 @@ if [[ "$APPLY" == true ]]; then
 
   log "Added environment variable WEBHOOK_HMAC_SECRET to dc/webhook-proxy in ${NAMESPACE}"
 
-  resume_rollouts
+  rollout
 
 else
 
