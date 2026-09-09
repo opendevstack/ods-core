@@ -47,7 +47,7 @@ Required:
 
 Behavior:
   - Target namespace is always: <project-id>-cd
-  - If secret/webhook-proxy does not exist, the namespace is skipped.
+  - If secret/webhook-proxy does not exist, it will be created.
 
 Examples:
   scripts/migrate-openshift-webhook-secret.sh --project foo --hmac-secret "$(openssl rand -hex 32)" --allowed-ip-ranges 10.0.0.0/8
@@ -121,34 +121,68 @@ NAMESPACE="${PROJECT}-cd"
 
 log "Processing namespace: ${NAMESPACE}"
 
+ROLLOUT_PAUSED_BY_SCRIPT=false
+
+resume_rollouts() {
+  if [[ "$ROLLOUT_PAUSED_BY_SCRIPT" == true ]]; then
+    log "Restarting webhook-proxy in ${NAMESPACE}..."
+    "$OC_BIN" -n "$NAMESPACE" rollout resume dc/webhook-proxy >/dev/null 2>&1 || true
+    ROLLOUT_PAUSED_BY_SCRIPT=false
+  fi
+}
+
+trap resume_rollouts EXIT
+
+SECRET_EXISTS=true
+
 if ! "$OC_BIN" -n "$NAMESPACE" get secret webhook-proxy >/dev/null 2>&1; then
-  log "Skipping ${NAMESPACE}: secret/webhook-proxy not found"
-  log "Completed"
-  exit 0
+  SECRET_EXISTS=false
+  log "secret/webhook-proxy does not exist in ${NAMESPACE}"
 fi
 
 if [[ "$APPLY" == true ]]; then
-  patch_payload="$(jq -cn --arg value "$HMAC_SECRET_B64" '{data:{"webhook-hmac-secret":$value}}')"
-  "$OC_BIN" -n "$NAMESPACE" patch secret webhook-proxy --type merge -p "$patch_payload" >/dev/null
-  log "Patched secret/webhook-proxy in ${NAMESPACE}"
 
-  "$OC_BIN" -n "$NAMESPACE" rollout pause dc/webhook-proxy
+  if [[ "$SECRET_EXISTS" == true ]]; then
+    patch_payload="$(jq -cn --arg value "$HMAC_SECRET_B64" '{data:{"webhook-hmac-secret":$value}}')"
+    "$OC_BIN" -n "$NAMESPACE" patch secret webhook-proxy --type merge -p "$patch_payload" >/dev/null
+    log "Patched secret/webhook-proxy in ${NAMESPACE}"
+  else
+    "$OC_BIN" -n "$NAMESPACE" create secret generic webhook-proxy \
+      --from-literal=webhook-hmac-secret="$HMAC_SECRET_RAW" \
+      >/dev/null
+
+    log "Created secret/webhook-proxy in ${NAMESPACE}"
+  fi
+
+  if [[ "$("$OC_BIN" -n "$NAMESPACE" get dc webhook-proxy -o jsonpath='{.spec.paused}' 2>/dev/null)" != "true" ]]; then
+    "$OC_BIN" -n "$NAMESPACE" rollout pause dc/webhook-proxy && ROLLOUT_PAUSED_BY_SCRIPT=true
+  fi
 
   "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy ALLOWED_WEBHOOK_IP_RANGES="${ALLOWED_IP_RANGES}"
   log "Added environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
 
   "$OC_BIN" -n "$NAMESPACE" set env dc/webhook-proxy WEBHOOK_HMAC_SECRET- || true
+
   patch_payload='[{ "op": "add", "path": "/spec/template/spec/containers/0/env/-", "value": { "name": "WEBHOOK_HMAC_SECRET", "valueFrom": { "secretKeyRef": { "name": "webhook-proxy", "key": "webhook-hmac-secret" }}}}]'
+
   "$OC_BIN" -n "$NAMESPACE" patch dc/webhook-proxy --type json -p "$patch_payload"
+
   log "Added environment variable WEBHOOK_HMAC_SECRET to dc/webhook-proxy in ${NAMESPACE}"
 
-  log "Restarting webhook-proxy in ${NAMESPACE}..."
-  "$OC_BIN" -n "$NAMESPACE" rollout resume dc/webhook-proxy
+  resume_rollouts
+
 else
-  log "DRY-RUN would patch secret in ${NAMESPACE}"
+
+  if [[ "$SECRET_EXISTS" == true ]]; then
+    log "DRY-RUN would patch secret/webhook-proxy in ${NAMESPACE}"
+  else
+    log "DRY-RUN would create secret/webhook-proxy in ${NAMESPACE}"
+  fi
+
   log "DRY-RUN would add the environment variable ALLOWED_WEBHOOK_IP_RANGES=${ALLOWED_IP_RANGES} to deployment config webhook-proxy in ${NAMESPACE}"
   log "DRY-RUN would add the environment variable WEBHOOK_HMAC_SECRET to deployment config webhook-proxy in ${NAMESPACE}"
-  log "DRY-RUN Would restart the Webhook Proxy"
+  log "DRY-RUN would restart the Webhook Proxy"
+
 fi
 
 log "Completed"
