@@ -36,6 +36,8 @@ var (
 	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
 	// and hidden-file tricks (".").
 	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
+	// safeEnvNameRegex follows the POSIX environment variable name format.
+	safeEnvNameRegex = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 )
 
 const (
@@ -63,10 +65,20 @@ const (
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
+	logWebhookPayloadEnvVar        = "LOG_WEBHOOK_PAYLOAD"
 	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	maxEnvPairs                    = 32
+	maxEnvValueLength              = 4096
 )
+
+var protectedEnvNames = map[string]struct{}{
+	"BUILD_ID": {}, "BUILD_NUMBER": {}, "DOCKER_REGISTRY": {}, "HOME": {},
+	"JENKINS_HOME": {}, "JENKINS_URL": {}, "JOB_NAME": {}, "KUBECONFIG": {},
+	"IMAGE_REGISTRY_ALLOWLIST": {}, "NODE_NAME": {}, "ODS_IMAGE_TAG": {}, "ODS_NAMESPACE": {}, "PATH": {},
+	"PIPELINE_TRIGGER_SECRET": {}, "POD_LABEL": {}, "WORKSPACE": {},
+}
 
 // EnvPair represents an environment variable
 type EnvPair struct {
@@ -388,6 +400,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
+		logWebhookPayload(requestID, body)
 
 		signatureErr := verifyBitbucketPayloadSignature(s.WebhookHMACSecret, body, r.Header.Get(bitbucketSignatureHeader))
 		if signatureErr != nil {
@@ -710,6 +723,18 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 	}
 }
 
+func logWebhookPayload(requestID string, body []byte) {
+	if !strings.EqualFold(os.Getenv(logWebhookPayloadEnvVar), "true") {
+		return
+	}
+	escapedBody, err := json.Marshal(string(body))
+	if err != nil {
+		log.Println(requestID, "Could not encode webhook payload for logging:", err)
+		return
+	}
+	log.Printf("%s incoming webhook payload: %s", requestID, escapedBody)
+}
+
 func (s *Server) readProjectParam(projectParam string, requestID string) (string, error) {
 	projectParam = strings.ToLower(projectParam)
 	if len(projectParam) > 0 {
@@ -981,6 +1006,34 @@ func (e *Event) IsValid() bool {
 	}
 	if !safeBranchRegex.MatchString(e.Branch) {
 		return false
+	}
+	if !isValidEnv(e.Env) {
+		return false
+	}
+	return true
+}
+
+func isValidEnv(env []EnvPair) bool {
+	if len(env) > maxEnvPairs {
+		return false
+	}
+	seen := make(map[string]struct{}, len(env))
+	for _, pair := range env {
+		if !safeEnvNameRegex.MatchString(pair.Name) {
+			return false
+		}
+		if _, protected := protectedEnvNames[pair.Name]; protected {
+			return false
+		}
+		if _, duplicate := seen[pair.Name]; duplicate {
+			return false
+		}
+		seen[pair.Name] = struct{}{}
+		if len(pair.Value) > maxEnvValueLength || strings.IndexFunc(pair.Value, func(r rune) bool {
+			return r < 0x20 || r == 0x7f
+		}) >= 0 {
+			return false
+		}
 	}
 	return true
 }
