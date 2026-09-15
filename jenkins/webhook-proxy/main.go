@@ -38,6 +38,14 @@ var (
 	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
 	// safeEnvNameRegex follows the POSIX environment variable name format.
 	safeEnvNameRegex = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+	// jiraIssueKeyRegex matches a Jira issue key, e.g. "PROJ-116".
+	jiraIssueKeyRegex = regexp.MustCompile(`^[A-Z][A-Z0-9]*-[0-9]+$`)
+	// projectAdminRegex matches a plain username (e.g. "usuario-admin") or an
+	// email address (e.g. "jane.doe@example.com").
+	projectAdminRegex = regexp.MustCompile(`^[A-Za-z0-9._%+-]+(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})?$`)
+	// projectGroupsRegex matches a comma-separated "ROLEGROUP=group-name" list,
+	// e.g. "ADMINGROUP=my-admins,USERGROUP=my-users".
+	projectGroupsRegex = regexp.MustCompile(`^[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+(,[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+)*$`)
 )
 
 const (
@@ -73,11 +81,44 @@ const (
 	maxEnvValueLength              = 4096
 )
 
-var protectedEnvNames = map[string]struct{}{
-	"BUILD_ID": {}, "BUILD_NUMBER": {}, "DOCKER_REGISTRY": {}, "HOME": {},
-	"JENKINS_HOME": {}, "JENKINS_URL": {}, "JOB_NAME": {}, "KUBECONFIG": {},
-	"IMAGE_REGISTRY_ALLOWLIST": {}, "NODE_NAME": {}, "ODS_IMAGE_TAG": {}, "ODS_NAMESPACE": {}, "PATH": {},
-	"PIPELINE_TRIGGER_SECRET": {}, "POD_LABEL": {}, "WORKSPACE": {},
+// envProfiles are the hardcoded, exhaustive sets of env var names each known
+// /build pipeline (release-manager, project-creation, ...) may set, together
+// with the format each value must satisfy.
+var envProfiles = []map[string][]FieldValidator{
+	{ // release-manager
+		"changeDescription":         nil,
+		"changeId":                  {matchesFormat(safeNameRegex)},
+		"configItem":                {matchesFormat(safeNameRegex)},
+		"environment":               {oneOf("DEV", "QA", "PROD")},
+		"releaseStatusJiraIssueKey": {matchesFormat(jiraIssueKeyRegex)},
+		"version":                   {matchesFormat(safeNameRegex)},
+	},
+	{ // project-creation
+		"CD_USER_ID_B64":            {isBase64},
+		"CD_USER_TYPE":              {oneOf("general", "specific")},
+		"GIT_SERVER_URL":            {isURL("http", "https")},
+		"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
+		"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
+		"ODS_IMAGE_TAG":             {matchesFormat(safeNameRegex)},
+		"ODS_NAMESPACE":             {matchesFormat(safeNameRegex)},
+		"PIPELINE_TRIGGER_SECRET":   {isBase64},
+		"PROJECT_ADMIN":             {matchesFormat(projectAdminRegex)},
+		"PROJECT_GROUPS":            {matchesFormat(projectGroupsRegex)},
+		"PROJECT_ID":                {matchesFormat(safeNameRegex)},
+		"WEBHOOK_ALLOWED_IP_RANGES": {isIPRangeList},
+		"WEBHOOK_HMAC_KEY":          {isBase64},
+	},
+	{ // component-provisioning (ods-quickstarters)
+		"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
+		"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
+		"GIT_URL_HTTP":          {isURL("http", "https")},
+		"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
+		"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
+		"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
+		"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+		"PROJECT_ID":            {matchesFormat(safeNameRegex)},
+		"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
+	},
 }
 
 // EnvPair represents an environment variable
@@ -1013,6 +1054,9 @@ func (e *Event) IsValid() bool {
 	return true
 }
 
+// isValidEnv rejects malformed env pairs and enforces that the full set of
+// pairs is contained in exactly one of the known envProfiles, with every
+// value passing that name's registered FieldValidators.
 func isValidEnv(env []EnvPair) bool {
 	if len(env) > maxEnvPairs {
 		return false
@@ -1020,9 +1064,6 @@ func isValidEnv(env []EnvPair) bool {
 	seen := make(map[string]struct{}, len(env))
 	for _, pair := range env {
 		if !safeEnvNameRegex.MatchString(pair.Name) {
-			return false
-		}
-		if _, protected := protectedEnvNames[pair.Name]; protected {
 			return false
 		}
 		if _, duplicate := seen[pair.Name]; duplicate {
@@ -1035,7 +1076,33 @@ func isValidEnv(env []EnvPair) bool {
 			return false
 		}
 	}
-	return true
+	return matchesKnownEnvProfile(env)
+}
+
+// matchesKnownEnvProfile reports whether env is fully covered by at least one
+// registered env profile, i.e. every pair's name is known to that profile and
+// its value passes all of that name's FieldValidators. An empty env trivially
+// matches.
+func matchesKnownEnvProfile(env []EnvPair) bool {
+	if len(env) == 0 {
+		return true
+	}
+profiles:
+	for _, profile := range envProfiles {
+		for _, pair := range env {
+			validators, known := profile[pair.Name]
+			if !known {
+				continue profiles
+			}
+			for _, validate := range validators {
+				if err := validate(pair.Value); err != nil {
+					continue profiles
+				}
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func (e *Event) String() string {

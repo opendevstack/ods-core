@@ -298,7 +298,7 @@ func TestHandleRootDoesNotRequireTriggerSecret(t *testing.T) {
 	tests := map[string]struct {
 		URL string
 	}{
-		"without trigger_secret param":   {ts.URL},
+		"without trigger_secret param":    {ts.URL},
 		"with empty trigger_secret param": {ts.URL + "?trigger_secret="},
 		"with wrong trigger_secret param": {ts.URL + "?trigger_secret=abc"},
 	}
@@ -849,7 +849,7 @@ func TestBuildEndpoint(t *testing.T) {
 		},
 		"existing pipeline with different jenkinsfile path": {
 			whpPath:                   "/build?jenkinsfile_path=bar/Jenkinsfile",
-			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload-no-env.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "testdata/fixtures/build-pipeline-jenkinsfilepath.json",
@@ -1115,6 +1115,113 @@ func TestIsValid(t *testing.T) {
 		"branch with null byte": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main\x00injected", Pipeline: "repo-main"},
 			want:  false,
+		},
+		"reserved environment variable": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "DOCKER_REGISTRY", Value: "attacker.example"}}},
+			want:  false,
+		},
+		"invalid environment variable name": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "BAD-NAME", Value: "value"}}},
+			want:  false,
+		},
+		"environment value with control character": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "value\nwith-newline"}}},
+			want:  false,
+		},
+		"environment name matching release-manager profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "version", Value: "1.0"}}},
+			want:  true,
+		},
+		"environment name matching component-provisioning profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
+			want:  true,
+		},
+		"environment name matching no profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "NOT_ALLOWED", Value: "value"}}},
+			want:  false,
+		},
+		"environment names mixing two profiles": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "PROJECT_ID", Value: "foo"}}},
+			want:  false,
+		},
+		"env value fails its field format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ID", Value: "not a valid project id!"}}},
+			want:  false,
+		},
+		"env value fails URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "not-a-url"}}},
+			want:  false,
+		},
+		"env value passes URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
+			want:  true,
+		},
+		"env value fails base64 format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "not-base64!"}}},
+			want:  false,
+		},
+		"env value fails IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "not-an-ip"}}},
+			want:  false,
+		},
+		"env value passes IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
+			want:  true,
+		},
+		"release-manager payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+				{Name: "environment", Value: "DEV"},
+				{Name: "changeDescription", Value: ""},
+				{Name: "releaseStatusJiraIssueKey", Value: "EXAMPLE-116"},
+				{Name: "changeId", Value: "CH00002"},
+				{Name: "version", Value: "WIP"},
+				{Name: "configItem", Value: "some-config-item"},
+			}},
+			want: true,
+		},
+		"project-creation payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+				{Name: "CD_USER_TYPE", Value: "general"},
+				{Name: "WEBHOOK_HMAC_KEY", Value: "c29tZS1oaWRkZW4tdmFsdWU="},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "PIPELINE_TRIGGER_SECRET", Value: "MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw"},
+				{Name: "PROJECT_ADMIN", Value: "example.admin@example.com"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"},
+				{Name: "CD_USER_ID_B64", Value: "ZXhhbXBsZS11c2VyQGV4YW1wbGUuY29t"},
+				{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=example-admins,USERGROUP=example-users,READONLYGROUP=example-readonly"},
+				{Name: "ODS_NAMESPACE", Value: "ods"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example-project"},
+				{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/24,192.168.1.0/24"},
+				{Name: "PROJECT_ID", Value: "example-id"},
+			}},
+			want: true,
+		},
+		"component-provisioning payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+				{Name: "ODS_NAMESPACE", Value: "example-cd"},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example"},
+				{Name: "AGENT_IMAGE_TAG", Value: "4.x"},
+				{Name: "SHARED_LIBRARY_REF", Value: "4.x"},
+				{Name: "PROJECT_ID", Value: "example"},
+				{Name: "COMPONENT_ID", Value: "python-flask-example"},
+				{Name: "GIT_URL_HTTP", Value: "https://bitbucket.example.com/scm/example/example-python-flask-example.git"},
+			}},
+			want: true,
+		},
+		"CD_USER_TYPE outside the known list": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
+			want:  false,
+		},
+		"PROJECT_GROUPS with malformed grammar": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_GROUPS", Value: "ADMINGROUP:my-admins"}}},
+			want:  false,
+		},
+		"PROJECT_ADMIN as plain username": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
+			want:  true,
 		},
 	}
 
