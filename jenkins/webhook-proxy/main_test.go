@@ -1245,9 +1245,7 @@ func TestIsValid(t *testing.T) {
 			want:  true,
 		},
 		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
-			// Observed attempt: redirect the pipeline to a different Bitbucket
-			// project by injecting "../" into ODS_BITBUCKET_PROJECT, which is
-			// later concatenated into a git URL/path by downstream tooling.
+			// Observed attempt: "../" path traversal in ODS_BITBUCKET_PROJECT.
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
 				{Name: "PROJECT_ID", Value: "test-project"},
 				{Name: "GIT_SERVER_URL", Value: "http://git.example.com"},

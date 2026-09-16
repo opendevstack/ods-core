@@ -40,21 +40,13 @@ var (
 	safeEnvNameRegex = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	// jiraIssueKeyRegex matches a Jira issue key, e.g. "PROJ-116".
 	jiraIssueKeyRegex = regexp.MustCompile(`^[A-Z][A-Z0-9]*-[0-9]+$`)
-	// projectAdminRegex matches a plain username (e.g. "usuario-admin") or an
-	// email address (e.g. "jane.doe@example.com").
+	// projectAdminRegex matches a username or email, e.g. "jane.doe@example.com".
 	projectAdminRegex = regexp.MustCompile(`^[A-Za-z0-9._%+-]+(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})?$`)
-	// projectGroupsRegex matches a comma-separated "ROLEGROUP=group-name" list,
-	// e.g. "ADMINGROUP=my-admins,USERGROUP=my-users".
+	// projectGroupsRegex matches "ROLEGROUP=group-name" pairs, e.g. "ADMINGROUP=my-admins,USERGROUP=my-users".
 	projectGroupsRegex = regexp.MustCompile(`^[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+(,[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+)*$`)
-	// safeURLRegex whitelists the characters allowed in a server/repository
-	// URL (scheme, optional userinfo, host, optional port, optional path).
-	// It excludes query strings, fragments, whitespace and shell metacharacters
-	// (e.g. $ ` ; | & ( ) < > ' "), so it doubles as an injection-prevention
-	// measure alongside isURL's scheme/host check.
+	// safeURLRegex whitelists a plain server/repository URL, excluding query, fragment and shell metacharacters.
 	safeURLRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*://([A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._/-]*)?$`)
-	// safeFreeTextRegex whitelists letters, digits, spaces and basic
-	// punctuation for free-text fields (e.g. a change description), excluding
-	// shell metacharacters ($ ` ( ) ; | & < > \ quotes).
+	// safeFreeTextRegex whitelists free text (e.g. a change description) without shell metacharacters.
 	safeFreeTextRegex = regexp.MustCompile(`^[\p{L}\p{N} .,:!?_/-]*$`)
 )
 
@@ -90,36 +82,27 @@ const (
 	maxEnvValueLength              = 4096
 )
 
-// envProfiles are the hardcoded, exhaustive sets of env var names each known
-// /build pipeline (release-manager, project-creation, ...) may set, together
-// with the format each value must satisfy and the jenkinsfile_path(s) that
-// pipeline is legitimately triggered with. A request is only accepted if its
-// env vars fully match one profile's vars AND the requested jenkinsfile_path
-// is one that profile allows — so e.g. component-provisioning parameters can
-// no longer be forwarded to create-projects/Jenkinsfile (or vice versa) just
-// by changing the jenkinsfile_path query param.
+// envProfile binds a pipeline's allowed env var names/validators to the
+// jenkinsfile_path(s) it may legitimately be triggered with, preventing one
+// pipeline's env vars from being forwarded to another's Jenkinsfile.
 type envProfile struct {
 	name               string
 	allowedJenkinsfile func(jenkinsfilePath string) bool
 	vars               map[string][]FieldValidator
 }
 
-// reservedJenkinsfilePaths are the fixed, well-known jenkinsfile_path values
-// used by the non-quickstarter ODS pipelines.
+// reservedJenkinsfilePaths are the fixed jenkinsfile_path values used by non-quickstarter ODS pipelines.
 var reservedJenkinsfilePaths = newStringSet(
 	jenkinsfilePathDefault,
 	"create-projects/Jenkinsfile",
 )
 
-// exactJenkinsfilePath builds an allowedJenkinsfile matcher for a single,
-// fixed jenkinsfile_path.
+// exactJenkinsfilePath builds an allowedJenkinsfile matcher for a single, fixed jenkinsfile_path.
 func exactJenkinsfilePath(path string) func(string) bool {
 	return func(p string) bool { return p == path }
 }
 
-// anyQuickstarterJenkinsfilePath matches any jenkinsfile_path that isn't one
-// of the reserved, non-quickstarter paths above — quickstarter Jenkinsfiles
-// live under many different, non-enumerable directory names.
+// anyQuickstarterJenkinsfilePath matches any non-reserved jenkinsfile_path (quickstarters live under many dirs).
 func anyQuickstarterJenkinsfilePath(p string) bool {
 	_, reserved := reservedJenkinsfilePaths[p]
 	return !reserved
@@ -1103,10 +1086,7 @@ func (e *Event) IsValid() bool {
 	return true
 }
 
-// isValidEnv rejects malformed env pairs and enforces that the full set of
-// pairs is contained in exactly one of the known envProfiles that also
-// allows jenkinsfilePath, with every value passing that name's registered
-// FieldValidators.
+// isValidEnv normalizes env pair names, rejects malformed/duplicate/oversized pairs, and delegates profile matching.
 func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 	if len(env) > maxEnvPairs {
 		return false
@@ -1133,10 +1113,7 @@ func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 	return matchesKnownEnvProfile(normalizedEnv, jenkinsfilePath)
 }
 
-// matchesKnownEnvProfile reports whether env is fully covered by at least one
-// registered env profile that also allows jenkinsfilePath, i.e. every pair's
-// name is known to that profile and its value passes all of that name's
-// FieldValidators. An empty env trivially matches.
+// matchesKnownEnvProfile reports whether env is fully covered by one profile allowing jenkinsfilePath.
 func matchesKnownEnvProfile(env []EnvPair, jenkinsfilePath string) bool {
 	if len(env) == 0 {
 		return true
