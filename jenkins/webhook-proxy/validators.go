@@ -56,10 +56,15 @@ func isIPRangeList(value string) error {
 	return nil
 }
 
-// isURL requires an absolute URL using one of the given schemes.
+// isURL requires an absolute URL using one of the given schemes, restricted
+// to safeURLRegex's whitelist so shell metacharacters and query/fragment
+// smuggling are rejected regardless of what net/url.Parse tolerates.
 func isURL(schemes ...string) FieldValidator {
 	allowedSchemes := newStringSet(schemes...)
 	return func(value string) error {
+		if !safeURLRegex.MatchString(value) {
+			return fmt.Errorf("does not match required format %s", safeURLRegex.String())
+		}
 		u, err := url.Parse(value)
 		if err != nil || u.Host == "" {
 			return errors.New("is not a valid URL")

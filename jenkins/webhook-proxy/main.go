@@ -46,6 +46,16 @@ var (
 	// projectGroupsRegex matches a comma-separated "ROLEGROUP=group-name" list,
 	// e.g. "ADMINGROUP=my-admins,USERGROUP=my-users".
 	projectGroupsRegex = regexp.MustCompile(`^[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+(,[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+)*$`)
+	// safeURLRegex whitelists the characters allowed in a server/repository
+	// URL (scheme, optional userinfo, host, optional port, optional path).
+	// It excludes query strings, fragments, whitespace and shell metacharacters
+	// (e.g. $ ` ; | & ( ) < > ' "), so it doubles as an injection-prevention
+	// measure alongside isURL's scheme/host check.
+	safeURLRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*://([A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._/-]*)?$`)
+	// safeFreeTextRegex whitelists letters, digits, spaces and basic
+	// punctuation for free-text fields (e.g. a change description), excluding
+	// shell metacharacters ($ ` ( ) ; | & < > \ quotes).
+	safeFreeTextRegex = regexp.MustCompile(`^[\p{L}\p{N} .,:!?_/-]*$`)
 )
 
 const (
@@ -120,7 +130,7 @@ var envProfiles = []envProfile{
 		name:               "release-manager",
 		allowedJenkinsfile: exactJenkinsfilePath(jenkinsfilePathDefault),
 		vars: map[string][]FieldValidator{
-			"CHANGEDESCRIPTION":         nil,
+			"CHANGEDESCRIPTION":         {matchesFormat(safeFreeTextRegex)},
 			"CHANGEID":                  {matchesFormat(safeNameRegex)},
 			"CONFIGITEM":                {matchesFormat(safeNameRegex)},
 			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},

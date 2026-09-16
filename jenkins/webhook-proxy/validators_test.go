@@ -107,11 +107,15 @@ func TestIsURL(t *testing.T) {
 		value string
 		want  bool
 	}{
-		"valid https URL":     {value: "https://bitbucket.example.com", want: true},
-		"valid http URL":      {value: "http://bitbucket.example.com", want: true},
-		"disallowed scheme":   {value: "ftp://bitbucket.example.com", want: false},
-		"missing scheme/host": {value: "not-a-url", want: false},
-		"empty string":        {value: "", want: false},
+		"valid https URL":              {value: "https://bitbucket.example.com", want: true},
+		"valid http URL":               {value: "http://bitbucket.example.com", want: true},
+		"disallowed scheme":            {value: "ftp://bitbucket.example.com", want: false},
+		"missing scheme/host":          {value: "not-a-url", want: false},
+		"empty string":                 {value: "", want: false},
+		"command substitution in path": {value: "http://bitbucket.example.com/$(id)", want: false},
+		"backticks in path":            {value: "http://bitbucket.example.com/`id`", want: false},
+		"semicolon in path":            {value: "http://bitbucket.example.com/;id", want: false},
+		"query string smuggling":       {value: "http://bitbucket.example.com/?x=$(id)", want: false},
 	}
 
 	for name, tc := range tests {
