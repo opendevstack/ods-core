@@ -163,7 +163,7 @@ list_repos() {
   local limit=100
   while true; do
     local response
-    response="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos?limit=${limit}&start=${start}")"
+    response="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos?limit=${limit}&start=${start}")" || exit 1
 
     jq -r '.values[].slug' <<<"$response"
 
@@ -244,7 +244,14 @@ log "Backup file: $BACKUP_FILE"
 processed_repos=0
 updated_hooks=0
 
-while IFS= read -r repo_slug; do
+if ! repos_text="$(list_repos)"; then
+    log "Failed to retrieve repository list"
+    exit 1
+fi
+
+mapfile -t repos <<< "$repos_text"
+
+for repo_slug in "${repos[@]}"; do
   repo_slug=${repo_slug%$'\r'}
   [[ -z "$repo_slug" ]] && continue
   processed_repos=$((processed_repos + 1))
@@ -361,7 +368,7 @@ while IFS= read -r repo_slug; do
       log "DRY-RUN would update webhook ${hook_id} in ${repo_slug}"
     fi
   done
-done < <(list_repos)
+done
 
 log "Processed repositories: ${processed_repos}"
 log "Updated webhooks: ${updated_hooks}"

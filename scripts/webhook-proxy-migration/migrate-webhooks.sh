@@ -105,20 +105,8 @@ process_project() {
     return 2
   fi
 
-  hmac_secret="$(openssl rand -base64 32)"
+  hmac_secret="$(openssl rand -base64 32 | tr '/' '_')"
   log "Generated HMAC secret for project ${project}"
-
-  proxy_cmd=(
-    "$PROXY_SCRIPT"
-    --oc-bin "$OC_BIN"
-    --project "$project"
-    --hmac-secret "$hmac_secret"
-    --allowed-ip-ranges "$ALLOWED_IP_RANGES"
-  )
-  [[ "$APPLY" == true ]] && proxy_cmd+=(--apply)
-
-  log "Running proxy secret migration for ${project}"
-  "${proxy_cmd[@]}"
 
   bitbucket_cmd=(
     "$BITBUCKET_SCRIPT"
@@ -137,7 +125,19 @@ process_project() {
   [[ "$APPLY" == true ]] && bitbucket_cmd+=(--apply)
 
   log "Running Bitbucket webhook migration for ${project}"
-  "${bitbucket_cmd[@]}"
+  "${bitbucket_cmd[@]}" || exit 1
+
+  proxy_cmd=(
+    "$PROXY_SCRIPT"
+    --oc-bin "$OC_BIN"
+    --project "$project"
+    --hmac-secret "$hmac_secret"
+    --allowed-ip-ranges "$ALLOWED_IP_RANGES"
+  )
+  [[ "$APPLY" == true ]] && proxy_cmd+=(--apply)
+
+  log "Running proxy secret migration for ${project}"
+  "${proxy_cmd[@]}"
 
   run_jira_migration "$project" "$hmac_secret"
 
