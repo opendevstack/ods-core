@@ -1139,6 +1139,24 @@ func TestIsValid(t *testing.T) {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
 			want:  true,
 		},
+		"component-provisioning accepts mixed-case names and additional fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_type", Value: "docker-plain"},
+				{Name: "component_id", Value: "my-component"},
+				{Name: "git_url_ssh", Value: "ssh://git@bitbucket.example.com:7999/example/example.git"},
+				{Name: "git_url_http", Value: "https://bitbucket.example.com/scm/example/example.git"},
+				{Name: "GROUP_ID", Value: "com.example"},
+				{Name: "PACKAGE_NAME", Value: "com.example.my_component"},
+			}},
+			want: true,
+		},
+		"component-provisioning rejects duplicate names after normalization": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_id", Value: "my-component"},
+				{Name: "COMPONENT_ID", Value: "other-component"},
+			}},
+			want: false,
+		},
 		"environment name matching no profile": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "NOT_ALLOWED", Value: "value"}}},
 			want:  false,

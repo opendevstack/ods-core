@@ -73,7 +73,6 @@ const (
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
-	logWebhookPayloadEnvVar        = "LOG_WEBHOOK_PAYLOAD"
 	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -121,12 +120,12 @@ var envProfiles = []envProfile{
 		name:               "release-manager",
 		allowedJenkinsfile: exactJenkinsfilePath(jenkinsfilePathDefault),
 		vars: map[string][]FieldValidator{
-			"changeDescription":         nil,
-			"changeId":                  {matchesFormat(safeNameRegex)},
-			"configItem":                {matchesFormat(safeNameRegex)},
-			"environment":               {oneOf("DEV", "QA", "PROD")},
-			"releaseStatusJiraIssueKey": {matchesFormat(jiraIssueKeyRegex)},
-			"version":                   {matchesFormat(safeNameRegex)},
+			"CHANGEDESCRIPTION":         nil,
+			"CHANGEID":                  {matchesFormat(safeNameRegex)},
+			"CONFIGITEM":                {matchesFormat(safeNameRegex)},
+			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},
+			"RELEASESTATUSJIRAISSUEKEY": {matchesFormat(jiraIssueKeyRegex)},
+			"VERSION":                   {matchesFormat(safeNameRegex)},
 		},
 	},
 	{
@@ -153,12 +152,16 @@ var envProfiles = []envProfile{
 		allowedJenkinsfile: anyQuickstarterJenkinsfilePath,
 		vars: map[string][]FieldValidator{
 			"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
+			"COMPONENT_TYPE":        {matchesFormat(safeNameRegex)},
 			"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
 			"GIT_URL_HTTP":          {isURL("http", "https")},
+			"GIT_URL_SSH":           {isURL("ssh")},
+			"GROUP_ID":              {matchesFormat(safeNameRegex)},
 			"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
 			"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
 			"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
 			"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+			"PACKAGE_NAME":          {matchesFormat(safeNameRegex)},
 			"PROJECT_ID":            {matchesFormat(safeNameRegex)},
 			"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
 		},
@@ -486,8 +489,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-		logWebhookPayload(requestID, body)
-
+		log.Printf("%s incoming webhook URL: %s payload: %q", requestID, r.URL.String(), body)
 		signatureErr := verifyBitbucketPayloadSignature(s.WebhookHMACSecret, body, r.Header.Get(bitbucketSignatureHeader))
 		if signatureErr != nil {
 			log.Println(requestID, "Bitbucket payload signature rejected:", signatureErr)
@@ -811,18 +813,6 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 	}
 }
 
-func logWebhookPayload(requestID string, body []byte) {
-	if !strings.EqualFold(os.Getenv(logWebhookPayloadEnvVar), "true") {
-		return
-	}
-	escapedBody, err := json.Marshal(string(body))
-	if err != nil {
-		log.Println(requestID, "Could not encode webhook payload for logging:", err)
-		return
-	}
-	log.Printf("%s incoming webhook payload: %s", requestID, escapedBody)
-}
-
 func (s *Server) readProjectParam(projectParam string, requestID string) (string, error) {
 	projectParam = strings.ToLower(projectParam)
 	if len(projectParam) > 0 {
@@ -999,6 +989,7 @@ func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "Jenkins not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
 		} else {
@@ -1024,6 +1015,7 @@ func (c *ocClient) CheckDocGenAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "DocGen not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "DocGen available in namespace", e.Namespace)
 		} else {
@@ -1109,8 +1101,12 @@ func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 	if len(env) > maxEnvPairs {
 		return false
 	}
+	normalizedEnv := make([]EnvPair, len(env))
+	copy(normalizedEnv, env)
 	seen := make(map[string]struct{}, len(env))
-	for _, pair := range env {
+	for index := range normalizedEnv {
+		pair := &normalizedEnv[index]
+		pair.Name = strings.ToUpper(pair.Name)
 		if !safeEnvNameRegex.MatchString(pair.Name) {
 			return false
 		}
@@ -1124,7 +1120,7 @@ func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 			return false
 		}
 	}
-	return matchesKnownEnvProfile(env, jenkinsfilePath)
+	return matchesKnownEnvProfile(normalizedEnv, jenkinsfilePath)
 }
 
 // matchesKnownEnvProfile reports whether env is fully covered by at least one
