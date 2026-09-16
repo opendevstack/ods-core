@@ -1211,6 +1211,17 @@ func TestIsValid(t *testing.T) {
 			}},
 			want: true,
 		},
+		"delete-components/delete-projects payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+				{Name: "PROJECT_ID", Value: "example"},
+				{Name: "COMPONENT_ID", Value: "example-component"},
+				{Name: "ODS_NAMESPACE", Value: "ods"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example"},
+				{Name: "ODS_IMAGE_TAG", Value: "latest"},
+				{Name: "ODS_GIT_REF", Value: "master"},
+			}},
+			want: true,
+		},
 		"CD_USER_TYPE outside the known list": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
 			want:  false,
@@ -1222,6 +1233,17 @@ func TestIsValid(t *testing.T) {
 		"PROJECT_ADMIN as plain username": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
 			want:  true,
+		},
+		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
+			// Observed attempt: redirect the pipeline to a different Bitbucket
+			// project by injecting "../" into ODS_BITBUCKET_PROJECT, which is
+			// later concatenated into a git URL/path by downstream tooling.
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+				{Name: "PROJECT_ID", Value: "test-project"},
+				{Name: "GIT_SERVER_URL", Value: "http://git.example.com"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"},
+			}},
+			want: false,
 		},
 	}
 

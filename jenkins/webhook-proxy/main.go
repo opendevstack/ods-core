@@ -84,6 +84,16 @@ const (
 // envProfiles are the hardcoded, exhaustive sets of env var names each known
 // /build pipeline (release-manager, project-creation, ...) may set, together
 // with the format each value must satisfy.
+//
+// IMPORTANT LIMITATION: delete-components and delete-projects use the exact
+// same env var names (see the shared profile below), and that set is also a
+// strict subset of component-provisioning's names. Content-only matching
+// therefore cannot tell these three pipelines apart, or bind a request to the
+// specific jenkinsfile_path it is meant for: a delete-components payload is
+// currently accepted just as well for jenkinsfile_path=delete-projects/Jenkinsfile
+// (deleting a whole project instead of one component) or for a
+// component-provisioning Jenkinsfile. Closing this gap requires validating
+// that the requested jenkinsfile_path matches the profile the env belongs to.
 var envProfiles = []map[string][]FieldValidator{
 	{ // release-manager
 		"changeDescription":         nil,
@@ -118,6 +128,14 @@ var envProfiles = []map[string][]FieldValidator{
 		"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
 		"PROJECT_ID":            {matchesFormat(safeNameRegex)},
 		"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
+	},
+	{ // delete-components AND delete-projects (identical env schema for both)
+		"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
+		"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
+		"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
+		"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
+		"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+		"PROJECT_ID":            {matchesFormat(safeNameRegex)},
 	},
 }
 
