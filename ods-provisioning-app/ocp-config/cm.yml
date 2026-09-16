@@ -42,26 +42,12 @@ parameters:
 - name: PROV_APP_ATLASSIAN_DOMAIN
   required: true
   description: the domain of the atlassian toolsuite needed for single signon cookies
-- name: PROV_APP_CROWD_PASSWORD
-  required: true
-  description: password of the crowd app to authenticate the provision app against
-- name: PROV_APP_JASYPT_PASSWORD
-  required: true
 - name: PROV_APP_MAIL_HOST
   required: true
   description: The hostname of the mailserver
-- name: PROV_APP_MAIL_PASSWORD
-  required: true
-  description: The password to authenticate against the mail server
-- name: PROV_APP_MAIL_USERNAME
-  required: true
-  description: The username to authenticate against the mail server
 - name: PROV_APP_CROWD_ADMIN_GROUP
   required: true
   description: The crowd admin group name
-- name: PIPELINE_TRIGGER_SECRET
-  required: true
-  description: The trigger secret to pass to the webhook proxy
 - name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
   required: true
   description: Log level of Atlassian crowd package
@@ -232,8 +218,6 @@ objects:
       # list of supported webhook events
       openshift.jenkins.project.webhookproxy.events=${WEBHOOK_PROXY_EVENTS}
 
-      openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
-
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
 
       # Cookie Domain
@@ -261,8 +245,6 @@ objects:
 
       # crowd properties
       crowd.local.directory=LocalDirectory
-      crowd.application.name=provision
-      crowd.application.password=${PROV_APP_CROWD_PASSWORD}
       crowd.server.url=${CROWD_URL}/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
 
@@ -271,8 +253,6 @@ objects:
 
       # local storage
       project.storage.local=/opt/provision/history/
-
-      jasypt.encryptor.password=${PROV_APP_JASYPT_PASSWORD}
 
       # mail properties
       # enable mail sendout with project details
@@ -288,8 +268,6 @@ objects:
       spring.mail.smtps.connectiontimeout=1000
       spring.mail.properties.mail.smtp.ssl.enable=true
       spring.mail.properties.mail.smtp.auth=true
-      spring.mail.username=${PROV_APP_MAIL_USERNAME}
-      spring.mail.password=${PROV_APP_MAIL_PASSWORD}
       provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
 
