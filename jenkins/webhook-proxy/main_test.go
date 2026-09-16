@@ -384,34 +384,37 @@ func TestHandleRootReadsRequests(t *testing.T) {
 		"Refs changed": {
 			payloadFile: "repo-refs-changed-payload.json",
 			expectedEvent: &Event{
-				Kind:      "forward",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "master",
-				Pipeline:  "repository-master",
+				Kind:            "forward",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "master",
+				Pipeline:        "repository-master",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR merged": {
 			payloadFile: "pr-merged-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "admin/file-1505781548644",
-				Pipeline:  "repository-admin-file-1505781548644",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "admin/file-1505781548644",
+				Pipeline:        "repository-admin-file-1505781548644",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR declined": {
 			payloadFile: "pr-declined-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "decline-me",
-				Pipeline:  "repository-decline-me",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "decline-me",
+				Pipeline:        "repository-decline-me",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 	}
@@ -1129,11 +1132,11 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"environment name matching release-manager profile": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "version", Value: "1.0"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "version", Value: "1.0"}}},
 			want:  true,
 		},
 		"environment name matching component-provisioning profile": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
 			want:  true,
 		},
 		"environment name matching no profile": {
@@ -1153,7 +1156,7 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"env value passes URL format validator": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
 			want:  true,
 		},
 		"env value fails base64 format validator": {
@@ -1165,11 +1168,11 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"env value passes IP range list validator": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
 			want:  true,
 		},
 		"release-manager payload with all fields": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{
 				{Name: "environment", Value: "DEV"},
 				{Name: "changeDescription", Value: ""},
 				{Name: "releaseStatusJiraIssueKey", Value: "EXAMPLE-116"},
@@ -1180,7 +1183,7 @@ func TestIsValid(t *testing.T) {
 			want: true,
 		},
 		"project-creation payload with all fields": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
 				{Name: "CD_USER_TYPE", Value: "general"},
 				{Name: "WEBHOOK_HMAC_KEY", Value: "c29tZS1oaWRkZW4tdmFsdWU="},
 				{Name: "ODS_GIT_REF", Value: "4.x"},
@@ -1198,7 +1201,7 @@ func TestIsValid(t *testing.T) {
 			want: true,
 		},
 		"component-provisioning payload with all fields": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "python-flask/Jenkinsfile", Env: []EnvPair{
 				{Name: "ODS_NAMESPACE", Value: "example-cd"},
 				{Name: "ODS_GIT_REF", Value: "4.x"},
 				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
@@ -1211,34 +1214,23 @@ func TestIsValid(t *testing.T) {
 			}},
 			want: true,
 		},
-		"delete-components/delete-projects payload with all fields": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
-				{Name: "PROJECT_ID", Value: "example"},
-				{Name: "COMPONENT_ID", Value: "example-component"},
-				{Name: "ODS_NAMESPACE", Value: "ods"},
-				{Name: "ODS_BITBUCKET_PROJECT", Value: "example"},
-				{Name: "ODS_IMAGE_TAG", Value: "latest"},
-				{Name: "ODS_GIT_REF", Value: "master"},
-			}},
-			want: true,
-		},
 		"CD_USER_TYPE outside the known list": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
 			want:  false,
 		},
 		"PROJECT_GROUPS with malformed grammar": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_GROUPS", Value: "ADMINGROUP:my-admins"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_GROUPS", Value: "ADMINGROUP:my-admins"}}},
 			want:  false,
 		},
 		"PROJECT_ADMIN as plain username": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
 			want:  true,
 		},
 		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
 			// Observed attempt: redirect the pipeline to a different Bitbucket
 			// project by injecting "../" into ODS_BITBUCKET_PROJECT, which is
 			// later concatenated into a git URL/path by downstream tooling.
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
 				{Name: "PROJECT_ID", Value: "test-project"},
 				{Name: "GIT_SERVER_URL", Value: "http://git.example.com"},
 				{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"},

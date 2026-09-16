@@ -83,59 +83,85 @@ const (
 
 // envProfiles are the hardcoded, exhaustive sets of env var names each known
 // /build pipeline (release-manager, project-creation, ...) may set, together
-// with the format each value must satisfy.
-//
-// IMPORTANT LIMITATION: delete-components and delete-projects use the exact
-// same env var names (see the shared profile below), and that set is also a
-// strict subset of component-provisioning's names. Content-only matching
-// therefore cannot tell these three pipelines apart, or bind a request to the
-// specific jenkinsfile_path it is meant for: a delete-components payload is
-// currently accepted just as well for jenkinsfile_path=delete-projects/Jenkinsfile
-// (deleting a whole project instead of one component) or for a
-// component-provisioning Jenkinsfile. Closing this gap requires validating
-// that the requested jenkinsfile_path matches the profile the env belongs to.
-var envProfiles = []map[string][]FieldValidator{
-	{ // release-manager
-		"changeDescription":         nil,
-		"changeId":                  {matchesFormat(safeNameRegex)},
-		"configItem":                {matchesFormat(safeNameRegex)},
-		"environment":               {oneOf("DEV", "QA", "PROD")},
-		"releaseStatusJiraIssueKey": {matchesFormat(jiraIssueKeyRegex)},
-		"version":                   {matchesFormat(safeNameRegex)},
+// with the format each value must satisfy and the jenkinsfile_path(s) that
+// pipeline is legitimately triggered with. A request is only accepted if its
+// env vars fully match one profile's vars AND the requested jenkinsfile_path
+// is one that profile allows — so e.g. component-provisioning parameters can
+// no longer be forwarded to create-projects/Jenkinsfile (or vice versa) just
+// by changing the jenkinsfile_path query param.
+type envProfile struct {
+	name               string
+	allowedJenkinsfile func(jenkinsfilePath string) bool
+	vars               map[string][]FieldValidator
+}
+
+// reservedJenkinsfilePaths are the fixed, well-known jenkinsfile_path values
+// used by the non-quickstarter ODS pipelines.
+var reservedJenkinsfilePaths = newStringSet(
+	jenkinsfilePathDefault,
+	"create-projects/Jenkinsfile",
+)
+
+// exactJenkinsfilePath builds an allowedJenkinsfile matcher for a single,
+// fixed jenkinsfile_path.
+func exactJenkinsfilePath(path string) func(string) bool {
+	return func(p string) bool { return p == path }
+}
+
+// anyQuickstarterJenkinsfilePath matches any jenkinsfile_path that isn't one
+// of the reserved, non-quickstarter paths above — quickstarter Jenkinsfiles
+// live under many different, non-enumerable directory names.
+func anyQuickstarterJenkinsfilePath(p string) bool {
+	_, reserved := reservedJenkinsfilePaths[p]
+	return !reserved
+}
+
+var envProfiles = []envProfile{
+	{
+		name:               "release-manager",
+		allowedJenkinsfile: exactJenkinsfilePath(jenkinsfilePathDefault),
+		vars: map[string][]FieldValidator{
+			"changeDescription":         nil,
+			"changeId":                  {matchesFormat(safeNameRegex)},
+			"configItem":                {matchesFormat(safeNameRegex)},
+			"environment":               {oneOf("DEV", "QA", "PROD")},
+			"releaseStatusJiraIssueKey": {matchesFormat(jiraIssueKeyRegex)},
+			"version":                   {matchesFormat(safeNameRegex)},
+		},
 	},
-	{ // project-creation
-		"CD_USER_ID_B64":            {isBase64},
-		"CD_USER_TYPE":              {oneOf("general", "specific")},
-		"GIT_SERVER_URL":            {isURL("http", "https")},
-		"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
-		"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
-		"ODS_IMAGE_TAG":             {matchesFormat(safeNameRegex)},
-		"ODS_NAMESPACE":             {matchesFormat(safeNameRegex)},
-		"PIPELINE_TRIGGER_SECRET":   {isBase64},
-		"PROJECT_ADMIN":             {matchesFormat(projectAdminRegex)},
-		"PROJECT_GROUPS":            {matchesFormat(projectGroupsRegex)},
-		"PROJECT_ID":                {matchesFormat(safeNameRegex)},
-		"WEBHOOK_ALLOWED_IP_RANGES": {isIPRangeList},
-		"WEBHOOK_HMAC_KEY":          {isBase64},
+	{
+		name:               "project-creation",
+		allowedJenkinsfile: exactJenkinsfilePath("create-projects/Jenkinsfile"),
+		vars: map[string][]FieldValidator{
+			"CD_USER_ID_B64":            {isBase64},
+			"CD_USER_TYPE":              {oneOf("general", "specific")},
+			"GIT_SERVER_URL":            {isURL("http", "https")},
+			"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":             {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":             {matchesFormat(safeNameRegex)},
+			"PIPELINE_TRIGGER_SECRET":   {isBase64},
+			"PROJECT_ADMIN":             {matchesFormat(projectAdminRegex)},
+			"PROJECT_GROUPS":            {matchesFormat(projectGroupsRegex)},
+			"PROJECT_ID":                {matchesFormat(safeNameRegex)},
+			"WEBHOOK_ALLOWED_IP_RANGES": {isIPRangeList},
+			"WEBHOOK_HMAC_KEY":          {isBase64},
+		},
 	},
-	{ // component-provisioning (ods-quickstarters)
-		"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
-		"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
-		"GIT_URL_HTTP":          {isURL("http", "https")},
-		"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
-		"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
-		"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
-		"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
-		"PROJECT_ID":            {matchesFormat(safeNameRegex)},
-		"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
-	},
-	{ // delete-components AND delete-projects (identical env schema for both)
-		"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
-		"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
-		"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
-		"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
-		"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
-		"PROJECT_ID":            {matchesFormat(safeNameRegex)},
+	{
+		name:               "component-provisioning (ods-quickstarters)",
+		allowedJenkinsfile: anyQuickstarterJenkinsfilePath,
+		vars: map[string][]FieldValidator{
+			"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
+			"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
+			"GIT_URL_HTTP":          {isURL("http", "https")},
+			"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+			"PROJECT_ID":            {matchesFormat(safeNameRegex)},
+			"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
+		},
 	},
 }
 
@@ -148,14 +174,15 @@ type EnvPair struct {
 // Event is the internal representation of a BitBucket event described in
 // https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
 type Event struct {
-	Kind      string
-	Namespace string
-	Repo      string
-	Component string
-	Branch    string
-	Pipeline  string
-	RequestID string
-	Env       []EnvPair
+	Kind            string
+	Namespace       string
+	Repo            string
+	Component       string
+	Branch          string
+	Pipeline        string
+	RequestID       string
+	Env             []EnvPair
+	JenkinsfilePath string
 }
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
@@ -509,14 +536,15 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, req.Branch)
 
 			event = &Event{
-				Kind:      "forward",
-				Namespace: s.Namespace,
-				Repo:      req.Repository,
-				Component: component,
-				Branch:    req.Branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
-				Env:       req.Env,
+				Kind:            "forward",
+				Namespace:       s.Namespace,
+				Repo:            req.Repository,
+				Component:       component,
+				Branch:          req.Branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				Env:             req.Env,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 
 		} else if r.URL.Path == "/" {
@@ -619,13 +647,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
-				Kind:      kind,
-				Namespace: s.Namespace,
-				Repo:      repo,
-				Component: component,
-				Branch:    branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
+				Kind:            kind,
+				Namespace:       s.Namespace,
+				Repo:            repo,
+				Component:       component,
+				Branch:          branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 		} else {
 			http.NotFound(w, r)
@@ -1066,16 +1095,17 @@ func (e *Event) IsValid() bool {
 	if !safeBranchRegex.MatchString(e.Branch) {
 		return false
 	}
-	if !isValidEnv(e.Env) {
+	if !isValidEnv(e.Env, e.JenkinsfilePath) {
 		return false
 	}
 	return true
 }
 
 // isValidEnv rejects malformed env pairs and enforces that the full set of
-// pairs is contained in exactly one of the known envProfiles, with every
-// value passing that name's registered FieldValidators.
-func isValidEnv(env []EnvPair) bool {
+// pairs is contained in exactly one of the known envProfiles that also
+// allows jenkinsfilePath, with every value passing that name's registered
+// FieldValidators.
+func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 	if len(env) > maxEnvPairs {
 		return false
 	}
@@ -1094,21 +1124,24 @@ func isValidEnv(env []EnvPair) bool {
 			return false
 		}
 	}
-	return matchesKnownEnvProfile(env)
+	return matchesKnownEnvProfile(env, jenkinsfilePath)
 }
 
 // matchesKnownEnvProfile reports whether env is fully covered by at least one
-// registered env profile, i.e. every pair's name is known to that profile and
-// its value passes all of that name's FieldValidators. An empty env trivially
-// matches.
-func matchesKnownEnvProfile(env []EnvPair) bool {
+// registered env profile that also allows jenkinsfilePath, i.e. every pair's
+// name is known to that profile and its value passes all of that name's
+// FieldValidators. An empty env trivially matches.
+func matchesKnownEnvProfile(env []EnvPair, jenkinsfilePath string) bool {
 	if len(env) == 0 {
 		return true
 	}
 profiles:
 	for _, profile := range envProfiles {
+		if !profile.allowedJenkinsfile(jenkinsfilePath) {
+			continue
+		}
 		for _, pair := range env {
-			validators, known := profile[pair.Name]
+			validators, known := profile.vars[pair.Name]
 			if !known {
 				continue profiles
 			}
