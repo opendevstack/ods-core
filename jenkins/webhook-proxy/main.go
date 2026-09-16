@@ -26,30 +26,6 @@ import (
 	"time"
 )
 
-var (
-	// safeNameRegex permits characters that are valid in repository / component names.
-	safeNameRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
-	// safeBranchRegex permits characters that are valid in git branch / ref names.
-	safeBranchRegex = regexp.MustCompile(`^[a-zA-Z0-9._/\-+@]+$`)
-	// safeJenkinsfilePathRegex permits only relative path segments composed of
-	// safe characters. Each segment must begin with an alphanumeric character,
-	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
-	// and hidden-file tricks (".").
-	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
-	// safeEnvNameRegex follows the POSIX environment variable name format.
-	safeEnvNameRegex = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
-	// jiraIssueKeyRegex matches a Jira issue key, e.g. "PROJ-116".
-	jiraIssueKeyRegex = regexp.MustCompile(`^[A-Z][A-Z0-9]*-[0-9]+$`)
-	// projectAdminRegex matches a username or email, e.g. "jane.doe@example.com".
-	projectAdminRegex = regexp.MustCompile(`^[A-Za-z0-9._%+-]+(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})?$`)
-	// projectGroupsRegex matches "ROLEGROUP=group-name" pairs, e.g. "ADMINGROUP=my-admins,USERGROUP=my-users".
-	projectGroupsRegex = regexp.MustCompile(`^[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+(,[A-Z][A-Z0-9_]*=[A-Za-z0-9._-]+)*$`)
-	// safeURLRegex whitelists a plain server/repository URL, excluding query, fragment and shell metacharacters.
-	safeURLRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*://([A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._/-]*)?$`)
-	// safeFreeTextRegex whitelists free text (e.g. a change description) without shell metacharacters.
-	safeFreeTextRegex = regexp.MustCompile(`^[\p{L}\p{N} .,:!?_/-]*$`)
-)
-
 const (
 	namespaceFile                  = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
