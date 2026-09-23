@@ -243,7 +243,7 @@ podTemplate(
         def odsConfigPath = "${env.WORKSPACE}/ods-configuration/ods-core.env"
         def scriptsConfigPath = "${env.WORKSPACE}/post-creation-config/${env.POST_SCRIPTS_CONFIG_FILE}"
 
-        withCredentials([string(credentialsId: "ods-jenkins-webhook-proxy", variable: 'WEBHOOK_HMAC_KEY')]) {
+        withCredentials([string(credentialsId: "ods-jenkins-webhook-secret", variable: 'WEBHOOK_HMAC_KEY')]) {
           withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
             withEnv([
               "PROJECT_ID=${projectId}",
