@@ -9,7 +9,6 @@
 
 ### Changed
 - Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))
-- Make sure the script does not crash in case of error in one project ([#1405](https://github.com/opendevstack/ods-core/pull/1405))
 
 ### Fixed
 - Fixes VIT0089540 ([#1395](https://github.com/opendevstack/ods-core/pull/1395))
