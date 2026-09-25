@@ -142,7 +142,9 @@ else
   fi
 
   log "Updating WEBHOOK_PROXY.URL in Jira..."
-  "${jira_url_cmd[@]}"
+  if ! "${jira_url_cmd[@]}"; then
+    log "Warning: Failed to update WEBHOOK_PROXY.URL. Continuing with WEBHOOK_PROXY.SECRET update."
+  fi
 fi
 
 jira_secret_cmd=(
