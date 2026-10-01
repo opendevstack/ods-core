@@ -52,9 +52,6 @@ else
   oc new-project ${NAMESPACE} --description="Central ODS namespace with shared resources" --display-name="OpenDevStack"
 fi
 
-# Allow system:authenticated group to view resources in central namespace
-oc adm policy add-role-to-group view system:authenticated -n ${NAMESPACE}
-
 # Create ods-edit service account and grant edit permissions
 if ! oc get serviceaccount ods-edit -n ${NAMESPACE} > /dev/null 2>&1; then
   echo "Creating service account 'ods-edit' ..."
@@ -63,6 +60,20 @@ if ! oc get serviceaccount ods-edit -n ${NAMESPACE} > /dev/null 2>&1; then
 else
   echo "Service account 'ods-edit' already exists"
 fi
+
+# Allow authenticated users to read the SonarQube and Aqua ConfigMaps
+if ! oc get role configmap-reader -n ${NAMESPACE} > /dev/null 2>&1; then
+  oc create role configmap-reader \
+    --verb=get \
+    --resource=configmaps \
+    --resource-name=sonarqube-scan \
+    --resource-name=aqua \
+    -n ${NAMESPACE}
+else
+  echo "Role 'configmap-reader' already exists"
+fi
+oc adm policy add-role-to-group configmap-reader system:authenticated -n ${NAMESPACE} --role-namespace=${NAMESPACE}
+
 
 # Allow system:authenticated group to pull images from central namespace
 if ! oc adm policy add-cluster-role-to-group system:image-puller system:authenticated -n ${NAMESPACE}; then
