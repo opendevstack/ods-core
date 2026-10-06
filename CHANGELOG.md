@@ -8,6 +8,7 @@
 
 ### Changed
 - Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))
+- Remove excesive permisions ([#1407](https://github.com/opendevstack/ods-core/pull/1407))
 
 ### Fixed
 - Fixes VIT0089540 ([#1395](https://github.com/opendevstack/ods-core/pull/1395))
