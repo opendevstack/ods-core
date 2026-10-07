@@ -54,6 +54,9 @@ objects:
               memory: ${PROV_APP_MEMORY_REQUEST}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          envFrom:
+            - secretRef:
+              name: ods-provisioning-app
           volumeMounts:
             - mountPath: /opt/provision/history
               name: volume-history
