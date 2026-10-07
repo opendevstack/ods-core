@@ -243,36 +243,38 @@ podTemplate(
         def odsConfigPath = "${env.WORKSPACE}/ods-configuration/ods-core.env"
         def scriptsConfigPath = "${env.WORKSPACE}/post-creation-config/${env.POST_SCRIPTS_CONFIG_FILE}"
 
-        withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
-          withEnv([
-            "PROJECT_ID=${projectId}",
-            "PROJECT_GROUPS=${projectGroups}",
-            "PROJECT_ADMIN=${projectAdmins}",
-            "ODS_NAMESPACE=${odsNamespace}",
-            "ODS_IMAGE_TAG=${odsImageTag}",
-            "ODS_GIT_REF=${odsGitRef}",
-            "ODS_BITBUCKET_PROJECT=${odsBitbucketProject}",
-            "BITBUCKET_URL=${bitbucketUrl}",
-            "DOCKER_REGISTRY=${dockerRegistry}",
-            "CD_USERNAME=${username}",
-            "CD_PASSWORD=${password}",
-            "CD_USER_CREDENTIALS_ID=${credentialsId}"
-          ]) {
-              echo("Environment variables for scripts:")
+        withCredentials([string(credentialsId: "ods-jenkins-webhook-secret", variable: 'WEBHOOK_HMAC_KEY')]) {
+          withCredentials([usernamePassword(credentialsId: "${credentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
+            withEnv([
+              "PROJECT_ID=${projectId}",
+              "PROJECT_GROUPS=${projectGroups}",
+              "PROJECT_ADMIN=${projectAdmins}",
+              "ODS_NAMESPACE=${odsNamespace}",
+              "ODS_IMAGE_TAG=${odsImageTag}",
+              "ODS_GIT_REF=${odsGitRef}",
+              "ODS_BITBUCKET_PROJECT=${odsBitbucketProject}",
+              "BITBUCKET_URL=${bitbucketUrl}",
+              "DOCKER_REGISTRY=${dockerRegistry}",
+              "CD_USERNAME=${username}",
+              "CD_PASSWORD=${password}",
+              "CD_USER_CREDENTIALS_ID=${credentialsId}"
+            ]) {
+                echo("Environment variables for scripts:")
 
-              for (script in scripts) {
-                  def scriptName = script.trim()
-                  def scriptPath = "post-project-creation/${scriptName}"
+                for (script in scripts) {
+                    def scriptName = script.trim()
+                    def scriptPath = "post-project-creation/${scriptName}"
 
-                  echo("Executing script: ${scriptName}")
+                    echo("Executing script: ${scriptName}")
 
-                  sh(
-                      script: """
-                      "${scriptPath}" "${odsConfigPath}" "${scriptsConfigPath}"
-                      """,
-                      label: "Execute script: ${scriptName}"
-                  )
-              }
+                    sh(
+                        script: """
+                        "${scriptPath}" "${odsConfigPath}" "${scriptsConfigPath}"
+                        """,
+                        label: "Execute script: ${scriptName}"
+                    )
+                }
+            }
           }
         }
       }

@@ -163,7 +163,7 @@ list_repos() {
   local limit=100
   while true; do
     local response
-    response="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos?limit=${limit}&start=${start}")"
+    response="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos?limit=${limit}&start=${start}")" || exit 1
 
     jq -r '.values[].slug' <<<"$response"
 
@@ -244,13 +244,23 @@ log "Backup file: $BACKUP_FILE"
 processed_repos=0
 updated_hooks=0
 
-while IFS= read -r repo_slug; do
+if ! repos_text="$(list_repos)"; then
+    log "Failed to retrieve repository list"
+    exit 1
+fi
+
+mapfile -t repos <<< "$repos_text"
+
+for repo_slug in "${repos[@]}"; do
   repo_slug=${repo_slug%$'\r'}
   [[ -z "$repo_slug" ]] && continue
   processed_repos=$((processed_repos + 1))
   log "Scanning repo: ${repo_slug}"
 
-  hooks_json="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos/${repo_slug}/webhooks")"
+  if ! hooks_json="$(curl_api GET "/rest/api/latest/projects/${PROJECT_KEY}/repos/${repo_slug}/webhooks")"; then
+    log "Failed to retrieve webhooks for ${repo_slug}. Skipping repository."
+    continue
+  fi
 
   # Some Bitbucket/plugin setups may return non-JSON bodies for specific repos.
   # Skip those repos with a clear log instead of aborting the whole migration.
@@ -266,8 +276,14 @@ while IFS= read -r repo_slug; do
     continue
   fi
 
-  # Process only webhooks that target the webhook proxy host pattern.
-  mapfile -t hook_objs < <(jq -c --arg m "$URL_MATCH" '.values[] | select((.url // "") | contains($m))' <<<"$hooks_json")
+  if ! mapfile -t hook_objs < <(
+    jq -c --arg m "$URL_MATCH" \
+      '.values[] | select((.url // "") | contains($m))' \
+      <<<"$hooks_json"
+  ); then
+    log "Failed to parse webhook list for ${repo_slug}. Skipping repository."
+    continue
+  fi
 
   if [[ ${#hook_objs[@]} -eq 0 ]]; then
     log "No matching webhooks in ${repo_slug}"
@@ -275,8 +291,17 @@ while IFS= read -r repo_slug; do
   fi
 
   for hook_obj in "${hook_objs[@]}"; do
-    hook_id="$(jq -r '.id | tostring' <<<"$hook_obj")"
-    old_url="$(jq -r '.url' <<<"$hook_obj")"
+
+    if ! hook_id="$(jq -r '.id | tostring' <<<"$hook_obj")"; then
+      log "Failed to read webhook id in ${repo_slug}. Skipping webhook."
+      continue
+    fi
+
+    if ! old_url="$(jq -r '.url' <<<"$hook_obj")"; then
+      log "Failed to read webhook URL for webhook ${hook_id} in ${repo_slug}. Skipping webhook."
+      continue
+    fi
+
     proxy_project_key="$(extract_proxy_project_key "$old_url")"
 
     if [[ -n "$proxy_project_key" && "${proxy_project_key,,}" != "${PROJECT_KEY,,}" ]]; then
@@ -286,24 +311,33 @@ while IFS= read -r repo_slug; do
     fi
 
     new_url="$(printf '%s' "$old_url" | remove_trigger_secret)"
-    hook_secret_key="$(detect_secret_config_key "$hook_obj")"
 
-    payload="$(jq -cn \
-      --argjson src "$hook_obj" \
-      --arg newUrl "$new_url" \
-      --arg key "$hook_secret_key" \
-      --arg secret "$WEBHOOK_SECRET" '
-        {
-          name: $src.name,
-          url: $newUrl,
-          active: $src.active,
-          events: $src.events,
-          sslVerificationRequired: $src.sslVerificationRequired,
-          configuration: (($src.configuration // {}) + {($key): $secret}),
-          credentials: $src.credentials
-        }
-        | with_entries(select(.value != null))
-      ')"
+    if ! hook_secret_key="$(detect_secret_config_key "$hook_obj")"; then
+      log "Failed to determine secret key for webhook ${hook_id} in ${repo_slug}. Skipping webhook."
+      continue
+    fi
+
+    if ! payload="$(
+      jq -cn \
+        --argjson src "$hook_obj" \
+        --arg newUrl "$new_url" \
+        --arg key "$hook_secret_key" \
+        --arg secret "$WEBHOOK_SECRET" '
+          {
+            name: $src.name,
+            url: $newUrl,
+            active: $src.active,
+            events: $src.events,
+            sslVerificationRequired: $src.sslVerificationRequired,
+            configuration: (($src.configuration // {}) + {($key): $secret}),
+            credentials: $src.credentials
+          }
+          | with_entries(select(.value != null))
+        '
+    )"; then
+      log "Failed to build payload for webhook ${hook_id} in ${repo_slug}. Skipping webhook."
+      continue
+    fi
 
     jq -cn --arg repo "$repo_slug" --argjson hook "$hook_obj" '{repo:$repo,hook:$hook}' >> "$BACKUP_FILE"
 
@@ -320,14 +354,21 @@ while IFS= read -r repo_slug; do
     fi
 
     if [[ "$APPLY" == true ]]; then
-      curl_api PUT "/rest/api/latest/projects/${PROJECT_KEY}/repos/${repo_slug}/webhooks/${hook_id}" "$payload" >/dev/null
+      if ! curl_api \
+        PUT \
+        "/rest/api/latest/projects/${PROJECT_KEY}/repos/${repo_slug}/webhooks/${hook_id}" \
+        "$payload" >/dev/null; then
+        log "Failed to update webhook ${hook_id} in ${repo_slug}. Continuing."
+        continue
+      fi
+
       updated_hooks=$((updated_hooks + 1))
       log "Updated webhook ${hook_id} in ${repo_slug}"
     else
       log "DRY-RUN would update webhook ${hook_id} in ${repo_slug}"
     fi
   done
-done < <(list_repos)
+done
 
 log "Processed repositories: ${processed_repos}"
 log "Updated webhooks: ${updated_hooks}"

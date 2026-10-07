@@ -152,7 +152,10 @@ current_properties=$(curl -s \
   --insecure)
 
 log "Current properties response:"
-echo "$current_properties" | jq . >&2 || echo "$current_properties" >&2
+echo "$current_properties" | jq . >&2 || {
+  echo "$current_properties" >&2
+  exit 1
+}
 
 # Extract the existing property if it exists
 existing_property=$(echo "$current_properties" | jq --arg key "$PROPERTY_KEY" '.[] | select(.propertyKey == $key)' 2>/dev/null || echo "")

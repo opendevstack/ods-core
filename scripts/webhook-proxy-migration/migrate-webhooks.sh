@@ -84,6 +84,78 @@ run_jira_migration() {
   "${jira_cmd[@]}"
 }
 
+failed_projects=()
+successful_projects=()
+skipped_projects=()
+
+process_project() {
+  local project="$1"
+
+  log "Processing project: ${project}"
+
+  # Skip projects that do not have a webhook-proxy deployment config
+  if ! "$OC_BIN" -n "${project}-cd" get dc webhook-proxy >/dev/null 2>&1; then
+    log "Skipping project ${project}: deployment config 'webhook-proxy' not found"
+    return 2
+  fi
+
+  # Skip projects that do not have a webhook-proxy deployment config
+  if "$OC_BIN" -n "${project}-cd" get dc jira >/dev/null 2>&1; then
+    log "Skipping project ${project}: it has its own Jira instance"
+    return 2
+  fi
+
+  hmac_secret="$(openssl rand -base64 32 | tr '/' '_')"
+  log "Generated HMAC secret for project ${project}"
+
+  bitbucket_cmd=(
+    "$BITBUCKET_SCRIPT"
+    --base-url "$BASE_URL"
+    --project "$project"
+    --webhook-secret "$hmac_secret"
+    --url-match "$URL_MATCH"
+  )
+
+  if [[ -n "$TOKEN" ]]; then
+    bitbucket_cmd+=(--token "$TOKEN")
+  else
+    bitbucket_cmd+=(--username "$USERNAME" --password "$PASSWORD")
+  fi
+
+  [[ "$APPLY" == true ]] && bitbucket_cmd+=(--apply)
+
+  log "Running Bitbucket webhook migration for ${project}"
+  "${bitbucket_cmd[@]}" || exit 1
+
+  proxy_cmd=(
+    "$PROXY_SCRIPT"
+    --oc-bin "$OC_BIN"
+    --project "$project"
+    --hmac-secret "$hmac_secret"
+    --allowed-ip-ranges "$ALLOWED_IP_RANGES"
+  )
+  [[ "$APPLY" == true ]] && proxy_cmd+=(--apply)
+
+  log "Running proxy secret migration for ${project}"
+  "${proxy_cmd[@]}"
+
+  run_jira_migration "$project" "$hmac_secret"
+
+  log "Running ProvApp project migration for ${project}"
+  if [[ "$APPLY" == true ]]; then
+    curl -fsS -X PUT "${PROVAPP_BASE_URL}/api/v2/project/${project}/webhookProxyHmacKey" \
+         -d "$hmac_secret" \
+         -H "Accept: application/json" \
+         -H "Content-Type: text/plain" \
+         -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}" > /dev/null
+
+    log "HMAC key for project ${project} has been successfully updated"
+  else
+    log "DRY-RUN Would update HMAC key for project ${project}"
+    log "DRY-RUN Would restart the Provisioning App"
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --projects-file)
@@ -214,60 +286,34 @@ log "Projects loaded: ${#PROJECTS[@]}"
 log "Mode: $( [[ "$APPLY" == true ]] && echo apply || echo dry-run )"
 
 for project in "${PROJECTS[@]}"; do
-  log "Processing project: ${project}"
-
-  hmac_secret="$(openssl rand -base64 32)"
-  log "Generated HMAC secret for project ${project}"
-
-  proxy_cmd=(
-    "$PROXY_SCRIPT"
-    --oc-bin "$OC_BIN"
-    --project "$project"
-    --hmac-secret "$hmac_secret"
-    --allowed-ip-ranges "$ALLOWED_IP_RANGES"
-  )
-  if [[ "$APPLY" == true ]]; then
-    proxy_cmd+=(--apply)
-  fi
-
-  log "Running proxy secret migration for ${project}"
-  "${proxy_cmd[@]}"
-
-  bitbucket_cmd=(
-    "$BITBUCKET_SCRIPT"
-    --base-url "$BASE_URL"
-    --project "$project"
-    --webhook-secret "$hmac_secret"
-    --url-match "$URL_MATCH"
-  )
-  if [[ -n "$TOKEN" ]]; then
-    bitbucket_cmd+=(--token "$TOKEN")
+  if (
+    process_project "$project"
+  ); then
+    successful_projects+=("$project")
+    log "Project ${project} completed successfully"
   else
-    bitbucket_cmd+=(--username "$USERNAME" --password "$PASSWORD")
-  fi
-  if [[ "$APPLY" == true ]]; then
-    bitbucket_cmd+=(--apply)
-  fi
+    rc=$?
 
-  log "Running Bitbucket webhook migration for ${project}"
-  "${bitbucket_cmd[@]}"
-
-  run_jira_migration "$project" "$hmac_secret"
-
-  log "Running ProvApp project migration for ${project}"
-  if [[ "$APPLY" == true ]]; then
-    log "Updating HMAC key for project ${project}"
-    curl -fsS -X PUT "${PROVAPP_BASE_URL}/api/v2/project/${project}/webhookProxyHmacKey" -d "$hmac_secret" \
-         -H "Accept: application/json" \
-         -H "Content-Type: text/plain" \
-         -u "${PROVAPP_USER}:${PROVAPP_PASSWORD}" > /dev/null
-    log "HMAC key for project ${project} has been successfully updated"
-    log "Restarting ods-provisioning-app"
-    oc -n "${project}-cd" rollout latest dc/ods-provisioning-app || true
-  else
-    log "DRY-RUN Would update HMAC key for project ${project}"
-    log "DRY-RUN Would restart the Provisioning App"
+    if [[ $rc -eq 2 ]]; then
+      skipped_projects+=("$project")
+      log "Project ${project} skipped"
+    else
+      log "ERROR: Project ${project} failed"
+      failed_projects+=("$project")
+    fi
   fi
 done
 
 log "All projects processed"
+
+log "Successful projects: ${#successful_projects[@]}"
+printf '%s\n' "${successful_projects[@]}"
+
+log "Skipped projects: ${#skipped_projects[@]}"
+printf '%s\n' "${skipped_projects[@]}"
+
+if [[ ${#failed_projects[@]} -gt 0 ]]; then
+  log "Failed projects: ${#failed_projects[@]}"
+  printf '%s\n' "${failed_projects[@]}"
+  exit 1
+fi
