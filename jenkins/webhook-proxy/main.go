@@ -64,6 +64,7 @@ const (
 type envProfile struct {
 	name               string
 	allowedJenkinsfile func(jenkinsfilePath string) bool
+	requiredVars       []string
 	vars               map[string][]FieldValidator
 }
 
@@ -100,6 +101,7 @@ var envProfiles = []envProfile{
 	{
 		name:               "project-creation",
 		allowedJenkinsfile: exactJenkinsfilePath("create-projects/Jenkinsfile"),
+		requiredVars:       []string{"PROJECT_ID", "WEBHOOK_HMAC_KEY"},
 		vars: map[string][]FieldValidator{
 			"CD_USER_ID_B64":            {isBase64},
 			"CD_USER_TYPE":              {oneOf("general", "specific")},
@@ -1091,14 +1093,12 @@ func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
 
 // matchesKnownEnvProfile reports whether env is fully covered by one profile allowing jenkinsfilePath.
 func matchesKnownEnvProfile(env []EnvPair, jenkinsfilePath string) bool {
-	if len(env) == 0 {
-		return true
-	}
 profiles:
 	for _, profile := range envProfiles {
 		if !profile.allowedJenkinsfile(jenkinsfilePath) {
 			continue
 		}
+		provided := make(map[string]string, len(env))
 		for _, pair := range env {
 			validators, known := profile.vars[pair.Name]
 			if !known {
@@ -1108,6 +1108,12 @@ profiles:
 				if err := validate(pair.Value); err != nil {
 					continue profiles
 				}
+			}
+			provided[pair.Name] = pair.Value
+		}
+		for _, required := range profile.requiredVars {
+			if value, present := provided[required]; !present || value == "" {
+				continue profiles
 			}
 		}
 		return true

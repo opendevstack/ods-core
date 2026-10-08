@@ -780,9 +780,24 @@ func TestForward(t *testing.T) {
 }
 
 func TestBuildEndpoint(t *testing.T) {
+	buildPayload := func(env ...EnvPair) []byte {
+		body, err := json.Marshal(struct {
+			Branch     string    `json:"branch"`
+			Project    string    `json:"project"`
+			Repository string    `json:"repository"`
+			Env        []EnvPair `json:"env"`
+		}{Branch: "master", Project: "bar", Repository: "ods-core", Env: env})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return body
+	}
+
 	tests := map[string]struct {
 		whpPath                   string
 		whpPayload                string
+		whpPayloadBody            []byte
+		whpSignatureMode          string
 		whpExpectedResponseStatus int
 		whpExpectedResponseBody   string
 		bcGetResponseBody         string // response when asked for the pipeline
@@ -793,12 +808,19 @@ func TestBuildEndpoint(t *testing.T) {
 		"request without signature": {
 			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "none",
 			whpExpectedResponseStatus: 401,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
 			bcUpsertExpectedPayload:   "",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    0,
+		},
+		"request with invalid signature": {
+			whpPath:                   "/build",
+			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "wrong",
+			whpExpectedResponseStatus: 401,
 		},
 		"valid payload": {
 			whpPath:                   "/build",
@@ -869,6 +891,77 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline-branch.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
+		},
+		"valid project-creation profile": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 200,
+			bcUpsertResponseStatus:    201,
+		},
+		"project-creation rejects missing PROJECT_ID": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects missing WEBHOOK_HMAC_KEY": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects empty required variable": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: ""}),
+			whpExpectedResponseStatus: 400,
+		},
+		"component-provisioning profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"release-manager profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation profile cannot target quickstarter": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"unknown environment variable is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}, EnvPair{Name: "EXTRA_INJECTED_VAR", Value: "attacker-controlled"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"environment variables from different profiles are rejected": {
+			whpPath:                   "/build",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"path traversal in ODS_BITBUCKET_PROJECT is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in PROJECT_GROUPS is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=$(id)"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"backticks in PROJECT_ID are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj`whoami`"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"shell metacharacters in ODS_BITBUCKET_PROJECT are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "proj; echo injected #"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in GIT_SERVER_URL is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com/$(echo injected)"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "test-project"}),
+			whpExpectedResponseStatus: 400,
 		},
 	}
 
@@ -952,13 +1045,20 @@ func TestBuildEndpoint(t *testing.T) {
 			defer server.Close()
 
 			// Make request to /build with payload
-			body, err := os.ReadFile(tc.whpPayload)
-			if err != nil {
-				t.Fatal(err)
+			body := tc.whpPayloadBody
+			if body == nil {
+				loadedBody, readErr := os.ReadFile(tc.whpPayload)
+				if readErr != nil {
+					t.Fatal(readErr)
+				}
+				body = loadedBody
 			}
 			signature := bitbucketSignature("webhook-secret", body)
-			if name == "request without signature" {
+			switch tc.whpSignatureMode {
+			case "none":
 				signature = ""
+			case "wrong":
+				signature = "sha256=WRONG"
 			}
 			res := postBitbucketRequest(t, server.URL+tc.whpPath, body, signature)
 
@@ -1174,7 +1274,7 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"env value passes URL format validator": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
 			want:  true,
 		},
 		"env value fails base64 format validator": {
@@ -1186,7 +1286,7 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"env value passes IP range list validator": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
 			want:  true,
 		},
 		"release-manager payload with all fields": {
@@ -1241,8 +1341,28 @@ func TestIsValid(t *testing.T) {
 			want:  false,
 		},
 		"PROJECT_ADMIN as plain username": {
-			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
 			want:  true,
+		},
+		"project-creation requires PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation requires WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}}},
+			want:  false,
+		},
+		"project-creation rejects empty PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: ""}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation rejects empty WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: ""}}},
+			want:  false,
+		},
+		"project-creation requires env": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile"},
+			want:  false,
 		},
 		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
 			// Observed attempt: "../" path traversal in ODS_BITBUCKET_PROJECT.
