@@ -124,7 +124,7 @@ var envProfiles = []envProfile{
 		vars: map[string][]FieldValidator{
 			"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
 			"COMPONENT_TYPE":        {matchesFormat(safeNameRegex)},
-			"COMPONENT_ID":          {matchesFormat(safeNameRegex)},
+			"COMPONENT_ID":          {isDNS1123Label},
 			"GIT_URL_HTTP":          {isURL("http", "https")},
 			"GIT_URL_SSH":           {isURL("ssh")},
 			"GROUP_ID":              {matchesFormat(safeNameRegex)},

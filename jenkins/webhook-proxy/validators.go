@@ -11,6 +11,8 @@ import (
 var (
 	// safeNameRegex permits characters that are valid in repository / component names.
 	safeNameRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+	// dns1123LabelRegex follows Kubernetes' DNS-1123 label format.
+	dns1123LabelRegex = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
 	// safeBranchRegex permits characters that are valid in git branch / ref names.
 	safeBranchRegex = regexp.MustCompile(`^[a-zA-Z0-9._/\-+@]+$`)
 	// safeJenkinsfilePathRegex permits only relative path segments composed of
@@ -43,6 +45,14 @@ func matchesFormat(re *regexp.Regexp) FieldValidator {
 		}
 		return nil
 	}
+}
+
+// isDNS1123Label requires a lowercase DNS-1123 label of at most 63 characters.
+func isDNS1123Label(value string) error {
+	if len(value) > 63 || !dns1123LabelRegex.MatchString(value) {
+		return fmt.Errorf("must be a DNS-1123 label (lowercase alphanumeric or '-', max 63 characters)")
+	}
+	return nil
 }
 
 // oneOf restricts a value to a fixed, enumerated list.

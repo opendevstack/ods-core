@@ -1239,6 +1239,10 @@ func TestIsValid(t *testing.T) {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
 			want:  true,
 		},
+		"component-provisioning rejects non-DNS-1123 COMPONENT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "COMPONENT_ID", Value: "My_component"}}},
+			want:  false,
+		},
 		"component-provisioning accepts mixed-case names and additional fields": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
 				{Name: "component_type", Value: "docker-plain"},

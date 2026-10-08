@@ -2,8 +2,36 @@ package main
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 )
+
+func TestIsDNS1123Label(t *testing.T) {
+	tests := map[string]struct {
+		value string
+		want  bool
+	}{
+		"lowercase label":      {value: "python-flask-example", want: true},
+		"numeric label":        {value: "123-component", want: true},
+		"maximum length":       {value: strings.Repeat("a", 63), want: true},
+		"empty":                {value: "", want: false},
+		"uppercase":            {value: "My-component", want: false},
+		"underscore":           {value: "my_component", want: false},
+		"dot":                  {value: "my.component", want: false},
+		"leading hyphen":       {value: "-component", want: false},
+		"trailing hyphen":      {value: "component-", want: false},
+		"longer than 63 chars": {value: strings.Repeat("a", 64), want: false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := isDNS1123Label(tc.value)
+			if got := err == nil; got != tc.want {
+				t.Fatalf("isDNS1123Label(%q) error = %v, want valid=%v", tc.value, err, tc.want)
+			}
+		})
+	}
+}
 
 func TestMatchesFormat(t *testing.T) {
 	validate := matchesFormat(regexp.MustCompile(`^[a-z0-9-]+$`))
