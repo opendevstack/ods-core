@@ -3,8 +3,22 @@
 ## Unreleased
 
 ### Added
+- Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
 ### Changed
+
+### Fixed
+
+## [4.14.0] - 2026-10-13
+
+### Added
+- Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
+- Webhook proxy security hardening ([1408](https://github.com/opendevstack/ods-core/pull/1408))
+- Clean up configuration ([#1404](https://github.com/opendevstack/ods-core/pull/1404))
+
+### Changed
+- Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))
+- Remove excesive permisions ([#1407](https://github.com/opendevstack/ods-core/pull/1407))
 
 ### Fixed
 - Fixes VIT0089540 ([#1395](https://github.com/opendevstack/ods-core/pull/1395))
@@ -13,7 +27,6 @@
 - Fixed VIT0089531 ([#1393](https://github.com/opendevstack/ods-core/pull/1393))
 - Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
 - Harden post-creation scripts against RCE and credential exfiltration: remove `CD_PASSWORD` from the scripts environment and restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
-- Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
 
 ## [4.13.2] - 2026-08-13
 ### Fixed

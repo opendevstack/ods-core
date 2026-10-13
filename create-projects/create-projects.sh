@@ -85,7 +85,7 @@ fi
 if [ -n "${PROJECT_GROUPS}" ]; then
   echo "Seeding special permission groups (${PROJECT_GROUPS}) ..."
 
-  cd_usergroup_role="edit-atlassian-team"
+  cd_usergroup_role="view"
   usergroup_role="edit"
   admingroup_role="admin"
   readonlygroup_role="view"

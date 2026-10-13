@@ -2,7 +2,11 @@ package create_projects
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -63,6 +67,10 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 				Value: values["PIPELINE_TRIGGER_SECRET_B64"],
 			},
 			{
+				Name:  "WEBHOOK_HMAC_SECRET",
+				Value: base64.StdEncoding.EncodeToString([]byte(values["WEBHOOK_HMAC_SECRET"])),
+			},
+			{
 				Name:  "ODS_GIT_REF",
 				Value: values["ODS_GIT_REF"],
 			},
@@ -87,14 +95,22 @@ func TestCreateProjectThruWebhookProxyJenkinsFile(t *testing.T) {
 	}
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	reponse, err := http.Post(
-		fmt.Sprintf("https://%s%s/build?trigger_secret=%s&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
-			values["PROV_APP_WEBHOOKPROXY_HOST"],
-			values["OPENSHIFT_APPS_BASEDOMAIN"],
-			values["PIPELINE_TRIGGER_SECRET"],
-			projectName),
-		"application/json",
-		bytes.NewBuffer(body))
+	buildURL := fmt.Sprintf("https://%s%s/build?jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-create-project-%s",
+		values["PROV_APP_WEBHOOKPROXY_HOST"],
+		values["OPENSHIFT_APPS_BASEDOMAIN"],
+		projectName)
+
+	mac := hmac.New(sha256.New, []byte(values["WEBHOOK_HMAC_SECRET"]))
+	mac.Write(body)
+	signature := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+
+	buildReq, err := http.NewRequest(http.MethodPost, buildURL, bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Could not create request: %s", err)
+	}
+	buildReq.Header.Set("Content-Type", "application/json")
+	buildReq.Header.Set("X-Hub-Signature", signature)
+	reponse, err := http.DefaultClient.Do(buildReq)
 
 	if err != nil {
 		t.Fatalf("Could not post request: %s", err)
@@ -193,6 +209,7 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 
 	user := values["CD_USER_ID_B64"]
 	secret := values["PIPELINE_TRIGGER_SECRET_B64"]
+	hmacSecret := values["WEBHOOK_HMAC_SECRET"]
 
 	stdout, stderr, err := utils.RunCommandWithWorkDir("tailor", []string{
 		"diff",
@@ -202,7 +219,8 @@ func CheckJenkinsWithTailor(values map[string]string, projectNameCd string, proj
 		fmt.Sprintf("--param=PROJECT=%s", projectName),
 		fmt.Sprintf("--param=CD_USER_ID_B64=%s", user),
 		"--selector", "template=ods-jenkins-template",
-		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret))}, dir, []string{})
+		fmt.Sprintf("--param=%s", fmt.Sprintf("PROXY_TRIGGER_SECRET_B64=%s", secret)),
+		fmt.Sprintf("--param=WEBHOOK_HMAC_SECRET=%s", hmacSecret)}, dir, []string{})
 	if err != nil {
 		t.Fatalf(
 			"Execution of tailor failed: \nStdOut: %s\nStdErr: %s",
