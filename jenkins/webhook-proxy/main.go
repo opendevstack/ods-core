@@ -26,18 +26,6 @@ import (
 	"time"
 )
 
-var (
-	// safeNameRegex permits characters that are valid in repository / component names.
-	safeNameRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
-	// safeBranchRegex permits characters that are valid in git branch / ref names.
-	safeBranchRegex = regexp.MustCompile(`^[a-zA-Z0-9._/\-+@]+$`)
-	// safeJenkinsfilePathRegex permits only relative path segments composed of
-	// safe characters. Each segment must begin with an alphanumeric character,
-	// which implicitly rejects absolute paths ("/..."), path traversal ("../"),
-	// and hidden-file tricks (".").
-	safeJenkinsfilePathRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*(?:/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$`)
-)
-
 const (
 	namespaceFile                  = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	tokenFile                      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -66,7 +54,90 @@ const (
 	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	maxEnvPairs                    = 32
+	maxEnvValueLength              = 4096
 )
+
+// envProfile binds a pipeline's allowed env var names/validators to the
+// jenkinsfile_path(s) it may legitimately be triggered with, preventing one
+// pipeline's env vars from being forwarded to another's Jenkinsfile.
+type envProfile struct {
+	name               string
+	allowedJenkinsfile func(jenkinsfilePath string) bool
+	requiredVars       []string
+	vars               map[string][]FieldValidator
+}
+
+// reservedJenkinsfilePaths are the fixed jenkinsfile_path values used by non-quickstarter ODS pipelines.
+var reservedJenkinsfilePaths = newStringSet(
+	jenkinsfilePathDefault,
+	"create-projects/Jenkinsfile",
+)
+
+// exactJenkinsfilePath builds an allowedJenkinsfile matcher for a single, fixed jenkinsfile_path.
+func exactJenkinsfilePath(path string) func(string) bool {
+	return func(p string) bool { return p == path }
+}
+
+// anyQuickstarterJenkinsfilePath matches any non-reserved jenkinsfile_path (quickstarters live under many dirs).
+func anyQuickstarterJenkinsfilePath(p string) bool {
+	_, reserved := reservedJenkinsfilePaths[p]
+	return !reserved
+}
+
+var envProfiles = []envProfile{
+	{
+		name:               "release-manager",
+		allowedJenkinsfile: exactJenkinsfilePath(jenkinsfilePathDefault),
+		vars: map[string][]FieldValidator{
+			"CHANGEDESCRIPTION":         {matchesFormat(safeFreeTextRegex)},
+			"CHANGEID":                  {matchesFormat(safeNameRegex)},
+			"CONFIGITEM":                {matchesFormat(safeNameRegex)},
+			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},
+			"RELEASESTATUSJIRAISSUEKEY": {matchesFormat(jiraIssueKeyRegex)},
+			"VERSION":                   {matchesFormat(safeNameRegex)},
+		},
+	},
+	{
+		name:               "project-creation",
+		allowedJenkinsfile: exactJenkinsfilePath("create-projects/Jenkinsfile"),
+		requiredVars:       []string{"PROJECT_ID", "WEBHOOK_HMAC_KEY"},
+		vars: map[string][]FieldValidator{
+			"CD_USER_ID_B64":            {isBase64},
+			"CD_USER_TYPE":              {oneOf("general", "specific")},
+			"GIT_SERVER_URL":            {isURL("http", "https")},
+			"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":             {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":             {matchesFormat(safeNameRegex)},
+			"PIPELINE_TRIGGER_SECRET":   {isBase64},
+			"PROJECT_ADMIN":             {matchesFormat(projectAdminRegex)},
+			"PROJECT_GROUPS":            {matchesFormat(projectGroupsRegex)},
+			"PROJECT_ID":                {matchesFormat(safeNameRegex)},
+			"WEBHOOK_ALLOWED_IP_RANGES": {isIPRangeList},
+			"WEBHOOK_HMAC_KEY":          {isBase64},
+		},
+	},
+	{
+		name:               "component-provisioning (ods-quickstarters)",
+		allowedJenkinsfile: anyQuickstarterJenkinsfilePath,
+		vars: map[string][]FieldValidator{
+			"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
+			"COMPONENT_TYPE":        {matchesFormat(safeNameRegex)},
+			"COMPONENT_ID":          {isDNS1123Label},
+			"GIT_URL_HTTP":          {isURL("http", "https")},
+			"GIT_URL_SSH":           {isURL("ssh")},
+			"GROUP_ID":              {matchesFormat(safeNameRegex)},
+			"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+			"PACKAGE_NAME":          {matchesFormat(safeNameRegex)},
+			"PROJECT_ID":            {matchesFormat(safeNameRegex)},
+			"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
+		},
+	},
+}
 
 // EnvPair represents an environment variable
 type EnvPair struct {
@@ -77,14 +148,15 @@ type EnvPair struct {
 // Event is the internal representation of a BitBucket event described in
 // https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
 type Event struct {
-	Kind      string
-	Namespace string
-	Repo      string
-	Component string
-	Branch    string
-	Pipeline  string
-	RequestID string
-	Env       []EnvPair
+	Kind            string
+	Namespace       string
+	Repo            string
+	Component       string
+	Branch          string
+	Pipeline        string
+	RequestID       string
+	Env             []EnvPair
+	JenkinsfilePath string
 }
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
@@ -388,7 +460,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-
+		log.Printf("%s incoming webhook URL: %s payload: %q", requestID, r.URL.String(), body)
 		signatureErr := verifyBitbucketPayloadSignature(s.WebhookHMACSecret, body, r.Header.Get(bitbucketSignatureHeader))
 		if signatureErr != nil {
 			log.Println(requestID, "Bitbucket payload signature rejected:", signatureErr)
@@ -437,14 +509,15 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, req.Branch)
 
 			event = &Event{
-				Kind:      "forward",
-				Namespace: s.Namespace,
-				Repo:      req.Repository,
-				Component: component,
-				Branch:    req.Branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
-				Env:       req.Env,
+				Kind:            "forward",
+				Namespace:       s.Namespace,
+				Repo:            req.Repository,
+				Component:       component,
+				Branch:          req.Branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				Env:             req.Env,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 
 		} else if r.URL.Path == "/" {
@@ -547,13 +620,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
-				Kind:      kind,
-				Namespace: s.Namespace,
-				Repo:      repo,
-				Component: component,
-				Branch:    branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
+				Kind:            kind,
+				Namespace:       s.Namespace,
+				Repo:            repo,
+				Component:       component,
+				Branch:          branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 		} else {
 			http.NotFound(w, r)
@@ -886,6 +960,7 @@ func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "Jenkins not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
 		} else {
@@ -911,6 +986,7 @@ func (c *ocClient) CheckDocGenAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "DocGen not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "DocGen available in namespace", e.Namespace)
 		} else {
@@ -982,7 +1058,67 @@ func (e *Event) IsValid() bool {
 	if !safeBranchRegex.MatchString(e.Branch) {
 		return false
 	}
+	if !isValidEnv(e.Env, e.JenkinsfilePath) {
+		return false
+	}
 	return true
+}
+
+// isValidEnv normalizes env pair names, rejects malformed/duplicate/oversized pairs, and delegates profile matching.
+func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
+	if len(env) > maxEnvPairs {
+		return false
+	}
+	normalizedEnv := make([]EnvPair, len(env))
+	copy(normalizedEnv, env)
+	seen := make(map[string]struct{}, len(env))
+	for index := range normalizedEnv {
+		pair := &normalizedEnv[index]
+		pair.Name = strings.ToUpper(pair.Name)
+		if !safeEnvNameRegex.MatchString(pair.Name) {
+			return false
+		}
+		if _, duplicate := seen[pair.Name]; duplicate {
+			return false
+		}
+		seen[pair.Name] = struct{}{}
+		if len(pair.Value) > maxEnvValueLength || strings.IndexFunc(pair.Value, func(r rune) bool {
+			return r < 0x20 || r == 0x7f
+		}) >= 0 {
+			return false
+		}
+	}
+	return matchesKnownEnvProfile(normalizedEnv, jenkinsfilePath)
+}
+
+// matchesKnownEnvProfile reports whether env is fully covered by one profile allowing jenkinsfilePath.
+func matchesKnownEnvProfile(env []EnvPair, jenkinsfilePath string) bool {
+profiles:
+	for _, profile := range envProfiles {
+		if !profile.allowedJenkinsfile(jenkinsfilePath) {
+			continue
+		}
+		provided := make(map[string]string, len(env))
+		for _, pair := range env {
+			validators, known := profile.vars[pair.Name]
+			if !known {
+				continue profiles
+			}
+			for _, validate := range validators {
+				if err := validate(pair.Value); err != nil {
+					continue profiles
+				}
+			}
+			provided[pair.Name] = pair.Value
+		}
+		for _, required := range profile.requiredVars {
+			if value, present := provided[required]; !present || value == "" {
+				continue profiles
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func (e *Event) String() string {

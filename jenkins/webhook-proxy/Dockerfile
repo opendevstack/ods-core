@@ -7,6 +7,7 @@ RUN apk update  && \
     mkdir -p /home/webhook-proxy
 
 COPY main.go /home/webhook-proxy/main.go
+COPY validators.go /home/webhook-proxy/validators.go
 COPY go.mod /home/webhook-proxy/go.mod
 
 WORKDIR /home/webhook-proxy

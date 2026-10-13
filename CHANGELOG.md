@@ -4,6 +4,9 @@
 
 ### Added
 - Webhook proxy security enhancements ([#1398](https://github.com/opendevstack/ods-core/pull/1398/))
+- Webhook proxy security hardening ([1408](https://github.com/opendevstack/ods-core/pull/1408))
+- Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
+- Clean up configuration ([#1404](https://github.com/opendevstack/ods-core/pull/1404))
 
 ### Changed
 - Adapt webhook proxy to use HMAC ([#1403](https://github.com/opendevstack/ods-core/pull/1403))

@@ -298,7 +298,7 @@ func TestHandleRootDoesNotRequireTriggerSecret(t *testing.T) {
 	tests := map[string]struct {
 		URL string
 	}{
-		"without trigger_secret param":   {ts.URL},
+		"without trigger_secret param":    {ts.URL},
 		"with empty trigger_secret param": {ts.URL + "?trigger_secret="},
 		"with wrong trigger_secret param": {ts.URL + "?trigger_secret=abc"},
 	}
@@ -384,34 +384,37 @@ func TestHandleRootReadsRequests(t *testing.T) {
 		"Refs changed": {
 			payloadFile: "repo-refs-changed-payload.json",
 			expectedEvent: &Event{
-				Kind:      "forward",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "master",
-				Pipeline:  "repository-master",
+				Kind:            "forward",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "master",
+				Pipeline:        "repository-master",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR merged": {
 			payloadFile: "pr-merged-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "admin/file-1505781548644",
-				Pipeline:  "repository-admin-file-1505781548644",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "admin/file-1505781548644",
+				Pipeline:        "repository-admin-file-1505781548644",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR declined": {
 			payloadFile: "pr-declined-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "decline-me",
-				Pipeline:  "repository-decline-me",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "decline-me",
+				Pipeline:        "repository-decline-me",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 	}
@@ -777,9 +780,24 @@ func TestForward(t *testing.T) {
 }
 
 func TestBuildEndpoint(t *testing.T) {
+	buildPayload := func(env ...EnvPair) []byte {
+		body, err := json.Marshal(struct {
+			Branch     string    `json:"branch"`
+			Project    string    `json:"project"`
+			Repository string    `json:"repository"`
+			Env        []EnvPair `json:"env"`
+		}{Branch: "master", Project: "bar", Repository: "ods-core", Env: env})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return body
+	}
+
 	tests := map[string]struct {
 		whpPath                   string
 		whpPayload                string
+		whpPayloadBody            []byte
+		whpSignatureMode          string
 		whpExpectedResponseStatus int
 		whpExpectedResponseBody   string
 		bcGetResponseBody         string // response when asked for the pipeline
@@ -790,12 +808,19 @@ func TestBuildEndpoint(t *testing.T) {
 		"request without signature": {
 			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "none",
 			whpExpectedResponseStatus: 401,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
 			bcUpsertExpectedPayload:   "",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    0,
+		},
+		"request with invalid signature": {
+			whpPath:                   "/build",
+			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "wrong",
+			whpExpectedResponseStatus: 401,
 		},
 		"valid payload": {
 			whpPath:                   "/build",
@@ -849,7 +874,7 @@ func TestBuildEndpoint(t *testing.T) {
 		},
 		"existing pipeline with different jenkinsfile path": {
 			whpPath:                   "/build?jenkinsfile_path=bar/Jenkinsfile",
-			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpPayload:                "testdata/fixtures/build-payload-no-env.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "testdata/fixtures/build-pipeline-jenkinsfilepath.json",
@@ -866,6 +891,77 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline-branch.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
+		},
+		"valid project-creation profile": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 200,
+			bcUpsertResponseStatus:    201,
+		},
+		"project-creation rejects missing PROJECT_ID": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects missing WEBHOOK_HMAC_KEY": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects empty required variable": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: ""}),
+			whpExpectedResponseStatus: 400,
+		},
+		"component-provisioning profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"release-manager profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation profile cannot target quickstarter": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"unknown environment variable is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}, EnvPair{Name: "EXTRA_INJECTED_VAR", Value: "attacker-controlled"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"environment variables from different profiles are rejected": {
+			whpPath:                   "/build",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"path traversal in ODS_BITBUCKET_PROJECT is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in PROJECT_GROUPS is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=$(id)"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"backticks in PROJECT_ID are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj`whoami`"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"shell metacharacters in ODS_BITBUCKET_PROJECT are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "proj; echo injected #"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in GIT_SERVER_URL is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com/$(echo injected)"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "test-project"}),
+			whpExpectedResponseStatus: 400,
 		},
 	}
 
@@ -949,13 +1045,20 @@ func TestBuildEndpoint(t *testing.T) {
 			defer server.Close()
 
 			// Make request to /build with payload
-			body, err := os.ReadFile(tc.whpPayload)
-			if err != nil {
-				t.Fatal(err)
+			body := tc.whpPayloadBody
+			if body == nil {
+				loadedBody, readErr := os.ReadFile(tc.whpPayload)
+				if readErr != nil {
+					t.Fatal(readErr)
+				}
+				body = loadedBody
 			}
 			signature := bitbucketSignature("webhook-secret", body)
-			if name == "request without signature" {
+			switch tc.whpSignatureMode {
+			case "none":
 				signature = ""
+			case "wrong":
+				signature = "sha256=WRONG"
 			}
 			res := postBitbucketRequest(t, server.URL+tc.whpPath, body, signature)
 
@@ -1115,6 +1218,164 @@ func TestIsValid(t *testing.T) {
 		"branch with null byte": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main\x00injected", Pipeline: "repo-main"},
 			want:  false,
+		},
+		"reserved environment variable": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "DOCKER_REGISTRY", Value: "attacker.example"}}},
+			want:  false,
+		},
+		"invalid environment variable name": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "BAD-NAME", Value: "value"}}},
+			want:  false,
+		},
+		"environment value with control character": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "value\nwith-newline"}}},
+			want:  false,
+		},
+		"environment name matching release-manager profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "version", Value: "1.0"}}},
+			want:  true,
+		},
+		"environment name matching component-provisioning profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
+			want:  true,
+		},
+		"component-provisioning rejects non-DNS-1123 COMPONENT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "COMPONENT_ID", Value: "My_component"}}},
+			want:  false,
+		},
+		"component-provisioning accepts mixed-case names and additional fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_type", Value: "docker-plain"},
+				{Name: "component_id", Value: "my-component"},
+				{Name: "git_url_ssh", Value: "ssh://git@bitbucket.example.com:7999/example/example.git"},
+				{Name: "git_url_http", Value: "https://bitbucket.example.com/scm/example/example.git"},
+				{Name: "GROUP_ID", Value: "com.example"},
+				{Name: "PACKAGE_NAME", Value: "com.example.my_component"},
+			}},
+			want: true,
+		},
+		"component-provisioning rejects duplicate names after normalization": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_id", Value: "my-component"},
+				{Name: "COMPONENT_ID", Value: "other-component"},
+			}},
+			want: false,
+		},
+		"environment name matching no profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "NOT_ALLOWED", Value: "value"}}},
+			want:  false,
+		},
+		"environment names mixing two profiles": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "PROJECT_ID", Value: "foo"}}},
+			want:  false,
+		},
+		"env value fails its field format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ID", Value: "not a valid project id!"}}},
+			want:  false,
+		},
+		"env value fails URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "not-a-url"}}},
+			want:  false,
+		},
+		"env value passes URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
+			want:  true,
+		},
+		"env value fails base64 format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "not-base64!"}}},
+			want:  false,
+		},
+		"env value fails IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "not-an-ip"}}},
+			want:  false,
+		},
+		"env value passes IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
+			want:  true,
+		},
+		"release-manager payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{
+				{Name: "environment", Value: "DEV"},
+				{Name: "changeDescription", Value: ""},
+				{Name: "releaseStatusJiraIssueKey", Value: "EXAMPLE-116"},
+				{Name: "changeId", Value: "CH00002"},
+				{Name: "version", Value: "WIP"},
+				{Name: "configItem", Value: "some-config-item"},
+			}},
+			want: true,
+		},
+		"project-creation payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
+				{Name: "CD_USER_TYPE", Value: "general"},
+				{Name: "WEBHOOK_HMAC_KEY", Value: "c29tZS1oaWRkZW4tdmFsdWU="},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "PIPELINE_TRIGGER_SECRET", Value: "MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw"},
+				{Name: "PROJECT_ADMIN", Value: "example.admin@example.com"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"},
+				{Name: "CD_USER_ID_B64", Value: "ZXhhbXBsZS11c2VyQGV4YW1wbGUuY29t"},
+				{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=example-admins,USERGROUP=example-users,READONLYGROUP=example-readonly"},
+				{Name: "ODS_NAMESPACE", Value: "ods"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example-project"},
+				{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/24,192.168.1.0/24"},
+				{Name: "PROJECT_ID", Value: "example-id"},
+			}},
+			want: true,
+		},
+		"component-provisioning payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "python-flask/Jenkinsfile", Env: []EnvPair{
+				{Name: "ODS_NAMESPACE", Value: "example-cd"},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example"},
+				{Name: "AGENT_IMAGE_TAG", Value: "4.x"},
+				{Name: "SHARED_LIBRARY_REF", Value: "4.x"},
+				{Name: "PROJECT_ID", Value: "example"},
+				{Name: "COMPONENT_ID", Value: "python-flask-example"},
+				{Name: "GIT_URL_HTTP", Value: "https://bitbucket.example.com/scm/example/example-python-flask-example.git"},
+			}},
+			want: true,
+		},
+		"CD_USER_TYPE outside the known list": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
+			want:  false,
+		},
+		"PROJECT_GROUPS with malformed grammar": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_GROUPS", Value: "ADMINGROUP:my-admins"}}},
+			want:  false,
+		},
+		"PROJECT_ADMIN as plain username": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
+			want:  true,
+		},
+		"project-creation requires PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation requires WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}}},
+			want:  false,
+		},
+		"project-creation rejects empty PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: ""}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation rejects empty WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: ""}}},
+			want:  false,
+		},
+		"project-creation requires env": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile"},
+			want:  false,
+		},
+		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
+			// Observed attempt: "../" path traversal in ODS_BITBUCKET_PROJECT.
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
+				{Name: "PROJECT_ID", Value: "test-project"},
+				{Name: "GIT_SERVER_URL", Value: "http://git.example.com"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"},
+			}},
+			want: false,
 		},
 	}
 
