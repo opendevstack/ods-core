@@ -9,6 +9,11 @@
 
 ### Fixed
 
+## [4.14.1] - 2026-10-15
+
+### Fixed
+- Fix indentation and format in deployment and secret configuration files ([#1398](https://github.com/opendevstack/ods-core/pull/1410/))
+
 ## [4.14.0] - 2026-10-13
 
 ### Added
