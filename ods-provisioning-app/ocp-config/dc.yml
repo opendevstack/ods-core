@@ -56,7 +56,7 @@ objects:
           terminationMessagePolicy: File
           envFrom:
             - secretRef:
-              name: ods-provisioning-app
+                name: ods-provisioning-app
           volumeMounts:
             - mountPath: /opt/provision/history
               name: volume-history
