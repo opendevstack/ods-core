@@ -69,6 +69,9 @@ parameters:
 - name: WEBHOOK_PROXY_EVENTS
   required: true
   description: list of supported webhook events
+- name: WEBHOOK_ALLOWED_IP_RANGES
+  required: true
+  description: Comma-separated list of allowed webhook source IP addresses or CIDR ranges
 - name: PROV_APP_WEBHOOKPROXY_HOST
   required: true
   description: the webhookproxy host that prov app connect to
@@ -217,6 +220,9 @@ objects:
 
       # list of supported webhook events
       openshift.jenkins.project.webhookproxy.events=${WEBHOOK_PROXY_EVENTS}
+
+      # Allowed source IP addresses or CIDR ranges for new project webhook proxies
+      webhook.allowed.ip.ranges=${WEBHOOK_ALLOWED_IP_RANGES}
 
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
 
