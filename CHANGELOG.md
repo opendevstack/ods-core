@@ -9,6 +9,10 @@
 
 ### Fixed
 
+## [4.14.2] - 2026-10-19
+### Fixed
+- Fix Tailor parameter naming conflict in Jenkins agent base Dockerfile ([1411](https://github.com/opendevstack/ods-core/pull/1411))
+
 ## [4.14.1] - 2026-10-15
 
 ### Fixed
