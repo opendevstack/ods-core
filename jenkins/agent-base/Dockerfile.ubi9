@@ -22,7 +22,7 @@ ENV SONAR_SCANNER_VERSION=7.3.0.5189 \
     SONAR_REPORT_HASH=09a1871983e4e1b489a5c8b58c322f9d44695d086a3e499875f3e5e1fdd61064 \
     COSIGN_FILE=cosign-linux-amd64 \
     COSIGN_HASH=064954c5d8c7e3b28188eee5b1727b31c411550bc5fefd41aa672d3c761d103a \
-    TAILOR_FILE=tailor-linux-amd64 \
+    TAILOR_BINARY_FILE=tailor-linux-amd64 \
     TAILOR_HASH=f496b18cb2ff984a199a614f2990473f9a16a9a5600c4fae348b57e29680d37d \
     SOPS_FILE=sops-3.11.0-1.x86_64.rpm \
     SOPS_HASH=2a4530acbd889c6b34c40a815d870e2116f8aaf1bb342ebaa2de11c2ea3655cf \
@@ -102,7 +102,7 @@ RUN cd /tmp \
 # Install Tailor.
 RUN cd /tmp \
     && curl -sSLO https://github.com/opendevstack/tailor/releases/download/v${TAILOR_VERSION}/tailor-linux-amd64 \
-    && echo "${TAILOR_HASH} *${TAILOR_FILE}" | sha256sum -c - \
+    && echo "${TAILOR_HASH} *${TAILOR_BINARY_FILE}" | sha256sum -c - \
     && mv tailor-linux-amd64 /usr/local/bin/tailor \
     && chmod a+x /usr/local/bin/tailor \
     && tailor version
