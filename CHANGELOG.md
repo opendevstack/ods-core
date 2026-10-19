@@ -9,6 +9,10 @@
 
 ### Fixed
 
+## [4.14.3] - 2026-10-19
+### Fixed
+- Add WEBHOOK_ALLOWED_IP_RANGES parameter for webhook proxy IP whitelisting ([1412](https://github.com/opendevstack/ods-core/pull/1412))
+
 ## [4.14.2] - 2026-10-19
 ### Fixed
 - Fix Tailor parameter naming conflict in Jenkins agent base Dockerfile ([1411](https://github.com/opendevstack/ods-core/pull/1411))
