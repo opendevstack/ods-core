@@ -9,6 +9,10 @@
 
 ### Fixed
 
+## [4.14.4] - 2026-10-23
+### Changed
+- Update Aquacli version from 2022.4.829 to 2022.4.941 ([1413](https://github.com/opendevstack/ods-core/pull/1413))
+
 ## [4.14.3] - 2026-10-19
 ### Fixed
 - Add WEBHOOK_ALLOWED_IP_RANGES parameter for webhook proxy IP whitelisting ([1412](https://github.com/opendevstack/ods-core/pull/1412))
