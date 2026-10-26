@@ -92,7 +92,7 @@ var envProfiles = []envProfile{
 		vars: map[string][]FieldValidator{
 			"CHANGEDESCRIPTION":         {matchesFormat(safeFreeTextRegex)},
 			"CHANGEID":                  {matchesFormat(safeNameRegex)},
-			"CONFIGITEM":                {matchesFormat(safeNameRegex)},
+			"CONFIGITEM":                {isConfigItem},
 			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},
 			"RELEASESTATUSJIRAISSUEKEY": {matchesFormat(jiraIssueKeyRegex)},
 			"VERSION":                   {matchesFormat(safeNameRegex)},

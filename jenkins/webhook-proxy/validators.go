@@ -34,6 +34,8 @@ var (
 	safeFreeTextRegex = regexp.MustCompile(`^[\p{L}\p{N} .,:!?_/-]*$`)
 )
 
+const configItemPlaceholder = "<CHANGE_THIS_TO_YOUR_CONFIGURATION_ITEM>"
+
 // FieldValidator validates a single string value, returning a descriptive error when the value is rejected.
 type FieldValidator func(value string) error
 
@@ -45,6 +47,13 @@ func matchesFormat(re *regexp.Regexp) FieldValidator {
 		}
 		return nil
 	}
+}
+
+func isConfigItem(value string) error {
+	if value == configItemPlaceholder {
+		return nil
+	}
+	return matchesFormat(safeNameRegex)(value)
 }
 
 // isDNS1123Label requires a lowercase DNS-1123 label of at most 63 characters.

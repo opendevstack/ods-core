@@ -9,6 +9,10 @@
 
 ### Fixed
 
+## [4.14.5] - 2026-10-26
+### Fixed
+- Allow the config item template placeholder in release-manager build validation ([#1416](https://github.com/opendevstack/ods-core/pull/1416))
+
 ## [4.14.4] - 2026-10-23
 ### Changed
 - Update Aquacli version from 2022.4.829 to 2022.4.941 ([1413](https://github.com/opendevstack/ods-core/pull/1413))
