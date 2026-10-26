@@ -57,6 +57,26 @@ func TestMatchesFormat(t *testing.T) {
 	}
 }
 
+func TestIsConfigItem(t *testing.T) {
+	tests := map[string]struct {
+		value string
+		want  bool
+	}{
+		"safe configuration item":    {value: "some-config-item", want: true},
+		"template placeholder":        {value: configItemPlaceholder, want: true},
+		"other angle-bracketed value": {value: "<not-a-placeholder>", want: false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := isConfigItem(tc.value)
+			if got := err == nil; got != tc.want {
+				t.Fatalf("isConfigItem(%q) error = %v, want valid=%v", tc.value, err, tc.want)
+			}
+		})
+	}
+}
+
 func TestOneOf(t *testing.T) {
 	validate := oneOf("DEV", "TEST", "PROD")
 
