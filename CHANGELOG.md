@@ -8,6 +8,7 @@
 ### Changed
 
 ### Fixed
+- Allow the config item template placeholder in release-manager build validation ([#1416](https://github.com/opendevstack/ods-core/pull/1416))
 
 ## [4.14.4] - 2026-10-23
 ### Changed
