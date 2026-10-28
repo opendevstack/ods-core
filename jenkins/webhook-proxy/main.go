@@ -2,15 +2,20 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/subtle"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -29,7 +34,7 @@ const (
 	pipelineConfigFilename         = "pipeline.json.tmpl"
 	repoBaseEnvVar                 = "REPO_BASE"
 	triggerSecretEnvVar            = "TRIGGER_SECRET"
-	triggerSecretDefault           = "secret101"
+	webhookHMACSecretEnvVar        = "WEBHOOK_HMAC_SECRET"
 	jenkinsfilePathDefault         = "Jenkinsfile"
 	protectedBranchesEnvVar        = "PROTECTED_BRANCHES"
 	protectedBranchesDefault       = "master,develop,production,staging,release/"
@@ -45,9 +50,94 @@ const (
 	maxDeletionChecksDefault       = "10"
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
+	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
+	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	maxEnvPairs                    = 32
+	maxEnvValueLength              = 4096
 )
+
+// envProfile binds a pipeline's allowed env var names/validators to the
+// jenkinsfile_path(s) it may legitimately be triggered with, preventing one
+// pipeline's env vars from being forwarded to another's Jenkinsfile.
+type envProfile struct {
+	name               string
+	allowedJenkinsfile func(jenkinsfilePath string) bool
+	requiredVars       []string
+	vars               map[string][]FieldValidator
+}
+
+// reservedJenkinsfilePaths are the fixed jenkinsfile_path values used by non-quickstarter ODS pipelines.
+var reservedJenkinsfilePaths = newStringSet(
+	jenkinsfilePathDefault,
+	"create-projects/Jenkinsfile",
+)
+
+// exactJenkinsfilePath builds an allowedJenkinsfile matcher for a single, fixed jenkinsfile_path.
+func exactJenkinsfilePath(path string) func(string) bool {
+	return func(p string) bool { return p == path }
+}
+
+// anyQuickstarterJenkinsfilePath matches any non-reserved jenkinsfile_path (quickstarters live under many dirs).
+func anyQuickstarterJenkinsfilePath(p string) bool {
+	_, reserved := reservedJenkinsfilePaths[p]
+	return !reserved
+}
+
+var envProfiles = []envProfile{
+	{
+		name:               "release-manager",
+		allowedJenkinsfile: exactJenkinsfilePath(jenkinsfilePathDefault),
+		vars: map[string][]FieldValidator{
+			"CHANGEDESCRIPTION":         {matchesFormat(safeFreeTextRegex)},
+			"CHANGEID":                  {matchesFormat(safeNameRegex)},
+			"CONFIGITEM":                {isConfigItem},
+			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},
+			"RELEASESTATUSJIRAISSUEKEY": {matchesFormat(jiraIssueKeyRegex)},
+			"VERSION":                   {matchesFormat(safeNameRegex)},
+		},
+	},
+	{
+		name:               "project-creation",
+		allowedJenkinsfile: exactJenkinsfilePath("create-projects/Jenkinsfile"),
+		requiredVars:       []string{"PROJECT_ID", "WEBHOOK_HMAC_KEY"},
+		vars: map[string][]FieldValidator{
+			"CD_USER_ID_B64":            {isBase64},
+			"CD_USER_TYPE":              {oneOf("general", "specific")},
+			"GIT_SERVER_URL":            {isURL("http", "https")},
+			"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":             {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":             {matchesFormat(safeNameRegex)},
+			"PIPELINE_TRIGGER_SECRET":   {isBase64},
+			"PROJECT_ADMIN":             {matchesFormat(projectAdminRegex)},
+			"PROJECT_GROUPS":            {matchesFormat(projectGroupsRegex)},
+			"PROJECT_ID":                {matchesFormat(safeNameRegex)},
+			"WEBHOOK_ALLOWED_IP_RANGES": {isIPRangeList},
+			"WEBHOOK_HMAC_KEY":          {isBase64},
+		},
+	},
+	{
+		name:               "component-provisioning (ods-quickstarters)",
+		allowedJenkinsfile: anyQuickstarterJenkinsfilePath,
+		vars: map[string][]FieldValidator{
+			"AGENT_IMAGE_TAG":       {matchesFormat(safeNameRegex)},
+			"COMPONENT_TYPE":        {matchesFormat(safeNameRegex)},
+			"COMPONENT_ID":          {isDNS1123Label},
+			"GIT_URL_HTTP":          {isURL("http", "https")},
+			"GIT_URL_SSH":           {isURL("ssh")},
+			"GROUP_ID":              {matchesFormat(safeNameRegex)},
+			"ODS_BITBUCKET_PROJECT": {matchesFormat(safeNameRegex)},
+			"ODS_GIT_REF":           {matchesFormat(safeBranchRegex)},
+			"ODS_IMAGE_TAG":         {matchesFormat(safeNameRegex)},
+			"ODS_NAMESPACE":         {matchesFormat(safeNameRegex)},
+			"PACKAGE_NAME":          {matchesFormat(safeNameRegex)},
+			"PROJECT_ID":            {matchesFormat(safeNameRegex)},
+			"SHARED_LIBRARY_REF":    {matchesFormat(safeBranchRegex)},
+		},
+	},
+}
 
 // EnvPair represents an environment variable
 type EnvPair struct {
@@ -58,14 +148,15 @@ type EnvPair struct {
 // Event is the internal representation of a BitBucket event described in
 // https://confluence.atlassian.com/bitbucketserver0511/using-bitbucket-server/managing-webhooks-in-bitbucket-server/event-payload
 type Event struct {
-	Kind      string
-	Namespace string
-	Repo      string
-	Component string
-	Branch    string
-	Pipeline  string
-	RequestID string
-	Env       []EnvPair
+	Kind            string
+	Namespace       string
+	Repo            string
+	Component       string
+	Branch          string
+	Pipeline        string
+	RequestID       string
+	Env             []EnvPair
+	JenkinsfilePath string
 }
 
 // BuildConfigData represents the data to be rendered into the BuildConfig template.
@@ -105,7 +196,7 @@ type buildConfig struct {
 // Client makes requests, e.g. to create and delete pipelines, or to forward
 // event payloads.
 type Client interface {
-	Forward(e *Event, triggerSecret string) (int, []byte, error)
+	Forward(e *Event) (int, []byte, error)
 	GetPipeline(e *Event) (bool, []byte, error)
 	CreateOrUpdatePipeline(exists bool, tmpl *template.Template, e *Event, data BuildConfigData) (int, error)
 	DeletePipeline(e *Event) error
@@ -117,7 +208,8 @@ type ocClient struct {
 	HTTPClient          *http.Client
 	OpenShiftAPIBaseURL string
 	Token               string
-	OpenShiftAppDomain string
+	OpenShiftAppDomain  string
+	TriggerSecret       string
 }
 
 // Server represents this service, and is a global.
@@ -125,11 +217,13 @@ type Server struct {
 	Client                  Client
 	Namespace               string
 	Project                 string
+	WebhookHMACSecret       string
 	TriggerSecret           string
 	ProtectedBranches       []string
 	AcceptedEvents          []string
 	AllowedExternalProjects []string
 	AllowedChangeRefTypes   []string
+	AllowedWebhookIPRanges  []*net.IPNet
 	RepoBase                string
 	MaxDeletionChecks       int
 }
@@ -176,13 +270,12 @@ func main() {
 
 	triggerSecret := os.Getenv(triggerSecretEnvVar)
 	if len(triggerSecret) == 0 {
-		triggerSecret = triggerSecretDefault
-		log.Println(
-			"WARN:",
-			triggerSecretEnvVar,
-			"not set, using default value:",
-			triggerSecretDefault,
-		)
+		log.Fatalln(triggerSecretEnvVar, "must be set")
+	}
+
+	webhookHMACSecret := os.Getenv(webhookHMACSecretEnvVar)
+	if len(webhookHMACSecret) == 0 {
+		log.Fatalln(webhookHMACSecretEnvVar, "must be set")
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
@@ -247,6 +340,20 @@ func main() {
 		maxDeletionChecks = envMaxDeletionChecks
 	}
 
+	envAllowedWebhookIPRanges := os.Getenv(allowedWebhookIPRangesEnvVar)
+	if len(envAllowedWebhookIPRanges) == 0 {
+		log.Fatalln(allowedWebhookIPRangesEnvVar, "is required but not set")
+	}
+	allowedWebhookIPRanges, parseErr := parseIPRanges(envAllowedWebhookIPRanges)
+	if parseErr != nil {
+		log.Fatalln("Invalid", allowedWebhookIPRangesEnvVar, ":", parseErr)
+	}
+	if len(allowedWebhookIPRanges) == 0 {
+		log.Fatalln("No valid IP ranges found in", allowedWebhookIPRangesEnvVar)
+	}
+
+	log.Println("INFO:", allowedWebhookIPRangesEnvVar, "set to", envAllowedWebhookIPRanges)
+
 	client, err := newClient(openShiftAPIHost, triggerSecret, openShiftAppDomain)
 	if err != nil {
 		log.Fatalln(err)
@@ -268,11 +375,13 @@ func main() {
 		Client:                  client,
 		Namespace:               namespace,
 		Project:                 project,
+		WebhookHMACSecret:       webhookHMACSecret,
 		TriggerSecret:           triggerSecret,
 		ProtectedBranches:       protectedBranches,
 		AcceptedEvents:          acceptedEvents,
 		AllowedExternalProjects: allowedExternalProjects,
 		AllowedChangeRefTypes:   allowedChangeRefTypes,
+		AllowedWebhookIPRanges:  allowedWebhookIPRanges,
 		RepoBase:                repoBase,
 		MaxDeletionChecks:       maxDeletionChecksInt,
 	}
@@ -307,6 +416,9 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				Repository repository `json:"repository"`
 				DisplayID  string     `json:"displayId"`
 			} `json:"fromRef"`
+			ToRef struct {
+				Repository repository `json:"repository"`
+			} `json:"toRef"`
 		} `json:"pullRequest"`
 	}
 
@@ -327,7 +439,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 		log.Println(requestID, "-----")
 
 		init.Do(func() {
-			tmpl, err = template.ParseFiles(pipelineConfigFilename)
+			tmpl, err = parsePipelineTemplate(pipelineConfigFilename)
 		})
 		if err != nil {
 			log.Println(requestID, err.Error())
@@ -335,17 +447,37 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			return
 		}
 
-		queryValues := r.URL.Query()
-		triggerSecretParam := queryValues.Get("trigger_secret")
-		if triggerSecretParam != s.TriggerSecret {
-			log.Println(requestID, "trigger_secret param not given / not matching")
+		ip := requestIP(r)
+		if ip == nil || !isIPAllowed(s.AllowedWebhookIPRanges, ip) {
+			log.Println(requestID, "request from disallowed IP:", ip, "(remote-addr="+r.RemoteAddr+")")
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		body, readErr := io.ReadAll(r.Body)
+		if readErr != nil {
+			log.Println(requestID, "Cannot read request body:", readErr)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		log.Printf("%s incoming webhook URL: %s payload: %q", requestID, r.URL.String(), body)
+		signatureErr := verifyBitbucketPayloadSignature(s.WebhookHMACSecret, body, r.Header.Get(bitbucketSignatureHeader))
+		if signatureErr != nil {
+			log.Println(requestID, "Bitbucket payload signature rejected:", signatureErr)
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
 			return
 		}
 
+		queryValues := r.URL.Query()
+
 		jenkinsfilePath := jenkinsfilePathDefault
 		jenkinsfilePathParam := queryValues.Get("jenkinsfile_path")
 		if jenkinsfilePathParam != "" {
+			if !safeJenkinsfilePathRegex.MatchString(jenkinsfilePathParam) {
+				log.Println(requestID, "jenkinsfile_path param rejected:", jenkinsfilePathParam)
+				http.Error(w, "Invalid jenkinsfile_path", http.StatusBadRequest)
+				return
+			}
 			jenkinsfilePath = jenkinsfilePathParam
 		}
 
@@ -356,7 +488,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 
 		if strings.HasPrefix(r.URL.Path, "/build") {
 			req := &requestBuild{}
-			err := json.NewDecoder(r.Body).Decode(req)
+			err := json.Unmarshal(body, req)
 			if err != nil {
 				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
 				log.Println(requestID, msg)
@@ -377,20 +509,20 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, req.Branch)
 
 			event = &Event{
-				Kind:      "forward",
-				Namespace: s.Namespace,
-				Repo:      req.Repository,
-				Component: component,
-				Branch:    req.Branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
-				Env:       req.Env,
+				Kind:            "forward",
+				Namespace:       s.Namespace,
+				Repo:            req.Repository,
+				Component:       component,
+				Branch:          req.Branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				Env:             req.Env,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 
 		} else if r.URL.Path == "/" {
-
 			req := &requestBitbucket{}
-			err := json.NewDecoder(r.Body).Decode(req)
+			err := json.Unmarshal(body, req)
 			if err != nil {
 				msg := fmt.Sprintf("Cannot parse JSON: %s", err)
 				log.Println(requestID, msg)
@@ -455,6 +587,24 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 			} else if req.EventKey == "pr:opened" || req.EventKey == "pr:merged" || req.EventKey == "pr:declined" || req.EventKey == "pr:deleted" {
+				// Validate the target (toRef) project against the server's allowed
+				// projects.  This is the authoritative check; the root-level
+				// repository field is absent in PR payloads so it cannot be used.
+				_, prProjectErr := s.readProjectParam(req.PullRequest.ToRef.Repository.Project.Key, requestID)
+				if prProjectErr != nil {
+					http.Error(w, prProjectErr.Error(), http.StatusBadRequest)
+					return
+				}
+				if req.PullRequest.FromRef.Repository.Project.Key != req.PullRequest.ToRef.Repository.Project.Key {
+					msg := fmt.Sprintf(
+						"Cross-project PR rejected: source project %q does not match target project %q",
+						req.PullRequest.FromRef.Repository.Project.Key,
+						req.PullRequest.ToRef.Repository.Project.Key,
+					)
+					log.Println(requestID, msg)
+					http.Error(w, msg, http.StatusBadRequest)
+					return
+				}
 				repo = req.PullRequest.FromRef.Repository.Slug
 				if component == "" {
 					component = extractComponent(repo, project)
@@ -470,13 +620,14 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			pipeline := makePipelineName(project, component, branch)
 
 			event = &Event{
-				Kind:      kind,
-				Namespace: s.Namespace,
-				Repo:      repo,
-				Component: component,
-				Branch:    branch,
-				Pipeline:  pipeline,
-				RequestID: requestID,
+				Kind:            kind,
+				Namespace:       s.Namespace,
+				Repo:            repo,
+				Component:       component,
+				Branch:          branch,
+				Pipeline:        pipeline,
+				RequestID:       requestID,
+				JenkinsfilePath: jenkinsfilePath,
 			}
 		} else {
 			http.NotFound(w, r)
@@ -576,7 +727,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					return
 				}
 			}
-			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event, s.TriggerSecret)
+			forwardStatusCode, forwardBody, forwardErr := s.Client.Forward(event)
 			if forwardErr != nil {
 				log.Println(requestID, forwardErr)
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -622,7 +773,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 					log.Println(requestID, "No remaining instances found")
 					return
 				}
-				if i == s.MaxDeletionChecks - 1 {
+				if i == s.MaxDeletionChecks-1 {
 					log.Println(requestID, "Reached maximum iterations, stopping checks")
 				}
 			}
@@ -647,19 +798,25 @@ func (s *Server) readProjectParam(projectParam string, requestID string) (string
 }
 
 // Forward forwards a webhook event payload to the correct pipeline.
-func (c *ocClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
+func (c *ocClient) Forward(e *Event) (int, []byte, error) {
 	url := fmt.Sprintf(
 		"%s/namespaces/%s/buildconfigs/%s/webhooks/%s/generic",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,
-		triggerSecret,
+		c.TriggerSecret,
+	)
+	redactedURL := fmt.Sprintf(
+		"%s/namespaces/%s/buildconfigs/%s/webhooks/[REDACTED]/generic",
+		c.OpenShiftAPIBaseURL,
+		e.Namespace,
+		e.Pipeline,
 	)
 
 	c.CheckJenkinsAvailability(e)
 	c.CheckDocGenAvailability(e)
 
-	log.Println(e.RequestID, "Forwarding to", url)
+	log.Println(e.RequestID, "Forwarding to", redactedURL)
 
 	p := struct {
 		Env []EnvPair `json:"env"`
@@ -803,6 +960,7 @@ func (c *ocClient) CheckJenkinsAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "Jenkins not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "Jenkins available in namespace", e.Namespace)
 		} else {
@@ -828,6 +986,7 @@ func (c *ocClient) CheckDocGenAvailability(e *Event) {
 	if err != nil {
 		log.Println(e.RequestID, "DocGen not reachable, if idled it will scale up in namespace", e.Namespace)
 	} else {
+		defer res.Body.Close()
 		if res.StatusCode == 200 {
 			log.Println(e.RequestID, "DocGen available in namespace", e.Namespace)
 		} else {
@@ -875,7 +1034,7 @@ func (c *ocClient) do(req *http.Request) (*http.Response, error) {
 	return c.HTTPClient.Do(req)
 }
 
-// IsValid performs basic snaity checks for event values.
+// IsValid performs basic sanity checks for event values.
 func (e *Event) IsValid() bool {
 	// Only forward and delete are recognized right now.
 	if e.Kind != "forward" && e.Kind != "delete" {
@@ -885,7 +1044,81 @@ func (e *Event) IsValid() bool {
 	if len(e.Pipeline) < 3 {
 		return false
 	}
-	return len(e.Namespace) > 0 && len(e.Repo) > 0 && len(e.Component) > 0 && len(e.Branch) > 0
+	if len(e.Namespace) == 0 || len(e.Repo) == 0 || len(e.Component) == 0 || len(e.Branch) == 0 {
+		return false
+	}
+	// Reject JSON metacharacters and other unsafe characters in fields that are
+	// interpolated into the BuildConfig template to prevent JSON injection.
+	if !safeNameRegex.MatchString(e.Repo) {
+		return false
+	}
+	if !safeNameRegex.MatchString(e.Component) {
+		return false
+	}
+	if !safeBranchRegex.MatchString(e.Branch) {
+		return false
+	}
+	if !isValidEnv(e.Env, e.JenkinsfilePath) {
+		return false
+	}
+	return true
+}
+
+// isValidEnv normalizes env pair names, rejects malformed/duplicate/oversized pairs, and delegates profile matching.
+func isValidEnv(env []EnvPair, jenkinsfilePath string) bool {
+	if len(env) > maxEnvPairs {
+		return false
+	}
+	normalizedEnv := make([]EnvPair, len(env))
+	copy(normalizedEnv, env)
+	seen := make(map[string]struct{}, len(env))
+	for index := range normalizedEnv {
+		pair := &normalizedEnv[index]
+		pair.Name = strings.ToUpper(pair.Name)
+		if !safeEnvNameRegex.MatchString(pair.Name) {
+			return false
+		}
+		if _, duplicate := seen[pair.Name]; duplicate {
+			return false
+		}
+		seen[pair.Name] = struct{}{}
+		if len(pair.Value) > maxEnvValueLength || strings.IndexFunc(pair.Value, func(r rune) bool {
+			return r < 0x20 || r == 0x7f
+		}) >= 0 {
+			return false
+		}
+	}
+	return matchesKnownEnvProfile(normalizedEnv, jenkinsfilePath)
+}
+
+// matchesKnownEnvProfile reports whether env is fully covered by one profile allowing jenkinsfilePath.
+func matchesKnownEnvProfile(env []EnvPair, jenkinsfilePath string) bool {
+profiles:
+	for _, profile := range envProfiles {
+		if !profile.allowedJenkinsfile(jenkinsfilePath) {
+			continue
+		}
+		provided := make(map[string]string, len(env))
+		for _, pair := range env {
+			validators, known := profile.vars[pair.Name]
+			if !known {
+				continue profiles
+			}
+			for _, validate := range validators {
+				if err := validate(pair.Value); err != nil {
+					continue profiles
+				}
+			}
+			provided[pair.Name] = pair.Value
+		}
+		for _, required := range profile.requiredVars {
+			if value, present := provided[required]; !present || value == "" {
+				continue profiles
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func (e *Event) String() string {
@@ -921,7 +1154,8 @@ func newClient(openShiftAPIHost string, triggerSecret string, openShiftAppDomain
 		HTTPClient:          secureClient,
 		OpenShiftAPIBaseURL: baseURL,
 		Token:               token,
-		OpenShiftAppDomain: openShiftAppDomain,
+		OpenShiftAppDomain:  openShiftAppDomain,
+		TriggerSecret:       triggerSecret,
 	}, nil
 }
 
@@ -932,6 +1166,22 @@ func getBuildConfig(tmpl *template.Template, data BuildConfigData) (*bytes.Buffe
 		return nil, fmt.Errorf("Could not fill template %s", pipelineConfigFilename)
 	}
 	return b, nil
+}
+
+// parsePipelineTemplate parses the pipeline BuildConfig template and registers
+// the jsonStr function used to safely encode user-controlled string values.
+func parsePipelineTemplate(filename string) (*template.Template, error) {
+	return template.New(filename).Funcs(template.FuncMap{
+		// jsonStr JSON-encodes s and strips the surrounding quotes so it can
+		// be safely interpolated inside an existing JSON string literal.
+		"jsonStr": func(s string) (string, error) {
+			b, err := json.Marshal(s)
+			if err != nil {
+				return "", err
+			}
+			return string(b[1 : len(b)-1]), nil
+		},
+	}).ParseFiles(filename)
 }
 
 func getSecureClient() (*http.Client, error) {
@@ -954,7 +1204,15 @@ func getSecureClient() (*http.Client, error) {
 	// left as nil. https://go.dev/pkg/crypto/tls/
 	// tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	return &http.Client{Transport: transport, Timeout: 10 * time.Second}, nil
+	return &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+		// Never follow redirects: the SA Bearer token must not be forwarded
+		// to a redirected host (SSRF / token-leakage mitigation).
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}, nil
 }
 
 func getFileContent(filename string) (string, error) {
@@ -1015,15 +1273,121 @@ func makePipelineName(project string, component string, branch string) string {
 	return pipeline
 }
 
+func verifyBitbucketPayloadSignature(secret string, payload []byte, signatureHeader string) error {
+	if signatureHeader == "" {
+		return errors.New("missing signature header")
+	}
+
+	parts := strings.SplitN(signatureHeader, "=", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return errors.New("invalid signature header format")
+	}
+
+	algorithm := strings.ToLower(parts[0])
+	expectedDigest, err := computeHMACDigest(algorithm, secret, payload)
+	if err != nil {
+		return err
+	}
+
+	providedDigest := strings.ToLower(parts[1])
+	if subtle.ConstantTimeCompare([]byte(providedDigest), []byte(expectedDigest)) != 1 {
+		return errors.New("signature mismatch")
+	}
+
+	return nil
+}
+
+func computeHMACDigest(algorithm string, secret string, payload []byte) (string, error) {
+	var mac hash.Hash
+
+	switch algorithm {
+	case "sha256":
+		mac = hmac.New(sha256.New, []byte(secret))
+	case "sha1":
+		mac = hmac.New(sha1.New, []byte(secret))
+	default:
+		return "", fmt.Errorf("unsupported signature algorithm: %s", algorithm)
+	}
+
+	_, err := mac.Write(payload)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", mac.Sum(nil)), nil
+}
+
 func isProtectedBranch(protectedBranches []string, branch string) bool {
 	for _, b := range protectedBranches {
 		if b == "*" {
 			return true
 		}
-		if strings.HasSuffix(b, "/") && strings.HasPrefix(branch, b) {
+		if strings.HasSuffix(b, "/") && strings.HasPrefix(strings.ToLower(branch), strings.ToLower(b)) {
 			return true
 		}
-		if b == branch {
+		if strings.EqualFold(b, branch) {
+			return true
+		}
+	}
+	return false
+}
+
+// parseIPRanges parses a comma-separated list of CIDRs and bare IPs into
+// []*net.IPNet. Bare IPs are automatically expanded to /32 (IPv4) or /128
+// (IPv6) host routes.
+func parseIPRanges(raw string) ([]*net.IPNet, error) {
+	var networks []*net.IPNet
+	for _, entry := range strings.Split(raw, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if !strings.Contains(entry, "/") {
+			ip := net.ParseIP(entry)
+			if ip == nil {
+				return nil, fmt.Errorf("invalid IP address: %q", entry)
+			}
+			if ip.To4() != nil {
+				entry = entry + "/32"
+			} else {
+				entry = entry + "/128"
+			}
+		}
+		_, network, err := net.ParseCIDR(entry)
+		if err != nil {
+			return nil, fmt.Errorf("invalid CIDR %q: %s", entry, err)
+		}
+		networks = append(networks, network)
+	}
+	return networks, nil
+}
+
+// requestIP extracts the client IP from the request. It trusts the
+// X-Forwarded-For header (first entry, set by the OpenShift router/ingress)
+// when present, then X-Real-IP, and finally falls back to RemoteAddr.
+func requestIP(r *http.Request) net.IP {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		parts := strings.SplitN(xff, ",", 2)
+		if ip := net.ParseIP(strings.TrimSpace(parts[0])); ip != nil {
+			return ip
+		}
+	}
+	if xri := r.Header.Get("X-Real-IP"); xri != "" {
+		if ip := net.ParseIP(strings.TrimSpace(xri)); ip != nil {
+			return ip
+		}
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return net.ParseIP(r.RemoteAddr)
+	}
+	return net.ParseIP(host)
+}
+
+// isIPAllowed reports whether ip is contained in any of the allowed networks.
+func isIPAllowed(allowedRanges []*net.IPNet, ip net.IP) bool {
+	for _, network := range allowedRanges {
+		if network.Contains(ip) {
 			return true
 		}
 	}

@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/log v0.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.6.0
-	github.com/jstemmer/go-junit-report v0.9.1
+	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/tidwall/gjson v1.17.0

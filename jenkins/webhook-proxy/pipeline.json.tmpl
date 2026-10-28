@@ -20,8 +20,8 @@
         "source": {
             "type": "Git",
             "git": {
-                "uri": "{{.GitURI}}",
-                "ref": "{{.Branch}}"
+                "uri": "{{.GitURI | jsonStr}}",
+                "ref": "{{.Branch | jsonStr}}"
             },
             "sourceSecret": {
                 "name": "cd-user-with-password"
@@ -30,7 +30,7 @@
         "strategy": {
             "type": "JenkinsPipeline",
             "jenkinsPipelineStrategy": {
-                "jenkinsfilePath": "{{.JenkinsfilePath}}",
+                "jenkinsfilePath": "{{.JenkinsfilePath | jsonStr}}",
                 "env": {{.Env}}
             }
         },

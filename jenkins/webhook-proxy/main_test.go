@@ -2,9 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,12 +16,53 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 )
 
 // SETUP
 func TestMain(m *testing.M) {
 	log.SetOutput(io.Discard)
 	os.Exit(m.Run())
+}
+
+func localhostIPRanges() []*net.IPNet {
+	ranges, err := parseIPRanges("127.0.0.0/8,::1/128")
+	if err != nil {
+		panic(err)
+	}
+	return ranges
+}
+
+func bitbucketSignature(secret string, body []byte) string {
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, _ = mac.Write(body)
+	return "sha256=" + hex.EncodeToString(mac.Sum(nil))
+}
+
+func postBitbucketRequest(t *testing.T, url string, body []byte, signature string) *http.Response {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if signature != "" {
+		req.Header.Set(bitbucketSignatureHeader, signature)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return res
+}
+
+func readFixture(t *testing.T, name string) []byte {
+	t.Helper()
+	body, err := os.ReadFile("testdata/fixtures/" + name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return body
 }
 
 func TestMakePipelineName(t *testing.T) {
@@ -162,6 +207,27 @@ func TestIsProtectedBranch(t *testing.T) {
 			"feature/v2",
 			false,
 		},
+		// Case-insensitive protection: "Master" must match configured "master" (F-11)
+		{
+			[]string{"master"},
+			"Master",
+			true,
+		},
+		{
+			[]string{"master"},
+			"MASTER",
+			true,
+		},
+		{
+			[]string{"develop"},
+			"DEVELOP",
+			true,
+		},
+		{
+			[]string{"master", "release/"},
+			"Release/v1",
+			true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -182,7 +248,7 @@ type mockClient struct {
 	Event *Event
 }
 
-func (c *mockClient) Forward(e *Event, triggerSecret string) (int, []byte, error) {
+func (c *mockClient) Forward(e *Event) (int, []byte, error) {
 	c.Event = e
 	return 200, nil, nil
 }
@@ -211,6 +277,7 @@ func testServer() (*httptest.Server, *mockClient) {
 		Client:                  mc,
 		Namespace:               "bar-cd",
 		Project:                 "bar",
+		WebhookHMACSecret:       "webhook-secret",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -218,45 +285,91 @@ func testServer() (*httptest.Server, *mockClient) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
 }
 
-func TestHandleRootRequiresTriggerSecret(t *testing.T) {
+func TestHandleRootDoesNotRequireTriggerSecret(t *testing.T) {
 	ts, mc := testServer()
 	defer ts.Close()
+	body := readFixture(t, "repo-refs-changed-payload.json")
 
 	tests := map[string]struct {
 		URL string
 	}{
-		"without trigger_secret param:":   {ts.URL},
+		"without trigger_secret param":    {ts.URL},
 		"with empty trigger_secret param": {ts.URL + "?trigger_secret="},
 		"with wrong trigger_secret param": {ts.URL + "?trigger_secret=abc"},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("testdata/fixtures/repo-refs-changed-payload.json")
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			res, err := http.Post(tc.URL, "application/json", f)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			expected := http.StatusUnauthorized
+			mc.Event = nil
+			res := postBitbucketRequest(t, tc.URL, body, bitbucketSignature("webhook-secret", body))
+			expected := http.StatusOK
 			actual := res.StatusCode
 			if expected != actual {
 				t.Fatalf("Got status %v, want %v", actual, expected)
+			}
+			if mc.Event == nil {
+				t.Fatal("Event was nil, want processed request")
+			}
+		})
+	}
+
+}
+
+func TestAllPathsRequireBitbucketSignature(t *testing.T) {
+	ts, mc := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		path      string
+		body      []byte
+		signature string
+	}{
+		"root without signature header": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: "",
+		},
+		"build without signature header": {
+			path:      "/build",
+			body:      readFixture(t, "build-payload.json"),
+			signature: "",
+		},
+		"unknown path without signature header": {
+			path:      "/foo",
+			body:      []byte(`{}`),
+			signature: "",
+		},
+		"root with wrong signature": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: bitbucketSignature("wrong-secret", readFixture(t, "repo-refs-changed-payload.json")),
+		},
+		"root with malformed signature": {
+			path:      "/",
+			body:      readFixture(t, "repo-refs-changed-payload.json"),
+			signature: "sha256",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := postBitbucketRequest(t, ts.URL+tc.path, tc.body, tc.signature)
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("Got status %v, want %v", res.StatusCode, http.StatusUnauthorized)
 			}
 			if mc.Event != nil {
 				t.Fatalf("Event was %v, want nil", mc.Event)
 			}
 		})
 	}
-
 }
 
 func TestHandleRootReadsRequests(t *testing.T) {
@@ -271,49 +384,46 @@ func TestHandleRootReadsRequests(t *testing.T) {
 		"Refs changed": {
 			payloadFile: "repo-refs-changed-payload.json",
 			expectedEvent: &Event{
-				Kind:      "forward",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "master",
-				Pipeline:  "repository-master",
+				Kind:            "forward",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "master",
+				Pipeline:        "repository-master",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR merged": {
 			payloadFile: "pr-merged-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "admin/file-1505781548644",
-				Pipeline:  "repository-admin-file-1505781548644",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "admin/file-1505781548644",
+				Pipeline:        "repository-admin-file-1505781548644",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 		"PR declined": {
 			payloadFile: "pr-declined-payload.json",
 			expectedEvent: &Event{
-				Kind:      "delete",
-				Namespace: "bar-cd",
-				Repo:      "repository",
-				Component: "repository",
-				Branch:    "decline-me",
-				Pipeline:  "repository-decline-me",
+				Kind:            "delete",
+				Namespace:       "bar-cd",
+				Repo:            "repository",
+				Component:       "repository",
+				Branch:          "decline-me",
+				Pipeline:        "repository-decline-me",
+				JenkinsfilePath: jenkinsfilePathDefault,
 			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// Use secret defined in fake server.
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			var err error
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -333,6 +443,49 @@ func TestHandleRootReadsRequests(t *testing.T) {
 			tc.expectedEvent.RequestID = mc.Event.RequestID
 			if !reflect.DeepEqual(tc.expectedEvent, mc.Event) {
 				t.Fatalf("Got event: %v, want: %v", mc.Event, tc.expectedEvent)
+			}
+		})
+	}
+}
+
+func TestRejectsCrossProjectPR(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		payloadFile        string
+		expectedStatusCode int
+		wantCrossProject   bool
+	}{
+		"same-project PR merged is allowed": {
+			payloadFile:        "pr-merged-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"same-project PR declined is allowed": {
+			payloadFile:        "pr-declined-payload.json",
+			expectedStatusCode: http.StatusOK,
+			wantCrossProject:   false,
+		},
+		"cross-project PR is rejected": {
+			payloadFile:        "pr-cross-project-payload.json",
+			expectedStatusCode: http.StatusBadRequest,
+			wantCrossProject:   true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			responseBody, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != tc.expectedStatusCode {
+				t.Fatalf("Got status %d, want %d (body: %s)", res.StatusCode, tc.expectedStatusCode, responseBody)
+			}
+			if tc.wantCrossProject && !strings.Contains(string(responseBody), "Cross-project PR rejected") {
+				t.Fatalf("Expected cross-project rejection message in body, got: %s", responseBody)
 			}
 		})
 	}
@@ -369,6 +522,7 @@ func TestSkipsPayloads(t *testing.T) {
 				Client:                  mc,
 				Namespace:               "bar-cd",
 				Project:                 "bar",
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          tc.acceptedEvents,
@@ -376,24 +530,19 @@ func TestSkipsPayloads(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(server.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
 			var buf bytes.Buffer
 			log.SetOutput(&buf)
 			defer func() {
 				log.SetOutput(os.Stderr)
 			}()
-			// Use secret defined in fake server.
-			res, err := http.Post(ts.URL+"?trigger_secret=s3cr3t", "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			var err error
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -480,6 +629,7 @@ func TestNamespaceRestriction(t *testing.T) {
 				Client:                  c,
 				Namespace:               tc.project + "-cd",
 				Project:                 tc.project,
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           fakeSecret,
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -487,18 +637,13 @@ func TestNamespaceRestriction(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			ts := httptest.NewServer(s.HandleRoot())
 			defer ts.Close()
 
-			f, err := os.Open("testdata/fixtures/" + tc.payloadFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			res, err := http.Post(ts.URL+"?trigger_secret="+fakeSecret, "application/json", f)
-			if err != nil {
-				t.Fatal(err)
-			}
+			body := readFixture(t, tc.payloadFile)
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
 			_, err = io.ReadAll(res.Body)
 			res.Body.Close()
 			if err != nil {
@@ -611,10 +756,11 @@ func TestForward(t *testing.T) {
 				HTTPClient:          &http.Client{},
 				OpenShiftAPIBaseURL: apiStub.URL,
 				Token:               "foo",
+				TriggerSecret:       "s3cr3t",
 			}
 
 			// Ensure the response from OpenShift is forwarded as-is to the client
-			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event, "s3cr3t")
+			actualOpenshiftStatusCode, actualOpenshiftResponse, err := c.Forward(tc.event)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -634,9 +780,24 @@ func TestForward(t *testing.T) {
 }
 
 func TestBuildEndpoint(t *testing.T) {
+	buildPayload := func(env ...EnvPair) []byte {
+		body, err := json.Marshal(struct {
+			Branch     string    `json:"branch"`
+			Project    string    `json:"project"`
+			Repository string    `json:"repository"`
+			Env        []EnvPair `json:"env"`
+		}{Branch: "master", Project: "bar", Repository: "ods-core", Env: env})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return body
+	}
+
 	tests := map[string]struct {
 		whpPath                   string
 		whpPayload                string
+		whpPayloadBody            []byte
+		whpSignatureMode          string
 		whpExpectedResponseStatus int
 		whpExpectedResponseBody   string
 		bcGetResponseBody         string // response when asked for the pipeline
@@ -644,9 +805,10 @@ func TestBuildEndpoint(t *testing.T) {
 		bcUpsertResponseBody      string // response when pipeline is created/updated
 		bcUpsertResponseStatus    int    // code when pipeline is created/updated
 	}{
-		"request without trigger secret": {
+		"request without signature": {
 			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "none",
 			whpExpectedResponseStatus: 401,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "",
@@ -654,8 +816,14 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    0,
 		},
+		"request with invalid signature": {
+			whpPath:                   "/build",
+			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpSignatureMode:          "wrong",
+			whpExpectedResponseStatus: 401,
+		},
 		"valid payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -665,7 +833,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"valid payload with param": {
-			whpPath:                   "/build?component=baz&trigger_secret=s3cr3t",
+			whpPath:                   "/build?component=baz",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -675,7 +843,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"broken payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-broken-payload.txt",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Cannot parse JSON: invalid character '\"' after object key:value pair\n",
@@ -685,7 +853,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    0,
 		},
 		"invalid payload": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-invalid-payload.json",
 			whpExpectedResponseStatus: 400,
 			whpExpectedResponseBody:   "Invalid input\n",
@@ -695,7 +863,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    0,
 		},
 		"accepted payload rejected by OpenShift": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-rejected-payload.json",
 			whpExpectedResponseStatus: 422,
 			whpExpectedResponseBody:   "Could not create/update pipeline\n",
@@ -705,8 +873,8 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    422,
 		},
 		"existing pipeline with different jenkinsfile path": {
-			whpPath:                   "/build?trigger_secret=s3cr3t&jenkinsfile_path=bar/Jenkinsfile",
-			whpPayload:                "testdata/fixtures/build-payload.json",
+			whpPath:                   "/build?jenkinsfile_path=bar/Jenkinsfile",
+			whpPayload:                "testdata/fixtures/build-payload-no-env.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
 			bcGetResponseBody:         "testdata/fixtures/build-pipeline-jenkinsfilepath.json",
@@ -715,7 +883,7 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertResponseStatus:    201,
 		},
 		"existing pipeline with different branch": {
-			whpPath:                   "/build?trigger_secret=s3cr3t",
+			whpPath:                   "/build",
 			whpPayload:                "testdata/fixtures/build-payload.json",
 			whpExpectedResponseStatus: 200,
 			whpExpectedResponseBody:   "",
@@ -723,6 +891,77 @@ func TestBuildEndpoint(t *testing.T) {
 			bcUpsertExpectedPayload:   "testdata/golden/build-pipeline-branch.json",
 			bcUpsertResponseBody:      "",
 			bcUpsertResponseStatus:    201,
+		},
+		"valid project-creation profile": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 200,
+			bcUpsertResponseStatus:    201,
+		},
+		"project-creation rejects missing PROJECT_ID": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects missing WEBHOOK_HMAC_KEY": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation rejects empty required variable": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "WEBHOOK_HMAC_KEY", Value: ""}),
+			whpExpectedResponseStatus: 400,
+		},
+		"component-provisioning profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"release-manager profile cannot target create-projects": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"project-creation profile cannot target quickstarter": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"unknown environment variable is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=quickstarters/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "COMPONENT_ID", Value: "test-component"}, EnvPair{Name: "EXTRA_INJECTED_VAR", Value: "attacker-controlled"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"environment variables from different profiles are rejected": {
+			whpPath:                   "/build",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "environment", Value: "DEV"}, EnvPair{Name: "PROJECT_ADMIN", Value: "test-admin"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"path traversal in ODS_BITBUCKET_PROJECT is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in PROJECT_GROUPS is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=$(id)"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"backticks in PROJECT_ID are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-proj`whoami`"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"shell metacharacters in ODS_BITBUCKET_PROJECT are rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "proj; echo injected #"}),
+			whpExpectedResponseStatus: 400,
+		},
+		"command substitution in GIT_SERVER_URL is rejected": {
+			whpPath:                   "/build?jenkinsfile_path=create-projects/Jenkinsfile",
+			whpPayloadBody:            buildPayload(EnvPair{Name: "PROJECT_ID", Value: "test-project"}, EnvPair{Name: "GIT_SERVER_URL", Value: "http://git.example.com/$(echo injected)"}, EnvPair{Name: "ODS_BITBUCKET_PROJECT", Value: "test-project"}),
+			whpExpectedResponseStatus: 400,
 		},
 	}
 
@@ -792,6 +1031,7 @@ func TestBuildEndpoint(t *testing.T) {
 				Client:                  c,
 				Namespace:               "bar-cd",
 				Project:                 "bar",
+				WebhookHMACSecret:       "webhook-secret",
 				TriggerSecret:           "s3cr3t",
 				ProtectedBranches:       []string{"baz"},
 				AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -799,18 +1039,28 @@ func TestBuildEndpoint(t *testing.T) {
 				AllowedChangeRefTypes:   []string{"BRANCH"},
 				RepoBase:                "https://domain.com",
 				MaxDeletionChecks:       10,
+				AllowedWebhookIPRanges:  localhostIPRanges(),
 			}
 			server := httptest.NewServer(s.HandleRoot())
+			defer server.Close()
 
 			// Make request to /build with payload
-			f, err := os.Open(tc.whpPayload)
-			if err != nil {
-				t.Fatal(err)
+			body := tc.whpPayloadBody
+			if body == nil {
+				loadedBody, readErr := os.ReadFile(tc.whpPayload)
+				if readErr != nil {
+					t.Fatal(readErr)
+				}
+				body = loadedBody
 			}
-			res, err := http.Post(server.URL+tc.whpPath, "application/json", f)
-			if err != nil {
-				t.Fatal(err)
+			signature := bitbucketSignature("webhook-secret", body)
+			switch tc.whpSignatureMode {
+			case "none":
+				signature = ""
+			case "wrong":
+				signature = "sha256=WRONG"
 			}
+			res := postBitbucketRequest(t, server.URL+tc.whpPath, body, signature)
 
 			if res.StatusCode != tc.whpExpectedResponseStatus {
 				t.Fatalf("Got response %d, want: %d", res.StatusCode, tc.whpExpectedResponseStatus)
@@ -837,6 +1087,7 @@ func TestNotFound(t *testing.T) {
 		Client:                  &mockClient{},
 		Namespace:               "bar-cd",
 		Project:                 "bar",
+		WebhookHMACSecret:       "webhook-secret",
 		TriggerSecret:           "s3cr3t",
 		ProtectedBranches:       []string{"baz"},
 		AcceptedEvents:          []string{"repo:refs_changed", "pr:opened", "pr:declined", "pr:merged", "pr:deleted"},
@@ -844,13 +1095,13 @@ func TestNotFound(t *testing.T) {
 		AllowedChangeRefTypes:   []string{"BRANCH"},
 		RepoBase:                "https://domain.com",
 		MaxDeletionChecks:       10,
+		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	server := httptest.NewServer(s.HandleRoot())
+	defer server.Close()
 
-	res, err := http.Post(server.URL+"/foo?trigger_secret=s3cr3t", "application/json", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	body := []byte(`{}`)
+	res := postBitbucketRequest(t, server.URL+"/foo", body, bitbucketSignature("webhook-secret", body))
 
 	if res.StatusCode != http.StatusNotFound {
 		t.Fatalf("Got status %d, want: %d", res.StatusCode, http.StatusNotFound)
@@ -858,7 +1109,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestGetBuildConfig(t *testing.T) {
-	tmpl, err := template.ParseFiles(pipelineConfigFilename)
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
 	if err != nil {
 		t.Error(err)
 	}
@@ -885,6 +1136,456 @@ func TestGetBuildConfig(t *testing.T) {
 	expected := string(configBytes)
 	if actual != expected {
 		t.Errorf("Not the same, have: %s, want: %s", actual, expected)
+	}
+}
+
+func TestIsValid(t *testing.T) {
+	tests := map[string]struct {
+		event Event
+		want  bool
+	}{
+		"valid forward event": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "main", Pipeline: "my-repo-main"},
+			want:  true,
+		},
+		"valid delete event": {
+			event: Event{Kind: "delete", Namespace: "bar-cd", Repo: "my-repo", Component: "my-repo", Branch: "feature/ABC-123", Pipeline: "my-repo-123"},
+			want:  true,
+		},
+		"branch with dots and plus": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "release/v1.2.3+hotfix", Pipeline: "repo-v123"},
+			want:  true,
+		},
+		"unknown kind": {
+			event: Event{Kind: "unknown", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"pipeline too short": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "ab"},
+			want:  false,
+		},
+		"empty namespace": {
+			event: Event{Kind: "forward", Namespace: "", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty repo": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty component": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"empty branch": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Repo
+		"repo with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil"repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: `evil\repo`, Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with opening brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil{repo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"repo with newline": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "evil\nrepo", Component: "repo", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Component
+		"component with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: `evil"comp`, Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"component with closing brace": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "evil}comp", Branch: "main", Pipeline: "repo-main"},
+			want:  false,
+		},
+		// JSON injection via Branch
+		"branch with double-quote": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main"injected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with backslash": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: `main\ninjected`, Pipeline: "repo-main"},
+			want:  false,
+		},
+		"branch with null byte": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main\x00injected", Pipeline: "repo-main"},
+			want:  false,
+		},
+		"reserved environment variable": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "DOCKER_REGISTRY", Value: "attacker.example"}}},
+			want:  false,
+		},
+		"invalid environment variable name": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "BAD-NAME", Value: "value"}}},
+			want:  false,
+		},
+		"environment value with control character": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "value\nwith-newline"}}},
+			want:  false,
+		},
+		"environment name matching release-manager profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "version", Value: "1.0"}}},
+			want:  true,
+		},
+		"environment name matching component-provisioning profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "ODS_NAMESPACE", Value: "ods"}, {Name: "COMPONENT_ID", Value: "my-component"}}},
+			want:  true,
+		},
+		"component-provisioning rejects non-DNS-1123 COMPONENT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "some-quickstarter/Jenkinsfile", Env: []EnvPair{{Name: "COMPONENT_ID", Value: "My_component"}}},
+			want:  false,
+		},
+		"component-provisioning accepts mixed-case names and additional fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_type", Value: "docker-plain"},
+				{Name: "component_id", Value: "my-component"},
+				{Name: "git_url_ssh", Value: "ssh://git@bitbucket.example.com:7999/example/example.git"},
+				{Name: "git_url_http", Value: "https://bitbucket.example.com/scm/example/example.git"},
+				{Name: "GROUP_ID", Value: "com.example"},
+				{Name: "PACKAGE_NAME", Value: "com.example.my_component"},
+			}},
+			want: true,
+		},
+		"component-provisioning rejects duplicate names after normalization": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "docker-plain/Jenkinsfile", Env: []EnvPair{
+				{Name: "component_id", Value: "my-component"},
+				{Name: "COMPONENT_ID", Value: "other-component"},
+			}},
+			want: false,
+		},
+		"environment name matching no profile": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "NOT_ALLOWED", Value: "value"}}},
+			want:  false,
+		},
+		"environment names mixing two profiles": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "environment", Value: "DEV"}, {Name: "PROJECT_ID", Value: "foo"}}},
+			want:  false,
+		},
+		"env value fails its field format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "PROJECT_ID", Value: "not a valid project id!"}}},
+			want:  false,
+		},
+		"env value fails URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "GIT_SERVER_URL", Value: "not-a-url"}}},
+			want:  false,
+		},
+		"env value passes URL format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"}}},
+			want:  true,
+		},
+		"env value fails base64 format validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "not-base64!"}}},
+			want:  false,
+		},
+		"env value fails IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", Env: []EnvPair{{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "not-an-ip"}}},
+			want:  false,
+		},
+		"env value passes IP range list validator": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
+			want:  true,
+		},
+		"release-manager payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{
+				{Name: "environment", Value: "DEV"},
+				{Name: "changeDescription", Value: ""},
+				{Name: "releaseStatusJiraIssueKey", Value: "EXAMPLE-116"},
+				{Name: "changeId", Value: "CH00002"},
+				{Name: "version", Value: "WIP"},
+				{Name: "configItem", Value: "some-config-item"},
+			}},
+			want: true,
+		},
+		"project-creation payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
+				{Name: "CD_USER_TYPE", Value: "general"},
+				{Name: "WEBHOOK_HMAC_KEY", Value: "c29tZS1oaWRkZW4tdmFsdWU="},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "PIPELINE_TRIGGER_SECRET", Value: "MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw"},
+				{Name: "PROJECT_ADMIN", Value: "example.admin@example.com"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "GIT_SERVER_URL", Value: "https://bitbucket.example.com"},
+				{Name: "CD_USER_ID_B64", Value: "ZXhhbXBsZS11c2VyQGV4YW1wbGUuY29t"},
+				{Name: "PROJECT_GROUPS", Value: "ADMINGROUP=example-admins,USERGROUP=example-users,READONLYGROUP=example-readonly"},
+				{Name: "ODS_NAMESPACE", Value: "ods"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example-project"},
+				{Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/24,192.168.1.0/24"},
+				{Name: "PROJECT_ID", Value: "example-id"},
+			}},
+			want: true,
+		},
+		"component-provisioning payload with all fields": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "python-flask/Jenkinsfile", Env: []EnvPair{
+				{Name: "ODS_NAMESPACE", Value: "example-cd"},
+				{Name: "ODS_GIT_REF", Value: "4.x"},
+				{Name: "ODS_IMAGE_TAG", Value: "4.x"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "example"},
+				{Name: "AGENT_IMAGE_TAG", Value: "4.x"},
+				{Name: "SHARED_LIBRARY_REF", Value: "4.x"},
+				{Name: "PROJECT_ID", Value: "example"},
+				{Name: "COMPONENT_ID", Value: "python-flask-example"},
+				{Name: "GIT_URL_HTTP", Value: "https://bitbucket.example.com/scm/example/example-python-flask-example.git"},
+			}},
+			want: true,
+		},
+		"CD_USER_TYPE outside the known list": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "CD_USER_TYPE", Value: "superadmin"}}},
+			want:  false,
+		},
+		"PROJECT_GROUPS with malformed grammar": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_GROUPS", Value: "ADMINGROUP:my-admins"}}},
+			want:  false,
+		},
+		"PROJECT_ADMIN as plain username": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "PROJECT_ADMIN", Value: "usuario-admin"}}},
+			want:  true,
+		},
+		"project-creation requires PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation requires WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}}},
+			want:  false,
+		},
+		"project-creation rejects empty PROJECT_ID": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: ""}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}}},
+			want:  false,
+		},
+		"project-creation rejects empty WEBHOOK_HMAC_KEY": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: ""}}},
+			want:  false,
+		},
+		"project-creation requires env": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile"},
+			want:  false,
+		},
+		"real-world attack: path traversal in ODS_BITBUCKET_PROJECT rejected": {
+			// Observed attempt: "../" path traversal in ODS_BITBUCKET_PROJECT.
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{
+				{Name: "PROJECT_ID", Value: "test-project"},
+				{Name: "GIT_SERVER_URL", Value: "http://git.example.com"},
+				{Name: "ODS_BITBUCKET_PROJECT", Value: "../other-project"},
+			}},
+			want: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.event.IsValid()
+			if got != tc.want {
+				t.Fatalf("IsValid() = %v, want %v (event: %+v)", got, tc.want, tc.event)
+			}
+		})
+	}
+}
+
+func TestParsePipelineTemplateJsonStrEscaping(t *testing.T) {
+	tmpl, err := parsePipelineTemplate(pipelineConfigFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// renderAndParse renders the template and returns the fully-parsed JSON map.
+	// It fails the test if rendering or JSON parsing fails, which catches cases
+	// where an unescaped injection string broke the JSON structure.
+	renderAndParse := func(t *testing.T, data BuildConfigData) map[string]interface{} {
+		t.Helper()
+		b, err := getBuildConfig(tmpl, data)
+		if err != nil {
+			t.Fatalf("getBuildConfig error: %v", err)
+		}
+		var out map[string]interface{}
+		if err := json.Unmarshal(b.Bytes(), &out); err != nil {
+			t.Fatalf("rendered template is not valid JSON: %v\noutput:\n%s", err, b.String())
+		}
+		return out
+	}
+
+	t.Run("double-quote in GitURI is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped " in the URI breaks out of the JSON string and makes the
+		// document invalid — json.Unmarshal would fail inside renderAndParse.
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI: `https://domain.com/proj/repo"injected.git`,
+			Branch: "main", JenkinsfilePath: "Jenkinsfile",
+			Env: "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Verify the URI value round-trips with the literal " character preserved.
+		uri := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["uri"].(string)
+		if !strings.Contains(uri, `"injected`) {
+			t.Fatalf("expected escaped quote preserved in URI value, got: %s", uri)
+		}
+	})
+
+	t.Run("double-quote in Branch cannot break out of JSON string", func(t *testing.T) {
+		// Without escaping, branch value `main","secret":"leaked` would inject a
+		// new JSON key.  After escaping it becomes a single string value.
+		injectedBranch := `main","secret":"leaked`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          injectedBranch,
+			JenkinsfilePath: "Jenkinsfile",
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not surface as a top-level or spec-level field.
+		if _, ok := out["secret"]; ok {
+			t.Fatal("injection succeeded: 'secret' key found at top level")
+		}
+		// The ref value must equal the full injection string as data.
+		ref := out["spec"].(map[string]interface{})["source"].(map[string]interface{})["git"].(map[string]interface{})["ref"].(string)
+		if ref != injectedBranch {
+			t.Fatalf("branch value not preserved: got %q, want %q", ref, injectedBranch)
+		}
+	})
+
+	t.Run("backslash in JenkinsfilePath is escaped to valid JSON", func(t *testing.T) {
+		// An unescaped backslash followed by " would produce an invalid JSON escape.
+		injectedPath := `Jenkinsfile\","injected":true,"x":"`
+		data := BuildConfigData{
+			Name: "repo-main", TriggerSecret: "s3cr3t",
+			GitURI:          "https://domain.com/proj/repo.git",
+			Branch:          "main",
+			JenkinsfilePath: injectedPath,
+			Env:             "[]", ResourceVersion: "0",
+		}
+		out := renderAndParse(t, data)
+		// Injected key must not appear.
+		strategy := out["spec"].(map[string]interface{})["strategy"].(map[string]interface{})["jenkinsPipelineStrategy"].(map[string]interface{})
+		if _, ok := strategy["injected"]; ok {
+			t.Fatal("injection succeeded: 'injected' key found in jenkinsPipelineStrategy")
+		}
+		// The jenkinsfilePath value must equal the full injection string as data.
+		jfp := strategy["jenkinsfilePath"].(string)
+		if jfp != injectedPath {
+			t.Fatalf("jenkinsfilePath value not preserved: got %q, want %q", jfp, injectedPath)
+		}
+	})
+}
+
+func TestHandleRootRejectsInjectionPayloads(t *testing.T) {
+	ts, mc := testServer()
+	defer ts.Close()
+
+	tests := map[string]struct {
+		slug      string // repository.slug in the Bitbucket payload
+		displayID string // changes[0].ref.displayId
+	}{
+		"double-quote in repo slug": {
+			slug:      `repo"evil`,
+			displayID: "main",
+		},
+		"JSON metachar in branch displayId": {
+			slug:      "repository",
+			displayID: `main","kind":"delete`,
+		},
+		"backslash in branch displayId": {
+			slug:      "repository",
+			displayID: `main\ninjected`,
+		},
+		"null byte in branch displayId": {
+			slug:      "repository",
+			displayID: "main\x00injected",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			payload := map[string]interface{}{
+				"eventKey": "repo:refs_changed",
+				"repository": map[string]interface{}{
+					"slug": tc.slug,
+					"project": map[string]interface{}{
+						"key": "BAR",
+					},
+				},
+				"changes": []map[string]interface{}{
+					{
+						"type": "UPDATE",
+						"ref": map[string]interface{}{
+							"displayId": tc.displayID,
+							"type":      "BRANCH",
+						},
+					},
+				},
+			}
+			body, err := json.Marshal(payload)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res := postBitbucketRequest(t, ts.URL, body, bitbucketSignature("webhook-secret", body))
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if res.StatusCode != http.StatusBadRequest {
+				t.Fatalf("Got status %d, want %d; mock event: %v", res.StatusCode, http.StatusBadRequest, mc.Event)
+			}
+		})
+	}
+}
+
+func TestJenkinsfilePathValidation(t *testing.T) {
+	ts, _ := testServer()
+	defer ts.Close()
+
+	validPayload := func(t *testing.T) []byte {
+		t.Helper()
+		return readFixture(t, "repo-refs-changed-payload.json")
+	}
+
+	tests := map[string]struct {
+		path       string
+		wantStatus int
+	}{
+		// Valid paths
+		"default (no param)":          {"", http.StatusOK},
+		"simple filename":             {"Jenkinsfile", http.StatusOK},
+		"one directory deep":          {"ci/Jenkinsfile", http.StatusOK},
+		"multiple segments":           {"a/b/c/Jenkinsfile", http.StatusOK},
+		"filename with dots and dash": {"ci/My-Jenkinsfile.groovy", http.StatusOK},
+		// Invalid – path traversal
+		"double-dot traversal": {"../evil/Jenkinsfile", http.StatusBadRequest},
+		"traversal in middle":  {"ci/../../../etc/passwd", http.StatusBadRequest},
+		// Invalid – absolute path
+		"absolute path": {"/etc/passwd", http.StatusBadRequest},
+		// Invalid – hidden file / dot-start segment
+		"hidden file": {".hidden/Jenkinsfile", http.StatusBadRequest},
+		// Invalid – JSON metacharacters
+		"double-quote in path": {`ci/"injected`, http.StatusBadRequest},
+		"backslash in path":    {`ci\Jenkinsfile`, http.StatusBadRequest},
+		// Invalid – space
+		"space in path": {"ci/My Jenkinsfile", http.StatusBadRequest},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			body := validPayload(t)
+			url := ts.URL + "/"
+			if tc.path != "" {
+				url += "&jenkinsfile_path=" + tc.path
+			}
+			if tc.path != "" {
+				url = ts.URL + "/?jenkinsfile_path=" + tc.path
+			}
+			res := postBitbucketRequest(t, url, body, bitbucketSignature("webhook-secret", body))
+			_, _ = io.ReadAll(res.Body)
+			res.Body.Close()
+			if res.StatusCode != tc.wantStatus {
+				t.Fatalf("jenkinsfile_path=%q: got status %d, want %d", tc.path, res.StatusCode, tc.wantStatus)
+			}
+		})
 	}
 }
 
@@ -918,5 +1619,175 @@ func TestExtractComponent(t *testing.T) {
 				t.Fatalf("Got: %s, want: %s", got, tc.wantComponent)
 			}
 		})
+	}
+}
+
+// TestOcClientDoesNotFollowRedirects verifies the SSRF / SA-token-leakage
+// mitigation: the ocClient must never follow HTTP redirects so that the
+// Authorization: Bearer header is not forwarded to an attacker-controlled host.
+//
+// The test wires up two servers:
+//   - redirectSrv  returns a 302 pointing at capturesSrv
+//   - captureSrv   records whether it received an Authorization header
+//
+// If the client followed the redirect, captureSrv would receive the Bearer
+// token. With CheckRedirect returning http.ErrUseLastResponse the client
+// stops at the 302 and captureSrv is never reached.
+func TestOcClientDoesNotFollowRedirects(t *testing.T) {
+	bearerToken := "super-secret-sa-token"
+
+	// captureSrv records any Authorization header it receives.
+	capturedAuth := ""
+	captureSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedAuth = r.Header.Get("Authorization")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer captureSrv.Close()
+
+	// redirectSrv issues a 302 redirect to captureSrv.
+	redirectSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, captureSrv.URL, http.StatusFound)
+	}))
+	defer redirectSrv.Close()
+
+	// Build an ocClient with the same CheckRedirect policy as getSecureClient.
+	c := &ocClient{
+		HTTPClient: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		OpenShiftAPIBaseURL: redirectSrv.URL,
+		Token:               bearerToken,
+	}
+
+	req, err := http.NewRequest("GET", redirectSrv.URL+"/test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := c.do(req)
+	if err != nil {
+		t.Fatalf("do() returned unexpected error: %v", err)
+	}
+	defer res.Body.Close()
+
+	// The client must stop at the redirect response, not follow it.
+	if res.StatusCode != http.StatusFound {
+		t.Fatalf("expected status %d (redirect not followed), got %d", http.StatusFound, res.StatusCode)
+	}
+
+	// captureSrv must never have been called, so the Bearer token was not leaked.
+	if capturedAuth != "" {
+		t.Fatalf("SA Bearer token was leaked to redirect target: Authorization=%q", capturedAuth)
+	}
+}
+
+func TestParseIPRanges(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantLen int
+		wantErr bool
+	}{
+		{"single IPv4 CIDR", "192.168.1.0/24", 1, false},
+		{"bare IPv4 address", "10.0.0.1", 1, false},
+		{"bare IPv6 address", "::1", 1, false},
+		{"multiple entries", "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16", 3, false},
+		{"entries with spaces", " 10.0.0.1 , 10.0.0.2 ", 2, false},
+		{"empty string", "", 0, false},
+		{"invalid CIDR", "not-an-ip", 0, true},
+		{"invalid prefix length", "10.0.0.0/33", 0, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := parseIPRanges(tc.input)
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if len(got) != tc.wantLen {
+				t.Fatalf("got %d networks, want %d", len(got), tc.wantLen)
+			}
+		})
+	}
+}
+
+func TestIsIPAllowed(t *testing.T) {
+	ranges, err := parseIPRanges("192.168.1.0/24,10.0.0.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		ip   string
+		want bool
+	}{
+		{"192.168.1.100", true},
+		{"192.168.1.1", true},
+		{"10.0.0.1", true},
+		{"10.0.0.2", false},
+		{"172.16.0.1", false},
+		{"8.8.8.8", false},
+	}
+	for _, tc := range tests {
+		ip := net.ParseIP(tc.ip)
+		if got := isIPAllowed(ranges, ip); got != tc.want {
+			t.Errorf("isIPAllowed(%s) = %v, want %v", tc.ip, got, tc.want)
+		}
+	}
+}
+
+func TestAllowedWebhookIPRanges(t *testing.T) {
+	mc := &mockClient{}
+	ranges, _ := parseIPRanges("192.168.1.0/24")
+	server := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		WebhookHMACSecret:      "webhook-secret",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: ranges,
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts := httptest.NewServer(server.HandleRoot())
+	defer ts.Close()
+
+	body := `{"eventKey":"repo:refs_changed","repository":{"slug":"my-repo","project":{"key":"bar"}},"changes":[{"type":"UPDATE","ref":{"displayId":"main","type":"BRANCH"}}]}`
+
+	// httptest server binds to 127.0.0.1 and r.RemoteAddr will be 127.0.0.1:PORT,
+	// which is NOT in 192.168.1.0/24 → expect 403.
+	res := postBitbucketRequest(t, ts.URL, []byte(body), bitbucketSignature("webhook-secret", []byte(body)))
+	_, _ = io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != http.StatusForbidden {
+		t.Fatalf("expected 403 Forbidden from disallowed IP, got %d", res.StatusCode)
+	}
+
+	// With no IP restriction configured → same request must not be 403.
+	server2 := &Server{
+		Client:                 mc,
+		Namespace:              "bar-cd",
+		Project:                "bar",
+		WebhookHMACSecret:      "webhook-secret",
+		TriggerSecret:          "s3cr3t",
+		AcceptedEvents:         []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:  []string{"BRANCH"},
+		AllowedWebhookIPRanges: localhostIPRanges(),
+		RepoBase:               "https://domain.com",
+		MaxDeletionChecks:      1,
+	}
+	ts2 := httptest.NewServer(server2.HandleRoot())
+	defer ts2.Close()
+
+	res2 := postBitbucketRequest(t, ts2.URL, []byte(body), bitbucketSignature("webhook-secret", []byte(body)))
+	_, _ = io.ReadAll(res2.Body)
+	res2.Body.Close()
+	if res2.StatusCode == http.StatusForbidden {
+		t.Fatalf("expected non-403 when no IP restriction configured, got %d", res2.StatusCode)
 	}
 }
