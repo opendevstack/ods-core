@@ -51,6 +51,10 @@
 - Fixed VIT0089530 ([#1392](https://github.com/opendevstack/ods-core/pull/1392))
 - Harden post-creation scripts against RCE and credential exfiltration: remove `CD_PASSWORD` from the scripts environment and restrict the scripts/config repositories to an explicit `POST_CREATION_SCRIPTS_REPO_ALLOWLIST` (finding F-05) ([#1396] https://github.com/opendevstack/ods-core/pull/1396)
 
+## [4.13.3] - 2026-10-28
+### Fixed
+- Fix emudhra certificates issue ([1418](https://github.com/opendevstack/ods-core/pull/1418))
+
 ## [4.13.2] - 2026-08-13
 ### Fixed
 - Fix Git plugins that broke Jenkins ([#1401](https://github.com/opendevstack/ods-core/pull/1401))
