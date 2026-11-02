@@ -65,6 +65,32 @@ func readFixture(t *testing.T, name string) []byte {
 	return body
 }
 
+func TestDeletePipelineUsesBackgroundPropagation(t *testing.T) {
+	apiStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("Got method: %s, want: DELETE", r.Method)
+		}
+		if r.URL.Path != "/namespaces/bar-cd/buildconfigs/test-pipeline" {
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+		if policy := r.URL.Query().Get("propagationPolicy"); policy != "Background" {
+			t.Errorf("Got propagation policy: %s, want: Background", policy)
+		}
+		// Stop before the separate Jenkins request.
+		http.Error(w, "deletion rejected", http.StatusForbidden)
+	}))
+	defer apiStub.Close()
+
+	c := &ocClient{
+		HTTPClient:          apiStub.Client(),
+		OpenShiftAPIBaseURL: apiStub.URL,
+	}
+	err := c.DeletePipeline(&Event{Namespace: "bar-cd", Pipeline: "test-pipeline"})
+	if err == nil || err.Error() != "deletion rejected\n" {
+		t.Fatalf("Got error: %v, want: deletion rejected", err)
+	}
+}
+
 func TestMakePipelineName(t *testing.T) {
 	tests := map[string]struct {
 		project   string
