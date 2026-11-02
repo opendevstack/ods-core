@@ -885,7 +885,7 @@ func (c *ocClient) CreateOrUpdatePipeline(exists bool, tmpl *template.Template, 
 func (c *ocClient) DeletePipeline(e *Event) error {
 	// Delete OpenShift BuildConfig
 	url := fmt.Sprintf(
-		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Foreground",
+		"%s/namespaces/%s/buildconfigs/%s?propagationPolicy=Background",
 		c.OpenShiftAPIBaseURL,
 		e.Namespace,
 		e.Pipeline,

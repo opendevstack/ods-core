@@ -8,6 +8,7 @@
 ### Changed
 
 ### Fixed
+- Use background propagation when deleting pipeline BuildConfigs to avoid recreation during Jenkins synchronization ([#1421](https://github.com/opendevstack/ods-core/pull/1421))
 - Fix emudhra certificates issue ([1418](https://github.com/opendevstack/ods-core/pull/1418))
 
 
