@@ -6,6 +6,7 @@
 - Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
 ### Changed
+- Use sparse checkout for the Jenkins shared library's `src`, `vars`, and `resources` directories and configure depth-1 cloning ([#1](https://github.com/matzehecht/ods-core/pull/1))
 
 ### Fixed
 - Fix emudhra certificates issue ([1418](https://github.com/opendevstack/ods-core/pull/1418))
