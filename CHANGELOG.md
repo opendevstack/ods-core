@@ -9,6 +9,10 @@
 
 ### Fixed
 
+## [4.14.6] - 2026-11-06
+### Fixed
+- Update CD_USER_TYPE validation to include 'project' ([#1424](https://github.com/opendevstack/ods-core/pull/1424))
+
 ## [4.14.5] - 2026-10-26
 ### Fixed
 - Allow the config item template placeholder in release-manager build validation ([#1416](https://github.com/opendevstack/ods-core/pull/1416))
