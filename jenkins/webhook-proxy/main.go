@@ -104,7 +104,7 @@ var envProfiles = []envProfile{
 		requiredVars:       []string{"PROJECT_ID", "WEBHOOK_HMAC_KEY"},
 		vars: map[string][]FieldValidator{
 			"CD_USER_ID_B64":            {isBase64},
-			"CD_USER_TYPE":              {oneOf("general", "specific")},
+			"CD_USER_TYPE":              {oneOf("general", "specific", "project")},
 			"GIT_SERVER_URL":            {isURL("http", "https")},
 			"ODS_BITBUCKET_PROJECT":     {matchesFormat(safeNameRegex)},
 			"ODS_GIT_REF":               {matchesFormat(safeBranchRegex)},
