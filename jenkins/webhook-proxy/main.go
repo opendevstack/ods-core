@@ -51,6 +51,7 @@ const (
 	allowedChangeRefTypesEnvVar    = "ALLOWED_CHANGE_REF_TYPES"
 	allowedChangeRefTypesDefault   = "BRANCH"
 	allowedWebhookIPRangesEnvVar   = "ALLOWED_WEBHOOK_IP_RANGES"
+	branchSpecificPipelinesEnvVar  = "BRANCH_SPECIFIC_PIPELINES"
 	bitbucketSignatureHeader       = "X-Hub-Signature"
 	namespaceSuffix                = "-cd"
 	letterBytes                    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -226,6 +227,7 @@ type Server struct {
 	AllowedWebhookIPRanges  []*net.IPNet
 	RepoBase                string
 	MaxDeletionChecks       int
+	BranchSpecificPipelines bool
 }
 
 func init() {
@@ -276,6 +278,15 @@ func main() {
 	webhookHMACSecret := os.Getenv(webhookHMACSecretEnvVar)
 	if len(webhookHMACSecret) == 0 {
 		log.Fatalln(webhookHMACSecretEnvVar, "must be set")
+	}
+
+	branchSpecificPipelines := false
+	if value := os.Getenv(branchSpecificPipelinesEnvVar); value != "" {
+		var err error
+		branchSpecificPipelines, err = strconv.ParseBool(value)
+		if err != nil {
+			log.Fatalln("Invalid", branchSpecificPipelinesEnvVar, ":", err)
+		}
 	}
 
 	openShiftAPIHost := os.Getenv(openShiftAPIHostEnvVar)
@@ -384,6 +395,7 @@ func main() {
 		AllowedWebhookIPRanges:  allowedWebhookIPRanges,
 		RepoBase:                repoBase,
 		MaxDeletionChecks:       maxDeletionChecksInt,
+		BranchSpecificPipelines: branchSpecificPipelines,
 	}
 
 	log.Println("Ready to accept requests")
@@ -506,7 +518,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 			if component == "" {
 				component = extractComponent(req.Repository, project)
 			}
-			pipeline := makePipelineName(project, component, req.Branch)
+			pipeline := makePipelineName(project, component, req.Branch, s.BranchSpecificPipelines)
 
 			event = &Event{
 				Kind:            "forward",
@@ -617,7 +629,7 @@ func (s *Server) HandleRoot() http.HandlerFunc {
 				}
 			}
 
-			pipeline := makePipelineName(project, component, branch)
+			pipeline := makePipelineName(project, component, branch, s.BranchSpecificPipelines)
 
 			event = &Event{
 				Kind:            kind,
@@ -1234,13 +1246,14 @@ func randStringBytes(n int) string {
 // makePipelineName generates the name of the pipeline based on given project,
 // component and branch. It basically concatenates component and branch, but
 // if the branch contains a ticket ID (KEY-123), then only this ID is appended
-// to the component.
+// to the component. With branchSpecificPipelines enabled, a hash of the full,
+// case-sensitive branch name is also appended to keep ticket branches separate.
 // According to the Kubernetes label rules, a maximum of 63 characters is
 // allowed, see https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set.
 // Therefore, the name might be truncated. As this could cause potential clashes
 // between similar named branches, we put a short part of the branch hash value
 // into the name name to make this very unlikely.
-func makePipelineName(project string, component string, branch string) string {
+func makePipelineName(project string, component string, branch string, branchSpecificPipelines bool) string {
 	pipeline := strings.ToLower(component) + "-"
 	// Extract ticket ID from branch name if present
 	lowercaseBranch := strings.ToLower(branch)
@@ -1249,6 +1262,10 @@ func makePipelineName(project string, component string, branch string) string {
 	matches := ticketRegex.FindStringSubmatch(lowercaseBranch)
 	if len(matches) > 0 {
 		pipeline = pipeline + matches[1]
+		if branchSpecificPipelines {
+			branchHash := fmt.Sprintf("%x", sha1.Sum([]byte(branch)))
+			pipeline += "-" + branchHash[:7]
+		}
 	} else {
 		// Cut all non-alphanumeric characters
 		safeCharsRegex := regexp.MustCompile("[^-a-zA-Z0-9]+")

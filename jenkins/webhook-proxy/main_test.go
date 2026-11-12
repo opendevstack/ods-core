@@ -153,7 +153,7 @@ func TestMakePipelineName(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			pipeline := makePipelineName(tc.project, tc.component, tc.branch)
+			pipeline := makePipelineName(tc.project, tc.component, tc.branch, false)
 			if tc.expected != pipeline {
 				t.Fatalf(
 					"Expected '%s' but '%s' returned by makePipeline(project='%s', component='%s', branch='%s')",
@@ -164,10 +164,46 @@ func TestMakePipelineName(t *testing.T) {
 					tc.branch,
 				)
 			}
-			if len(tc.expected) > 63 {
-				t.Fatalf("'%s' is longer than 63 characters (%d) which is not allowed", tc.expected, len(tc.expected))
+			if len(pipeline) > 63 {
+				t.Fatalf("'%s' is longer than 63 characters (%d) which is not allowed", pipeline, len(pipeline))
 			}
 		})
+	}
+}
+
+func TestMakePipelineNameBranchSpecific(t *testing.T) {
+	for _, component := range []string{"frontend", strings.Repeat("c", 55)} {
+		t.Run(component, func(t *testing.T) {
+			branches := []string{
+				"pipeline-test/SMART-8602-a",
+				"pipeline-test/SMART-8602-b",
+				"pipeline-test/SMART-8602-A",
+				"pipeline-test/SMART-8602/a",
+				"pipeline-test/SMART-8602a",
+				"bugfix/SMART-8602-a",
+			}
+			names := map[string]string{}
+			for _, branch := range branches {
+				pipeline := makePipelineName("SMART", component, branch, true)
+				if other, exists := names[pipeline]; exists {
+					t.Errorf("Branches %q and %q share pipeline %q", other, branch, pipeline)
+				}
+				names[pipeline] = branch
+				if len(pipeline) > 63 || !dns1123LabelRegex.MatchString(pipeline) {
+					t.Errorf("Invalid pipeline name %q", pipeline)
+				}
+				if again := makePipelineName("SMART", component, branch, true); again != pipeline {
+					t.Errorf("Unstable pipeline name: %q != %q", again, pipeline)
+				}
+			}
+		})
+	}
+
+	for _, branch := range []string{"master", "develop", "release/1.0", "feature/no-ticket", strings.Repeat("b", 70)} {
+		legacy := makePipelineName("SMART", "frontend", branch, false)
+		if actual := makePipelineName("SMART", "frontend", branch, true); actual != legacy {
+			t.Errorf("Non-ticket branch %q changed from %q to %q", branch, legacy, actual)
+		}
 	}
 }
 
@@ -288,6 +324,64 @@ func testServer() (*httptest.Server, *mockClient) {
 		AllowedWebhookIPRanges:  localhostIPRanges(),
 	}
 	return httptest.NewServer(server.HandleRoot()), mc
+}
+
+func TestHandleRootBranchSpecificPipelines(t *testing.T) {
+	mc := &mockClient{}
+	server := &Server{
+		Client:                  mc,
+		Namespace:               "smart-cd",
+		Project:                 "smart",
+		WebhookHMACSecret:       "webhook-secret",
+		AcceptedEvents:          []string{"repo:refs_changed"},
+		AllowedChangeRefTypes:   []string{"BRANCH"},
+		AllowedWebhookIPRanges:  localhostIPRanges(),
+		MaxDeletionChecks:       1,
+		BranchSpecificPipelines: true,
+	}
+	handler := server.HandleRoot()
+	fixture := string(readFixture(t, "repo-refs-changed-payload.json"))
+	pipelines := map[string]string{}
+
+	for _, step := range []struct {
+		path   string
+		branch string
+		kind   string
+	}{
+		{"/", "pipeline-test/SMART-8602-a", "forward"},
+		{"/", "pipeline-test/SMART-8602-b", "forward"},
+		{"/", "pipeline-test/SMART-8602-a", "delete"},
+		{"/", "pipeline-test/SMART-8602-b", "forward"},
+		{"/build", "pipeline-test/SMART-8602-b", "forward"},
+	} {
+		body := strings.ReplaceAll(fixture, "OPENDEVSTACK", "SMART")
+		body = strings.ReplaceAll(body, "master", step.branch)
+		if step.kind == "delete" {
+			body = strings.ReplaceAll(body, "UPDATE", "DELETE")
+		}
+		if step.path == "/build" {
+			body = `{"branch":"` + step.branch + `","repository":"repository","project":"SMART"}`
+		}
+		req := httptest.NewRequest(http.MethodPost, step.path, strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set(bitbucketSignatureHeader, bitbucketSignature("webhook-secret", []byte(body)))
+		recorder := httptest.NewRecorder()
+		mc.Event = nil
+		handler.ServeHTTP(recorder, req)
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("%s %s: got status %d: %s", step.path, step.branch, recorder.Code, recorder.Body.String())
+		}
+		if mc.Event == nil || mc.Event.Kind != step.kind || mc.Event.Branch != step.branch {
+			t.Fatalf("Unexpected event: %+v", mc.Event)
+		}
+		if previous, exists := pipelines[step.branch]; exists && mc.Event.Pipeline != previous {
+			t.Fatalf("%s %s changed pipeline from %q to %q", step.path, step.branch, previous, mc.Event.Pipeline)
+		}
+		pipelines[step.branch] = mc.Event.Pipeline
+	}
+	if pipelines["pipeline-test/SMART-8602-a"] == pipelines["pipeline-test/SMART-8602-b"] {
+		t.Fatal("Branches for the same ticket share a pipeline")
+	}
 }
 
 func TestHandleRootDoesNotRequireTriggerSecret(t *testing.T) {

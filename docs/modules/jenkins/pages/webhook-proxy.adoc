@@ -94,6 +94,9 @@ The following environment variables can be set on the `DeploymentConfig` and are
 | ALLOWED_EXTERNAL_PROJECTS
 | Comma-separated list of external projects which the Webhook Proxy can deal with. For security reasons, by default the webhook proxy allows only its own project and the `opendevstack` project to be passed as a `project` parameter.
 
+| BRANCH_SPECIFIC_PIPELINES
+| Set to `true` to append a seven-character hash of the full, case-sensitive branch name to ticket-based pipeline names (for example, `frontend-8602-<hash>`). This prevents branches for the same ticket from sharing a BuildConfig/Jenkins job. Defaults to `false` to preserve existing pipeline names. Names for branches without a matching project ticket ID are unchanged. Applies to both BitBucket webhooks and `/build`, including deletion events. Before enabling or disabling this setting, stop affected builds and remove the old ticket-based BuildConfigs and Jenkins jobs; they are not automatically migrated or deleted.
+
 | OPENSHIFT_API_HOST
 | Defaults to `openshift.default.svc.cluster.local`. Usually does not need to be modified.
 
