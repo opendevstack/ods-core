@@ -6,6 +6,7 @@
 - Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
 ### Changed
+- Update configmap-reader role to include application.properties- #1425⁠ ([#1425](https://github.com/opendevstack/ods-core/pull/1425))
 
 ### Fixed
 
