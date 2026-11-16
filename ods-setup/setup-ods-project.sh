@@ -61,13 +61,14 @@ else
   echo "Service account 'ods-edit' already exists"
 fi
 
-# Allow authenticated users to read the SonarQube and Aqua ConfigMaps
+# Allow authenticated users to read the SonarQube, Aqua and application.properties ConfigMaps
 if ! oc get role configmap-reader -n ${NAMESPACE} > /dev/null 2>&1; then
   oc create role configmap-reader \
     --verb=get \
     --resource=configmaps \
     --resource-name=sonarqube-scan \
     --resource-name=aqua \
+    --resource-name=application.properties \
     -n ${NAMESPACE}
 else
   echo "Role 'configmap-reader' already exists"
