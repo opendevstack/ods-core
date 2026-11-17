@@ -3,8 +3,8 @@
     "repository": "123",
     "env": [
        {
-          "name": "FOO_BAR",
-          "value": "baz"
+          "name": "environment",
+          "value": "DEV"
        }
     ]
  }
