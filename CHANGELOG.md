@@ -7,10 +7,13 @@
 
 ### Changed
 - Use sparse checkout for the Jenkins shared library's `src`, `vars`, and `resources` directories and configure depth-1 cloning ([#1](https://github.com/matzehecht/ods-core/pull/1))
+- Update configmap-reader role to include application.properties- #1425⁠ ([#1425](https://github.com/opendevstack/ods-core/pull/1425))
 
 ### Fixed
-- Fix emudhra certificates issue ([1418](https://github.com/opendevstack/ods-core/pull/1418))
 
+## [4.14.6] - 2026-11-06
+### Fixed
+- Update CD_USER_TYPE validation to include 'project' ([#1424](https://github.com/opendevstack/ods-core/pull/1424))
 
 ## [4.14.5] - 2026-10-26
 ### Fixed
