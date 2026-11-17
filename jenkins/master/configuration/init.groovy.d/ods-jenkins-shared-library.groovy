@@ -2,8 +2,14 @@
 
 // imports
 import hudson.scm.SCM
+import hudson.plugins.git.extensions.impl.CloneOption
+import hudson.plugins.git.extensions.impl.SparseCheckoutPath
+import hudson.plugins.git.extensions.impl.SparseCheckoutPaths
 import jenkins.model.Jenkins
 import jenkins.plugins.git.GitSCMSource
+import jenkins.plugins.git.traits.BranchDiscoveryTrait
+import jenkins.plugins.git.traits.CloneOptionTrait
+import jenkins.plugins.git.traits.SparseCheckoutPathsTrait
 import org.jenkinsci.plugins.workflow.libs.*
 import org.jenkinsci.plugins.workflow.libs.LibraryConfiguration
 import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever
@@ -36,6 +42,13 @@ def gitSCMSource = new GitSCMSource(
   "",
   false
 )
+gitSCMSource.setTraits([
+  new BranchDiscoveryTrait(),
+  new CloneOptionTrait(new CloneOption(true, false, null, null)),
+  new SparseCheckoutPathsTrait(new SparseCheckoutPaths(
+    ["src", "vars", "resources"].collect { new SparseCheckoutPath(it) }
+  ))
+])
 def scmSourceRetriever = new SCMSourceRetriever(gitSCMSource)
 
 // Get Jenkins instance.
