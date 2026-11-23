@@ -121,7 +121,7 @@ RUN cd /tmp \
 RUN cd /tmp \
     && curl -sSLO https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-${SOPS_VERSION}-1.x86_64.rpm \
     && echo "${SOPS_HASH} *${SOPS_FILE}" | sha256sum -c - \
-    && dnf install -y sops-${SOPS_VERSION}-1.x86_64.rpm \
+    && dnf install -y ./sops-${SOPS_VERSION}-1.x86_64.rpm \
     && mkdir -p /tmp/helm \
     && curl -sSLO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz \
     && echo "${HELM_HASH} *${HELM_FILE}" | sha256sum -c - \
