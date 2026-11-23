@@ -1,11 +1,11 @@
 # Aditional plugins
 sonar:2.19.1
 ansicolor:542.v03d235fee02d
-audit-trail:472.vb_51e5934ec50
+audit-trail:464.v78b_845ffc5d8
 Office-365-Connector:5.3.1
 mask-passwords:220.v95819055b_265
-allure-jenkins-plugin:2.34.0
-oidc-provider:89.v3dfb_6d89b_618
+allure-jenkins-plugin:2.37.0
+oidc-provider:234.vca_b_26b_f4b_dda_
 
 # plugins modified to fix incompatibilities
 
