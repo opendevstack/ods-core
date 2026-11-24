@@ -85,31 +85,48 @@ podTemplate(
 
     stage('Create OpenShift projects') {
       dir('ods-core') {
-        sh(
-          script: """./create-projects/create-projects.sh --verbose \
-            --project=${projectId} \
-            --groups=${projectGroups}""",
-          label: 'Create OpenShift projects'
-        )
+        withEnv([
+          "PROJECT_ID=${projectId}",
+          "PROJECT_GROUPS=${projectGroups}"
+        ]) {
+          sh(
+            script: '''./create-projects/create-projects.sh --verbose \\
+              --project="${PROJECT_ID}" \\
+              --groups="${PROJECT_GROUPS}"''',
+            label: 'Create OpenShift projects'
+          )
+        }
       }
     }
 
     stage('Setup Jenkins in CD project') {
       dir('ods-core') {
-        sh(
-          script: """./create-projects/create-cd-jenkins.sh --verbose \
-            --non-interactive \
-            --project=${projectId} \
-            --ods-namespace=${odsNamespace} \
-            --ods-image-tag=${odsImageTag} \
-            --ods-bitbucket-project ${odsBitbucketProject} \
-            --pipeline-trigger-secret-b64=${pipelineTriggerSecret} \
-            --webhook-hmac-key-b64=${webhookHmacKey} \
-            --webhook-allowed-ip-ranges=${webhookAllowedIpRanges} \
-            --cd-user-type=${cdUserType} \
-            --cd-user-id-b64=${cdUserIdB64}""",
-          label: 'Setup Jenkins in CD project'
-        )
+        withEnv([
+          "PROJECT_ID=${projectId}",
+          "ODS_NAMESPACE=${odsNamespace}",
+          "ODS_IMAGE_TAG=${odsImageTag}",
+          "ODS_BITBUCKET_PROJECT=${odsBitbucketProject}",
+          "PIPELINE_TRIGGER_SECRET=${pipelineTriggerSecret}",
+          "WEBHOOK_HMAC_KEY=${webhookHmacKey}",
+          "WEBHOOK_ALLOWED_IP_RANGES=${webhookAllowedIpRanges}",
+          "CD_USER_TYPE=${cdUserType}",
+          "CD_USER_ID_B64=${cdUserIdB64}"
+        ]) {
+          sh(
+            script: '''./create-projects/create-cd-jenkins.sh --verbose \\
+              --non-interactive \\
+              --project="${PROJECT_ID}" \\
+              --ods-namespace="${ODS_NAMESPACE}" \\
+              --ods-image-tag="${ODS_IMAGE_TAG}" \\
+              --ods-bitbucket-project "${ODS_BITBUCKET_PROJECT}" \\
+              --pipeline-trigger-secret-b64="${PIPELINE_TRIGGER_SECRET}" \\
+              --webhook-hmac-key-b64="${WEBHOOK_HMAC_KEY}" \\
+              --webhook-allowed-ip-ranges="${WEBHOOK_ALLOWED_IP_RANGES}" \\
+              --cd-user-type="${CD_USER_TYPE}" \\
+              --cd-user-id-b64="${CD_USER_ID_B64}"''',
+            label: 'Setup Jenkins in CD project'
+          )
+        }
       }
     }
 
@@ -267,12 +284,16 @@ podTemplate(
 
                     echo("Executing script: ${scriptName}")
 
-                    sh(
-                        script: """
-                        "${scriptPath}" "${odsConfigPath}" "${scriptsConfigPath}"
-                        """,
-                        label: "Execute script: ${scriptName}"
-                    )
+                    withEnv([
+                      "POST_CREATION_SCRIPT_PATH=${scriptPath}",
+                      "ODS_CONFIG_PATH=${odsConfigPath}",
+                      "SCRIPTS_CONFIG_PATH=${scriptsConfigPath}"
+                    ]) {
+                      sh(
+                          script: '''"${POST_CREATION_SCRIPT_PATH}" "${ODS_CONFIG_PATH}" "${SCRIPTS_CONFIG_PATH}"''',
+                          label: "Execute script: ${scriptName}"
+                      )
+                    }
                 }
             }
           }
@@ -283,8 +304,14 @@ podTemplate(
 }
 
 def getConfigValue(field, file, defaultValue = '') {
-  return sh(
-    script: "grep '^${field}=' ${file} | cut -d'=' -f2 | tr -d '\"' || echo '${defaultValue}'",
-    returnStdout: true
-  ).trim()
+  return withEnv([
+    "CONFIG_FIELD=${field}",
+    "CONFIG_FILE=${file}",
+    "DEFAULT_VALUE=${defaultValue}"
+  ]) {
+    sh(
+      script: '''grep "^${CONFIG_FIELD}=" "${CONFIG_FILE}" | cut -d'=' -f2 | tr -d '"' || echo "${DEFAULT_VALUE}"''',
+      returnStdout: true
+    ).trim()
+  }
 }

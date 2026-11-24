@@ -9,6 +9,7 @@
 - Update configmap-reader role to include application.properties- #1425⁠ ([#1425](https://github.com/opendevstack/ods-core/pull/1425))
 
 ### Fixed
+- Fixed Jenkinsfile script + shell commands to escape untrusted shell parameters ([#1426](https://github.com/opendevstack/ods-core/pull/1426))
 
 ## [4.14.6] - 2026-11-06
 ### Fixed
