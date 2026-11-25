@@ -1293,6 +1293,10 @@ func TestIsValid(t *testing.T) {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: "create-projects/Jenkinsfile", Env: []EnvPair{{Name: "PROJECT_ID", Value: "test-project"}, {Name: "WEBHOOK_HMAC_KEY", Value: "dGVzdC1rZXk="}, {Name: "WEBHOOK_ALLOWED_IP_RANGES", Value: "10.0.0.0/8,192.168.1.1"}}},
 			want:  true,
 		},
+		"release-manager rejects invalid mainBranch": {
+			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{{Name: "mainBranch", Value: "main branch"}}},
+			want:  false,
+		},
 		"release-manager payload with all fields": {
 			event: Event{Kind: "forward", Namespace: "bar-cd", Repo: "repo", Component: "repo", Branch: "main", Pipeline: "repo-main", JenkinsfilePath: jenkinsfilePathDefault, Env: []EnvPair{
 				{Name: "environment", Value: "DEV"},
@@ -1300,6 +1304,7 @@ func TestIsValid(t *testing.T) {
 				{Name: "releaseStatusJiraIssueKey", Value: "EXAMPLE-116"},
 				{Name: "changeId", Value: "CH00002"},
 				{Name: "version", Value: "WIP"},
+				{Name: "mainBranch", Value: "main"},
 				{Name: "configItem", Value: "some-config-item"},
 			}},
 			want: true,

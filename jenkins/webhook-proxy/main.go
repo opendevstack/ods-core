@@ -94,6 +94,7 @@ var envProfiles = []envProfile{
 			"CHANGEID":                  {matchesFormat(safeNameRegex)},
 			"CONFIGITEM":                {isConfigItem},
 			"ENVIRONMENT":               {oneOf("DEV", "QA", "PROD")},
+			"MAINBRANCH":                {matchesFormat(safeBranchRegex)},
 			"RELEASESTATUSJIRAISSUEKEY": {matchesFormat(jiraIssueKeyRegex)},
 			"VERSION":                   {matchesFormat(safeNameRegex)},
 		},
