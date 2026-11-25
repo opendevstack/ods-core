@@ -196,7 +196,7 @@ ifndef env
 	$(error "Environment variable 'env' is not defined. Please set it to the desired environment (e.g., dev, staging, prod) before running this target.")
 endif
 
-	@if [ ! -d "../ods-api-service" ]; then \
+	@if [ ! -d "ods-api-service" ]; then \
 		echo "Error: ods-api-service directory not found at ../ods-api-service"; \
 		exit 1; \
 	fi
@@ -287,7 +287,7 @@ apply-ods-api-service-chart: check-configuration-defined
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_API_SERVICE_VERSION) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
-		ods-api-service . 
+		ods-api-service .
 .PHONY: apply-ods-api-service-chart
 
 ## Apply OpenShift resources related to the Ods API Service Database.
@@ -313,7 +313,7 @@ apply-ods-api-service-database-chart: check-configuration-defined
 		--set global.imageNamespace=$(ODS_NAMESPACE) \
 		--set global.imageTag=$(ODS_DATABASE_VERSION) \
 		--set ODS_OPENSHIFT_APP_DOMAIN=$(OPENSHIFT_APPS_BASEDOMAIN) \
-		ods-api-service-postgresql . 
+		ods-api-service-postgresql .
 .PHONY: apply-ods-api-service-database-chart
 
 ## Run database migration for ODS API Service. This will port-forward the PostgreSQL service to localhost and run the migration command, then stop the port-forwarding.

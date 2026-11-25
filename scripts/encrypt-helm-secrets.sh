@@ -113,7 +113,7 @@ encrypt_secrets_in_folder() {
                 echo "    (Use -y flag to auto-remove)"
             fi
         fi
-    done < <(find "$folder" -maxdepth 2 -type f \( -name "*secrets*.dec.yaml" -o -name "*secrets*.yaml" \) ! -name "*.enc.yaml" 2>/dev/null)
+    done < <(find "$folder" -maxdepth 2 -type f \( -name "*.dec.yaml" -o -name "*secrets*.yaml" \) ! -name "*.enc.yaml" 2>/dev/null)
     
     if [ $encrypted_count -eq 0 ]; then
         echo "  ⚠ No secrets files found"
