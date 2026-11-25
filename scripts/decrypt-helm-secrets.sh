@@ -86,7 +86,13 @@ decrypt_secrets_in_folder() {
         decrypted_file="${encrypted_file%.enc.yaml}.dec.yaml"
         
         echo "  • Decrypting: $(basename "$encrypted_file")"
-        helm secrets decrypt "$encrypted_file" > "$decrypted_file"
+        decrypted_tmp=$(mktemp "${decrypted_file}.tmp.XXXXXX")
+        if ! helm secrets decrypt "$encrypted_file" > "$decrypted_tmp"; then
+            rm -f "$decrypted_tmp"
+            echo "    ❌ Failed to decrypt: $(basename "$encrypted_file")"
+            return 1
+        fi
+        mv "$decrypted_tmp" "$decrypted_file"
         echo "    ✓ Created: $(basename "$decrypted_file")"
         ((decrypted_count++))
         
@@ -106,7 +112,7 @@ decrypt_secrets_in_folder() {
                 echo "    (Use -y flag to auto-remove)"
             fi
         fi
-    done < <(find "$folder" -maxdepth 2 -type f -name "*secrets*.enc.yaml" 2>/dev/null)
+    done < <(find "$folder" -maxdepth 2 -type f -name "*.enc.yaml" 2>/dev/null)
     
     if [ $decrypted_count -eq 0 ]; then
         echo "  ⚠ No encrypted secrets files found"
@@ -120,12 +126,12 @@ decrypt_secrets_in_folder() {
 if [ "$ENV" = "all" ]; then
     # Decrypt root + all environment folders
     echo "=== Decrypting all folders ==="
-    decrypt_secrets_in_folder "$FOLDER" "root folder"
+    decrypt_secrets_in_folder "$FOLDER" "root folder" || exit 1
     
     # Find and process environment subfolders
     while IFS= read -r -d '' env_folder; do
         env_name=$(basename "$env_folder")
-        decrypt_secrets_in_folder "$env_folder" "environment: $env_name"
+        decrypt_secrets_in_folder "$env_folder" "environment: $env_name" || exit 1
     done < <(find "$FOLDER" -maxdepth 2 -type d ! -name ".*" -print0 | grep -zv "^$FOLDER$")
     
 elif [ -n "$ENV" ]; then
@@ -138,10 +144,10 @@ elif [ -n "$ENV" ]; then
         find "$FOLDER" -maxdepth 2 -type d ! -name ".*" ! -path "$FOLDER" -exec basename {} \;
         exit 1
     fi
-    decrypt_secrets_in_folder "$env_folder" "environment: $ENV"
+    decrypt_secrets_in_folder "$env_folder" "environment: $ENV" || exit 1
 else
     # No ENV specified - decrypt root folder
-    decrypt_secrets_in_folder "$FOLDER" "root folder"
+    decrypt_secrets_in_folder "$FOLDER" "root folder" || exit 1
 fi
 
 # Summary
