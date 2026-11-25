@@ -19,7 +19,7 @@ fi
 echo "${ME}: Needs development packages? ${NEEDS_DEVEL}"
 echo " "
 echo "${ME}: Listing versions of java installed: "
-yum list installed | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
+rpm -qa | grep -i "\(java\|jre\)" | tee -a ${JAVA_INSTALLED_PKGS_LOGS}
 touch ${JAVA_TARGET_INSTALLED_PKGS_LOGS}
 grep -i "java-21" ${JAVA_INSTALLED_PKGS_LOGS} > ${JAVA_TARGET_INSTALLED_PKGS_LOGS} || echo "No java 21 packages found."
 
