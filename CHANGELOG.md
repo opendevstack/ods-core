@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Add new parameter to webhook-proxy release-manager ([#1428](https://github.com/opendevstack/ods-core/pull/1428)
 ### Added
 - Add client credentials support to external services templates in the ODS API Service ([#1388](https://github.com/opendevstack/ods-core/pull/1388))
 
